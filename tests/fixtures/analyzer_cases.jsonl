@@ -1,0 +1,27 @@
+{"id":"entity-001","query":"C++和C#有什么区别","must_preserve":["c++","c#"],"scripts":["latin","han"]}
+{"id":"entity-002","query":".NET与Node.js v22.14.0","must_preserve":[".net","node.js","v22.14.0"],"scripts":["latin","han"]}
+{"id":"entity-003","query":"RWKV-7在C++环境中的最新表现","must_preserve":["rwkv-7","c++"],"freshness":"latest"}
+{"id":"entity-004","query":"A股和B站以及C语言","must_preserve":["a股","b站","c语言"],"scripts":["latin","han"]}
+{"id":"entity-005","query":"GPT-4o和Qwen2.5-72B哪个好","must_preserve":["gpt-4o","qwen2.5-72b"]}
+{"id":"entity-006","query":"13.3B模型需要多少GB显存","must_preserve":["13.3b"]}
+{"id":"entity-006b","query":"G1H、4K、5G和GPT4o分别是什么","must_preserve":["g1h","4k","5g","gpt4o"]}
+{"id":"entity-007","query":"联系test.user@example.com","must_preserve":["test.user@example.com"]}
+{"id":"entity-008","query":"查看https://example.com/a?q=1","must_preserve":["https://example.com/a?q=1"]}
+{"id":"entity-009","query":"site:github.com RWKV最新进展","must_preserve":["github.com"],"freshness":"latest"}
+{"id":"unicode-001","query":"Ｃ＋＋与．ＮＥＴ","must_preserve":["c++",".net"]}
+{"id":"unicode-002","query":"Thé quick café","must_preserve":["thé","café"],"scripts":["latin"]}
+{"id":"unicode-003","query":"naïve façade résumé","must_preserve":["naïve","façade","résumé"]}
+{"id":"lang-001","query":"что такое python","must_preserve":["что","такое","python"],"scripts":["cyrillic","latin"]}
+{"id":"lang-002","query":"последняя версия Python","must_preserve":["последняя","версия","python"],"scripts":["cyrillic","latin"]}
+{"id":"lang-003","query":"파이썬이란 무엇인가","must_preserve":["파이썬이란","무엇인가"],"scripts":["hangul"]}
+{"id":"lang-004","query":"τι είναι η python","must_preserve":["τι","είναι","η","python"],"scripts":["greek","latin"]}
+{"id":"lang-005","query":"ما هي لغة python","must_preserve":["ما","هي","لغة","python"],"scripts":["arabic","latin"]}
+{"id":"lang-006","query":"Pythonとは何ですか","must_preserve":["python"],"scripts":["latin","han","hiragana"]}
+{"id":"zh-001","query":"像RNN一样推理的语言模型","must_preserve":["rnn","推理","语言","模型"]}
+{"id":"zh-002","query":"最近有什么新能源汽车政策","must_preserve":["新能源","汽车","政策"],"freshness":"latest"}
+{"id":"zh-003","query":"奶龙最近为什么火","must_preserve":["奶龙"],"freshness":"latest"}
+{"id":"zh-004","query":"今天A股主要指数有什么变化","must_preserve":["a股"],"freshness":"realtime"}
+{"id":"number-001","query":"2026-07-18发布了什么版本","must_preserve":["2026-07-18"]}
+{"id":"symbol-001","query":"😀是什么意思","must_preserve":["😀"]}
+{"id":"noise-001","query":"   RWKV   是什么？   ","must_preserve":["rwkv"]}
+{"id":"long-001","query":"请找出一位出生于欧洲、曾经在两所不同大学任教、后来创办人工智能公司的研究者，并核对他的出生年份、任教经历、公司名称以及公司最近一次公开融资信息。","must_preserve":["欧洲","大学","人工智能","研究者","出生","融资"],"multi_query":true}

@@ -1,0 +1,1086 @@
+{
+  "schema_version": "query-formation-case-comparison.v1",
+  "case_count": 50,
+  "p4_domain_gains": [
+    "retrieval-zh-006",
+    "retrieval-zh-024",
+    "retrieval-en-001",
+    "retrieval-en-002",
+    "retrieval-en-006",
+    "retrieval-en-008",
+    "retrieval-en-009",
+    "retrieval-en-010",
+    "retrieval-en-012",
+    "retrieval-en-017",
+    "retrieval-en-020",
+    "retrieval-en-021"
+  ],
+  "p4_domain_losses": [],
+  "rules_domain_gains": [
+    "retrieval-en-020",
+    "retrieval-en-024"
+  ],
+  "rules_domain_losses": [],
+  "p4_target_gains": [
+    "retrieval-zh-024"
+  ],
+  "p4_target_losses": [],
+  "cases": [
+    {
+      "id": "retrieval-zh-001",
+      "query": "Python当前最新稳定版本是什么？请以官网为准。",
+      "language": "zh",
+      "category": "software_release",
+      "raw_queries": [
+        "Python当前最新稳定版本是什么？请以官网为准"
+      ],
+      "rules_queries": [
+        "Python当前最新稳定版本是什么？请以官网为准"
+      ],
+      "p4_queries": [
+        "Python 官网 最新稳定版本"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-002",
+      "query": "Node.js当前的LTS版本是什么？只看官方发布信息。",
+      "language": "zh",
+      "category": "software_release",
+      "raw_queries": [
+        "Node.js当前的LTS版本是什么？只看官方发布信息"
+      ],
+      "rules_queries": [
+        "Node.js当前的LTS版本是什么？只看官方发布信息"
+      ],
+      "p4_queries": [
+        "Node.js 官方 LTS 版本 当前"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-003",
+      "query": "Rust最新稳定版发布说明是什么？请找官方来源。",
+      "language": "zh",
+      "category": "software_release",
+      "raw_queries": [
+        "Rust最新稳定版发布说明是什么？请找官方来源"
+      ],
+      "rules_queries": [
+        "Rust最新稳定版发布说明是什么？请找官方来源"
+      ],
+      "p4_queries": [
+        "Rust 最新稳定版发布说明 官方"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-004",
+      "query": "Go语言目前最新稳定版本及发布说明，以官网为准。",
+      "language": "zh",
+      "category": "software_release",
+      "raw_queries": [
+        "Go语言目前最新稳定版本及发布说明，以官网为准"
+      ],
+      "rules_queries": [
+        "Go语言目前最新稳定版本及发布说明，以官网为准"
+      ],
+      "p4_queries": [
+        "Go 官网 最新稳定版本"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-005",
+      "query": "Kubernetes最近一个正式版本发布了什么？引用官方Release信息。",
+      "language": "zh",
+      "category": "software_release",
+      "raw_queries": [
+        "Kubernetes最近一个正式版本发布了什么？引用官方Release信息"
+      ],
+      "rules_queries": [
+        "Kubernetes最近一个正式版本发布了什么？引用官方Release信息"
+      ],
+      "p4_queries": [
+        "Kubernetes 最新正式版本 官方 Release 信息"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-006",
+      "query": "搜索GitHub上llama.cpp最近的Release或更新记录。",
+      "language": "zh",
+      "category": "repository_release",
+      "raw_queries": [
+        "搜索GitHub上llama.cpp最近的Release或更新记录"
+      ],
+      "rules_queries": [
+        "搜索GitHub上llama.cpp最近的Release或更新记录"
+      ],
+      "p4_queries": [
+        "llama.cpp latest release GitHub"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-007",
+      "query": "RWKV最近有什么官方项目进展？查看官方仓库或模型发布页。",
+      "language": "zh",
+      "category": "repository_release",
+      "raw_queries": [
+        "RWKV最近有什么官方项目进展？查看官方仓库或模型发布页"
+      ],
+      "rules_queries": [
+        "RWKV最近有什么官方项目进展？查看官方仓库或模型发布页"
+      ],
+      "p4_queries": [
+        "RWKV 官方仓库 模型发布"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": true,
+      "rules_target_page_hit_at_20": true,
+      "p4_target_page_hit_at_20": true
+    },
+    {
+      "id": "retrieval-zh-008",
+      "query": "vLLM最新Release包含哪些更新？以GitHub官方仓库为准。",
+      "language": "zh",
+      "category": "repository_release",
+      "raw_queries": [
+        "vLLM最新Release包含哪些更新？以GitHub官方仓库为准"
+      ],
+      "rules_queries": [
+        "vLLM最新Release包含哪些更新？以GitHub官方仓库为准"
+      ],
+      "p4_queries": [
+        "vLLM GitHub latest release"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-009",
+      "query": "PyTorch最近正式发布了什么版本？查官方发布说明。",
+      "language": "zh",
+      "category": "software_release",
+      "raw_queries": [
+        "PyTorch最近正式发布了什么版本？查官方发布说明"
+      ],
+      "rules_queries": [
+        "PyTorch最近正式发布了什么版本？查官方发布说明"
+      ],
+      "p4_queries": [
+        "PyTorch 最新版本 官方发布说明"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-010",
+      "query": "PostgreSQL目前最新正式版本是什么？请使用官网信息。",
+      "language": "zh",
+      "category": "software_release",
+      "raw_queries": [
+        "PostgreSQL目前最新正式版本是什么？请使用官网信息"
+      ],
+      "rules_queries": [
+        "PostgreSQL目前最新正式版本是什么？请使用官网信息"
+      ],
+      "p4_queries": [
+        "PostgreSQL 官网 最新正式版本"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-011",
+      "query": "国家统计局最新公布的中国CPI数据是什么？",
+      "language": "zh",
+      "category": "statistics",
+      "raw_queries": [
+        "国家统计局最新公布的中国CPI数据是什么"
+      ],
+      "rules_queries": [
+        "国家统计局最新公布的中国CPI数据"
+      ],
+      "p4_queries": [
+        "国家统计局 最新 CPI 数据"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-012",
+      "query": "国家统计局最新公布的国内生产总值GDP数据。",
+      "language": "zh",
+      "category": "statistics",
+      "raw_queries": [
+        "国家统计局最新公布的国内生产总值GDP数据"
+      ],
+      "rules_queries": [
+        "国家统计局最新公布的国内生产总值GDP数据"
+      ],
+      "p4_queries": [
+        "国家统计局 最新公布 国内生产总值 GDP 数据"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-013",
+      "query": "中国最新一期贷款市场报价利率LPR是多少？请找官方发布。",
+      "language": "zh",
+      "category": "statistics",
+      "raw_queries": [
+        "中国最新一期贷款市场报价利率LPR是多少？请找官方发布"
+      ],
+      "rules_queries": [
+        "中国最新一期贷款市场报价利率LPR是多少？请找官方发布"
+      ],
+      "p4_queries": [
+        "中国最新一期贷款市场报价利率LPR官方发布"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-014",
+      "query": "最近新能源汽车车辆购置税或车船税优惠有什么官方政策变化？",
+      "language": "zh",
+      "category": "government_policy",
+      "raw_queries": [
+        "最近新能源汽车车辆购置税或车船税优惠有什么官方政策变化"
+      ],
+      "rules_queries": [
+        "最近新能源汽车车辆购置税或车船税优惠有什么官方政策变化"
+      ],
+      "p4_queries": [
+        "新能源汽车 车辆购置税 车船税 官方 政策 变化"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-015",
+      "query": "国务院最近发布了哪些人工智能相关政策文件？",
+      "language": "zh",
+      "category": "government_policy",
+      "raw_queries": [
+        "国务院最近发布了哪些人工智能相关政策文件"
+      ],
+      "rules_queries": [
+        "国务院最近发布了哪些人工智能相关政策文件"
+      ],
+      "p4_queries": [
+        "国务院 人工智能 政策 文件 最近"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-016",
+      "query": "国家卫健委最新发布的法定传染病疫情概况。",
+      "language": "zh",
+      "category": "statistics",
+      "raw_queries": [
+        "国家卫健委最新发布的法定传染病疫情概况"
+      ],
+      "rules_queries": [
+        "国家卫健委最新发布的法定传染病疫情"
+      ],
+      "p4_queries": [
+        "国家卫健委 法定传染病 疫情概况 最新"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-017",
+      "query": "中央气象台最新台风预警是什么？",
+      "language": "zh",
+      "category": "realtime_public_info",
+      "raw_queries": [
+        "中央气象台最新台风预警是什么"
+      ],
+      "rules_queries": [
+        "中央气象台最新台风预警"
+      ],
+      "p4_queries": [
+        "中央气象台 最新 台风预警"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-018",
+      "query": "腾讯最近一期业绩公告和财务报告。",
+      "language": "zh",
+      "category": "company_filing",
+      "raw_queries": [
+        "腾讯最近一期业绩公告和财务报告"
+      ],
+      "rules_queries": [
+        "腾讯最近一期业绩公告和财务报告"
+      ],
+      "p4_queries": [
+        "腾讯 最新 财报 业绩公告"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-019",
+      "query": "阿里巴巴最近一期财报和业绩公告，请用公司投资者关系页面。",
+      "language": "zh",
+      "category": "company_filing",
+      "raw_queries": [
+        "阿里巴巴最近一期财报和业绩公告，请用公司投资者关系页面"
+      ],
+      "rules_queries": [
+        "阿里巴巴最近一期财报和业绩公告，请用公司投资者关系页面"
+      ],
+      "p4_queries": [
+        "阿里巴巴 投资者关系 财报 业绩公告"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-020",
+      "query": "贵州茅台最新年度报告原文在哪里？",
+      "language": "zh",
+      "category": "company_filing",
+      "raw_queries": [
+        "贵州茅台最新年度报告原文在哪里"
+      ],
+      "rules_queries": [
+        "贵州茅台最新年度报告原文在哪里"
+      ],
+      "p4_queries": [
+        "贵州茅台 最新年度报告 原文"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-021",
+      "query": "Apple最近发布了什么新硬件？只看Apple Newsroom。",
+      "language": "zh",
+      "category": "newsroom",
+      "raw_queries": [
+        "Apple最近发布了什么新硬件？只看Apple Newsroom"
+      ],
+      "rules_queries": [
+        "Apple最近发布了什么新硬件？只看Apple Newsroom"
+      ],
+      "p4_queries": [
+        "Apple Newsroom 最新硬件"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-022",
+      "query": "NVIDIA最新季度财务业绩是多少？查投资者关系公告。",
+      "language": "zh",
+      "category": "company_filing",
+      "raw_queries": [
+        "NVIDIA最新季度财务业绩是多少？查投资者关系公告"
+      ],
+      "rules_queries": [
+        "NVIDIA最新季度财务业绩是多少？查投资者关系公告"
+      ],
+      "p4_queries": [
+        "NVIDIA 最新季度财务业绩 投资者关系公告"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-023",
+      "query": "微软最近一个季度的业绩公告，请找官方投资者关系页面。",
+      "language": "zh",
+      "category": "company_filing",
+      "raw_queries": [
+        "微软最近一个季度的业绩公告，请找官方投资者关系页面"
+      ],
+      "rules_queries": [
+        "微软最近一个季度的业绩公告，请找官方投资者关系页面"
+      ],
+      "p4_queries": [
+        "微软 官方投资者关系 业绩公告"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-zh-024",
+      "query": "查找RWKV架构的原始论文或官方论文页面。",
+      "language": "zh",
+      "category": "academic_paper",
+      "raw_queries": [
+        "查找RWKV架构的原始论文或官方论文页面"
+      ],
+      "rules_queries": [
+        "查找RWKV架构的原始论文或官方论文页面"
+      ],
+      "p4_queries": [
+        "RWKV architecture original paper"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": true
+    },
+    {
+      "id": "retrieval-zh-025",
+      "query": "世界卫生组织最近发布的疾病暴发新闻有哪些？",
+      "language": "zh",
+      "category": "realtime_public_info",
+      "raw_queries": [
+        "世界卫生组织最近发布的疾病暴发新闻有哪些"
+      ],
+      "rules_queries": [
+        "世界卫生组织最近发布的疾病暴发新闻有哪些"
+      ],
+      "p4_queries": [
+        "世界卫生组织 疾病暴发 新闻"
+      ],
+      "raw_domain_hit_at_10": true,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-001",
+      "query": "What is the current stable Python release according to python.org?",
+      "language": "en",
+      "category": "software_release",
+      "raw_queries": [
+        "What is the current stable Python release according to python.org"
+      ],
+      "rules_queries": [
+        "What is the current stable Python release according to python.org"
+      ],
+      "p4_queries": [
+        "python.org stable release"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-002",
+      "query": "Find the current Node.js LTS release from the official Node.js site.",
+      "language": "en",
+      "category": "software_release",
+      "raw_queries": [
+        "Find the current Node.js LTS release from the official Node.js site"
+      ],
+      "rules_queries": [
+        "Find the current Node.js LTS release from the official Node.js site"
+      ],
+      "p4_queries": [
+        "Node.js LTS release official site"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-003",
+      "query": "Find the latest stable Go release notes on the official Go website.",
+      "language": "en",
+      "category": "software_release",
+      "raw_queries": [
+        "Find the latest stable Go release notes on the official Go website"
+      ],
+      "rules_queries": [
+        "Find the latest stable Go release notes on the official Go website"
+      ],
+      "p4_queries": [
+        "latest stable Go release"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-004",
+      "query": "What is the newest stable Rust release? Use the official release announcement.",
+      "language": "en",
+      "category": "software_release",
+      "raw_queries": [
+        "What is the newest stable Rust release? Use the official release announcement"
+      ],
+      "rules_queries": [
+        "What is the newest stable Rust release? Use the official release announcement"
+      ],
+      "p4_queries": [
+        "Rust official release announcement"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-005",
+      "query": "What is the latest stable Linux kernel release according to kernel.org?",
+      "language": "en",
+      "category": "software_release",
+      "raw_queries": [
+        "What is the latest stable Linux kernel release according to kernel.org"
+      ],
+      "rules_queries": [
+        "What is the latest stable Linux kernel release according to kernel.org"
+      ],
+      "p4_queries": [
+        "latest stable Linux kernel release kernel.org"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-006",
+      "query": "Find the latest Hugging Face Transformers release on its official GitHub repository.",
+      "language": "en",
+      "category": "repository_release",
+      "raw_queries": [
+        "Find the latest Hugging Face Transformers release on its official GitHub repository"
+      ],
+      "rules_queries": [
+        "transformers repository official hugging release latest github find face the its on",
+        "Find the latest Hugging Face Transformers release on its official GitHub repository"
+      ],
+      "p4_queries": [
+        "Hugging Face Transformers GitHub repository latest release"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-007",
+      "query": "Find the newest Docker Engine release notes from Docker documentation.",
+      "language": "en",
+      "category": "official_docs",
+      "raw_queries": [
+        "Find the newest Docker Engine release notes from Docker documentation"
+      ],
+      "rules_queries": [
+        "Find the newest Docker Engine release notes from Docker documentation"
+      ],
+      "p4_queries": [
+        "Docker Engine release notes latest"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-008",
+      "query": "What is the latest React release announcement on the official React site?",
+      "language": "en",
+      "category": "software_release",
+      "raw_queries": [
+        "What is the latest React release announcement on the official React site"
+      ],
+      "rules_queries": [
+        "What is the latest React release announcement on the official React site"
+      ],
+      "p4_queries": [
+        "React official website"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-009",
+      "query": "Find PostgreSQL's latest official release announcement.",
+      "language": "en",
+      "category": "software_release",
+      "raw_queries": [
+        "Find PostgreSQL's latest official release announcement"
+      ],
+      "rules_queries": [
+        "Find PostgreSQL's latest official release announcement"
+      ],
+      "p4_queries": [
+        "PostgreSQL latest official release announcement"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-010",
+      "query": "Show the most recent changes in the official llama.cpp GitHub repository.",
+      "language": "en",
+      "category": "repository_release",
+      "raw_queries": [
+        "Show the most recent changes in the official llama.cpp GitHub repository"
+      ],
+      "rules_queries": [
+        "Show the most recent changes in the official llama.cpp GitHub repository"
+      ],
+      "p4_queries": [
+        "llama.cpp latest changes"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-011",
+      "query": "What is the latest US Consumer Price Index release from the Bureau of Labor Statistics?",
+      "language": "en",
+      "category": "statistics",
+      "raw_queries": [
+        "What is the latest US Consumer Price Index release from the Bureau of Labor Statistics"
+      ],
+      "rules_queries": [
+        "statistics consumer release latest bureau price index labor from the is us of",
+        "What is the latest US Consumer Price Index release from the Bureau of Labor Statistics"
+      ],
+      "p4_queries": [
+        "latest US Consumer Price Index release Bureau of Labor Statistics"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-012",
+      "query": "Find the Federal Reserve's latest FOMC monetary policy statement.",
+      "language": "en",
+      "category": "government_policy",
+      "raw_queries": [
+        "Find the Federal Reserve's latest FOMC monetary policy statement"
+      ],
+      "rules_queries": [
+        "Find the Federal Reserve's latest FOMC monetary policy statement"
+      ],
+      "p4_queries": [
+        "Federal Reserve FOMC monetary policy statement latest"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-013",
+      "query": "Find the European Central Bank's latest monetary policy decision.",
+      "language": "en",
+      "category": "government_policy",
+      "raw_queries": [
+        "Find the European Central Bank's latest monetary policy decision"
+      ],
+      "rules_queries": [
+        "Find the European Central Bank's latest monetary policy decision"
+      ],
+      "p4_queries": [
+        "European Central Bank latest monetary policy decision"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-014",
+      "query": "Find the official consolidated text of the European Union AI Act.",
+      "language": "en",
+      "category": "government_policy",
+      "raw_queries": [
+        "Find the official consolidated text of the European Union AI Act"
+      ],
+      "rules_queries": [
+        "Find the official consolidated text of the European Union AI Act"
+      ],
+      "p4_queries": [
+        "European Union AI Act consolidated text official"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-015",
+      "query": "What is the latest US employment situation report from BLS?",
+      "language": "en",
+      "category": "statistics",
+      "raw_queries": [
+        "What is the latest US employment situation report from BLS"
+      ],
+      "rules_queries": [
+        "What is the latest US employment situation report from BLS"
+      ],
+      "p4_queries": [
+        "latest US employment situation report BLS"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-016",
+      "query": "Find NVIDIA's latest quarterly earnings release on its investor relations site.",
+      "language": "en",
+      "category": "company_filing",
+      "raw_queries": [
+        "Find NVIDIA's latest quarterly earnings release on its investor relations site"
+      ],
+      "rules_queries": [
+        "Find NVIDIA's latest quarterly earnings release on its investor relations site"
+      ],
+      "p4_queries": [
+        "NVIDIA latest quarterly earnings release investor relations"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-017",
+      "query": "Find Apple's latest quarterly results press release from an official Apple source.",
+      "language": "en",
+      "category": "company_filing",
+      "raw_queries": [
+        "Find Apple's latest quarterly results press release from an official Apple source"
+      ],
+      "rules_queries": [
+        "quarterly official apple's results release latest source press apple find from an",
+        "Find Apple's latest quarterly results press release from an official Apple source"
+      ],
+      "p4_queries": [
+        "Apple latest quarterly results press release official Apple source"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-018",
+      "query": "Find Tesla's latest quarterly update from its investor relations website.",
+      "language": "en",
+      "category": "company_filing",
+      "raw_queries": [
+        "Find Tesla's latest quarterly update from its investor relations website"
+      ],
+      "rules_queries": [
+        "Find Tesla's latest quarterly update from its investor relations website"
+      ],
+      "p4_queries": [
+        "Tesla investor relations quarterly update latest"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-019",
+      "query": "Find NVIDIA's most recent Form 10-Q filing on the SEC website.",
+      "language": "en",
+      "category": "company_filing",
+      "raw_queries": [
+        "Find NVIDIA's most recent Form 10-Q filing on the SEC website"
+      ],
+      "rules_queries": [
+        "Find NVIDIA's most recent Form 10-Q filing on the SEC website"
+      ],
+      "p4_queries": [
+        "NVIDIA most recent Form 10-Q SEC website"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-020",
+      "query": "Find Microsoft's latest quarterly earnings materials from its investor relations site.",
+      "language": "en",
+      "category": "company_filing",
+      "raw_queries": [
+        "Find Microsoft's latest quarterly earnings materials from its investor relations site"
+      ],
+      "rules_queries": [
+        "microsoft's quarterly materials relations earnings investor latest find from site its",
+        "Find Microsoft's latest quarterly earnings materials from its investor relations site"
+      ],
+      "p4_queries": [
+        "Microsoft latest quarterly earnings investor relations site"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-021",
+      "query": "Search Apple's official newsroom for its latest hardware announcement.",
+      "language": "en",
+      "category": "newsroom",
+      "raw_queries": [
+        "Search Apple's official newsroom for its latest hardware announcement"
+      ],
+      "rules_queries": [
+        "Search Apple's official newsroom for its latest hardware announcement"
+      ],
+      "p4_queries": [
+        "Apple official newsroom latest hardware announcement"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": true,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-022",
+      "query": "Find Google's latest official AI product announcement on the Google blog.",
+      "language": "en",
+      "category": "newsroom",
+      "raw_queries": [
+        "Find Google's latest official AI product announcement on the Google blog"
+      ],
+      "rules_queries": [
+        "Find Google's latest official AI product announcement on the Google blog"
+      ],
+      "p4_queries": [
+        "Google latest official AI product announcement blog"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-023",
+      "query": "Find NVIDIA's latest product announcement in its official newsroom.",
+      "language": "en",
+      "category": "newsroom",
+      "raw_queries": [
+        "Find NVIDIA's latest product announcement in its official newsroom"
+      ],
+      "rules_queries": [
+        "Find NVIDIA's latest product announcement in its official newsroom"
+      ],
+      "p4_queries": [
+        "NVIDIA latest product announcement official newsroom"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-024",
+      "query": "Find the latest Atlantic hurricane advisory from the US National Hurricane Center.",
+      "language": "en",
+      "category": "realtime_public_info",
+      "raw_queries": [
+        "Find the latest Atlantic hurricane advisory from the US National Hurricane Center"
+      ],
+      "rules_queries": [
+        "hurricane atlantic advisory national latest center find from the us",
+        "Find the latest Atlantic hurricane advisory from the US National Hurricane Center"
+      ],
+      "p4_queries": [
+        "US National Hurricane Center latest Atlantic hurricane advisory"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": true,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    },
+    {
+      "id": "retrieval-en-025",
+      "query": "Find the latest significant earthquake information from the USGS earthquake site.",
+      "language": "en",
+      "category": "realtime_public_info",
+      "raw_queries": [
+        "Find the latest significant earthquake information from the USGS earthquake site"
+      ],
+      "rules_queries": [
+        "significant information earthquake latest find from usgs site the",
+        "Find the latest significant earthquake information from the USGS earthquake site"
+      ],
+      "p4_queries": [
+        "USGS earthquake latest significant earthquake"
+      ],
+      "raw_domain_hit_at_10": false,
+      "rules_domain_hit_at_10": false,
+      "p4_domain_hit_at_10": false,
+      "raw_target_page_hit_at_20": false,
+      "rules_target_page_hit_at_20": false,
+      "p4_target_page_hit_at_20": false
+    }
+  ]
+}

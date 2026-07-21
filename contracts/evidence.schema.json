@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-search.local/contracts/evidence.schema.json",
+  "title": "RWKV Search Evidence v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "source_id",
+    "title",
+    "url",
+    "source_type",
+    "published_at",
+    "updated_at",
+    "fetched_at",
+    "authority_score",
+    "freshness_score",
+    "retrieval_score",
+    "matched_channels",
+    "text",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {"const": "evidence.v1"},
+    "evidence_id": {"type": "string", "minLength": 1},
+    "source_id": {"type": ["string", "null"]},
+    "title": {"type": "string"},
+    "url": {"type": "string"},
+    "source_type": {"type": "string", "minLength": 1},
+    "published_at": {"type": ["string", "null"]},
+    "updated_at": {"type": ["string", "null"]},
+    "fetched_at": {"type": "number"},
+    "authority_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "freshness_score": {"type": "number", "minimum": 0.0},
+    "retrieval_score": {"type": "number"},
+    "matched_channels": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "text": {"type": "string"},
+    "metadata": {"type": "object"},
+    "id": {"type": "string"},
+    "authority": {"type": "number"},
+    "score": {"type": "number"}
+  },
+  "additionalProperties": false
+}

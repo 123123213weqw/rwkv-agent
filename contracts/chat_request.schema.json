@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-search.local/contracts/chat_request.schema.json",
+  "title": "RWKV Search Chat Request v1",
+  "type": "object",
+  "required": ["schema_version", "conversation_id", "message_id", "query", "history", "search_mode", "research_depth", "timezone", "locale"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "conversation_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "message_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "query": {"type": "string", "minLength": 1, "maxLength": 20000},
+    "history": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": {"enum": ["user", "assistant"]},
+          "content": {"type": "string", "minLength": 1, "maxLength": 3000}
+        },
+        "additionalProperties": false
+      }
+    },
+    "search_mode": {"enum": ["auto", "always", "never"]},
+    "research_depth": {"enum": ["fast", "deep"]},
+    "source_scope": {"enum": ["auto", "local", "web"], "default": "auto"},
+    "use_finewiki": {"type": "boolean", "default": false},
+    "timezone": {"type": "string", "minLength": 1, "maxLength": 128},
+    "locale": {"type": "string", "minLength": 2, "maxLength": 32}
+  },
+  "additionalProperties": false
+}

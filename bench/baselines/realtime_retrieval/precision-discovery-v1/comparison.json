@@ -1,0 +1,186 @@
+{
+  "schema_version": "precision-discovery-comparison.v1",
+  "status": "frozen_observation_not_production_decision",
+  "evaluation": {
+    "same_benchmark_cases": 50,
+    "same_frozen_p4_requests": true,
+    "same_experiment_host": "same RTX 4080 host",
+    "baseline_features_enabled": false,
+    "precision_features_enabled": [
+      "source_channels",
+      "domain_pivot",
+      "one_hop_link_expansion"
+    ],
+    "warning": "两次Live运行受搜索上游和网络波动影响；配对差值是观测值，阶段内增益才用于定位pivot与one-hop贡献。"
+  },
+  "paired_observed": {
+    "baseline": {
+      "total": 50,
+      "candidate_domain_hit_at_5_rate": 0.4,
+      "candidate_domain_hit_at_10_rate": 0.42,
+      "candidate_domain_hit_at_20_rate": 0.42,
+      "candidate_organization_domain_hit_at_10_rate": 0.44,
+      "candidate_organization_domain_hit_at_20_rate": 0.44,
+      "result_domain_hit_at_5_rate": 0.2,
+      "result_domain_hit_at_10_rate": 0.2,
+      "result_domain_hit_at_20_rate": 0.2,
+      "result_organization_domain_hit_at_10_rate": 0.22,
+      "result_organization_domain_hit_at_20_rate": 0.22,
+      "candidate_target_page_hit_at_10_rate": 0.06,
+      "candidate_target_page_hit_at_20_rate": 0.06,
+      "result_target_page_hit_at_10_rate": 0.0,
+      "result_target_page_hit_at_20_rate": 0.0,
+      "nonempty_result_rate": 0.56,
+      "candidate_count": 376,
+      "result_count": 90,
+      "average_candidate_count": 7.52,
+      "average_result_count": 1.8,
+      "garbage_result_count": 1,
+      "garbage_result_rate": 0.0111,
+      "fetch_attempted": 284,
+      "fetch_succeeded": 125,
+      "fetch_failed": 151,
+      "fetch_cancelled": 8,
+      "fetch_success_rate": 0.4401,
+      "average_total_elapsed_ms": 4263.328,
+      "p95_total_elapsed_ms": 8010.23
+    },
+    "precision_discovery": {
+      "total": 50,
+      "candidate_domain_hit_at_5_rate": 0.44,
+      "candidate_domain_hit_at_10_rate": 0.48,
+      "candidate_domain_hit_at_20_rate": 0.48,
+      "candidate_organization_domain_hit_at_10_rate": 0.48,
+      "candidate_organization_domain_hit_at_20_rate": 0.48,
+      "result_domain_hit_at_5_rate": 0.32,
+      "result_domain_hit_at_10_rate": 0.32,
+      "result_domain_hit_at_20_rate": 0.32,
+      "result_organization_domain_hit_at_10_rate": 0.34,
+      "result_organization_domain_hit_at_20_rate": 0.34,
+      "candidate_target_page_hit_at_10_rate": 0.1,
+      "candidate_target_page_hit_at_20_rate": 0.12,
+      "result_target_page_hit_at_10_rate": 0.0,
+      "result_target_page_hit_at_20_rate": 0.0,
+      "nonempty_result_rate": 0.68,
+      "candidate_count": 533,
+      "result_count": 103,
+      "average_candidate_count": 10.66,
+      "average_result_count": 2.06,
+      "garbage_result_count": 1,
+      "garbage_result_rate": 0.0097,
+      "fetch_attempted": 304,
+      "fetch_succeeded": 164,
+      "fetch_failed": 119,
+      "fetch_cancelled": 21,
+      "fetch_success_rate": 0.5395,
+      "average_total_elapsed_ms": 5066.747,
+      "p95_total_elapsed_ms": 8010.197
+    },
+    "delta": {
+      "candidate_domain_recall_at_10": 0.06,
+      "candidate_target_page_recall_at_20": 0.06,
+      "result_domain_recall_at_10": 0.12,
+      "result_target_page_recall_at_20": 0.0,
+      "nonempty_result_rate": 0.12,
+      "garbage_result_rate": -0.0014,
+      "fetch_success_rate": 0.0994,
+      "average_total_elapsed_ms": 803.419,
+      "p95_total_elapsed_ms": -0.033
+    }
+  },
+  "precision_candidate_stages": {
+    "final": {
+      "total": 50,
+      "candidate_domain_hit_at_5_rate": 0.44,
+      "candidate_domain_hit_at_10_rate": 0.48,
+      "candidate_domain_hit_at_20_rate": 0.48,
+      "candidate_organization_domain_hit_at_10_rate": 0.48,
+      "candidate_organization_domain_hit_at_20_rate": 0.48,
+      "candidate_target_page_hit_at_10_rate": 0.1,
+      "candidate_target_page_hit_at_20_rate": 0.12,
+      "candidate_count": 533,
+      "average_candidate_count": 10.66
+    },
+    "initial": {
+      "total": 50,
+      "candidate_domain_hit_at_5_rate": 0.44,
+      "candidate_domain_hit_at_10_rate": 0.46,
+      "candidate_domain_hit_at_20_rate": 0.46,
+      "candidate_organization_domain_hit_at_10_rate": 0.48,
+      "candidate_organization_domain_hit_at_20_rate": 0.48,
+      "candidate_target_page_hit_at_10_rate": 0.08,
+      "candidate_target_page_hit_at_20_rate": 0.08,
+      "candidate_count": 502,
+      "average_candidate_count": 10.04
+    },
+    "post_pivot": {
+      "total": 50,
+      "candidate_domain_hit_at_5_rate": 0.44,
+      "candidate_domain_hit_at_10_rate": 0.48,
+      "candidate_domain_hit_at_20_rate": 0.48,
+      "candidate_organization_domain_hit_at_10_rate": 0.48,
+      "candidate_organization_domain_hit_at_20_rate": 0.48,
+      "candidate_target_page_hit_at_10_rate": 0.1,
+      "candidate_target_page_hit_at_20_rate": 0.1,
+      "candidate_count": 513,
+      "average_candidate_count": 10.26
+    }
+  },
+  "within_run_attribution": {
+    "domain_pivot": {
+      "domain_recall_at_10_gain_cases": [
+        "retrieval-zh-022"
+      ],
+      "domain_recall_at_10_loss_cases": [],
+      "target_recall_at_20_gain_cases": [
+        "retrieval-zh-024"
+      ],
+      "target_recall_at_20_loss_cases": []
+    },
+    "one_hop_link_expansion": {
+      "domain_recall_at_10_gain_cases": [],
+      "domain_recall_at_10_loss_cases": [],
+      "target_recall_at_20_gain_cases": [
+        "retrieval-zh-008"
+      ],
+      "target_recall_at_20_loss_cases": []
+    }
+  },
+  "resource_usage": {
+    "source_channel_case_counts": {
+      "general": 44,
+      "general+repos": 5,
+      "general+science": 1
+    },
+    "domain_pivot_cases": 20,
+    "domain_pivot_candidates": 68,
+    "one_hop_cases": 12,
+    "one_hop_candidates": 56,
+    "discovery_request_distribution": {
+      "2": 8,
+      "3": 12,
+      "1": 30
+    },
+    "total_discovery_requests": 82,
+    "average_discovery_requests": 1.64,
+    "maximum_pivot_rounds": 1,
+    "maximum_pivot_domains": 2,
+    "maximum_one_hop_links": 8,
+    "recursive_crawl": false
+  },
+  "known_benchmark_limitations": [
+    {
+      "case_ids": [
+        "retrieval-zh-006",
+        "retrieval-en-010"
+      ],
+      "issue": "目标路径仍使用旧仓库/ggerganov/llama.cpp；当前官方仓库为/ggml-org/llama.cpp。",
+      "impact": "Target Page Recall会低估当前官方llama.cpp页面召回；本轮未修改冻结标签，避免与历史基线失去可比性。"
+    }
+  ],
+  "decision": {
+    "milestone_4a_complete": true,
+    "production_enabled": false,
+    "next_milestone_started": false
+  }
+}

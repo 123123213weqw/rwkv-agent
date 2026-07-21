@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rwkv-search"
+version = "0.2.0"
+description = "Local-first realtime web retrieval and evidence-grounded answer stack for RWKV."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "RWKV Search contributors"}]
+dependencies = ["regex>=2024.5.15"]
+
+[project.optional-dependencies]
+extract = ["trafilatura>=2.0"]
+realtime = ["aiohttp>=3.9", "selectolax>=0.3", "trafilatura>=2.0", "brotli>=1.1"]
+browser = ["playwright>=1.50"]
+model = ["torch", "transformers", "safetensors"]
+retrieval = ["sentence-transformers", "faiss-cpu"]
+segment = ["jieba>=0.42.1"]
+analysis = ["jieba>=0.42.1"]
+indexing = ["pyarrow>=14", "opencc-python-reimplemented>=0.1.7"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+rwkv-search = "rwkv_search.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+rwkv_search = ["web/*"]

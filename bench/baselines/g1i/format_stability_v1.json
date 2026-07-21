@@ -1,0 +1,60 @@
+{
+  "greedy": true,
+  "total_generations": 200,
+  "variants": {
+    "legacy_code": {
+      "total": 50,
+      "call_format": "<tool_code>\nweb_search(query=\"Python latest version\")\n</tool_code>",
+      "target_tag_rate": 1.0,
+      "parse_success_rate": 1.0,
+      "exact_block_only_rate": 1.0,
+      "no_other_tool_format_rate": 1.0,
+      "strict_success_rate": 1.0,
+      "average_tokens": 25.92,
+      "average_elapsed_ms": 465.746,
+      "max_token_stops": 0
+    },
+    "plural_function": {
+      "total": 50,
+      "call_format": "<tool_calls>\n[{\"type\":\"function\",\"function\":{\"name\":\"web_search\",\"arguments\":\"{\\\"query\\\":\\\"Python latest version\\\"}\"}}]\n</tool_calls>",
+      "target_tag_rate": 0.98,
+      "parse_success_rate": 0.98,
+      "exact_block_only_rate": 0.98,
+      "no_other_tool_format_rate": 0.98,
+      "strict_success_rate": 0.98,
+      "average_tokens": 53.66,
+      "average_elapsed_ms": 935.629,
+      "max_token_stops": 1
+    },
+    "singular_flat": {
+      "total": 50,
+      "call_format": "<tool_call>\n{\"name\":\"web_search\",\"arguments\":{\"query\":\"Python latest version\"}}\n</tool_call>",
+      "target_tag_rate": 1.0,
+      "parse_success_rate": 1.0,
+      "exact_block_only_rate": 1.0,
+      "no_other_tool_format_rate": 1.0,
+      "strict_success_rate": 1.0,
+      "average_tokens": 37.42,
+      "average_elapsed_ms": 660.395,
+      "max_token_stops": 0
+    },
+    "singular_function": {
+      "total": 50,
+      "call_format": "<tool_call>\n{\"type\":\"function\",\"function\":{\"name\":\"web_search\",\"arguments\":\"{\\\"query\\\":\\\"Python latest version\\\"}\"}}\n</tool_call>",
+      "target_tag_rate": 1.0,
+      "parse_success_rate": 1.0,
+      "exact_block_only_rate": 1.0,
+      "no_other_tool_format_rate": 1.0,
+      "strict_success_rate": 1.0,
+      "average_tokens": 40.78,
+      "average_elapsed_ms": 717.811,
+      "max_token_stops": 0
+    }
+  },
+  "ranking": [
+    "legacy_code",
+    "singular_flat",
+    "singular_function",
+    "plural_function"
+  ]
+}

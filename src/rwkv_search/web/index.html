@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>RWKV Search</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="chat-app">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <a class="brand" href="/" aria-label="RWKV Search 首页"><span class="brand-mark">R</span><span>RWKV Search</span></a>
+        <button class="icon-button mobile-only" id="closeSidebar" type="button" aria-label="关闭侧栏">×</button>
+      </div>
+      <button class="new-chat-button" id="newChatButton" type="button"><span>＋</span> 新建对话</button>
+      <div class="history-label">最近对话</div>
+      <nav class="chat-history" id="chatHistory" aria-label="对话历史"></nav>
+      <div class="sidebar-foot">
+        <button class="sidebar-action" id="openSourceButton" type="button"><span>⌁</span><span>添加知识来源</span></button>
+        <div class="runtime-row" id="modelStatus"><span class="status-dot"></span><div><strong>模型检查中</strong><small>正在连接服务器</small></div></div>
+        <div class="runtime-row" id="indexStatus"><span class="status-dot"></span><div><strong>本地索引</strong><small>连接中</small></div></div>
+      </div>
+    </aside>
+
+    <main class="chat-main">
+      <header class="chat-topbar">
+        <button class="icon-button" id="openSidebar" type="button" aria-label="打开侧栏">☰</button>
+        <div class="chat-title"><strong id="currentChatTitle">新对话</strong><small id="runtimeLabel">RWKV · 本地搜索</small></div>
+        <button class="icon-button" id="topNewChat" type="button" aria-label="新建对话">＋</button>
+      </header>
+
+      <section class="conversation" id="conversation" aria-live="polite">
+        <div class="empty-chat" id="emptyChat">
+          <div class="hero-mark">R</div>
+          <h1>今天想聊点什么？</h1>
+          <p>普通聊天由 Router 自动处理；手动开启本次搜索时使用 FineWiki、本地资料和实时网页。</p>
+          <div class="suggestions">
+            <button type="button" data-question="RWKV 是什么？它和 Transformer 有什么区别？">解释一个技术概念</button>
+            <button type="button" data-question="最近人工智能领域有哪些值得关注的进展？">搜索近期进展</button>
+            <button type="button" data-question="帮我比较几个本地大模型推理方案的优缺点。">深入比较方案</button>
+          </div>
+        </div>
+        <div class="message-list" id="messageList"></div>
+      </section>
+
+      <div class="composer-wrap">
+        <div class="composer">
+          <textarea id="queryInput" rows="1" placeholder="给 RWKV Search 发送消息" aria-label="消息"></textarea>
+          <div class="composer-actions">
+            <button class="search-toggle" id="searchToggle" type="button" aria-pressed="false" aria-label="仅下一条消息使用搜索" title="仅下一条消息强制使用 FineWiki、本地资料和实时网页；发送后自动恢复">⌁ 搜索</button>
+            <button class="send-button" id="askButton" type="button" aria-label="发送">↑</button>
+          </div>
+        </div>
+        <p class="disclaimer">RWKV 可能生成不准确内容，请通过引用来源核查重要信息。</p>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="sourceDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-head"><div><span>知识来源</span><h2>添加抓取种子</h2></div><button class="dialog-close" value="cancel" aria-label="关闭">×</button></div>
+      <p>添加官方网站、文档、RSS 或 Sitemap。抓取完成后即可在对话中检索。</p>
+      <label>URL<input id="seedUrl" type="url" placeholder="https://example.com/sitemap.xml" required></label>
+      <label>最多抓取页面<input id="seedLimit" type="number" min="1" max="1000" value="50"></label>
+      <div class="dialog-actions"><span id="crawlStatus"></span><button type="button" class="primary-button" id="crawlButton">加入队列</button></div>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>

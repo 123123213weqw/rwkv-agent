@@ -1,0 +1,94 @@
+{
+  "greedy": true,
+  "target_format": "<tool_call>\n{\"name\":\"web_search\",\"arguments\":{\"query\":\"Python latest version\"}}\n</tool_call>",
+  "concrete_one_shot_example": false,
+  "total_generations": 300,
+  "prompts": {
+    "p0_schema_only": {
+      "total": 50,
+      "system_prompt": "Call web_search exactly once.",
+      "strict_format_rate": 0.38,
+      "parse_success_rate": 0.5,
+      "placeholder_leakage_rate": 0.0,
+      "average_entity_recall": 0.7528,
+      "average_constraint_recall": 0.6467,
+      "average_prompt_tokens": 117,
+      "average_output_tokens": 130.92,
+      "average_elapsed_ms": 2200.835,
+      "max_token_stops": 14
+    },
+    "p1_minimal_format": {
+      "total": 50,
+      "system_prompt": "Call web_search once. Output only one flat-JSON <tool_call>. No other text.",
+      "strict_format_rate": 0.92,
+      "parse_success_rate": 0.92,
+      "placeholder_leakage_rate": 0.0,
+      "average_entity_recall": 0.8135,
+      "average_constraint_recall": 0.8442,
+      "average_prompt_tokens": 131,
+      "average_output_tokens": 94.14,
+      "average_elapsed_ms": 1592.715,
+      "max_token_stops": 2
+    },
+    "p2_minimal_semantic": {
+      "total": 50,
+      "system_prompt": "Call web_search once. Output only one flat-JSON <tool_call>. Preserve entities, versions, time and source constraints. No other text.",
+      "strict_format_rate": 0.86,
+      "parse_success_rate": 0.86,
+      "placeholder_leakage_rate": 0.0,
+      "average_entity_recall": 0.8336,
+      "average_constraint_recall": 0.8876,
+      "average_prompt_tokens": 142,
+      "average_output_tokens": 98.36,
+      "average_elapsed_ms": 1664.738,
+      "max_token_stops": 5
+    },
+    "p3_strict_schema": {
+      "total": 50,
+      "system_prompt": "Call web_search exactly once. Return only one <tool_call> whose JSON body has exactly name and arguments; arguments has only query. Preserve names, versions, dates, recency and requested sources. Do not answer, explain or invent results.",
+      "strict_format_rate": 0.86,
+      "parse_success_rate": 0.86,
+      "placeholder_leakage_rate": 0.0,
+      "average_entity_recall": 0.8038,
+      "average_constraint_recall": 0.7287,
+      "average_prompt_tokens": 163,
+      "average_output_tokens": 102.72,
+      "average_elapsed_ms": 1736.376,
+      "max_token_stops": 4
+    },
+    "p4_explicit_template": {
+      "total": 50,
+      "system_prompt": "Call web_search once. Output only <tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":QUERY_STRING}}</tool_call>, replacing QUERY_STRING with a valid JSON string. Preserve entities, versions, time and source constraints.",
+      "strict_format_rate": 0.96,
+      "parse_success_rate": 0.96,
+      "placeholder_leakage_rate": 0.0,
+      "average_entity_recall": 0.8202,
+      "average_constraint_recall": 0.7986,
+      "average_prompt_tokens": 164,
+      "average_output_tokens": 84.3,
+      "average_elapsed_ms": 1427.896,
+      "max_token_stops": 0
+    },
+    "p5_compact_zh": {
+      "total": 50,
+      "system_prompt": "调用一次web_search。只输出一个扁平JSON的<tool_call>，保留实体、版本、时间和来源限制，不要输出其他内容。",
+      "strict_format_rate": 0.66,
+      "parse_success_rate": 0.66,
+      "placeholder_leakage_rate": 0.0,
+      "average_entity_recall": 0.7647,
+      "average_constraint_recall": 0.8232,
+      "average_prompt_tokens": 159,
+      "average_output_tokens": 122,
+      "average_elapsed_ms": 2055.112,
+      "max_token_stops": 14
+    }
+  },
+  "ranking": [
+    "p4_explicit_template",
+    "p1_minimal_format",
+    "p2_minimal_semantic",
+    "p3_strict_schema",
+    "p5_compact_zh",
+    "p0_schema_only"
+  ]
+}

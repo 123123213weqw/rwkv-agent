@@ -1,0 +1,32 @@
+{
+  "total": 100,
+  "passed": 29,
+  "pass_rate": 0.29,
+  "tool_decision_accuracy": 0.53,
+  "protocol_success_rate": 0.66,
+  "final_answer_rate": 0.66,
+  "leakage_rate": 0.0,
+  "average_elapsed_ms": 9389.93,
+  "groups": {
+    "en:chat": {
+      "total": 25,
+      "pass_rate": 0.2,
+      "decision_accuracy": 0.2
+    },
+    "en:search": {
+      "total": 25,
+      "pass_rate": 0.44,
+      "decision_accuracy": 0.92
+    },
+    "zh:chat": {
+      "total": 25,
+      "pass_rate": 0.12,
+      "decision_accuracy": 0.16
+    },
+    "zh:search": {
+      "total": 25,
+      "pass_rate": 0.4,
+      "decision_accuracy": 0.84
+    }
+  }
+}

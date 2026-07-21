@@ -1,0 +1,43 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+configs/*local*.json
+configs/*server*.json
+/AGENTS.md
+/docs/TODO.md
+
+# Runtime state and fetched content
+data/
+!data/.gitkeep
+bench/runs/
+*.db
+*.db-*
+*.log
+
+# Models and large datasets
+*.pth
+*.pt
+*.safetensors
+*.bin
+*.gguf
+*.parquet
+*.arrow
+*.warc
+*.warc.gz
+models/
+vendor/
+
+# Local backups and traces
+.backups/
+*.before-*
+*private-backup*
