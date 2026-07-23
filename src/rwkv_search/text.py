@@ -197,19 +197,25 @@ def extract_document(raw_html: str, url: str) -> ExtractedDocument:
                 data = {}
             text_value = _clean_text(str(data.get("text") or data.get("raw_text") or ""))
             if len(text_value) >= 80:
-                fallback = _HTMLTextExtractor(url)
-                fallback.feed(raw_html)
+                fallback = extract_document_fallback(raw_html, url)
                 return ExtractedDocument(
-                    title=str(data.get("title") or "").strip() or " ".join(fallback.title_parts).strip(),
+                    title=str(data.get("title") or "").strip() or fallback.title,
                     text=text_value,
-                    links=_canonical_links(fallback.links),
-                    canonical_url=canonicalize_url(str(data.get("url") or fallback.canonical_url or url)),
+                    links=fallback.links,
+                    canonical_url=canonicalize_url(
+                        str(data.get("url") or fallback.canonical_url or url)
+                    ),
                     published_at=str(data.get("date") or fallback.published_at or "") or None,
                     language=str(data.get("language") or fallback.language or "") or None,
                 )
     except (ImportError, Exception):
         pass
 
+    return extract_document_fallback(raw_html, url)
+
+
+def extract_document_fallback(raw_html: str, url: str) -> ExtractedDocument:
+    """Parse metadata, links and visible text without an external extractor."""
     parser = _HTMLTextExtractor(url)
     parser.feed(raw_html)
     return ExtractedDocument(

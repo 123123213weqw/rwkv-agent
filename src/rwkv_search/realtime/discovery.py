@@ -550,7 +550,7 @@ class URLDiscovery:
             params = {"wd": query}
             headers: Dict[str, str] = {}
         else:
-            url = "https://www.bing.com/search"
+            url = f"{self.config.bing_base_url.rstrip('/')}/search"
             params = bing_search_params(query)
             headers = bing_search_headers(query)
         response = await asyncio.wait_for(

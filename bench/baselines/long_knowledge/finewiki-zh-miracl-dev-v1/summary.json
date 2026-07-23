@@ -1,0 +1,73 @@
+{
+  "schema_version": "long-knowledge-benchmark.v1",
+  "index": "rwkv-finewiki-zh-full-v1",
+  "language_filter": "zh",
+  "channel_size": 100,
+  "limit": 10,
+  "qrel_index_coverage": {
+    "relevant_pages": 783,
+    "indexed_relevant_pages": 680,
+    "page_rate": 0.8684546615581098,
+    "eligible_cases": 363,
+    "case_rate": 0.9236641221374046
+  },
+  "overall": {
+    "cases": 393,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 169.44325823069056,
+      "p50": 164.76305993273854,
+      "p95": 232.23390895873308
+    },
+    "hit_at_1": 0.23918575063613232,
+    "hit_at_5": 0.3893129770992366,
+    "hit_at_10": 0.4351145038167939,
+    "recall_at_1": 0.1328486610929359,
+    "recall_at_5": 0.24406882345813644,
+    "recall_at_10": 0.2831091724221495,
+    "mrr_at_10": 0.30358758431277516,
+    "ndcg_at_10": 0.2416024249099467
+  },
+  "by_language": {
+    "zh": {
+      "cases": 393,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 169.44325823069056,
+        "p50": 164.76305993273854,
+        "p95": 232.23390895873308
+      },
+      "hit_at_1": 0.23918575063613232,
+      "hit_at_5": 0.3893129770992366,
+      "hit_at_10": 0.4351145038167939,
+      "recall_at_1": 0.1328486610929359,
+      "recall_at_5": 0.24406882345813644,
+      "recall_at_10": 0.2831091724221495,
+      "mrr_at_10": 0.30358758431277516,
+      "ndcg_at_10": 0.2416024249099467
+    }
+  },
+  "conditional_on_index_coverage": {
+    "cases": 363,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 169.73417084766731,
+      "p50": 164.76305993273854,
+      "p95": 231.72581987455487
+    },
+    "hit_at_1": 0.25895316804407714,
+    "hit_at_5": 0.4214876033057851,
+    "hit_at_10": 0.47107438016528924,
+    "recall_at_1": 0.14382788928243473,
+    "recall_at_5": 0.26423980060343694,
+    "recall_at_10": 0.30650662468844286,
+    "mrr_at_10": 0.32867746731383096,
+    "ndcg_at_10": 0.26156956746448773
+  },
+  "test_set": "bench/external/miracl-v1/miracl_long_knowledge_dev_v1.jsonl",
+  "limitations": [
+    "MIRACL passage qrels are collapsed to Wikipedia page IDs; this run scores page discovery, not exact passage matching.",
+    "FineWiki and MIRACL use different Wikipedia snapshots, so unconditional metrics include corpus-version coverage loss.",
+    "This is lexical/alias candidate retrieval only; no dense retriever or learned reranker was used."
+  ]
+}

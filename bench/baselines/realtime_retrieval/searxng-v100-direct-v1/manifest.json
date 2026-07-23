@@ -1,0 +1,25 @@
+{
+  "schema_version": "public-baseline-manifest.v1",
+  "name": "searxng-v100-direct-v1",
+  "status": "public_summary",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e141e2bce6de1ad55137caa1fb031144c137b11b521a4bbaaecce75996d670fa",
+      "bytes": 763
+    },
+    {
+      "path": "smoke.json",
+      "sha256": "154e84f7d72407f0e92d7f317acd963154256503c0141450fe0b7eaec82decd4",
+      "bytes": 28872
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "90bf92eee01aaa0af7b760674f738f167291c3450fdc4009fa6f65928ef7e3ae",
+      "bytes": 2215
+    }
+  ],
+  "contains_full_urls": false,
+  "contains_page_content": false,
+  "production_changed": false
+}

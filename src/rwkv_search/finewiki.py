@@ -68,6 +68,13 @@ class FineWikiArticle:
     aliases: Tuple[str, ...] = ()
 
 
+def language_from_wikiname(value: str) -> str:
+    """Return the ISO-like language prefix used by a FineWiki subset."""
+
+    normalized = (value or "").strip().casefold()
+    return normalized[:-4] if normalized.endswith("wiki") and len(normalized) > 4 else normalized
+
+
 def _plain_heading(value: str) -> str:
     value = _HEADING_MARKUP_RE.sub("", value)
     value = _LINK_RE.sub(r"\1", value)
@@ -338,7 +345,8 @@ class FineWikiChunker:
     def chunk(self, article: FineWikiArticle, *, snapshot_date: str = "20250801") -> List[WikipediaChunk]:
         title = clean_wikipedia_text(article.title)
         text = clean_finewiki_markdown(title, article.text)
-        metadata_rows = [f"别名: {alias}" for alias in article.aliases]
+        alias_label = "别名" if language_from_wikiname(article.wikiname) == "zh" else "Alias"
+        metadata_rows = [f"{alias_label}: {alias}" for alias in article.aliases]
         infobox_text = flatten_infoboxes(article.infoboxes)
         if infobox_text:
             metadata_rows.append(infobox_text)
@@ -367,6 +375,7 @@ class FineWikiChunker:
                     chunk,
                     headings=headings,
                     source="finewiki",
+                    language=language_from_wikiname(article.wikiname) or "und",
                     modified_at=article.date_modified,
                     wikidata_id=article.wikidata_id,
                     wikiname=article.wikiname,

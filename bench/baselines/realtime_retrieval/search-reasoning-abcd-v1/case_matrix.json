@@ -1,0 +1,2555 @@
+{
+  "schema_version": "search-reasoning-case-matrix.v1",
+  "cases": [
+    {
+      "id": "retrieval-en-001",
+      "language": "en",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-002",
+      "language": "en",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-003",
+      "language": "en",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-004",
+      "language": "en",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-005",
+      "language": "en",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-006",
+      "language": "en",
+      "category": "repository_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-007",
+      "language": "en",
+      "category": "official_docs",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-008",
+      "language": "en",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-009",
+      "language": "en",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-010",
+      "language": "en",
+      "category": "repository_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-011",
+      "language": "en",
+      "category": "statistics",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-012",
+      "language": "en",
+      "category": "government_policy",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-013",
+      "language": "en",
+      "category": "government_policy",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-014",
+      "language": "en",
+      "category": "government_policy",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-015",
+      "language": "en",
+      "category": "statistics",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-016",
+      "language": "en",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-017",
+      "language": "en",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-018",
+      "language": "en",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-019",
+      "language": "en",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-020",
+      "language": "en",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-021",
+      "language": "en",
+      "category": "newsroom",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-022",
+      "language": "en",
+      "category": "newsroom",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-023",
+      "language": "en",
+      "category": "newsroom",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-024",
+      "language": "en",
+      "category": "realtime_public_info",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-en-025",
+      "language": "en",
+      "category": "realtime_public_info",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-001",
+      "language": "zh",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-002",
+      "language": "zh",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-003",
+      "language": "zh",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-004",
+      "language": "zh",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-005",
+      "language": "zh",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-006",
+      "language": "zh",
+      "category": "repository_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-007",
+      "language": "zh",
+      "category": "repository_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-008",
+      "language": "zh",
+      "category": "repository_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-009",
+      "language": "zh",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-010",
+      "language": "zh",
+      "category": "software_release",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-011",
+      "language": "zh",
+      "category": "statistics",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-012",
+      "language": "zh",
+      "category": "statistics",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-013",
+      "language": "zh",
+      "category": "statistics",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-014",
+      "language": "zh",
+      "category": "government_policy",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-015",
+      "language": "zh",
+      "category": "government_policy",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-016",
+      "language": "zh",
+      "category": "statistics",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 3,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-017",
+      "language": "zh",
+      "category": "realtime_public_info",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-018",
+      "language": "zh",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-019",
+      "language": "zh",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-020",
+      "language": "zh",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 3,
+          "action_count": 3,
+          "stop_reason": "max_rounds"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-021",
+      "language": "zh",
+      "category": "newsroom",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_execution_query"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-022",
+      "language": "zh",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-023",
+      "language": "zh",
+      "category": "company_filing",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 2,
+          "action_count": 2,
+          "stop_reason": "feedback_complete"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-024",
+      "language": "zh",
+      "category": "academic_paper",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "gate_not_triggered"
+        },
+        "react": {
+          "domain_hit_at_5": true,
+          "domain_hit_at_10": true,
+          "domain_hit_at_20": true,
+          "target_page_hit_at_10": true,
+          "target_page_hit_at_20": true,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "invalid_action"
+        }
+      }
+    },
+    {
+      "id": "retrieval-zh-025",
+      "language": "zh",
+      "category": "realtime_public_info",
+      "strategies": {
+        "direct": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "short_cot": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 1,
+          "stop_reason": "single_pass"
+        },
+        "feedback": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": true,
+          "query_count": 1,
+          "action_count": 2,
+          "stop_reason": "feedback_invalid"
+        },
+        "react": {
+          "domain_hit_at_5": false,
+          "domain_hit_at_10": false,
+          "domain_hit_at_20": false,
+          "target_page_hit_at_10": false,
+          "target_page_hit_at_20": false,
+          "nonempty_candidates": false,
+          "query_count": 0,
+          "action_count": 1,
+          "stop_reason": "invalid_action"
+        }
+      }
+    }
+  ]
+}

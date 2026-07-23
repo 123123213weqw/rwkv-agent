@@ -23,6 +23,7 @@ from .precision_discovery import (
     build_pivot_queries,
     discover_one_hop_links,
     merge_candidate_groups,
+    merge_query_candidate_groups,
     organization_domain,
     select_pivot_domains,
     select_source_channels,
@@ -57,9 +58,11 @@ class RealtimeSearchEngine:
         self,
         config: Optional[RealtimeSearchConfig] = None,
         search_config: Optional[SearchConfig] = None,
+        feedback_planner: Optional[Any] = None,
     ) -> None:
         self.config = config or RealtimeSearchConfig()
         self.search_config = search_config or SearchConfig()
+        self.feedback_planner = feedback_planner
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._thread: Optional[threading.Thread] = None
         self._ready = threading.Event()
@@ -83,6 +86,7 @@ class RealtimeSearchEngine:
             "source_channels_enabled": self.config.source_channels_enabled,
             "domain_pivot_enabled": self.config.domain_pivot_enabled,
             "one_hop_link_expansion_enabled": self.config.one_hop_link_expansion_enabled,
+            "feedback_search_enabled": self.feedback_planner is not None,
             "error": self._startup_error,
         }
 
@@ -172,33 +176,88 @@ class RealtimeSearchEngine:
             if deep
             else self.config.fast_deadline_seconds
         )
+        started = time.monotonic()
         selected_queries = list(dict.fromkeys(q.strip() for q in queries if q.strip()))[
             :max_queries
         ] or [query]
-        started = time.monotonic()
+        initial_model_plan = None
+        feedback_model_plan = None
+        planning_errors: List[Dict[str, str]] = []
+        feedback_mode = self.feedback_planner is not None
+        if feedback_mode and not (cancel_event and cancel_event.is_set()):
+            initial_model_plan = await self._invoke_feedback_planner(
+                "plan_initial",
+                query,
+                errors=planning_errors,
+                timeout_seconds=deadline_seconds,
+            )
+            request = getattr(initial_model_plan, "search_request", None)
+            planned_queries = list(getattr(request, "execution_queries", ()) or ())
+            if planned_queries:
+                selected_queries = planned_queries[:1]
         discovery_started = time.monotonic()
         discovery_errors: List[Dict[str, str]] = []
         discovery_limit = max_candidates
         if self.config.candidate_admission_enabled:
             discovery_limit *= max(1, self.config.candidate_pool_multiplier)
         source_channels: Sequence[str] = ()
-        if self.config.source_channels_enabled:
+        if self.config.source_channels_enabled and not feedback_mode:
             source_channels = select_source_channels(query, selected_queries)
-        initial_discovery_request_count = len(selected_queries)
+        planned_initial_discovery_request_count = len(selected_queries)
         if self.config.searxng_url.rstrip("/") and len(source_channels) > 1:
-            initial_discovery_request_count *= len(source_channels)
-        initial_raw_candidates = await asyncio.wait_for(
-            self._discovery.discover(
-                selected_queries,
-                freshness=freshness,
-                max_candidates=discovery_limit,
-                diagnostics=discovery_errors if include_candidates else None,
-                source_channels=source_channels,
-            ),
-            timeout=min(
-                deadline_seconds, max(0.2, self.config.discovery_timeout_seconds + 0.5)
-            ),
+            planned_initial_discovery_request_count *= len(source_channels)
+        initial_discovery_request_count = 0
+        initial_discovery_timeout = min(
+            deadline_seconds, max(0.2, self.config.discovery_timeout_seconds + 0.5)
         )
+        if feedback_mode:
+            initial_discovery_timeout = min(
+                initial_discovery_timeout,
+                max(0.0, deadline_seconds - (time.monotonic() - started)),
+            )
+        if feedback_mode and initial_discovery_timeout <= 0.1:
+            initial_raw_candidates = []
+            if include_candidates:
+                discovery_errors.append(
+                    {
+                        "query": " | ".join(selected_queries),
+                        "engine": "model_initial",
+                        "source_channels": "",
+                        "error_type": "DeadlineExceeded",
+                        "message": "model planning exhausted the bounded search deadline",
+                    }
+                )
+        else:
+            try:
+                initial_discovery_request_count = (
+                    planned_initial_discovery_request_count
+                )
+                initial_raw_candidates = await asyncio.wait_for(
+                    self._discovery.discover(
+                        selected_queries,
+                        freshness=freshness,
+                        max_candidates=discovery_limit,
+                        diagnostics=(
+                            discovery_errors if include_candidates else None
+                        ),
+                        source_channels=source_channels,
+                    ),
+                    timeout=initial_discovery_timeout,
+                )
+            except asyncio.TimeoutError:
+                if not feedback_mode:
+                    raise
+                initial_raw_candidates = []
+                if include_candidates:
+                    discovery_errors.append(
+                        {
+                            "query": " | ".join(selected_queries),
+                            "engine": "model_initial",
+                            "source_channels": "",
+                            "error_type": "TimeoutError",
+                            "message": "initial discovery exceeded the remaining deadline",
+                        }
+                    )
         initial_admission = CandidateAdmission(admitted=list(initial_raw_candidates))
         if self.config.candidate_admission_enabled:
             initial_admission = admit_candidates(
@@ -208,7 +267,89 @@ class RealtimeSearchEngine:
                 max_candidates=max_candidates,
                 per_domain_limit=self.config.candidate_per_domain_limit,
             )
-        pivot_selection = initial_admission.admitted
+        feedback_candidates: List[DiscoveredURL] = []
+        feedback_query = ""
+        feedback_discovery_request_count = 0
+        if (
+            feedback_mode
+            and initial_model_plan is not None
+            and getattr(initial_model_plan, "executable", False)
+            and not (cancel_event and cancel_event.is_set())
+        ):
+            remaining = deadline_seconds - (time.monotonic() - started)
+            if remaining > 0.2:
+                feedback_model_plan = await self._invoke_feedback_planner(
+                    "plan_feedback",
+                    query,
+                    selected_queries[0],
+                    initial_raw_candidates,
+                    errors=planning_errors,
+                    timeout_seconds=remaining,
+                )
+            request = getattr(feedback_model_plan, "search_request", None)
+            planned_queries = list(getattr(request, "execution_queries", ()) or ())
+            if planned_queries:
+                feedback_query = planned_queries[0]
+                remaining = deadline_seconds - (time.monotonic() - started)
+                if remaining > 0.2:
+                    try:
+                        feedback_candidates = await asyncio.wait_for(
+                            self._discovery.discover(
+                                [feedback_query],
+                                freshness=freshness,
+                                max_candidates=discovery_limit,
+                                diagnostics=(
+                                    discovery_errors if include_candidates else None
+                                ),
+                                source_channels=source_channels,
+                            ),
+                            timeout=min(
+                                remaining,
+                                max(
+                                    0.2,
+                                    self.config.discovery_timeout_seconds + 0.5,
+                                ),
+                            ),
+                        )
+                        feedback_discovery_request_count = (
+                            len(source_channels)
+                            if self.config.searxng_url.rstrip("/")
+                            and len(source_channels) > 1
+                            else 1
+                        )
+                        selected_queries = list(
+                            dict.fromkeys([*selected_queries, feedback_query])
+                        )[:2]
+                    except asyncio.TimeoutError:
+                        if include_candidates:
+                            discovery_errors.append(
+                                {
+                                    "query": feedback_query,
+                                    "engine": "model_feedback",
+                                    "source_channels": ",".join(source_channels),
+                                    "error_type": "TimeoutError",
+                                    "message": "feedback discovery exceeded its bounded timeout",
+                                }
+                            )
+        model_query_candidates = list(initial_raw_candidates)
+        if feedback_candidates:
+            model_query_candidates = merge_query_candidate_groups(
+                [
+                    (selected_queries[0], initial_raw_candidates),
+                    (feedback_query, feedback_candidates),
+                ],
+                max_candidates=discovery_limit,
+            )
+        pre_pivot_admission = CandidateAdmission(admitted=model_query_candidates)
+        if self.config.candidate_admission_enabled:
+            pre_pivot_admission = admit_candidates(
+                query,
+                selected_queries,
+                model_query_candidates,
+                max_candidates=max_candidates,
+                per_domain_limit=self.config.candidate_per_domain_limit,
+            )
+        pivot_selection = pre_pivot_admission.admitted
         if (
             self.config.domain_pivot_enabled
             and not self.config.candidate_admission_enabled
@@ -216,7 +357,7 @@ class RealtimeSearchEngine:
             pivot_selection = admit_candidates(
                 query,
                 selected_queries,
-                initial_raw_candidates,
+                model_query_candidates,
                 max_candidates=max_candidates,
                 per_domain_limit=self.config.candidate_per_domain_limit,
             ).admitted
@@ -226,14 +367,17 @@ class RealtimeSearchEngine:
             pivot_selection,
             max_domains=(
                 self.config.domain_pivot_max_domains
-                if self.config.domain_pivot_enabled
-                or self.config.one_hop_link_expansion_enabled
+                if not feedback_mode
+                and (
+                    self.config.domain_pivot_enabled
+                    or self.config.one_hop_link_expansion_enabled
+                )
                 else 0
             ),
         )
         pivot_queries: List[str] = []
         pivot_candidates: List[DiscoveredURL] = []
-        if self.config.domain_pivot_enabled and pivot_domains:
+        if self.config.domain_pivot_enabled and not feedback_mode and pivot_domains:
             pivot_queries = build_pivot_queries(selected_queries[0], pivot_domains)
             remaining = deadline_seconds - (time.monotonic() - started)
             if remaining > 0.2 and pivot_queries:
@@ -276,7 +420,7 @@ class RealtimeSearchEngine:
                             }
                         )
         raw_candidates = merge_candidate_groups(
-            initial_raw_candidates,
+            model_query_candidates,
             pivot_candidates,
             max_candidates=discovery_limit,
         )
@@ -303,7 +447,15 @@ class RealtimeSearchEngine:
             "pivot_domains": pivot_domains,
             "pivot_queries": pivot_queries,
             "pivot_candidate_count": len(pivot_candidates),
+            "feedback_candidate_count": len(feedback_candidates),
+            "feedback_search_enabled": feedback_mode,
+            "feedback_query_executed": bool(feedback_discovery_request_count),
+            "model_search_plans": self._model_plan_traces(
+                initial_model_plan, feedback_model_plan
+            ),
+            "model_planning_errors": planning_errors,
             "discovery_request_count": initial_discovery_request_count
+            + feedback_discovery_request_count
             + len(pivot_queries),
             "query_count": len(selected_queries),
             "queries": selected_queries,
@@ -352,11 +504,20 @@ class RealtimeSearchEngine:
                         "candidates": len(candidates),
                         "initial_candidates": len(initial_admission.admitted),
                         "pivot_candidates": len(pivot_candidates),
+                        "feedback_candidates": len(feedback_candidates),
+                        "feedback_query_executed": bool(
+                            feedback_discovery_request_count
+                        ),
+                        "model_search_plans": self._model_plan_traces(
+                            initial_model_plan, feedback_model_plan
+                        ),
+                        "model_planning_errors": planning_errors,
                         "one_hop_candidates": 0,
                         "source_channels": list(source_channels),
                         "pivot_domains": pivot_domains,
                         "pivot_queries": pivot_queries,
                         "discovery_request_count": initial_discovery_request_count
+                        + feedback_discovery_request_count
                         + len(pivot_queries),
                         "raw_candidates": len(raw_candidates),
                         "rejected_candidates": len(admission.rejected),
@@ -614,11 +775,20 @@ class RealtimeSearchEngine:
                     "candidates": len(candidates),
                     "initial_candidates": len(initial_admission.admitted),
                     "pivot_candidates": len(pivot_candidates),
+                    "feedback_candidates": len(feedback_candidates),
+                    "feedback_query_executed": bool(
+                        feedback_discovery_request_count
+                    ),
+                    "model_search_plans": self._model_plan_traces(
+                        initial_model_plan, feedback_model_plan
+                    ),
+                    "model_planning_errors": planning_errors,
                     "one_hop_candidates": one_hop_candidate_count,
                     "source_channels": list(source_channels),
                     "pivot_domains": pivot_domains,
                     "pivot_queries": pivot_queries,
                     "discovery_request_count": initial_discovery_request_count
+                    + feedback_discovery_request_count
                     + len(pivot_queries),
                     "raw_candidates": len(raw_candidates),
                     "rejected_candidates": len(admission.rejected),
@@ -641,6 +811,51 @@ class RealtimeSearchEngine:
                 },
             }
         )
+
+    async def _invoke_feedback_planner(
+        self,
+        method_name: str,
+        *args: Any,
+        errors: List[Dict[str, str]],
+        timeout_seconds: Optional[float] = None,
+    ) -> Any:
+        planner = self.feedback_planner
+        method = getattr(planner, method_name, None)
+        if not callable(method):
+            errors.append(
+                {
+                    "stage": method_name,
+                    "error_type": "PlannerMethodMissing",
+                    "message": f"feedback planner has no callable {method_name}",
+                }
+            )
+            return None
+        timeout = min(
+            max(0.1, float(timeout_seconds or 10**6)),
+            max(0.1, float(getattr(planner, "timeout_seconds", 4.0))),
+        )
+        try:
+            return await asyncio.wait_for(asyncio.to_thread(method, *args), timeout)
+        except Exception as exc:
+            errors.append(
+                {
+                    "stage": method_name,
+                    "error_type": type(exc).__name__,
+                    "message": str(exc)[:240],
+                }
+            )
+            return None
+
+    @staticmethod
+    def _model_plan_traces(*plans: Any) -> List[Dict[str, Any]]:
+        traces: List[Dict[str, Any]] = []
+        for plan in plans:
+            if plan is None:
+                continue
+            to_trace = getattr(plan, "to_trace", None)
+            if callable(to_trace):
+                traces.append(dict(to_trace()))
+        return traces
 
     @staticmethod
     def _candidate_debug_dict(item: DiscoveredURL, position: int) -> Dict[str, Any]:

@@ -504,6 +504,65 @@ def merge_candidate_groups(
     return ordered[: max(0, max_candidates)]
 
 
+def merge_query_candidate_groups(
+    groups: Sequence[Tuple[str, Sequence[DiscoveredURL]]],
+    *,
+    max_candidates: int,
+) -> List[DiscoveredURL]:
+    """Fuse independently executed model queries using canonical URL RRF."""
+
+    merged: dict[str, DiscoveredURL] = {}
+    for query_index, (query, candidates) in enumerate(groups):
+        stage = "initial" if query_index == 0 else "model_feedback"
+        for position, source in enumerate(candidates, 1):
+            canonical = canonicalize_url(source.url)
+            if not canonical:
+                continue
+            item = copy.deepcopy(source)
+            contribution = 1.0 / (60.0 + position) + 0.002 / (query_index + 1)
+            existing = merged.get(canonical)
+            if existing is None:
+                item.url = canonical
+                item.rank = position
+                item.rrf_score = contribution
+                item.matched_queries = list(
+                    dict.fromkeys([*item.matched_queries, query])
+                )
+                item.query_positions = {**item.query_positions, query: position}
+                item.discovery_stage = stage
+                item.discovery_stages = list(
+                    dict.fromkeys([*item.discovery_stages, stage])
+                )
+                item.engines = list(dict.fromkeys([*item.engines, item.engine]))
+                merged[canonical] = item
+                continue
+            existing.rrf_score += contribution
+            existing.rank = min(existing.rank or position, position)
+            existing.engine_score = max(existing.engine_score, item.engine_score)
+            existing.engines = list(
+                dict.fromkeys([*existing.engines, *item.engines, item.engine])
+            )
+            existing.matched_queries = list(
+                dict.fromkeys([*existing.matched_queries, query])
+            )
+            existing.query_positions[query] = min(
+                existing.query_positions.get(query, position), position
+            )
+            existing.discovery_stages = list(
+                dict.fromkeys([*existing.discovery_stages, stage])
+            )
+            if len(item.title) > len(existing.title):
+                existing.title = item.title
+            if len(item.snippet) > len(existing.snippet):
+                existing.snippet = item.snippet
+    ordered = sorted(
+        merged.values(),
+        key=lambda item: (item.rrf_score, -int(item.rank or 10**6), item.url),
+        reverse=True,
+    )
+    return ordered[: max(0, max_candidates)]
+
+
 def _requested_page_shapes(query: str) -> set[str]:
     output: set[str] = set()
     for pattern, shapes in _PAGE_SHAPE_GROUPS:

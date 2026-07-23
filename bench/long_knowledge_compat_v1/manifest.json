@@ -1,0 +1,32 @@
+{
+  "schema_version": "long-knowledge-compat-manifest.v1",
+  "name": "RWKV Search long-knowledge compatibility v1",
+  "license": "CC0-1.0",
+  "origin": "Manually curated regression queries derived from observed project failures and controlled missing probes; not user logs.",
+  "annotation_policy": {
+    "positive": "Wikipedia page IDs were manually checked against the FineWiki language snapshot or Wikipedia canonical page identity.",
+    "missing": "The intended entity/page is absent from the target language corpus; missing cases are reported separately from IR metrics.",
+    "no_output_derived_labels": true
+  },
+  "cases": {
+    "path": "cases.jsonl",
+    "sha256": "e709c9e7305cb8753b21242842b71a326d7cb1ac5b8ddbe14c03cd7b49ab8c74",
+    "total": 48,
+    "by_language": {
+      "zh": 24,
+      "en": 24
+    },
+    "expected_missing": 7
+  },
+  "query_types": [
+    "alias",
+    "ambiguous",
+    "comparison",
+    "cross_language",
+    "descriptive",
+    "entity",
+    "local_missing",
+    "natural_question",
+    "noisy"
+  ]
+}

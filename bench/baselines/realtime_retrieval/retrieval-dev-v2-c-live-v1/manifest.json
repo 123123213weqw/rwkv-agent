@@ -1,0 +1,42 @@
+{
+  "schema_version": "frozen-baseline-manifest.v1",
+  "name": "retrieval-dev-v2-c-live-v1",
+  "status": "frozen",
+  "benchmark": {
+    "path": "bench/realtime_web_retrieval_dev_v2.jsonl",
+    "sha256": "1c288697abd81882c41039028c7dbccc11d0f5b8860f2610b9c7228d7bc945f6",
+    "case_count": 100,
+    "origin": "manually_curated_realistic",
+    "is_user_log": false,
+    "is_blind_test": false
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "46731d0a2e8a245e513716e13dd1a57c8c29cf7292c584a16867b280a10e65c6",
+      "bytes": 2454
+    },
+    {
+      "path": "analysis.json",
+      "sha256": "f4a5c902bad722756c0201bc29e23f43682b4ceeb962ffa0db9586edec80f5a9",
+      "bytes": 36286
+    },
+    {
+      "path": "case_matrix.json",
+      "sha256": "9deb5b87eb5b2a54277b2963d310ebbdf8d06bb34328065c81deb6c1d7c0fb1a",
+      "bytes": 71123
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "504a48fd57e4ca8b5aa55cdc1ebbc0a0af03fc688001dd6406d4eea26c639d54",
+      "bytes": 658
+    },
+    {
+      "path": "summary.json",
+      "sha256": "b70104a7e039b12d583b45456f81317f06658c2e3ccde679c9c2af9ffcdd87cc",
+      "bytes": 36099
+    }
+  ],
+  "raw_traces_included": false,
+  "production_changed": false
+}

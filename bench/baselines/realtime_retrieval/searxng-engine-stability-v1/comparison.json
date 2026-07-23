@@ -1,0 +1,318 @@
+{
+  "schema_version": "searxng-engine-selection.v1",
+  "benchmark_policy": {
+    "query_source": "frozen P4 model_query only",
+    "expected_domains_used_for_retrieval": false,
+    "general_scope": "50 cases x 2 repetitions",
+    "repos_scope": "5 repository cases x 2 repetitions",
+    "science_scope": "1 academic-paper case x 2 clean repetitions",
+    "request_pacing": "sequential, 0.3-1.0 seconds between requests"
+  },
+  "general": {
+    "360search": {
+      "overall": {
+        "requests": 100,
+        "request_success_rate": 1.0,
+        "nonempty_rate": 0.0,
+        "domain_recall_at_10": 0.0,
+        "target_page_recall_at_20": 0.0,
+        "candidate_count": 0,
+        "average_candidate_count": 0.0,
+        "garbage_result_count": 0,
+        "garbage_result_rate": 0.0,
+        "average_unique_domain_ratio": 0.0,
+        "average_elapsed_ms": 64.445,
+        "p95_elapsed_ms": 139.422,
+        "case_count": 50,
+        "stable_request_success_rate": 1.0,
+        "stable_nonempty_rate": 0.0,
+        "stable_domain_recall_at_10": 0.0,
+        "stable_target_page_recall_at_20": 0.0,
+        "intermittent_domain_hit_cases": 0,
+        "intermittent_target_hit_cases": 0,
+        "intermittent_nonempty_cases": 0
+      },
+      "languages": {
+        "zh": {
+          "requests": 50,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 0.0,
+          "domain_recall_at_10": 0.0,
+          "target_page_recall_at_20": 0.0,
+          "candidate_count": 0,
+          "average_candidate_count": 0.0,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.0,
+          "average_elapsed_ms": 66.358,
+          "p95_elapsed_ms": 151.619,
+          "case_count": 25,
+          "stable_request_success_rate": 1.0,
+          "stable_nonempty_rate": 0.0,
+          "stable_domain_recall_at_10": 0.0,
+          "stable_target_page_recall_at_20": 0.0,
+          "intermittent_domain_hit_cases": 0,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 0
+        },
+        "en": {
+          "requests": 50,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 0.0,
+          "domain_recall_at_10": 0.0,
+          "target_page_recall_at_20": 0.0,
+          "candidate_count": 0,
+          "average_candidate_count": 0.0,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.0,
+          "average_elapsed_ms": 62.532,
+          "p95_elapsed_ms": 99.09,
+          "case_count": 25,
+          "stable_request_success_rate": 1.0,
+          "stable_nonempty_rate": 0.0,
+          "stable_domain_recall_at_10": 0.0,
+          "stable_target_page_recall_at_20": 0.0,
+          "intermittent_domain_hit_cases": 0,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 0
+        }
+      }
+    },
+    "mwmbl": {
+      "overall": {
+        "requests": 100,
+        "request_success_rate": 0.99,
+        "nonempty_rate": 0.57,
+        "domain_recall_at_10": 0.19,
+        "target_page_recall_at_20": 0.04,
+        "candidate_count": 470,
+        "average_candidate_count": 4.7,
+        "garbage_result_count": 0,
+        "garbage_result_rate": 0.0,
+        "average_unique_domain_ratio": 0.4049,
+        "average_elapsed_ms": 414.831,
+        "p95_elapsed_ms": 801.939,
+        "case_count": 50,
+        "stable_request_success_rate": 0.98,
+        "stable_nonempty_rate": 0.56,
+        "stable_domain_recall_at_10": 0.18,
+        "stable_target_page_recall_at_20": 0.04,
+        "intermittent_domain_hit_cases": 1,
+        "intermittent_target_hit_cases": 0,
+        "intermittent_nonempty_cases": 1
+      },
+      "languages": {
+        "zh": {
+          "requests": 50,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 0.2,
+          "domain_recall_at_10": 0.16,
+          "target_page_recall_at_20": 0.04,
+          "candidate_count": 60,
+          "average_candidate_count": 1.2,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.1327,
+          "average_elapsed_ms": 352.111,
+          "p95_elapsed_ms": 801.939,
+          "case_count": 25,
+          "stable_request_success_rate": 1.0,
+          "stable_nonempty_rate": 0.2,
+          "stable_domain_recall_at_10": 0.16,
+          "stable_target_page_recall_at_20": 0.04,
+          "intermittent_domain_hit_cases": 0,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 0
+        },
+        "en": {
+          "requests": 50,
+          "request_success_rate": 0.98,
+          "nonempty_rate": 0.94,
+          "domain_recall_at_10": 0.22,
+          "target_page_recall_at_20": 0.04,
+          "candidate_count": 410,
+          "average_candidate_count": 8.2,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.6772,
+          "average_elapsed_ms": 477.551,
+          "p95_elapsed_ms": 1166.567,
+          "case_count": 25,
+          "stable_request_success_rate": 0.96,
+          "stable_nonempty_rate": 0.92,
+          "stable_domain_recall_at_10": 0.2,
+          "stable_target_page_recall_at_20": 0.04,
+          "intermittent_domain_hit_cases": 1,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 1
+        }
+      }
+    }
+  },
+  "vertical": {
+    "github": {
+      "scope": "5 repository cases",
+      "overall": {
+        "requests": 10,
+        "request_success_rate": 1.0,
+        "nonempty_rate": 0.2,
+        "domain_recall_at_10": 0.2,
+        "target_page_recall_at_20": 0.0,
+        "candidate_count": 2,
+        "average_candidate_count": 0.2,
+        "garbage_result_count": 0,
+        "garbage_result_rate": 0.0,
+        "average_unique_domain_ratio": 0.2,
+        "average_elapsed_ms": 306.043,
+        "p95_elapsed_ms": 607.471,
+        "case_count": 5,
+        "stable_request_success_rate": 1.0,
+        "stable_nonempty_rate": 0.2,
+        "stable_domain_recall_at_10": 0.2,
+        "stable_target_page_recall_at_20": 0.0,
+        "intermittent_domain_hit_cases": 0,
+        "intermittent_target_hit_cases": 0,
+        "intermittent_nonempty_cases": 0
+      },
+      "languages": {
+        "zh": {
+          "requests": 6,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 0.0,
+          "domain_recall_at_10": 0.0,
+          "target_page_recall_at_20": 0.0,
+          "candidate_count": 0,
+          "average_candidate_count": 0.0,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.0,
+          "average_elapsed_ms": 324.524,
+          "p95_elapsed_ms": 607.471,
+          "case_count": 3,
+          "stable_request_success_rate": 1.0,
+          "stable_nonempty_rate": 0.0,
+          "stable_domain_recall_at_10": 0.0,
+          "stable_target_page_recall_at_20": 0.0,
+          "intermittent_domain_hit_cases": 0,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 0
+        },
+        "en": {
+          "requests": 4,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 0.5,
+          "domain_recall_at_10": 0.5,
+          "target_page_recall_at_20": 0.0,
+          "candidate_count": 2,
+          "average_candidate_count": 0.5,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.5,
+          "average_elapsed_ms": 278.321,
+          "p95_elapsed_ms": 441.95,
+          "case_count": 2,
+          "stable_request_success_rate": 1.0,
+          "stable_nonempty_rate": 0.5,
+          "stable_domain_recall_at_10": 0.5,
+          "stable_target_page_recall_at_20": 0.0,
+          "intermittent_domain_hit_cases": 0,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 0
+        }
+      }
+    },
+    "arxiv": {
+      "scope": "1 academic-paper case",
+      "overall": {
+        "requests": 2,
+        "request_success_rate": 1.0,
+        "nonempty_rate": 1.0,
+        "domain_recall_at_10": 1.0,
+        "target_page_recall_at_20": 1.0,
+        "candidate_count": 20,
+        "average_candidate_count": 10.0,
+        "garbage_result_count": 0,
+        "garbage_result_rate": 0.0,
+        "average_unique_domain_ratio": 0.1,
+        "average_elapsed_ms": 416.42,
+        "p95_elapsed_ms": 433.727,
+        "case_count": 1,
+        "stable_request_success_rate": 1.0,
+        "stable_nonempty_rate": 1.0,
+        "stable_domain_recall_at_10": 1.0,
+        "stable_target_page_recall_at_20": 1.0,
+        "intermittent_domain_hit_cases": 0,
+        "intermittent_target_hit_cases": 0,
+        "intermittent_nonempty_cases": 0
+      },
+      "languages": {
+        "zh": {
+          "requests": 2,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 1.0,
+          "domain_recall_at_10": 1.0,
+          "target_page_recall_at_20": 1.0,
+          "candidate_count": 20,
+          "average_candidate_count": 10.0,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.1,
+          "average_elapsed_ms": 416.42,
+          "p95_elapsed_ms": 433.727,
+          "case_count": 1,
+          "stable_request_success_rate": 1.0,
+          "stable_nonempty_rate": 1.0,
+          "stable_domain_recall_at_10": 1.0,
+          "stable_target_page_recall_at_20": 1.0,
+          "intermittent_domain_hit_cases": 0,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 0
+        },
+        "en": {
+          "requests": 0,
+          "case_count": 0
+        }
+      }
+    }
+  },
+  "selection": {
+    "general_zh": {
+      "selected": [],
+      "provisional_fallback": [
+        "mwmbl"
+      ],
+      "reason": "mwmbl stable non-empty rate is only 20%; 360search returned zero results in 100/100 paced requests"
+    },
+    "general_en": {
+      "selected": [
+        "mwmbl"
+      ],
+      "provisional": true,
+      "reason": "92% stable non-empty and 96% stable request success, but stable official-domain recall is only 20%"
+    },
+    "repos": {
+      "selected": [],
+      "reason": "github returned results for only 1/5 cases in both runs and had 0% target-page recall"
+    },
+    "science": {
+      "selected": [
+        "arxiv"
+      ],
+      "provisional": true,
+      "reason": "2/2 clean runs hit the official target, but the benchmark contains only one academic case"
+    },
+    "rejected": [
+      "360search"
+    ]
+  },
+  "next_candidate_set": [
+    "bing",
+    "google",
+    "duckduckgo",
+    "brave",
+    "startpage",
+    "qwant"
+  ],
+  "production_changed": false
+}

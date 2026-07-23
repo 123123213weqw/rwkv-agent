@@ -10,16 +10,30 @@ SCHEMA_VERSION = "realtime-retrieval-case.v1"
 CATEGORIES = {
     "academic_paper",
     "company_filing",
+    "community_discussion",
     "government_policy",
     "newsroom",
     "official_docs",
+    "product_support",
     "realtime_public_info",
+    "reference_lookup",
     "repository_release",
+    "security_advisory",
     "software_release",
+    "standards_specification",
     "statistics",
 }
 FRESHNESS_VALUES = {"stable", "latest", "realtime"}
-SOURCE_POLICIES = {"official_required", "original_required", "primary_required"}
+SOURCE_POLICIES = {
+    "authoritative_preferred",
+    "community_required",
+    "official_required",
+    "original_required",
+    "primary_required",
+}
+QUERY_STYLES = {"canonical", "conversational", "noisy", "terse"}
+ANNOTATION_STATUSES = {"source_policy_reviewed"}
+ORIGINS = {"manually_curated_realistic"}
 FORBIDDEN_RESULT_TYPES = {
     "dictionary",
     "empty_content",
@@ -102,6 +116,39 @@ def validate_case(value: Mapping[str, Any], *, location: str = "case") -> Dict[s
         raise RetrievalCaseError(f"{location}: unknown forbidden result types {sorted(unknown)}")
     if not str(value.get("notes") or "").strip():
         raise RetrievalCaseError(f"{location}: notes must be non-empty")
+    optional = set(value).intersection(
+        {
+            "query_style",
+            "task_family",
+            "gold_ttl_days",
+            "annotation_status",
+            "origin",
+        }
+    )
+    expected_optional = {
+        "query_style",
+        "task_family",
+        "gold_ttl_days",
+        "annotation_status",
+        "origin",
+    }
+    if optional and optional != expected_optional:
+        raise RetrievalCaseError(
+            f"{location}: extended metadata must include {sorted(expected_optional)}"
+        )
+    if optional:
+        if value.get("query_style") not in QUERY_STYLES:
+            raise RetrievalCaseError(f"{location}: invalid query_style")
+        task_family = str(value.get("task_family") or "").strip()
+        if not re.fullmatch(r"[a-z][a-z0-9_]{2,63}", task_family):
+            raise RetrievalCaseError(f"{location}: invalid task_family")
+        ttl = value.get("gold_ttl_days")
+        if not isinstance(ttl, int) or isinstance(ttl, bool) or not 1 <= ttl <= 3650:
+            raise RetrievalCaseError(f"{location}: invalid gold_ttl_days")
+        if value.get("annotation_status") not in ANNOTATION_STATUSES:
+            raise RetrievalCaseError(f"{location}: invalid annotation_status")
+        if value.get("origin") not in ORIGINS:
+            raise RetrievalCaseError(f"{location}: invalid origin")
     return dict(value)
 
 

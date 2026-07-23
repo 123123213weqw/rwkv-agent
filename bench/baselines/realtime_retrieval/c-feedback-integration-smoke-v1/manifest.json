@@ -1,0 +1,29 @@
+{
+  "schema_version": "frozen-baseline-manifest.v1",
+  "name": "c-feedback-integration-smoke-v1",
+  "status": "frozen",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "4b5c0d70e673d5caf5b30a6bf3ef278fbf9c78b06b8b005a87aa2b60d981e6e3",
+      "bytes": 1481
+    },
+    {
+      "path": "case_matrix.json",
+      "sha256": "e2a3ea33dd2b3fe25071effe91853e5e67965c959c804207b302b8f817d26e56",
+      "bytes": 2802
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "84a96414ebf9ebd3b606ed71d60e77efc67a76a10a30955659bd44edb2b3d5fd",
+      "bytes": 1179
+    },
+    {
+      "path": "summary.json",
+      "sha256": "1fae46fc1d57b95b70231a73d4e10f3b4108d51d1384909d41606cb21b9cf075",
+      "bytes": 14514
+    }
+  ],
+  "raw_traces_included": false,
+  "production_changed": false
+}

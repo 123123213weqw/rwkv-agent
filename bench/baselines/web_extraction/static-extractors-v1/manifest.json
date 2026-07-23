@@ -1,0 +1,46 @@
+{
+  "schema_version": "web-extraction-baseline-manifest.v1",
+  "raw_web_bodies_included": false,
+  "files": [
+    {
+      "path": "bench/web_extraction_cases.jsonl",
+      "sha256": "cc5aa0fb5970a67befae2f3727f1f86829885c6b3de64a3557da16508afbdcf1",
+      "bytes": 14243
+    },
+    {
+      "path": "bench/web_extraction_schema.py",
+      "sha256": "9a116cb7e6e95231dcc8087f40333131c2bc07a2df6273be62d45a410b964476",
+      "bytes": 6548
+    },
+    {
+      "path": "bench/web_extraction.py",
+      "sha256": "51e72ff26c99232d339cc78ffec3a3969f1431c3243df3c92983068d13cefc2b",
+      "bytes": 34060
+    },
+    {
+      "path": "bench/run_web_extraction_bench.py",
+      "sha256": "b4560e6fcdb0ad078182735d1b130a3e6e13e5bd89c4b60c19f5ee2a48b023fa",
+      "bytes": 4844
+    },
+    {
+      "path": "bench/baselines/web_extraction/static-extractors-v1/README.md",
+      "sha256": "f1bd68823238c64ec625c2a30661177f7e5b9b2b0526fe8465e845d7afe19794",
+      "bytes": 3098
+    },
+    {
+      "path": "bench/baselines/web_extraction/static-extractors-v1/summary.json",
+      "sha256": "9b8a14b225514a92d8a70f8c92b8555f1030a5430aebff21339420514cd5fe5e",
+      "bytes": 9434
+    },
+    {
+      "path": "bench/baselines/web_extraction/static-extractors-v1/comparison.json",
+      "sha256": "050fa61b56e73b7b4d423ca3ff1a6c170ca38b2858401a99b81fb1ecbad7b16e",
+      "bytes": 3123
+    },
+    {
+      "path": "bench/baselines/web_extraction/static-extractors-v1/case_matrix.json",
+      "sha256": "42a8156da21e4a2dde90f23f1dfcd21d4c3cdd121e054399b9574c0ebd524b8c",
+      "bytes": 72909
+    }
+  ]
+}

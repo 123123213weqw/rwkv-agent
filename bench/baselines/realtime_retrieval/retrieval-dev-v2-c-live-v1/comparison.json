@@ -1,0 +1,22 @@
+{
+  "schema_version": "retrieval-dev-v2-c-feedback-stage-comparison.v1",
+  "scope": "within the same C run only",
+  "candidate_domain_hit_at_10": {
+    "initial_hits": 37,
+    "final_hits": 42,
+    "gained_cases": 5,
+    "regressed_cases": 0,
+    "net_case_change": 5
+  },
+  "candidate_target_page_hit_at_20": {
+    "initial_hits": 2,
+    "final_hits": 4,
+    "gained_cases": 2,
+    "regressed_cases": 0,
+    "net_case_change": 2
+  },
+  "feedback_query_executed_cases": 46,
+  "max_discovery_requests": 2,
+  "candidate_merge_before_fetch": true,
+  "warning": "This does not compare independent A and C systems and must not be presented as a v1-to-v2 gain."
+}

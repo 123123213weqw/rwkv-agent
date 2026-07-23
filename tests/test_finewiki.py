@@ -9,6 +9,7 @@ from rwkv_search.finewiki import (
     clean_finewiki_markdown,
     extract_wikitext_aliases,
     flatten_infoboxes,
+    language_from_wikiname,
 )
 
 
@@ -89,6 +90,20 @@ Python 是一种编程语言。
 
 
 class FineWikiChunkerTests(unittest.TestCase):
+    def test_language_is_derived_from_wikiname(self) -> None:
+        article = FineWikiArticle(
+            page_id="1",
+            url="https://en.wikipedia.org/wiki/Python_(programming_language)",
+            title="Python (programming language)",
+            text="# Python (programming language)\nPython is a high-level programming language.",
+            wikiname="enwiki",
+        )
+        chunks = FineWikiChunker().chunk(article)
+        self.assertEqual(language_from_wikiname("enwiki"), "en")
+        self.assertEqual(language_from_wikiname("zhwiki"), "zh")
+        self.assertTrue(chunks)
+        self.assertTrue(all(chunk.language == "en" for chunk in chunks))
+
     def test_markdown_headings_become_metadata_not_body_noise(self) -> None:
         article = FineWikiArticle(
             page_id="42",

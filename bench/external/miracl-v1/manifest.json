@@ -1,0 +1,46 @@
+{
+  "schema_version": "long-knowledge-dataset-manifest.v1",
+  "created_at": "2026-07-23T14:18:20.175177+00:00",
+  "source_repository": "miracl/miracl",
+  "source_revision": "main",
+  "source_license": "Apache-2.0",
+  "source_url": "https://github.com/project-miracl/miracl",
+  "split": "dev",
+  "languages": [
+    "zh",
+    "en"
+  ],
+  "language_counts": {
+    "zh": 393,
+    "en": 799
+  },
+  "cases": 1192,
+  "conversion": "positive passage qrels collapsed to stable Wikipedia page_id",
+  "upstream_files": [
+    {
+      "path": "raw/miracl-v1.0-zh/topics/topics.miracl-v1.0-zh-dev.tsv",
+      "bytes": 16903,
+      "sha256": "5b284a9aabf08bb2d1c88ed7ea276025c9d23846457c5350dc8d391b5e0d0a13"
+    },
+    {
+      "path": "raw/miracl-v1.0-zh/qrels/qrels.miracl-v1.0-zh-dev.tsv",
+      "bytes": 94140,
+      "sha256": "5546474d3dc8139014e6571e9f4041848bb0a314ca6d2d4bac708174d71c59eb"
+    },
+    {
+      "path": "raw/miracl-v1.0-en/topics/topics.miracl-v1.0-en-dev.tsv",
+      "bytes": 36782,
+      "sha256": "25d9e6d17656674fd7aa3b67ee912c71545e664a842b147bfc17e9ff391db3da"
+    },
+    {
+      "path": "raw/miracl-v1.0-en/qrels/qrels.miracl-v1.0-en-dev.tsv",
+      "bytes": 167817,
+      "sha256": "a0af836c300e85088c4d73449492e2378280f967cac032853c9e11f3bc8a8d81"
+    }
+  ],
+  "output": {
+    "path": "miracl_long_knowledge_dev_v1.jsonl",
+    "bytes": 363583,
+    "sha256": "205aed4b5906db1b7d9f1f34155d6ee4c6e86a983da6b4ea0cf6b0b942a050bf"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "long-knowledge-baseline-manifest.v1",
+  "name": "finewiki-zh-miracl-dev-v1",
+  "corpus": {
+    "dataset": "HuggingFaceFW/finewiki",
+    "config": "zhwiki",
+    "license": "CC BY-SA 4.0",
+    "raw_rows": 1295955,
+    "unique_pages": 1256292,
+    "index": "rwkv-finewiki-zh-full-v1",
+    "chunks": 2553392,
+    "store_bytes": 12998360625
+  },
+  "test_set": {
+    "source": "MIRACL",
+    "split": "dev",
+    "language": "zh",
+    "cases": 393,
+    "sha256": "205aed4b5906db1b7d9f1f34155d6ee4c6e86a983da6b4ea0cf6b0b942a050bf"
+  },
+  "summary_sha256": "17f907b9156349c92676cade240cab7cc32707878f9ab80168879bcbde1962b4"
+}

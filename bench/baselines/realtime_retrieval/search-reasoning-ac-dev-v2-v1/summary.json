@@ -1,0 +1,1471 @@
+{
+  "schema_version": "search-reasoning-ac-dev-v2-summary.v1",
+  "run_date": "2026-07-23",
+  "benchmark": {
+    "path": "bench/realtime_web_retrieval_dev_v2.jsonl",
+    "sha256": "1c288697abd81882c41039028c7dbccc11d0f5b8860f2610b9c7228d7bc945f6",
+    "case_count": 100,
+    "origin": "manually_curated_realistic",
+    "is_user_log": false,
+    "is_blind_test": false
+  },
+  "protocol": {
+    "strategies": [
+      "direct",
+      "feedback"
+    ],
+    "tool_format": "p4_flat_web_search",
+    "decoding": "greedy",
+    "shared_q1_candidates": true,
+    "max_direct_discovery_requests": 1,
+    "max_feedback_discovery_requests": 2,
+    "fetch_or_answer_included": false,
+    "benchmark_labels_visible_to_runtime": false
+  },
+  "overall": {
+    "direct": {
+      "total": 100,
+      "case_success_rate": 0.97,
+      "nonempty_candidate_rate": 0.97,
+      "average_query_count": 0.97,
+      "average_model_call_count": 1.0,
+      "average_token_count": 82.76,
+      "action_count": 100,
+      "strict_action_rate": 1.0,
+      "max_token_stop_rate": 0.0,
+      "reasoning_action_rate": 1.0,
+      "query_validation_rate": 0.97,
+      "average_entity_retention_rate": 0.7408,
+      "subject_drift_rate": 0.03,
+      "duplicate_query_rate": 0.0,
+      "stop_reason_counts": {
+        "single_pass": 100
+      },
+      "average_candidate_count": 8.47,
+      "average_model_elapsed_ms": 1432.597,
+      "p95_model_elapsed_ms": 2056.156,
+      "average_search_elapsed_ms": 165.438,
+      "p95_search_elapsed_ms": 216.328,
+      "average_total_elapsed_ms": 1598.035,
+      "p95_total_elapsed_ms": 2246.785,
+      "average_wall_elapsed_ms": 1794.223,
+      "p95_wall_elapsed_ms": 2448.897,
+      "feedback_trigger_rate": 0.0,
+      "model_stop_rate": 0.0,
+      "domain_hit_at_5_rate": 0.35,
+      "domain_hit_at_10_rate": 0.36,
+      "domain_hit_at_20_rate": 0.36,
+      "target_page_hit_at_10_rate": 0.02,
+      "target_page_hit_at_20_rate": 0.02
+    },
+    "feedback": {
+      "total": 100,
+      "case_success_rate": 0.97,
+      "nonempty_candidate_rate": 0.97,
+      "average_query_count": 1.36,
+      "average_model_call_count": 1.76,
+      "average_token_count": 159.56,
+      "action_count": 176,
+      "strict_action_rate": 0.9602,
+      "max_token_stop_rate": 0.017,
+      "reasoning_action_rate": 0.9943,
+      "query_validation_rate": 0.8047,
+      "average_entity_retention_rate": 0.6948,
+      "subject_drift_rate": 0.0296,
+      "duplicate_query_rate": 0.1657,
+      "stop_reason_counts": {
+        "feedback_complete": 39,
+        "feedback_invalid": 40,
+        "gate_not_triggered": 21
+      },
+      "average_candidate_count": 10.02,
+      "average_model_elapsed_ms": 2835.963,
+      "p95_model_elapsed_ms": 4437.105,
+      "average_search_elapsed_ms": 231.22,
+      "p95_search_elapsed_ms": 377.267,
+      "average_total_elapsed_ms": 3067.182,
+      "p95_total_elapsed_ms": 4640.832,
+      "average_wall_elapsed_ms": 3347.545,
+      "p95_wall_elapsed_ms": 5051.66,
+      "feedback_trigger_rate": 0.79,
+      "model_stop_rate": 0.0,
+      "domain_hit_at_5_rate": 0.38,
+      "domain_hit_at_10_rate": 0.39,
+      "domain_hit_at_20_rate": 0.4,
+      "target_page_hit_at_10_rate": 0.03,
+      "target_page_hit_at_20_rate": 0.04
+    }
+  },
+  "deltas": {
+    "feedback_vs_direct": {
+      "domain_hit_at_5_rate": 0.03,
+      "domain_hit_at_10_rate": 0.03,
+      "domain_hit_at_20_rate": 0.04,
+      "target_page_hit_at_10_rate": 0.01,
+      "target_page_hit_at_20_rate": 0.02,
+      "nonempty_candidate_rate": 0.0,
+      "average_query_count": 0.39,
+      "average_total_elapsed_ms": 1469.147
+    }
+  },
+  "groups": {
+    "language": {
+      "en": {
+        "total": 50,
+        "direct": {
+          "domain_hit_at_5_rate": 0.28,
+          "domain_hit_at_10_rate": 0.28,
+          "domain_hit_at_20_rate": 0.28,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.94,
+          "average_candidate_count": 8.14,
+          "average_query_count": 0.94,
+          "average_total_elapsed_ms": 1585.862
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.34,
+          "domain_hit_at_10_rate": 0.34,
+          "domain_hit_at_20_rate": 0.36,
+          "target_page_hit_at_10_rate": 0.02,
+          "target_page_hit_at_20_rate": 0.04,
+          "nonempty_candidate_rate": 0.94,
+          "average_candidate_count": 9.6,
+          "average_query_count": 1.32,
+          "average_total_elapsed_ms": 2994.655
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.06,
+          "domain_hit_at_10_rate": 0.06,
+          "domain_hit_at_20_rate": 0.08,
+          "target_page_hit_at_10_rate": 0.02,
+          "target_page_hit_at_20_rate": 0.04
+        }
+      },
+      "zh": {
+        "total": 50,
+        "direct": {
+          "domain_hit_at_5_rate": 0.42,
+          "domain_hit_at_10_rate": 0.44,
+          "domain_hit_at_20_rate": 0.44,
+          "target_page_hit_at_10_rate": 0.04,
+          "target_page_hit_at_20_rate": 0.04,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.8,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1610.207
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.42,
+          "domain_hit_at_10_rate": 0.44,
+          "domain_hit_at_20_rate": 0.44,
+          "target_page_hit_at_10_rate": 0.04,
+          "target_page_hit_at_20_rate": 0.04,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.44,
+          "average_query_count": 1.4,
+          "average_total_elapsed_ms": 3139.71
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      }
+    },
+    "query_style": {
+      "canonical": {
+        "total": 22,
+        "direct": {
+          "domain_hit_at_5_rate": 0.2727,
+          "domain_hit_at_10_rate": 0.2727,
+          "domain_hit_at_20_rate": 0.2727,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.364,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1631.551
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.3182,
+          "domain_hit_at_10_rate": 0.3182,
+          "domain_hit_at_20_rate": 0.3182,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.364,
+          "average_query_count": 1.273,
+          "average_total_elapsed_ms": 3033.921
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0455,
+          "domain_hit_at_10_rate": 0.0455,
+          "domain_hit_at_20_rate": 0.0455,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "conversational": {
+        "total": 50,
+        "direct": {
+          "domain_hit_at_5_rate": 0.4,
+          "domain_hit_at_10_rate": 0.42,
+          "domain_hit_at_20_rate": 0.42,
+          "target_page_hit_at_10_rate": 0.02,
+          "target_page_hit_at_20_rate": 0.02,
+          "nonempty_candidate_rate": 0.96,
+          "average_candidate_count": 8.54,
+          "average_query_count": 0.96,
+          "average_total_elapsed_ms": 1670.285
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.42,
+          "domain_hit_at_10_rate": 0.44,
+          "domain_hit_at_20_rate": 0.44,
+          "target_page_hit_at_10_rate": 0.04,
+          "target_page_hit_at_20_rate": 0.04,
+          "nonempty_candidate_rate": 0.96,
+          "average_candidate_count": 9.92,
+          "average_query_count": 1.4,
+          "average_total_elapsed_ms": 3202.845
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.02,
+          "domain_hit_at_10_rate": 0.02,
+          "domain_hit_at_20_rate": 0.02,
+          "target_page_hit_at_10_rate": 0.02,
+          "target_page_hit_at_20_rate": 0.02
+        }
+      },
+      "noisy": {
+        "total": 4,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 7.25,
+          "average_query_count": 0.75,
+          "average_total_elapsed_ms": 1558.035
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 9.75,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1993.054
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "terse": {
+        "total": 24,
+        "direct": {
+          "domain_hit_at_5_rate": 0.375,
+          "domain_hit_at_10_rate": 0.375,
+          "domain_hit_at_20_rate": 0.375,
+          "target_page_hit_at_10_rate": 0.0417,
+          "target_page_hit_at_20_rate": 0.0417,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.625,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1423.457
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.4167,
+          "domain_hit_at_10_rate": 0.4167,
+          "domain_hit_at_20_rate": 0.4583,
+          "target_page_hit_at_10_rate": 0.0417,
+          "target_page_hit_at_20_rate": 0.0833,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.958,
+          "average_query_count": 1.417,
+          "average_total_elapsed_ms": 2994.062
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0417,
+          "domain_hit_at_10_rate": 0.0417,
+          "domain_hit_at_20_rate": 0.0833,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0416
+        }
+      }
+    },
+    "category": {
+      "academic_paper": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.5,
+          "target_page_hit_at_20_rate": 0.5,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 7.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1408.832
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.5,
+          "target_page_hit_at_20_rate": 1.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 11.5,
+          "average_query_count": 2.0,
+          "average_total_elapsed_ms": 3414.057
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.5
+        }
+      },
+      "community_discussion": {
+        "total": 12,
+        "direct": {
+          "domain_hit_at_5_rate": 0.4167,
+          "domain_hit_at_10_rate": 0.4167,
+          "domain_hit_at_20_rate": 0.4167,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 7.167,
+          "average_query_count": 0.75,
+          "average_total_elapsed_ms": 1583.588
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.4167,
+          "domain_hit_at_10_rate": 0.4167,
+          "domain_hit_at_20_rate": 0.4167,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 2570.186
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "company_filing": {
+        "total": 6,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1572.388
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.5,
+          "average_query_count": 1.5,
+          "average_total_elapsed_ms": 3416.271
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "government_policy": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 2087.077
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 3013.315
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "newsroom": {
+        "total": 4,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1463.841
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 3596.581
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "official_docs": {
+        "total": 18,
+        "direct": {
+          "domain_hit_at_5_rate": 0.4444,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0556,
+          "target_page_hit_at_20_rate": 0.0556,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.222,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1608.81
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.4444,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0556,
+          "target_page_hit_at_20_rate": 0.0556,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.222,
+          "average_query_count": 1.389,
+          "average_total_elapsed_ms": 2973.99
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "product_support": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1416.67
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.5,
+          "average_total_elapsed_ms": 2349.132
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "realtime_public_info": {
+        "total": 12,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1690.29
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.25,
+          "average_query_count": 1.333,
+          "average_total_elapsed_ms": 3236.006
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "security_advisory": {
+        "total": 20,
+        "direct": {
+          "domain_hit_at_5_rate": 0.55,
+          "domain_hit_at_10_rate": 0.55,
+          "domain_hit_at_20_rate": 0.55,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.9,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1641.344
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.65,
+          "domain_hit_at_10_rate": 0.65,
+          "domain_hit_at_20_rate": 0.65,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 11.45,
+          "average_query_count": 1.55,
+          "average_total_elapsed_ms": 3035.552
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.1,
+          "domain_hit_at_10_rate": 0.1,
+          "domain_hit_at_20_rate": 0.1,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "software_release": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1915.457
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 2.0,
+          "average_total_elapsed_ms": 3750.59
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "standards_specification": {
+        "total": 12,
+        "direct": {
+          "domain_hit_at_5_rate": 0.25,
+          "domain_hit_at_10_rate": 0.25,
+          "domain_hit_at_20_rate": 0.25,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.083,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1495.726
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.3333,
+          "domain_hit_at_10_rate": 0.3333,
+          "domain_hit_at_20_rate": 0.3333,
+          "target_page_hit_at_10_rate": 0.0833,
+          "target_page_hit_at_20_rate": 0.0833,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.5,
+          "average_query_count": 1.333,
+          "average_total_elapsed_ms": 2867.659
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0833,
+          "domain_hit_at_10_rate": 0.0833,
+          "domain_hit_at_20_rate": 0.0833,
+          "target_page_hit_at_10_rate": 0.0833,
+          "target_page_hit_at_20_rate": 0.0833
+        }
+      },
+      "statistics": {
+        "total": 8,
+        "direct": {
+          "domain_hit_at_5_rate": 0.25,
+          "domain_hit_at_10_rate": 0.25,
+          "domain_hit_at_20_rate": 0.25,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1479.628
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.25,
+          "domain_hit_at_10_rate": 0.25,
+          "domain_hit_at_20_rate": 0.25,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.875,
+          "average_query_count": 1.25,
+          "average_total_elapsed_ms": 3556.377
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      }
+    },
+    "task_family": {
+      "academic_source": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.5,
+          "target_page_hit_at_20_rate": 0.5,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 7.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1408.832
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.5,
+          "target_page_hit_at_20_rate": 1.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 11.5,
+          "average_query_count": 2.0,
+          "average_total_elapsed_ms": 3414.057
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.5
+        }
+      },
+      "company_filing": {
+        "total": 6,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1572.388
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.5,
+          "average_query_count": 1.5,
+          "average_total_elapsed_ms": 3416.271
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "developer_community": {
+        "total": 8,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 7.125,
+          "average_query_count": 0.75,
+          "average_total_elapsed_ms": 1551.257
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 9.125,
+          "average_query_count": 1.125,
+          "average_total_elapsed_ms": 2606.227
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "government_publication": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 2087.077
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 3013.315
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "health_guideline": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1693.939
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 14.5,
+          "average_query_count": 2.0,
+          "average_total_elapsed_ms": 3752.698
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "health_warning": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1415.395
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 2195.326
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "incident_report": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1324.695
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 2114.747
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "language_specification": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1242.526
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.5,
+          "average_total_elapsed_ms": 2940.993
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "official_news": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1602.986
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 5078.415
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "product_support": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1416.67
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 1.0,
+          "domain_hit_at_10_rate": 1.0,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.5,
+          "average_total_elapsed_ms": 2349.132
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "public_recall": {
+        "total": 4,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1834.732
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.25,
+          "average_query_count": 1.75,
+          "average_total_elapsed_ms": 3903.805
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "public_statistics": {
+        "total": 8,
+        "direct": {
+          "domain_hit_at_5_rate": 0.25,
+          "domain_hit_at_10_rate": 0.25,
+          "domain_hit_at_20_rate": 0.25,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1479.628
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.25,
+          "domain_hit_at_10_rate": 0.25,
+          "domain_hit_at_20_rate": 0.25,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.875,
+          "average_query_count": 1.25,
+          "average_total_elapsed_ms": 3556.377
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "public_warning": {
+        "total": 6,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1685.626
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.167,
+          "average_total_elapsed_ms": 3137.699
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "security_advisory": {
+        "total": 20,
+        "direct": {
+          "domain_hit_at_5_rate": 0.55,
+          "domain_hit_at_10_rate": 0.55,
+          "domain_hit_at_20_rate": 0.55,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.9,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1641.344
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.65,
+          "domain_hit_at_10_rate": 0.65,
+          "domain_hit_at_20_rate": 0.65,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 11.45,
+          "average_query_count": 1.55,
+          "average_total_elapsed_ms": 3035.552
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.1,
+          "domain_hit_at_10_rate": 0.1,
+          "domain_hit_at_20_rate": 0.1,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "software_release": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1915.457
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 2.0,
+          "average_total_elapsed_ms": 3750.59
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "standards_lookup": {
+        "total": 10,
+        "direct": {
+          "domain_hit_at_5_rate": 0.1,
+          "domain_hit_at_10_rate": 0.1,
+          "domain_hit_at_20_rate": 0.1,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.1,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1546.366
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.2,
+          "domain_hit_at_10_rate": 0.2,
+          "domain_hit_at_20_rate": 0.2,
+          "target_page_hit_at_10_rate": 0.1,
+          "target_page_hit_at_20_rate": 0.1,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.8,
+          "average_query_count": 1.3,
+          "average_total_elapsed_ms": 2852.992
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.1,
+          "domain_hit_at_10_rate": 0.1,
+          "domain_hit_at_20_rate": 0.1,
+          "target_page_hit_at_10_rate": 0.1,
+          "target_page_hit_at_20_rate": 0.1
+        }
+      },
+      "technical_howto": {
+        "total": 12,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5833,
+          "domain_hit_at_20_rate": 0.5833,
+          "target_page_hit_at_10_rate": 0.0833,
+          "target_page_hit_at_20_rate": 0.0833,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.25,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1638.781
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5833,
+          "domain_hit_at_20_rate": 0.5833,
+          "target_page_hit_at_10_rate": 0.0833,
+          "target_page_hit_at_20_rate": 0.0833,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.917,
+          "average_query_count": 1.333,
+          "average_total_elapsed_ms": 2868.206
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "technical_reference": {
+        "total": 4,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1476.331
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.0,
+          "average_query_count": 1.25,
+          "average_total_elapsed_ms": 2901.987
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "user_experience": {
+        "total": 4,
+        "direct": {
+          "domain_hit_at_5_rate": 0.25,
+          "domain_hit_at_10_rate": 0.25,
+          "domain_hit_at_20_rate": 0.25,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 7.25,
+          "average_query_count": 0.75,
+          "average_total_elapsed_ms": 1648.251
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.25,
+          "domain_hit_at_10_rate": 0.25,
+          "domain_hit_at_20_rate": 0.25,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 7.25,
+          "average_query_count": 0.75,
+          "average_total_elapsed_ms": 2498.105
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      }
+    },
+    "source_policy": {
+      "community_required": {
+        "total": 12,
+        "direct": {
+          "domain_hit_at_5_rate": 0.4167,
+          "domain_hit_at_10_rate": 0.4167,
+          "domain_hit_at_20_rate": 0.4167,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 7.167,
+          "average_query_count": 0.75,
+          "average_total_elapsed_ms": 1583.588
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.4167,
+          "domain_hit_at_10_rate": 0.4167,
+          "domain_hit_at_20_rate": 0.4167,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 0.75,
+          "average_candidate_count": 8.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 2570.186
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.0,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "official_required": {
+        "total": 64,
+        "direct": {
+          "domain_hit_at_5_rate": 0.3906,
+          "domain_hit_at_10_rate": 0.4062,
+          "domain_hit_at_20_rate": 0.4062,
+          "target_page_hit_at_10_rate": 0.0156,
+          "target_page_hit_at_20_rate": 0.0156,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.688,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1632.996
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.4219,
+          "domain_hit_at_10_rate": 0.4375,
+          "domain_hit_at_20_rate": 0.4375,
+          "target_page_hit_at_10_rate": 0.0156,
+          "target_page_hit_at_20_rate": 0.0156,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 9.969,
+          "average_query_count": 1.391,
+          "average_total_elapsed_ms": 3179.805
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0313,
+          "domain_hit_at_10_rate": 0.0313,
+          "domain_hit_at_20_rate": 0.0313,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0
+        }
+      },
+      "original_required": {
+        "total": 2,
+        "direct": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.5,
+          "target_page_hit_at_20_rate": 0.5,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 7.5,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1408.832
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.5,
+          "domain_hit_at_10_rate": 0.5,
+          "domain_hit_at_20_rate": 1.0,
+          "target_page_hit_at_10_rate": 0.5,
+          "target_page_hit_at_20_rate": 1.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 11.5,
+          "average_query_count": 2.0,
+          "average_total_elapsed_ms": 3414.057
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0,
+          "domain_hit_at_10_rate": 0.0,
+          "domain_hit_at_20_rate": 0.5,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.5
+        }
+      },
+      "primary_required": {
+        "total": 22,
+        "direct": {
+          "domain_hit_at_5_rate": 0.1818,
+          "domain_hit_at_10_rate": 0.1818,
+          "domain_hit_at_20_rate": 0.1818,
+          "target_page_hit_at_10_rate": 0.0,
+          "target_page_hit_at_20_rate": 0.0,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 8.636,
+          "average_query_count": 1.0,
+          "average_total_elapsed_ms": 1521.409
+        },
+        "feedback": {
+          "domain_hit_at_5_rate": 0.2273,
+          "domain_hit_at_10_rate": 0.2273,
+          "domain_hit_at_20_rate": 0.2273,
+          "target_page_hit_at_10_rate": 0.0455,
+          "target_page_hit_at_20_rate": 0.0455,
+          "nonempty_candidate_rate": 1.0,
+          "average_candidate_count": 10.864,
+          "average_query_count": 1.409,
+          "average_total_elapsed_ms": 2979.106
+        },
+        "feedback_vs_direct": {
+          "domain_hit_at_5_rate": 0.0455,
+          "domain_hit_at_10_rate": 0.0455,
+          "domain_hit_at_20_rate": 0.0455,
+          "target_page_hit_at_10_rate": 0.0455,
+          "target_page_hit_at_20_rate": 0.0455
+        }
+      }
+    }
+  },
+  "planner": {
+    "direct_action_count": 100,
+    "direct_strict_action_count": 100,
+    "direct_valid_action_count": 97,
+    "feedback_gate_triggered_cases": 79,
+    "feedback_action_generated_cases": 76,
+    "feedback_strict_action_count": 69,
+    "feedback_strict_action_rate": 0.9079,
+    "feedback_valid_action_count": 39,
+    "feedback_query_executed_cases": 39,
+    "feedback_validation_reason_counts": {
+      "duplicate_query": 28,
+      "empty_query": 7,
+      "subject_drift": 9
+    },
+    "feedback_stop_reason_counts": {
+      "feedback_complete": 39,
+      "feedback_invalid": 40,
+      "gate_not_triggered": 21
+    }
+  },
+  "interpretation": {
+    "quality": "C improved Domain@10 by 3 points and Target@20 by 2 points with zero paired regressions.",
+    "cost": "C added 0.39 discovery queries and about 1469 ms average model-plus-search latency per case.",
+    "absolute_quality": "Both A and C remain weak on the harder v2 set; the result supports C over A but does not show production readiness.",
+    "cross_benchmark": "Do not compare these absolute percentages directly with the older 50-case benchmark because the cases differ."
+  },
+  "limitations": [
+    "The development set is manually curated realistic data, not user logs and not a blind test.",
+    "This benchmark measures discovery only; it does not include fetch, extraction, evidence, answer generation, or final-result recall.",
+    "The paired design controls Q1 by reusing exactly the same candidates, but Q2 is still a live Bing request and live results can vary.",
+    "Category groups with fewer than ten cases are diagnostic only.",
+    "No labels or runtime rules were changed after observing the run."
+  ],
+  "raw_traces_included": false,
+  "production_changed": false
+}
