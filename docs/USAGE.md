@@ -13,6 +13,7 @@ pip install -e '.[realtime,dev]'
 ```bash
 pip install -e '.[model]'      # Hugging Face RWKV
 pip install -e '.[browser]'    # 少量 JS 页面后备
+pip install -e '.[extraction-bench,dev]'  # 静态抽取器固定快照A/B
 ```
 
 ## 2. 本地聊天界面
@@ -99,3 +100,24 @@ PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
   --config configs/benchmark.json \
   --model-queries bench/runs/p4_queries.jsonl
 ```
+
+## 7. 固定网页抽取 Benchmark
+
+首次抓取原始快照（不会写入Git）：
+
+```bash
+PYTHONPATH=src python bench/run_web_extraction_bench.py \
+  --capture --capture-only
+```
+
+离线比较同一批字节：
+
+```bash
+PYTHONPATH=src python bench/run_web_extraction_bench.py \
+  --repeat 3 \
+  --extractors current,hybrid_fast,trafilatura,justext,readability,resiliparse
+```
+
+`data/web-extraction-bench/`保存网页快照，`bench/runs/`保存本地逐例结果，两者均被Git忽略。可公开摘要必须只包含指标、失败类型、长度和哈希。
+
+`hybrid_fast`直接复用实时链路的`src/rwkv_search/realtime/hybrid_extractor.py`。安装`realtime`可选依赖后，HTML正文默认使用Resiliparse快速抽取和Trafilatura轻量元数据；仅在通用质量信号命中时运行完整Trafilatura兜底。缺少可选依赖时会安全降级到原抽取实现。接入前冻结结果见`bench/baselines/web_extraction/hybrid-fast-v1/`。

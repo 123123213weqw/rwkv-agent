@@ -1,0 +1,25 @@
+{
+  "schema_version": "public-baseline-manifest.v1",
+  "name": "candidate-rerank-bge-m3-v1",
+  "status": "public_summary",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "8549b79e7b2c024d05d1e27fca1c6b293d469df3b90881465d162dab12217286",
+      "bytes": 877
+    },
+    {
+      "path": "summary.json",
+      "sha256": "1c68bcdf96db3e660a0f2d97eaf56ccdbd121c964e9300bb9a0f20d25aa296b9",
+      "bytes": 413131
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "84f1e4b23f02d230b7ec0442c44e829790a68d08b97f3cd6fc9fd10ea819163a",
+      "bytes": 3091
+    }
+  ],
+  "contains_full_urls": false,
+  "contains_page_content": false,
+  "production_changed": false
+}

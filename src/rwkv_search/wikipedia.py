@@ -15,7 +15,7 @@ _VARIANT_RE = re.compile(r"-\{([^{}]{1,2000})\}-")
 _BLANKS_RE = re.compile(r"\n[ \t]*\n(?:[ \t]*\n)+")
 _HSPACE_RE = re.compile(r"[ \t\u00a0]+")
 _BLOCK_RE = re.compile(r"\S(?:.*?\S)?(?=\n\s*\n|\Z)", re.S)
-_SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[。！？!?；;])\s*|\n+")
+_SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[。！？!?；;])\s*|(?<=[.])\s+|\n+")
 _SOFT_BOUNDARY_RE = re.compile(r"(?<=[，,：:、])\s*")
 _HEADING_PUNCTUATION_RE = re.compile(r"[。！？!?；;，,：:]|https?://")
 _DISAMBIGUATION_RE = re.compile(r"(?:可以|可能|通常)指(?:以下|下列|的是|：|:)")
@@ -45,6 +45,7 @@ class WikipediaChunk:
     char_start: int
     char_end: int
     source: str = "wikipedia"
+    language: str = "zh"
     modified_at: str = ""
     wikidata_id: str = ""
     wikiname: str = ""

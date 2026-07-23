@@ -12,6 +12,7 @@ from pathlib import Path
 
 from rwkv_search.config import RealtimeSearchConfig
 from rwkv_search.db import SearchDatabase
+from rwkv_search.g1i_types import G1ICompletion
 from rwkv_search.realtime.discovery import (
     URLDiscovery,
     bing_search_headers,
@@ -26,6 +27,7 @@ from rwkv_search.realtime.fetcher import AsyncPageFetcher, FetchError
 from rwkv_search.realtime.ranker import rank_documents, to_search_results
 from rwkv_search.realtime.types import DiscoveredURL, FetchedPage, RealtimeDocument
 from rwkv_search.search import SearchResult
+from rwkv_search.search_reasoning import CFeedbackPlanner
 from rwkv_search.service import SearchService
 
 
@@ -114,7 +116,11 @@ class FakeDiscovery:
 
 
 class FakePageFetcher:
+    def __init__(self) -> None:
+        self.calls = []
+
     async def fetch(self, url):
+        self.calls.append(url)
         return FetchedPage(
             requested_url=url,
             final_url=url,
@@ -130,6 +136,60 @@ class FakePageFetcher:
             elapsed_ms=4.0,
             headers={},
         )
+
+
+class FeedbackDiscoveryFixture:
+    def __init__(self, *, satisfied: bool = False) -> None:
+        self.calls = []
+        self.satisfied = satisfied
+
+    async def discover(
+        self,
+        queries,
+        *,
+        freshness,
+        max_candidates,
+        diagnostics=None,
+        source_channels=(),
+    ):
+        self.calls.append(list(queries))
+        if len(self.calls) == 1 and self.satisfied:
+            return [
+                DiscoveredURL(
+                    url=f"https://www.python.org/{suffix}",
+                    title=title,
+                    snippet="Official Python stable release information",
+                    engine="fixture",
+                    rank=index,
+                )
+                for index, (suffix, title) in enumerate(
+                    (
+                        ("downloads/", "Download Python"),
+                        ("downloads/release/", "Python releases"),
+                        ("doc/", "Python documentation"),
+                    ),
+                    1,
+                )
+            ]
+        if len(self.calls) == 1:
+            return [
+                DiscoveredURL(
+                    url="https://blog.example/python",
+                    title="A third-party Python article",
+                    snippet="General programming article",
+                    engine="fixture",
+                    rank=1,
+                )
+            ]
+        return [
+            DiscoveredURL(
+                url="https://www.python.org/downloads/",
+                title="Download Python",
+                snippet="Current stable Python release",
+                engine="fixture",
+                rank=1,
+            )
+        ]
 
 
 class PrecisionDiscoveryFixture:
@@ -202,7 +262,32 @@ class FailingDiscoverySession:
         raise OSError("fixture connection failed")
 
 
+class CapturingFailingDiscoverySession:
+    def __init__(self) -> None:
+        self.url = ""
+
+    def get(self, url, *args, **kwargs):
+        self.url = url
+        raise OSError("fixture connection failed")
+
+
 class RealtimeSearchTests(unittest.TestCase):
+    @staticmethod
+    def _completion_from_queries(*queries):
+        remaining = iter(queries)
+
+        def complete(prompt, stops, max_tokens):
+            query = next(remaining)
+            return G1ICompletion(
+                '<tool_call>{"name":"web_search","arguments":{"query":"'
+                + query
+                + '"}}',
+                "</tool_call>",
+                elapsed_ms=1.0,
+            )
+
+        return complete
+
     def test_searxng_params_use_query_language_without_disabling_engines(self) -> None:
         self.assertEqual(
             searxng_search_params("新能源汽车政策", "latest")["language"],
@@ -232,6 +317,32 @@ class RealtimeSearchTests(unittest.TestCase):
             bing_search_headers("Python 最新版本")["Accept-Language"],
             "zh-CN,zh;q=0.9",
         )
+
+    def test_bing_base_url_is_configurable_without_changing_the_default(self) -> None:
+        self.assertEqual(
+            RealtimeSearchConfig().bing_base_url,
+            "https://www.bing.com",
+        )
+
+        async def run():
+            session = CapturingFailingDiscoverySession()
+            discovery = URLDiscovery(
+                RealtimeSearchConfig(
+                    enabled=True,
+                    searxng_url="",
+                    fallback_engines=["bing"],
+                    bing_base_url="https://cn.bing.com/",
+                ),
+                session,
+            )
+            await discovery.discover(
+                ["Python latest release"],
+                freshness="latest",
+                max_candidates=5,
+            )
+            return session.url
+
+        self.assertEqual(asyncio.run(run()), "https://cn.bing.com/search")
 
     def test_discovery_diagnostics_preserve_searxng_connection_errors(self) -> None:
         async def run():
@@ -332,6 +443,361 @@ class RealtimeSearchTests(unittest.TestCase):
         self.assertEqual(result["stats"]["fetched"], 1)
         self.assertEqual(result["stats"]["failed"], 0)
         self.assertGreaterEqual(result["stats"]["fetch_success_rate"], 1.0)
+
+    def test_c_feedback_runs_two_discoveries_then_one_shared_fetch_stage(self) -> None:
+        config = RealtimeSearchConfig(
+            enabled=True,
+            fast_max_queries=2,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=2,
+            fast_deadline_seconds=2.0,
+        )
+        planner = CFeedbackPlanner(
+            self._completion_from_queries(
+                "Python latest stable release official",
+                "Python official downloads release page",
+            )
+        )
+        engine = RealtimeSearchEngine(config, feedback_planner=planner)
+        discovery_fixture = FeedbackDiscoveryFixture()
+        fetcher = FakePageFetcher()
+        engine._discovery = discovery_fixture
+        engine._fetcher = fetcher
+        events = queue.Queue()
+        asyncio.run(
+            engine._search(
+                "Python当前最新稳定版本是什么？请以官网为准。",
+                ["Python 当前版本"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        result = next(item for item in emitted if item["type"] == "realtime_result")
+        self.assertEqual(len(discovery_fixture.calls), 2)
+        self.assertEqual(discovery_fixture.calls[0], ["Python latest stable release official"])
+        self.assertTrue(discovery["feedback_query_executed"])
+        self.assertEqual(discovery["discovery_request_count"], 2)
+        self.assertEqual(len(discovery["model_search_plans"]), 2)
+        self.assertNotIn("reasoning", discovery["model_search_plans"][1])
+        self.assertTrue(
+            any(
+                "model_feedback" in item["discovery_stages"]
+                for item in discovery["candidates"]
+            )
+        )
+        self.assertEqual(len(fetcher.calls), result["stats"]["attempted"])
+        self.assertLessEqual(len(fetcher.calls), config.fast_max_fetch_pages)
+
+    def test_c_feedback_gate_can_skip_the_second_discovery(self) -> None:
+        config = RealtimeSearchConfig(
+            enabled=True,
+            fast_max_queries=2,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=2,
+            fast_deadline_seconds=2.0,
+        )
+        planner = CFeedbackPlanner(
+            self._completion_from_queries("Python latest stable release official")
+        )
+        engine = RealtimeSearchEngine(config, feedback_planner=planner)
+        fixture = FeedbackDiscoveryFixture(satisfied=True)
+        engine._discovery = fixture
+        engine._fetcher = FakePageFetcher()
+        events = queue.Queue()
+        asyncio.run(
+            engine._search(
+                "Python最新稳定版本，以官网为准",
+                ["Python 当前版本"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        self.assertEqual(len(fixture.calls), 1)
+        self.assertFalse(discovery["feedback_query_executed"])
+        self.assertEqual(
+            discovery["model_search_plans"][1]["stop_reason"],
+            "gate_not_triggered",
+        )
+
+    def test_c_feedback_invalid_duplicate_does_not_run_q2(self) -> None:
+        config = RealtimeSearchConfig(
+            enabled=True,
+            fast_max_queries=2,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=1,
+            fast_deadline_seconds=2.0,
+        )
+        planner = CFeedbackPlanner(
+            self._completion_from_queries(
+                "Python latest stable release official",
+                "Python latest stable release official",
+            )
+        )
+        engine = RealtimeSearchEngine(config, feedback_planner=planner)
+        fixture = FeedbackDiscoveryFixture()
+        engine._discovery = fixture
+        engine._fetcher = FakePageFetcher()
+        events = queue.Queue()
+        asyncio.run(
+            engine._search(
+                "Python最新稳定版本，以官网为准",
+                ["Python 当前版本"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        self.assertEqual(len(fixture.calls), 1)
+        self.assertFalse(discovery["feedback_query_executed"])
+        self.assertIn(
+            "duplicate_query",
+            discovery["model_search_plans"][1]["validation"]["reasons"],
+        )
+
+    def test_c_feedback_q1_failure_falls_back_without_q2(self) -> None:
+        def invalid_complete(prompt, stops, max_tokens):
+            return G1ICompletion("not a tool call", "</s>", elapsed_ms=1.0)
+
+        config = RealtimeSearchConfig(
+            enabled=True,
+            fast_max_queries=1,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=1,
+            fast_deadline_seconds=2.0,
+        )
+        engine = RealtimeSearchEngine(
+            config,
+            feedback_planner=CFeedbackPlanner(invalid_complete),
+        )
+        fixture = FeedbackDiscoveryFixture()
+        engine._discovery = fixture
+        engine._fetcher = FakePageFetcher()
+        events = queue.Queue()
+        asyncio.run(
+            engine._search(
+                "Python最新稳定版本",
+                ["fallback route query"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        self.assertEqual(fixture.calls, [["fallback route query"]])
+        self.assertFalse(discovery["feedback_query_executed"])
+        self.assertEqual(len(discovery["model_search_plans"]), 1)
+
+    def test_c_feedback_planning_timeout_fails_open_to_route_query(self) -> None:
+        def slow_complete(prompt, stops, max_tokens):
+            time.sleep(0.2)
+            return G1ICompletion(
+                '<tool_call>{"name":"web_search","arguments":'
+                '{"query":"Python latest release official"}}',
+                "</tool_call>",
+            )
+
+        planner = CFeedbackPlanner(slow_complete, timeout_seconds=0.1)
+        config = RealtimeSearchConfig(
+            enabled=True,
+            fast_max_queries=1,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=1,
+            fast_deadline_seconds=1.0,
+        )
+        engine = RealtimeSearchEngine(config, feedback_planner=planner)
+        fixture = FeedbackDiscoveryFixture()
+        engine._discovery = fixture
+        engine._fetcher = FakePageFetcher()
+        events = queue.Queue()
+        asyncio.run(
+            engine._search(
+                "Python最新稳定版本",
+                ["fallback route query"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        self.assertEqual(fixture.calls[0], ["fallback route query"])
+        self.assertEqual(
+            discovery["model_planning_errors"][0]["error_type"], "TimeoutError"
+        )
+        self.assertFalse(discovery["feedback_query_executed"])
+
+    def test_c_feedback_deadline_prevents_discovery_after_slow_planning(self) -> None:
+        def slow_complete(prompt, stops, max_tokens):
+            time.sleep(0.2)
+            return G1ICompletion(
+                '<tool_call>{"name":"web_search","arguments":'
+                '{"query":"Python latest release official"}}',
+                "</tool_call>",
+            )
+
+        planner = CFeedbackPlanner(slow_complete, timeout_seconds=0.3)
+        config = RealtimeSearchConfig(
+            enabled=True,
+            fast_max_queries=1,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=1,
+            fast_deadline_seconds=0.1,
+        )
+        engine = RealtimeSearchEngine(config, feedback_planner=planner)
+        fixture = FeedbackDiscoveryFixture()
+        engine._discovery = fixture
+        engine._fetcher = FakePageFetcher()
+        events = queue.Queue()
+        asyncio.run(
+            engine._search(
+                "Python最新稳定版本",
+                ["fallback route query"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        self.assertEqual(fixture.calls, [])
+        self.assertEqual(discovery["discovery_request_count"], 0)
+        self.assertIn(
+            discovery["errors"][0]["error_type"],
+            {"DeadlineExceeded", "TimeoutError"},
+        )
+
+    def test_c_feedback_disables_extra_discovery_extensions(self) -> None:
+        config = RealtimeSearchConfig(
+            enabled=True,
+            source_channels_enabled=True,
+            domain_pivot_enabled=True,
+            fast_max_queries=2,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=1,
+            fast_deadline_seconds=2.0,
+        )
+        planner = CFeedbackPlanner(
+            self._completion_from_queries(
+                "Python latest stable release official",
+                "Python official downloads release page",
+            )
+        )
+        engine = RealtimeSearchEngine(config, feedback_planner=planner)
+        fixture = FeedbackDiscoveryFixture()
+        engine._discovery = fixture
+        engine._fetcher = FakePageFetcher()
+        events = queue.Queue()
+        asyncio.run(
+            engine._search(
+                "Python最新稳定版本，以官网为准",
+                ["fallback route query"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        self.assertEqual(len(fixture.calls), 2)
+        self.assertEqual(discovery["source_channels"], [])
+        self.assertEqual(discovery["pivot_queries"], [])
+        self.assertLessEqual(discovery["discovery_request_count"], 2)
+
+    def test_c_feedback_cancellation_prevents_model_and_feedback_fetch(self) -> None:
+        calls = []
+
+        def complete(prompt, stops, max_tokens):
+            calls.append(prompt)
+            raise AssertionError("cancelled search must not call the model")
+
+        config = RealtimeSearchConfig(
+            enabled=True,
+            fast_max_queries=1,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=1,
+            fast_deadline_seconds=1.0,
+        )
+        engine = RealtimeSearchEngine(
+            config,
+            feedback_planner=CFeedbackPlanner(complete),
+        )
+        fixture = FeedbackDiscoveryFixture()
+        fetcher = FakePageFetcher()
+        engine._discovery = fixture
+        engine._fetcher = fetcher
+        events = queue.Queue()
+        cancelled = threading.Event()
+        cancelled.set()
+        asyncio.run(
+            engine._search(
+                "Python最新稳定版本",
+                ["fallback route query"],
+                "latest",
+                "single",
+                cancelled,
+                events,
+                True,
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        result = next(item for item in emitted if item["type"] == "realtime_result")
+        self.assertEqual(calls, [])
+        self.assertEqual(len(fixture.calls), 1)
+        self.assertEqual(fetcher.calls, [])
+        self.assertFalse(result["stats"]["feedback_query_executed"])
 
     def test_candidate_admission_is_visible_without_changing_the_default(self) -> None:
         config = RealtimeSearchConfig(

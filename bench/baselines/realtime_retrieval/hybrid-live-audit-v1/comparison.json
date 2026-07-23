@@ -1,0 +1,202 @@
+{
+  "schema_version": "hybrid-live-audit-comparison.v1",
+  "status": "frozen_live_observation_not_production_decision",
+  "evaluation": {
+    "same_benchmark_cases": 50,
+    "same_frozen_p4_requests": true,
+    "same_experiment_host": "same RTX 4080 host",
+    "independent_live_runs": 2,
+    "precision_features_enabled": [
+      "source_channels",
+      "domain_pivot",
+      "one_hop_link_expansion"
+    ],
+    "hybrid_extractor_enabled": true,
+    "warning": "Live搜索和网页网络有显著波动；冻结4A只作历史参考，优化决策以两次运行共同出现的失败桶为主。"
+  },
+  "frozen_4a_reference": {
+    "candidate_domain_recall_at_10": 0.48,
+    "candidate_target_page_recall_at_20": 0.12,
+    "result_domain_recall_at_10": 0.32,
+    "result_target_page_recall_at_20": 0.0,
+    "nonempty_result_rate": 0.68,
+    "garbage_result_rate": 0.0097,
+    "fetch_success_rate": 0.5395,
+    "average_total_elapsed_ms": 5066.747,
+    "p95_total_elapsed_ms": 8010.197
+  },
+  "hybrid_live_runs": {
+    "run1": {
+      "candidate_domain_recall_at_10": 0.44,
+      "candidate_target_page_recall_at_20": 0.2,
+      "result_domain_recall_at_10": 0.16,
+      "result_target_page_recall_at_20": 0.04,
+      "nonempty_result_rate": 0.76,
+      "garbage_result_rate": 0.0,
+      "fetch_success_rate": 0.4416,
+      "average_total_elapsed_ms": 5303.831,
+      "p95_total_elapsed_ms": 8013.996
+    },
+    "run2": {
+      "candidate_domain_recall_at_10": 0.48,
+      "candidate_target_page_recall_at_20": 0.12,
+      "result_domain_recall_at_10": 0.22,
+      "result_target_page_recall_at_20": 0.02,
+      "nonempty_result_rate": 0.7,
+      "garbage_result_rate": 0.0091,
+      "fetch_success_rate": 0.452,
+      "average_total_elapsed_ms": 4990.779,
+      "p95_total_elapsed_ms": 8018.501
+    },
+    "mean": {
+      "candidate_domain_recall_at_10": 0.46,
+      "candidate_target_page_recall_at_20": 0.16,
+      "result_domain_recall_at_10": 0.19,
+      "result_target_page_recall_at_20": 0.03,
+      "nonempty_result_rate": 0.73,
+      "garbage_result_rate": 0.0046,
+      "fetch_success_rate": 0.4468,
+      "average_total_elapsed_ms": 5147.305,
+      "p95_total_elapsed_ms": 8016.2485
+    },
+    "range": {
+      "candidate_domain_recall_at_10": {
+        "min": 0.44,
+        "max": 0.48
+      },
+      "candidate_target_page_recall_at_20": {
+        "min": 0.12,
+        "max": 0.2
+      },
+      "result_domain_recall_at_10": {
+        "min": 0.16,
+        "max": 0.22
+      },
+      "result_target_page_recall_at_20": {
+        "min": 0.02,
+        "max": 0.04
+      },
+      "nonempty_result_rate": {
+        "min": 0.7,
+        "max": 0.76
+      },
+      "garbage_result_rate": {
+        "min": 0.0,
+        "max": 0.0091
+      },
+      "fetch_success_rate": {
+        "min": 0.4416,
+        "max": 0.452
+      },
+      "average_total_elapsed_ms": {
+        "min": 4990.779,
+        "max": 5303.831
+      },
+      "p95_total_elapsed_ms": {
+        "min": 8013.996,
+        "max": 8018.501
+      }
+    }
+  },
+  "failure_attribution": {
+    "run1": {
+      "domain_outcomes": {
+        "domain_fetch_or_extraction_failed": 13,
+        "domain_final_ranking_drop": 1,
+        "domain_not_discovered": 28,
+        "success_result": 8
+      },
+      "target_outcomes": {
+        "exact_page_not_discovered_after_precision": 11,
+        "initial_domain_miss": 28,
+        "success_result": 2,
+        "target_fetch_or_extraction_failed": 5,
+        "target_final_ranking_drop": 2,
+        "target_not_scheduled": 2
+      },
+      "domain_fetch_failure_types": {
+        "ConnectionTimeoutError": 31,
+        "ExtractionError": 3,
+        "FetchError": 13,
+        "TimeoutError": 4,
+        "TimeoutOrCancellation": 14
+      },
+      "target_fetch_failure_types": {
+        "ConnectionTimeoutError": 8,
+        "FetchError": 8,
+        "TimeoutError": 2,
+        "TimeoutOrCancellation": 6
+      }
+    },
+    "run2": {
+      "domain_outcomes": {
+        "domain_fetch_or_extraction_failed": 11,
+        "domain_final_ranking_drop": 1,
+        "domain_not_discovered": 26,
+        "domain_not_scheduled": 1,
+        "success_result": 11
+      },
+      "target_outcomes": {
+        "exact_page_not_discovered_after_precision": 18,
+        "initial_domain_miss": 26,
+        "success_result": 1,
+        "target_fetch_or_extraction_failed": 4,
+        "target_final_ranking_drop": 1
+      },
+      "domain_fetch_failure_types": {
+        "ClientConnectorError": 1,
+        "ConnectionTimeoutError": 40,
+        "ExtractionError": 4,
+        "FetchError": 6,
+        "TimeoutError": 6,
+        "TimeoutOrCancellation": 5
+      },
+      "target_fetch_failure_types": {
+        "ClientConnectorError": 1,
+        "ConnectionTimeoutError": 9,
+        "FetchError": 2,
+        "TimeoutError": 2,
+        "TimeoutOrCancellation": 1
+      }
+    },
+    "common_largest_buckets": [
+      {
+        "bucket": "initial_domain_miss",
+        "run1": 28,
+        "run2": 26
+      },
+      {
+        "bucket": "exact_page_not_discovered_after_precision",
+        "run1": 11,
+        "run2": 18
+      },
+      {
+        "bucket": "domain_fetch_or_extraction_failed",
+        "run1": 13,
+        "run2": 11
+      }
+    ],
+    "interpretation": "最大稳定失败是首轮官方域名未发现；其次是已找到官方域但没有发现精确页。抓取失败以连接/HTTP/截止超时为主，Hybrid ExtractionError仅3/4条，且精确目标页失败中没有ExtractionError。"
+  },
+  "resource_usage": {
+    "discovery_requests": [
+      83,
+      86
+    ],
+    "average_discovery_requests_per_case": 1.69,
+    "fetch_attempted": [
+      317,
+      323
+    ],
+    "fetch_usable": [
+      139,
+      145
+    ]
+  },
+  "decision": {
+    "hybrid_is_not_primary_live_failure": true,
+    "next_priority": "initial URL discovery recall, then exact-page discovery, then bounded network fetch reliability",
+    "production_config_changed": false,
+    "next_milestone_started": false
+  }
+}

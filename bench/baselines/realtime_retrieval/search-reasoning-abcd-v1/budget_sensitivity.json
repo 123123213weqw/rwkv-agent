@@ -1,0 +1,134 @@
+{
+  "schema_version": "search-reasoning-budget-sensitivity.v1",
+  "selection": "All eight ReAct cases with zero executed searches in the 192-token primary run. This is a diagnostic subset, not a second full benchmark.",
+  "case_count": 8,
+  "cases": [
+    {
+      "id": "retrieval-zh-005",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      },
+      "tokens_384": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      }
+    },
+    {
+      "id": "retrieval-zh-009",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      },
+      "tokens_384": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      }
+    },
+    {
+      "id": "retrieval-zh-013",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      },
+      "tokens_384": {
+        "case_success": true,
+        "query_count": 1,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 0
+      }
+    },
+    {
+      "id": "retrieval-zh-018",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      },
+      "tokens_384": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      }
+    },
+    {
+      "id": "retrieval-zh-019",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      },
+      "tokens_384": {
+        "case_success": true,
+        "query_count": 3,
+        "stop_reason": "max_rounds",
+        "max_token_stops": 0
+      }
+    },
+    {
+      "id": "retrieval-zh-022",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      },
+      "tokens_384": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      }
+    },
+    {
+      "id": "retrieval-zh-023",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 1
+      },
+      "tokens_384": {
+        "case_success": true,
+        "query_count": 1,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 0
+      }
+    },
+    {
+      "id": "retrieval-zh-025",
+      "tokens_192": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 0
+      },
+      "tokens_384": {
+        "case_success": false,
+        "query_count": 0,
+        "stop_reason": "invalid_action",
+        "max_token_stops": 0
+      }
+    }
+  ],
+  "aggregate": {
+    "192_case_success_count": 0,
+    "384_case_success_count": 3,
+    "192_max_token_stop_count": 7,
+    "384_max_token_stop_count": 4
+  },
+  "conclusion": "Doubling the cap recovered three of eight zero-search cases, but four still exhausted 384 tokens before a valid first action; the ReAct prompt remains too verbose and brittle for the fast path."
+}

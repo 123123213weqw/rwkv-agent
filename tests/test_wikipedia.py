@@ -22,6 +22,16 @@ class WikipediaCleaningTests(unittest.TestCase):
 
 
 class WikipediaChunkerTests(unittest.TestCase):
+    def test_long_english_paragraph_splits_on_sentence_boundaries(self) -> None:
+        sentence = "This is a complete English sentence with enough words for testing. "
+        chunks = WikipediaChunker(target_chars=180, max_chars=240, overlap_chars=0).chunk(
+            WikipediaArticle("en-1", "https://example.test/en", "English article", sentence * 12),
+            snapshot_date="20250801",
+        )
+        self.assertGreater(len(chunks), 1)
+        self.assertTrue(all(len(chunk.text) <= 240 for chunk in chunks))
+        self.assertTrue(all(chunk.text.endswith("testing.") for chunk in chunks))
+
     def test_short_article_is_preserved(self) -> None:
         chunks = WikipediaChunker().chunk(
             WikipediaArticle("1", "https://example.test/1", "NGC 326", "NGC 326 是双鱼座的一个星系。"),

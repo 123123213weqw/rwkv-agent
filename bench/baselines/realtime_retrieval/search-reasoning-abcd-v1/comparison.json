@@ -1,0 +1,168 @@
+{
+  "schema_version": "search-reasoning-comparison.v1",
+  "protocols": {
+    "A_direct": {
+      "strategy": "direct",
+      "maximum_searches": 1,
+      "description": "Current P4 single flat web_search action."
+    },
+    "B_short_cot": {
+      "strategy": "short_cot",
+      "maximum_searches": 1,
+      "description": "One requested short think block followed by one flat web_search action."
+    },
+    "C_feedback": {
+      "strategy": "feedback",
+      "maximum_searches": 2,
+      "description": "A query plus a gate-triggered model follow-up over bounded top-result observations."
+    },
+    "D_react": {
+      "strategy": "react",
+      "maximum_searches": 3,
+      "description": "Bounded repeated think, flat web_search action, and untrusted observation loop."
+    }
+  },
+  "same_conditions": {
+    "cases": 50,
+    "languages": {
+      "zh": 25,
+      "en": 25
+    },
+    "decoder": "greedy",
+    "primary_max_tokens": 192,
+    "same_model": true,
+    "same_discovery": true,
+    "benchmark_labels_visible_to_model": false
+  },
+  "query_comparison": {
+    "direct_and_short_cot_exact_same_generated_query_count": 25,
+    "total_cases": 50
+  },
+  "recall_changes_vs_direct": {
+    "short_cot": {
+      "domain_at_10": {
+        "gains": [
+          "retrieval-en-003"
+        ],
+        "losses": [
+          "retrieval-en-008"
+        ]
+      },
+      "target_at_20": {
+        "gains": [
+          "retrieval-en-003"
+        ],
+        "losses": []
+      }
+    },
+    "feedback": {
+      "domain_at_10": {
+        "gains": [
+          "retrieval-en-003",
+          "retrieval-en-005",
+          "retrieval-en-013"
+        ],
+        "losses": []
+      },
+      "target_at_20": {
+        "gains": [
+          "retrieval-en-003",
+          "retrieval-en-005"
+        ],
+        "losses": []
+      }
+    },
+    "react": {
+      "domain_at_10": {
+        "gains": [
+          "retrieval-en-003",
+          "retrieval-en-013"
+        ],
+        "losses": [
+          "retrieval-en-008",
+          "retrieval-en-010",
+          "retrieval-zh-009",
+          "retrieval-zh-018",
+          "retrieval-zh-019",
+          "retrieval-zh-023"
+        ]
+      },
+      "target_at_20": {
+        "gains": [],
+        "losses": []
+      }
+    }
+  },
+  "action_breakdown": {
+    "direct": {
+      "kinds": {
+        "search": 50
+      },
+      "stops": {
+        "</tool_call>": 50
+      },
+      "validation_reasons": {}
+    },
+    "short_cot": {
+      "kinds": {
+        "invalid": 1,
+        "search": 49
+      },
+      "stops": {
+        "</tool_call>": 49,
+        "max_tokens": 1
+      },
+      "validation_reasons": {
+        "empty_query": 1,
+        "subject_drift": 1
+      }
+    },
+    "feedback": {
+      "kinds": {
+        "invalid": 1,
+        "search": 83
+      },
+      "stops": {
+        "</tool_call>": 84
+      },
+      "validation_reasons": {
+        "duplicate_query": 7,
+        "empty_query": 1,
+        "subject_drift": 2
+      }
+    },
+    "react": {
+      "kinds": {
+        "invalid": 11,
+        "search": 104
+      },
+      "stops": {
+        "</tool_call>": 105,
+        "max_tokens": 10
+      },
+      "validation_reasons": {
+        "duplicate_query": 29,
+        "empty_query": 11,
+        "subject_drift": 12,
+        "ungrounded_site_constraint": 1
+      }
+    }
+  },
+  "decision": {
+    "best_quality_cost_tradeoff": "feedback",
+    "feedback_domain_at_10_delta": 0.06,
+    "feedback_target_at_20_delta": 0.04,
+    "feedback_average_query_delta": 0.5,
+    "feedback_average_total_latency_delta_ms": 1328.241,
+    "short_cot_is_not_a_material_domain_recall_gain": true,
+    "react_is_rejected_for_fast_path": true,
+    "react_reasons": [
+      "lower recall than direct",
+      "no valid model stop in 50 cases",
+      "high duplicate-query rate",
+      "frequent invalid or truncated actions",
+      "2.7x direct average total latency"
+    ],
+    "production_changed": false
+  }
+}

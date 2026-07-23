@@ -14,7 +14,7 @@
 4. **Discovery**：优先使用本地 SearXNG JSON；不可用时可退到轻量 HTML Discovery。
 5. **候选准入**：按标题、URL、摘要、实体覆盖、来源约束、RRF 和域名多样性排序并过滤垃圾页。
 6. **精确发现**：显式仓库/论文请求可增加来源通道；从首轮结果推导最多两个官网域名并做一次 Pivot；对已抓取官网页面最多扩展八条同组织链接。
-7. **抓取与抽取**：共享 `aiohttp` Session；限制并发、重定向和响应大小；使用 selectolax/Trafilatura 抽正文。
+7. **抓取与抽取**：共享 `aiohttp` Session；限制并发、重定向和响应大小；HTML默认使用Resiliparse快速正文和Trafilatura轻量元数据，只在通用低质量信号命中时运行完整Trafilatura兜底，缺依赖时回退原抽取实现。
 8. **Evidence**：保留来源、发布时间、抓取时间和引用 ID，再交给 RWKV 生成答案。
 
 ## 为什么不让模型输出复杂 Planner JSON

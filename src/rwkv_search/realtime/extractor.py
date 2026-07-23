@@ -5,6 +5,7 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 from ..text import extract_document, simhash64
+from .hybrid_extractor import extract_hybrid_html
 from .types import FetchedPage, RealtimeDocument
 
 
@@ -16,7 +17,13 @@ _META_CHARSET_RE = re.compile(
 
 def extract_page(page: FetchedPage) -> Optional[RealtimeDocument]:
     raw_html = _decode(page.body, page.content_type)
-    document = extract_document(raw_html, page.final_url)
+    mime = page.content_type.split(";", 1)[0].strip().casefold()
+    if mime in {"", "text/html", "application/xhtml+xml"}:
+        document = extract_hybrid_html(
+            page.body, raw_html, page.final_url
+        ).document
+    else:
+        document = extract_document(raw_html, page.final_url)
     text = document.text.strip()
     if len(text) < 80:
         return None

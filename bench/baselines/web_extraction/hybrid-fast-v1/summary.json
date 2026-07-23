@@ -1,0 +1,514 @@
+{
+  "schema_version": "web-extraction-hybrid-summary.v1",
+  "case_count": 30,
+  "snapshot_count": 30,
+  "cases_sha256": "cc5aa0fb5970a67befae2f3727f1f86829885c6b3de64a3557da16508afbdcf1",
+  "fetch_outcomes": {
+    "connect_timeout": 1,
+    "http_403": 1,
+    "ok": 28
+  },
+  "fetch_success_rate": 0.9333,
+  "repetitions": 3,
+  "all_outputs_deterministic": true,
+  "extractors": {
+    "current": {
+      "total": 30,
+      "available": true,
+      "evaluated": 28,
+      "pass_rate": 0.7857,
+      "usable_success_rate": 0.8696,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.087,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.8,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_text_length": 19185.13,
+      "average_elapsed_ms": 197.83,
+      "p95_elapsed_ms": 787.17,
+      "failures": {
+        "js_shell": 5,
+        "ok": 21,
+        "unsupported_content_type": 2
+      },
+      "fallback_trigger_rate": 0.0,
+      "fallback_use_rate": 0.0,
+      "fallback_reasons": {},
+      "by_language": {
+        "en": {
+          "count": 14,
+          "pass_rate": 0.8571
+        },
+        "zh": {
+          "count": 14,
+          "pass_rate": 0.7143
+        }
+      },
+      "by_page_type": {
+        "article": {
+          "count": 5,
+          "pass_rate": 0.8
+        },
+        "code": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "documentation": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "filing": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "government": {
+          "count": 2,
+          "pass_rate": 0.0
+        },
+        "js_app": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "json": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "paper": {
+          "count": 3,
+          "pass_rate": 0.6667
+        },
+        "release": {
+          "count": 7,
+          "pass_rate": 1.0
+        },
+        "repository": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "table": {
+          "count": 3,
+          "pass_rate": 0.3333
+        }
+      }
+    },
+    "hybrid_fast": {
+      "total": 30,
+      "available": true,
+      "evaluated": 28,
+      "pass_rate": 0.8571,
+      "usable_success_rate": 0.8696,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.087,
+      "author_hit_rate": 1.0,
+      "published_at_hit_rate": 1.0,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_text_length": 19585.43,
+      "average_elapsed_ms": 70.135,
+      "p95_elapsed_ms": 197.946,
+      "failures": {
+        "js_shell": 4,
+        "low_quality": 1,
+        "ok": 21,
+        "unsupported_content_type": 2
+      },
+      "fallback_trigger_rate": 0.1429,
+      "fallback_use_rate": 0.0357,
+      "fallback_reasons": {
+        "generic_boilerplate": 1,
+        "generic_boilerplate_tail": 1,
+        "low_main_content_ratio": 1,
+        "low_quality": 1
+      },
+      "by_language": {
+        "en": {
+          "count": 14,
+          "pass_rate": 0.9286
+        },
+        "zh": {
+          "count": 14,
+          "pass_rate": 0.7857
+        }
+      },
+      "by_page_type": {
+        "article": {
+          "count": 5,
+          "pass_rate": 0.8
+        },
+        "code": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "documentation": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "filing": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "government": {
+          "count": 2,
+          "pass_rate": 0.5
+        },
+        "js_app": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "json": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "paper": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "release": {
+          "count": 7,
+          "pass_rate": 1.0
+        },
+        "repository": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "table": {
+          "count": 3,
+          "pass_rate": 0.3333
+        }
+      }
+    },
+    "justext": {
+      "total": 30,
+      "available": true,
+      "evaluated": 28,
+      "pass_rate": 0.4643,
+      "usable_success_rate": 0.6522,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.3913,
+      "forbidden_leak_rate": 0.0,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.2,
+      "table_hit_rate": 0.5,
+      "code_hit_rate": 1.0,
+      "average_text_length": 11140.3,
+      "average_elapsed_ms": 38.612,
+      "p95_elapsed_ms": 144.498,
+      "failures": {
+        "extractor_empty": 6,
+        "js_shell": 4,
+        "ok": 16,
+        "unsupported_content_type": 2
+      },
+      "fallback_trigger_rate": 0.0,
+      "fallback_use_rate": 0.0,
+      "fallback_reasons": {},
+      "by_language": {
+        "en": {
+          "count": 14,
+          "pass_rate": 0.5714
+        },
+        "zh": {
+          "count": 14,
+          "pass_rate": 0.3571
+        }
+      },
+      "by_page_type": {
+        "article": {
+          "count": 5,
+          "pass_rate": 0.2
+        },
+        "code": {
+          "count": 1,
+          "pass_rate": 0.0
+        },
+        "documentation": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "filing": {
+          "count": 1,
+          "pass_rate": 0.0
+        },
+        "government": {
+          "count": 2,
+          "pass_rate": 0.0
+        },
+        "js_app": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "json": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "paper": {
+          "count": 3,
+          "pass_rate": 0.6667
+        },
+        "release": {
+          "count": 7,
+          "pass_rate": 0.4286
+        },
+        "repository": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "table": {
+          "count": 3,
+          "pass_rate": 0.3333
+        }
+      }
+    },
+    "readability": {
+      "total": 30,
+      "available": true,
+      "evaluated": 28,
+      "pass_rate": 0.4643,
+      "usable_success_rate": 0.6522,
+      "title_hit_rate": 0.9048,
+      "content_marker_hit_rate": 0.5217,
+      "forbidden_leak_rate": 0.0,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.2,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_text_length": 14025.74,
+      "average_elapsed_ms": 77.991,
+      "p95_elapsed_ms": 310.265,
+      "failures": {
+        "extractor_empty": 2,
+        "js_shell": 4,
+        "low_quality": 3,
+        "ok": 17,
+        "unsupported_content_type": 2
+      },
+      "fallback_trigger_rate": 0.0,
+      "fallback_use_rate": 0.0,
+      "fallback_reasons": {},
+      "by_language": {
+        "en": {
+          "count": 14,
+          "pass_rate": 0.7143
+        },
+        "zh": {
+          "count": 14,
+          "pass_rate": 0.2143
+        }
+      },
+      "by_page_type": {
+        "article": {
+          "count": 5,
+          "pass_rate": 0.0
+        },
+        "code": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "documentation": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "filing": {
+          "count": 1,
+          "pass_rate": 0.0
+        },
+        "government": {
+          "count": 2,
+          "pass_rate": 0.5
+        },
+        "js_app": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "json": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "paper": {
+          "count": 3,
+          "pass_rate": 0.6667
+        },
+        "release": {
+          "count": 7,
+          "pass_rate": 0.4286
+        },
+        "repository": {
+          "count": 1,
+          "pass_rate": 0.0
+        },
+        "table": {
+          "count": 3,
+          "pass_rate": 0.3333
+        }
+      }
+    },
+    "resiliparse": {
+      "total": 30,
+      "available": true,
+      "evaluated": 28,
+      "pass_rate": 0.75,
+      "usable_success_rate": 0.8696,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.1304,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.2,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_text_length": 19590.52,
+      "average_elapsed_ms": 25.218,
+      "p95_elapsed_ms": 109.3,
+      "failures": {
+        "js_shell": 4,
+        "low_quality": 1,
+        "ok": 21,
+        "unsupported_content_type": 2
+      },
+      "fallback_trigger_rate": 0.0,
+      "fallback_use_rate": 0.0,
+      "fallback_reasons": {},
+      "by_language": {
+        "en": {
+          "count": 14,
+          "pass_rate": 0.8571
+        },
+        "zh": {
+          "count": 14,
+          "pass_rate": 0.6429
+        }
+      },
+      "by_page_type": {
+        "article": {
+          "count": 5,
+          "pass_rate": 0.4
+        },
+        "code": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "documentation": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "filing": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "government": {
+          "count": 2,
+          "pass_rate": 0.5
+        },
+        "js_app": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "json": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "paper": {
+          "count": 3,
+          "pass_rate": 0.6667
+        },
+        "release": {
+          "count": 7,
+          "pass_rate": 1.0
+        },
+        "repository": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "table": {
+          "count": 3,
+          "pass_rate": 0.3333
+        }
+      }
+    },
+    "trafilatura": {
+      "total": 30,
+      "available": true,
+      "evaluated": 28,
+      "pass_rate": 0.7143,
+      "usable_success_rate": 0.7391,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.7391,
+      "forbidden_leak_rate": 0.0,
+      "author_hit_rate": 1.0,
+      "published_at_hit_rate": 0.8,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_text_length": 25951.83,
+      "average_elapsed_ms": 164.285,
+      "p95_elapsed_ms": 638.856,
+      "failures": {
+        "extractor_empty": 3,
+        "js_shell": 5,
+        "low_quality": 1,
+        "ok": 17,
+        "unsupported_content_type": 2
+      },
+      "fallback_trigger_rate": 0.0,
+      "fallback_use_rate": 0.0,
+      "fallback_reasons": {},
+      "by_language": {
+        "en": {
+          "count": 14,
+          "pass_rate": 0.7143
+        },
+        "zh": {
+          "count": 14,
+          "pass_rate": 0.7143
+        }
+      },
+      "by_page_type": {
+        "article": {
+          "count": 5,
+          "pass_rate": 0.8
+        },
+        "code": {
+          "count": 1,
+          "pass_rate": 0.0
+        },
+        "documentation": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "filing": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "government": {
+          "count": 2,
+          "pass_rate": 0.0
+        },
+        "js_app": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "json": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "paper": {
+          "count": 3,
+          "pass_rate": 1.0
+        },
+        "release": {
+          "count": 7,
+          "pass_rate": 0.8571
+        },
+        "repository": {
+          "count": 1,
+          "pass_rate": 1.0
+        },
+        "table": {
+          "count": 3,
+          "pass_rate": 0.0
+        }
+      }
+    }
+  }
+}

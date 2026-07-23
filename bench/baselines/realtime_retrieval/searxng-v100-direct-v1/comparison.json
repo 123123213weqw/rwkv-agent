@@ -1,0 +1,70 @@
+{
+  "schema_version": "searxng-v100-direct-comparison.v1",
+  "method": {
+    "host": "V100 experiment host",
+    "transport": "SearXNG and proxy on the same host; no SSH proxy tunnel",
+    "proxy_changed": false,
+    "proxy_node_switched": false,
+    "case_count": 6,
+    "queries": "frozen P4 model queries",
+    "request_delay_seconds": 1
+  },
+  "engines": {
+    "google": {
+      "request_success_rate": 0.5,
+      "nonempty_rate": 0.0,
+      "domain_recall_at_10": 0.0,
+      "target_page_recall_at_20": 0.0,
+      "average_elapsed_ms": 954.778,
+      "outcome": "rejected",
+      "reason": "Zero non-empty results; intermittent connection errors."
+    },
+    "duckduckgo": {
+      "request_success_rate": 0.1667,
+      "nonempty_rate": 0.1667,
+      "domain_recall_at_10": 0.1667,
+      "target_page_recall_at_20": 0.1667,
+      "average_elapsed_ms": 1066.494,
+      "outcome": "rejected",
+      "reason": "Only one of six requests succeeded; connection errors and suspension dominated."
+    },
+    "brave": {
+      "request_success_rate": 0.0,
+      "nonempty_rate": 0.0,
+      "domain_recall_at_10": 0.0,
+      "target_page_recall_at_20": 0.0,
+      "average_elapsed_ms": 77.808,
+      "outcome": "rejected",
+      "reason": "All requests rejected by upstream rate limiting."
+    },
+    "startpage": {
+      "request_success_rate": 0.0,
+      "nonempty_rate": 0.0,
+      "domain_recall_at_10": 0.0,
+      "target_page_recall_at_20": 0.0,
+      "average_elapsed_ms": 425.636,
+      "outcome": "rejected",
+      "reason": "All requests failed result parsing."
+    },
+    "qwant": {
+      "request_success_rate": 0.0,
+      "nonempty_rate": 0.0,
+      "domain_recall_at_10": 0.0,
+      "target_page_recall_at_20": 0.0,
+      "average_elapsed_ms": 366.274,
+      "outcome": "rejected",
+      "reason": "All requests returned CAPTCHA."
+    }
+  },
+  "decision": {
+    "qualified_for_full_benchmark": [],
+    "full_benchmark_skipped": true,
+    "reason": "No candidate passed the six-case smoke stability gate.",
+    "tunnel_was_not_the_root_cause": true,
+    "winner": null,
+    "ready_for_production": false
+  },
+  "temporary_service_removed": true,
+  "v100_proxy_changed": false,
+  "production_changed": false
+}

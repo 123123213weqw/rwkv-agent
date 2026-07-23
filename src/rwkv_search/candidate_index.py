@@ -153,7 +153,7 @@ def chunk_to_index_document(chunk: WikipediaChunk, analyzer: DocumentAnalyzer) -
             "metadata_words": " ".join(metadata.word_terms) if metadata else "",
             "metadata_bigrams": " ".join(metadata.bigram_terms) if metadata else "",
             "source": getattr(chunk, "source", "wikipedia"),
-            "language": "zh",
+            "language": getattr(chunk, "language", "zh") or "und",
             "snapshot_date": chunk.snapshot_date,
             "page_type": chunk.page_type,
             "char_start": chunk.char_start,
@@ -184,6 +184,7 @@ class CandidateHit:
     channels: Tuple[str, ...]
     ranks: Mapping[str, int]
     source: str = "wikipedia"
+    language: str = ""
     wikidata_id: str = ""
     modified_at: str = ""
     chunk_id: int = -1
@@ -257,6 +258,37 @@ class CandidateIndexClient:
 
     def count(self, index: str) -> int:
         return int(self._request("GET", f"/{index}/_count")["count"])
+
+    def existing_page_ids(
+        self,
+        index: str,
+        page_ids: Sequence[str],
+        *,
+        batch_size: int = 5000,
+    ) -> set[str]:
+        """Return qrel page IDs present in an index without fetching their chunks."""
+
+        unique = list(dict.fromkeys(str(item) for item in page_ids if str(item)))
+        existing: set[str] = set()
+        batch_size = max(1, min(10_000, int(batch_size)))
+        for start in range(0, len(unique), batch_size):
+            batch = unique[start : start + batch_size]
+            body = json.dumps(
+                {
+                    "size": len(batch),
+                    "_source": ["page_id"],
+                    "query": {"terms": {"page_id": batch}},
+                    "collapse": {"field": "page_id"},
+                },
+                separators=(",", ":"),
+            ).encode()
+            response = self._request("POST", f"/{index}/_search", body)
+            existing.update(
+                str(hit.get("_source", {}).get("page_id") or "")
+                for hit in response.get("hits", {}).get("hits", [])
+            )
+        existing.discard("")
+        return existing
 
     def stats(self, index: str) -> Mapping[str, Any]:
         return self._request("GET", f"/{index}/_stats/store,docs")
@@ -464,6 +496,7 @@ class CandidateIndexClient:
                     channels=tuple(item["channels"]),
                     ranks=dict(item["ranks"]),
                     source=source.get("source", "wikipedia"),
+                    language=source.get("language", ""),
                     wikidata_id=source.get("wikidata_id", ""),
                     modified_at=source.get("modified_at", ""),
                     chunk_id=int(source.get("chunk_id", -1) or 0),
@@ -610,6 +643,7 @@ def build_channel_queries(
         "url",
         "page_type",
         "source",
+        "language",
         "wikidata_id",
         "modified_at",
         "chunk_id",

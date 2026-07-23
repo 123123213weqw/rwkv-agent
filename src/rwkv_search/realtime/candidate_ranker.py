@@ -62,9 +62,9 @@ _SEARCH_HOST_RE = re.compile(
 )
 _SEARCH_PATH_RE = re.compile(r"^/(?:search|s|web)(?:/|$)", re.I)
 _DICTIONARY_RE = re.compile(
-    r"字典|词典|汉典|释义|是什么意思|在线翻译|翻译|音标|读音|例句|"
+    r"字典|词典|汉典|百科|释义|是什么意思|拼音|部首|笔顺|在线翻译|翻译|音标|读音|例句|"
     r"dictionary|definition|pronunciation|thesaurus|/(?:dict|dictionary)(?:/|\.)|"
-    r"/word(?:\?|/)",
+    r"/word(?:\?|/)|(?:^|[./_-])baike(?:[./_-]|$)|(?:^|[./_-])zidian(?:[./_-]|$)",
     re.I,
 )
 _LOGIN_RE = re.compile(

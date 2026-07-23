@@ -1,0 +1,199 @@
+{
+  "schema_version": "long-knowledge-benchmark.v1",
+  "index": "rwkv-finewiki-zh-full-v1",
+  "language_filter": "zh",
+  "channel_size": 100,
+  "limit": 10,
+  "qrel_index_coverage": {
+    "relevant_pages": 22,
+    "indexed_relevant_pages": 22,
+    "page_rate": 1.0,
+    "qrel_cases": 21,
+    "eligible_cases": 21,
+    "case_rate": 1.0
+  },
+  "cases_total": 24,
+  "positive_cases": 21,
+  "expected_missing_cases": 3,
+  "expected_missing_accuracy": 0.3333333333333333,
+  "overall": {
+    "cases": 21,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 147.97544772071498,
+      "p50": 107.40506905131042,
+      "p95": 170.2210740186274
+    },
+    "hit_at_1": 0.6190476190476191,
+    "hit_at_5": 0.7142857142857143,
+    "hit_at_10": 0.7619047619047619,
+    "recall_at_1": 0.5714285714285714,
+    "recall_at_5": 0.6666666666666666,
+    "recall_at_10": 0.7380952380952381,
+    "mrr_at_10": 0.6488095238095238,
+    "ndcg_at_10": 0.6578333483148574
+  },
+  "by_language": {
+    "zh": {
+      "cases": 21,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 147.97544772071498,
+        "p50": 107.40506905131042,
+        "p95": 170.2210740186274
+      },
+      "hit_at_1": 0.6190476190476191,
+      "hit_at_5": 0.7142857142857143,
+      "hit_at_10": 0.7619047619047619,
+      "recall_at_1": 0.5714285714285714,
+      "recall_at_5": 0.6666666666666666,
+      "recall_at_10": 0.7380952380952381,
+      "mrr_at_10": 0.6488095238095238,
+      "ndcg_at_10": 0.6578333483148574
+    }
+  },
+  "by_query_type": {
+    "alias": {
+      "cases": 3,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 117.02495006223519,
+        "p50": 116.26786598935723,
+        "p95": 127.40191514603794
+      },
+      "hit_at_1": 0.3333333333333333,
+      "hit_at_5": 0.3333333333333333,
+      "hit_at_10": 0.6666666666666666,
+      "recall_at_1": 0.3333333333333333,
+      "recall_at_5": 0.3333333333333333,
+      "recall_at_10": 0.6666666666666666,
+      "mrr_at_10": 0.375,
+      "ndcg_at_10": 0.43848829226190955
+    },
+    "ambiguous": {
+      "cases": 2,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 90.53887100890279,
+        "p50": 84.21698701567948,
+        "p95": 96.8607550021261
+      },
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.0,
+      "hit_at_10": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr_at_10": 0.0,
+      "ndcg_at_10": 0.0
+    },
+    "comparison": {
+      "cases": 2,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 105.37385160569102,
+        "p50": 103.35839120671153,
+        "p95": 107.3893120046705
+      },
+      "hit_at_1": 0.5,
+      "hit_at_5": 0.5,
+      "hit_at_10": 0.5,
+      "recall_at_1": 0.25,
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.5,
+      "mrr_at_10": 0.5,
+      "ndcg_at_10": 0.5
+    },
+    "cross_language": {
+      "cases": 1,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 87.02135807834566,
+        "p50": 87.02135807834566,
+        "p95": 87.02135807834566
+      },
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "hit_at_10": 1.0,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr_at_10": 1.0,
+      "ndcg_at_10": 1.0
+    },
+    "descriptive": {
+      "cases": 2,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 118.69776993989944,
+        "p50": 88.08337594382465,
+        "p95": 149.31216393597424
+      },
+      "hit_at_1": 0.5,
+      "hit_at_5": 0.5,
+      "hit_at_10": 0.5,
+      "recall_at_1": 0.5,
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.5,
+      "mrr_at_10": 0.5,
+      "ndcg_at_10": 0.5
+    },
+    "entity": {
+      "cases": 6,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 237.8865875847017,
+        "p50": 123.90076695010066,
+        "p95": 818.2907688897103
+      },
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "hit_at_10": 1.0,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "mrr_at_10": 1.0,
+      "ndcg_at_10": 1.0
+    },
+    "natural_question": {
+      "cases": 5,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 122.56953665055335,
+        "p50": 105.8736271224916,
+        "p95": 170.2210740186274
+      },
+      "hit_at_1": 0.6,
+      "hit_at_5": 1.0,
+      "hit_at_10": 1.0,
+      "recall_at_1": 0.5,
+      "recall_at_5": 0.8,
+      "recall_at_10": 0.9,
+      "mrr_at_10": 0.7,
+      "ndcg_at_10": 0.6998070875652554
+    }
+  },
+  "conditional_on_index_coverage": {
+    "cases": 21,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 147.97544772071498,
+      "p50": 107.40506905131042,
+      "p95": 170.2210740186274
+    },
+    "hit_at_1": 0.6190476190476191,
+    "hit_at_5": 0.7142857142857143,
+    "hit_at_10": 0.7619047619047619,
+    "recall_at_1": 0.5714285714285714,
+    "recall_at_5": 0.6666666666666666,
+    "recall_at_10": 0.7380952380952381,
+    "mrr_at_10": 0.6488095238095238,
+    "ndcg_at_10": 0.6578333483148574
+  },
+  "test_set": "bench/long_knowledge_compat_v1/cases.jsonl",
+  "limitations": [
+    "This small product regression set is manually curated and is not a substitute for the public MIRACL benchmark.",
+    "Expected-missing accuracy currently treats any returned page as a failure; the candidate index has no calibrated abstention threshold.",
+    "No dense retriever, learned reranker, answer generation, or production routing is included."
+  ]
+}

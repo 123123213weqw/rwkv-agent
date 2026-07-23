@@ -120,6 +120,7 @@ class CandidateIndexTests(unittest.TestCase):
             page_type="article",
             char_start=0,
             char_end=15,
+            language="en",
             aliases=("Python语言",),
         )
         payload = chunk_to_index_document(chunk, DocumentAnalyzer())
@@ -127,6 +128,7 @@ class CandidateIndexTests(unittest.TestCase):
         self.assertEqual(payload["body_original"], chunk.text)
         self.assertIn("python", payload["body_words"].split())
         self.assertEqual(payload["source"], "wikipedia")
+        self.assertEqual(payload["language"], "en")
         self.assertEqual(payload["metadata_words"], "")
         self.assertEqual(payload["alias_original"], ["Python语言"])
         self.assertIn("python", payload["alias_words"].split())

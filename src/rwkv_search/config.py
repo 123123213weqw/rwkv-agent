@@ -60,6 +60,7 @@ class RealtimeSearchConfig:
     enabled: bool = False
     searxng_url: str = "http://127.0.0.1:8888"
     fallback_engines: List[str] = field(default_factory=lambda: ["bing"])
+    bing_base_url: str = "https://www.bing.com"
     user_agent: str = (
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/124.0 Safari/537.36 RWKVSearch/0.2"

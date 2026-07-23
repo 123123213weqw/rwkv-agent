@@ -1,0 +1,22 @@
+{
+  "schema_version": "long-knowledge-baseline-manifest.v1",
+  "name": "finewiki-zh-compat-v1",
+  "corpus": {
+    "dataset": "HuggingFaceFW/finewiki",
+    "config": "zhwiki",
+    "license": "CC BY-SA 4.0",
+    "raw_rows": 1295955,
+    "unique_pages": 1256292,
+    "index": "rwkv-finewiki-zh-full-v1",
+    "chunks": 2553392,
+    "store_bytes": 12998360625
+  },
+  "test_set": {
+    "source": "rwkv-search-compat",
+    "split": "v1",
+    "language": "zh",
+    "cases": 24,
+    "sha256": "e709c9e7305cb8753b21242842b71a326d7cb1ac5b8ddbe14c03cd7b49ab8c74"
+  },
+  "summary_sha256": "beda74955e87feb93ab9bfac73666a58cb8f8c32e142351d6bc3666238f09f3e"
+}
