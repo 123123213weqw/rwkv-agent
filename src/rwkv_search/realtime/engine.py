@@ -16,11 +16,13 @@ from .candidate_ranker import (
     admit_candidates,
     candidate_rejection_reasons,
 )
+from .cache import TTLByteCache
 from .discovery import URLDiscovery
 from .extractor import extract_page
 from .fetcher import AsyncPageFetcher
 from .precision_discovery import (
     build_pivot_queries,
+    compact_general_query,
     discover_one_hop_links,
     merge_candidate_groups,
     merge_query_candidate_groups,
@@ -59,10 +61,12 @@ class RealtimeSearchEngine:
         config: Optional[RealtimeSearchConfig] = None,
         search_config: Optional[SearchConfig] = None,
         feedback_planner: Optional[Any] = None,
+        discovery_cache: Optional[TTLByteCache[List[DiscoveredURL]]] = None,
     ) -> None:
         self.config = config or RealtimeSearchConfig()
         self.search_config = search_config or SearchConfig()
         self.feedback_planner = feedback_planner
+        self._shared_discovery_cache = discovery_cache
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._thread: Optional[threading.Thread] = None
         self._ready = threading.Event()
@@ -195,6 +199,10 @@ class RealtimeSearchEngine:
             planned_queries = list(getattr(request, "execution_queries", ()) or ())
             if planned_queries:
                 selected_queries = planned_queries[:1]
+        if self.config.query_compaction_enabled and not feedback_mode:
+            selected_queries = list(
+                dict.fromkeys(compact_general_query(value) for value in selected_queries)
+            )[:max_queries]
         discovery_started = time.monotonic()
         discovery_errors: List[Dict[str, str]] = []
         discovery_limit = max_candidates
@@ -982,7 +990,11 @@ class RealtimeSearchEngine:
                 "Accept-Encoding": "gzip, deflate",
             },
         )
-        self._discovery = URLDiscovery(self.config, self._session)
+        self._discovery = URLDiscovery(
+            self.config,
+            self._session,
+            cache=self._shared_discovery_cache,
+        )
         self._fetcher = AsyncPageFetcher(self.config, self._session)
 
     def close(self) -> None:

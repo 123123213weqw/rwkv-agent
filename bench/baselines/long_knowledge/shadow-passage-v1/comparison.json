@@ -1,0 +1,129 @@
+{
+  "schema_version": "shadow-passage-comparison.v1",
+  "status": "isolated_shadow_not_production",
+  "scope": {
+    "cases": 41,
+    "zh_cases": 21,
+    "en_cases": 20,
+    "positive_compat_cases_only": true,
+    "answer_generation_executed": false
+  },
+  "configuration": {
+    "retrieval": "existing FineWiki lexical Shadow retriever",
+    "page_limit": 8,
+    "chunks_per_page": 12,
+    "evidence_strategy": "lead_plus_cross",
+    "max_chars": 3200,
+    "model": "BAAI/bge-reranker-v2-m3"
+  },
+  "paired_result": {
+    "hydration_ok": 41,
+    "fallback_legacy": 0,
+    "page_order_identity_rate": 1.0,
+    "legacy_hit_at_8": 0.5121951219512195,
+    "hydrated_hit_at_8": 0.5121951219512195,
+    "compared_evidence": 299,
+    "changed_evidence": 117,
+    "changed_evidence_rate": 0.391304347826087,
+    "mean_character_delta_per_request": 2553.7073170731705,
+    "empty_legacy_evidence_cases": 1,
+    "visible_output_changed": false
+  },
+  "latency_ms": {
+    "zh_cold_start": 7446.45,
+    "zh_warm_mean": 279.00014999999996,
+    "zh_warm_p95": 435.322,
+    "en_cold_start": 7749.766,
+    "en_warm_mean": 349.5657894736842,
+    "en_warm_p95": 587.003,
+    "bilingual_warm_mean": 313.37828205128204
+  },
+  "language": {
+    "zh": {
+      "schema_version": "shadow-passage-bench-summary.v1",
+      "status": "isolated_shadow_not_production",
+      "cases": 21,
+      "hydration_statuses": {
+        "ok": 21
+      },
+      "page_order_identity_rate": 1.0,
+      "legacy_hit_at_8": 0.5714285714285714,
+      "hydrated_hit_at_8": 0.5714285714285714,
+      "compared_evidence": 139,
+      "changed_evidence": 55,
+      "changed_evidence_rate": 0.39568345323741005,
+      "character_delta": {
+        "mean": 1595.5714285714287,
+        "min": 0,
+        "max": 4943
+      },
+      "latency_ms": {
+        "cold_start": 7446.45,
+        "mean": 620.3072857142857,
+        "p50": 307.808,
+        "p95": 497.377,
+        "max": 7446.45,
+        "query_mean": 12.924285714285713,
+        "rerank_mean": 607.1489047619048,
+        "warm_mean": 279.00014999999996,
+        "warm_p50": 300.788,
+        "warm_p95": 435.322,
+        "warm_query_mean": 13.229849999999999,
+        "warm_rerank_mean": 265.52835
+      },
+      "empty_legacy_evidence_cases": 1,
+      "visible_output_changed": false,
+      "answer_generation_executed": false,
+      "language": "zh",
+      "chunks_per_page": 12,
+      "max_pages": 8,
+      "max_chars": 3200
+    },
+    "en": {
+      "schema_version": "shadow-passage-bench-summary.v1",
+      "status": "isolated_shadow_not_production",
+      "cases": 20,
+      "hydration_statuses": {
+        "ok": 20
+      },
+      "page_order_identity_rate": 1.0,
+      "legacy_hit_at_8": 0.45,
+      "hydrated_hit_at_8": 0.45,
+      "compared_evidence": 160,
+      "changed_evidence": 62,
+      "changed_evidence_rate": 0.3875,
+      "character_delta": {
+        "mean": 3559.75,
+        "min": 153,
+        "max": 8388
+      },
+      "latency_ms": {
+        "cold_start": 7749.766,
+        "mean": 719.5758,
+        "p50": 325.889,
+        "p95": 587.003,
+        "max": 7749.766,
+        "query_mean": 57.2832,
+        "rerank_mean": 661.9792,
+        "warm_mean": 349.5657894736842,
+        "warm_p50": 325.889,
+        "warm_p95": 587.003,
+        "warm_query_mean": 58.27852631578947,
+        "warm_rerank_mean": 290.9765789473684
+      },
+      "empty_legacy_evidence_cases": 0,
+      "visible_output_changed": false,
+      "answer_generation_executed": false,
+      "language": "en",
+      "chunks_per_page": 12,
+      "max_pages": 8,
+      "max_chars": 3200
+    }
+  },
+  "decision": {
+    "shadow_pairing_works": true,
+    "production_enabled": false,
+    "chat_visible_answer_changed": false,
+    "next_step_requires_owner_authorization": true
+  }
+}

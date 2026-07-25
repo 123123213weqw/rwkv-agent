@@ -1,0 +1,37 @@
+{
+  "schema_version": "long-knowledge-admission-threshold.v1",
+  "signal": "maximum cross-encoder score over the top-50 equal-RRF fused candidates",
+  "threshold": 0.0,
+  "status": "offline_candidate_not_production_calibrated",
+  "miracl_dev": {
+    "zh": {
+      "baseline_hit_at_10": 0.6717557251908397,
+      "useful_hit_at_10": 0.6666666666666666,
+      "hit_at_10_loss": 0.005089058524173028,
+      "lost_top10_hits": 2
+    },
+    "en": {
+      "baseline_hit_at_10": 0.851063829787234,
+      "useful_hit_at_10": 0.8222778473091364,
+      "hit_at_10_loss": 0.028785982478097622,
+      "lost_top10_hits": 23
+    }
+  },
+  "project_compat_v1": {
+    "zh": {
+      "missing_cases": 3,
+      "missing_rejection_rate": 0.6666666666666666,
+      "baseline_hit_at_10": 0.9047619047619048,
+      "useful_hit_at_10": 0.8571428571428571,
+      "hit_at_10_loss": 0.047619047619047616
+    },
+    "en": {
+      "missing_cases": 4,
+      "missing_rejection_rate": 1.0,
+      "baseline_hit_at_10": 0.8,
+      "useful_hit_at_10": 0.8,
+      "hit_at_10_loss": 0.0
+    }
+  },
+  "conclusion": "A global zero threshold rejects 6 of 7 missing probes, but the missing sample is too small and Chinese/English trade-offs differ. It must remain disabled until a larger held-out abstention set is labeled."
+}

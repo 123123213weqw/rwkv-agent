@@ -31,6 +31,13 @@
 | `long_knowledge_schema.py` | page-level qrels、query type和local-missing Schema |
 | `long_knowledge_metrics.py` | Hit/Recall、MRR、nDCG、覆盖率、缺失准确率和延迟指标 |
 | `run_long_knowledge_bench.py` | FineWiki长期知识页级检索Runner |
+| `long_knowledge_hybrid.py` | Top-100诊断、Cross-Encoder排序、RRF和失败层归因 |
+| `run_long_knowledge_hybrid_bench.py` | 冻结Lexical候选与轻量Rerank A/B |
+| `run_long_knowledge_dense_bench.py` | 页面级Dense、Lexical融合及融合后Rerank A/B |
+| `analyze_long_knowledge_threshold.py` | 准入阈值的缺失拒绝率与正例召回损失联合评估 |
+| `sweep_long_knowledge_rerank_rrf.py` | Lexical/Cross-Encoder权重开发集诊断 |
+| `sweep_long_knowledge_dense_rrf.py` | Lexical/Dense权重开发集诊断 |
+| `baselines/long_knowledge/` | FineWiki中英文MIRACL、兼容集、Hybrid及Agent Shadow冻结摘要 |
 | `baselines/` | 小型冻结摘要，不含网页正文 |
 
 ## 快速运行
@@ -150,3 +157,85 @@ PYTHONPATH=src python bench/run_web_extraction_bench.py \
 公开文件不包含网页正文、响应头或完整运行日志。
 
 完整方法见 [`docs/BENCHMARK.md`](../docs/BENCHMARK.md)。
+
+## 长期知识Hybrid Retrieval
+
+里程碑5B保持5A索引只读，另建页面级Dense索引，并在完全相同的MIRACL dev和项目兼容集上比较
+Lexical、Cross-Encoder、Dense、等权RRF和融合后Cross-Encoder。先生成Top-100失败诊断：
+
+```bash
+PYTHONPATH=src:. python bench/run_long_knowledge_hybrid_bench.py \
+  --cases bench/external/miracl-v1/miracl_long_knowledge_dev_v1.jsonl \
+  --index rwkv-finewiki-zh-full-v1 --language zh \
+  --channel-size 100 --candidate-limit 100 --rerank-depth 50 \
+  --strategies lexical,semantic,hybrid \
+  --model BAAI/bge-reranker-v2-m3 --device cuda:0 --fp16 \
+  --output bench/runs/miracl-zh-rerank.jsonl \
+  --summary bench/runs/miracl-zh-rerank-summary.json
+```
+
+页面向量索引只取`chunk_id=0`，文档由标题、别名、章节标题和首段构成，不为所有chunk生成向量：
+
+```bash
+PYTHONPATH=src:. python scripts/index_finewiki_page_embeddings.py \
+  --source-index rwkv-finewiki-zh-full-v1 \
+  --target-index rwkv-finewiki-page-e5-small-zh-v1 \
+  --model intfloat/multilingual-e5-small \
+  --checkpoint /data/checkpoints/e5-zh.json \
+  --fetch-size 512 --encode-batch-size 128 --max-length 256 \
+  --device cuda:0 --fp16 --recreate
+```
+
+运行Dense闭环：
+
+```bash
+PYTHONPATH=src:. python bench/run_long_knowledge_dense_bench.py \
+  --cases bench/external/miracl-v1/miracl_long_knowledge_dev_v1.jsonl \
+  --lexical-index rwkv-finewiki-zh-full-v1 \
+  --dense-index rwkv-finewiki-page-e5-small-zh-v1 \
+  --language zh --candidate-limit 100 --dense-num-candidates 1000 \
+  --embedding-model intfloat/multilingual-e5-small \
+  --reranker-model BAAI/bge-reranker-v2-m3 \
+  --rerank-depth 50 --device cuda:0 --fp16 \
+  --output bench/runs/miracl-zh-dense.jsonl \
+  --summary bench/runs/miracl-zh-dense-summary.json
+```
+
+公开冻结结果位于`baselines/long_knowledge/finewiki-hybrid-v1/`。逐查询候选、分数、机器Endpoint和
+模型缓存路径只保留在被Git忽略的`bench/runs/`。
+
+Agent接入使用独立桌面工作区中的正式Hybrid模块，复用24条冻结兼容题直接比较同请求Legacy与
+Hybrid，不调用答案模型。公开摘要位于
+`baselines/long_knowledge/agent-hybrid-shadow-v1/`：Hit@5从18/24升至21/24，但Hit@1保持
+15/24且平均延迟从851.9ms升至1704.8ms，因此只批准Shadow接入，不批准默认切换。
+
+## Agent实时Web Shadow
+
+桌面Agent的增强Web只作为默认关闭的异步有界Shadow接入。用户可见结果继续使用原
+`web_search(query)`和`W1..W5` Legacy协议；Shadow队列满、超时、发现、抓取或日志异常都不能
+影响聊天请求。
+
+同一50条冻结实时网页集的V100隔离A/B公开摘要位于
+`baselines/realtime_retrieval/agent-web-shadow-v1/`。增强路径把垃圾结果率从17.56%降至1.08%，
+但Candidate Domain Recall@10从32%降至26%、非空率从86%降至58%、抓取成功率从72.99%降至
+58.77%，因此只通过接入安全门槛，未通过默认切换门槛。运行时没有健康的本地SearXNG，两臂均使用
+Bing HTML fallback，不能用这次结果评价SearXNG或多引擎质量。
+
+### Agent Web 5H召回修复
+
+5H继续复用完全相同的50条和评估器，不运行答案模型。增强路径只增加通用英文Query Compaction、
+Recall-protected Top-10 rerank、同请求共享Discovery缓存、阶段失败归因和可审计空Evidence回退。
+
+| 指标 | 配对Legacy | Enhanced |
+|---|---:|---:|
+| Candidate Domain Recall@10 | 30% | **50%** |
+| Result Domain Recall@10 | 24% | **40%** |
+| 非空结果率 | 72% | **88%** |
+| 垃圾结果率 | 9.15% | **1.12%** |
+| 抓取成功率 | 56.52% | **71.35%** |
+| 平均/P95延迟 | 3291.3/8008.4ms | 3301.5/**6901.9ms** |
+
+逐例Candidate Domain Recall@10、Result Domain Recall@10和非空结果分别为Enhanced胜10/8/8、
+Legacy胜0/0/0。隔离SearXNG的公共引擎池在持续请求中出现超时、连接重置和反爬响应，因此被单独
+保留为失败诊断；通过门槛的冻结运行使用现有Bing HTML fallback，不是SearXNG质量结论。公开摘要：
+`bench/baselines/realtime_retrieval/agent-web-recall-5h-v1/`。

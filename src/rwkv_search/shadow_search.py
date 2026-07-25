@@ -29,11 +29,42 @@ class FineWikiShadowSearch:
         config: Optional[ShadowSearchConfig] = None,
         *,
         client: Optional[Any] = None,
+        passage_hydrator: Optional[Any] = None,
     ) -> None:
         self.config = config or ShadowSearchConfig()
         self.client = client or CandidateIndexClient(
             self.config.endpoint, timeout=self.config.timeout_seconds
         )
+        if passage_hydrator is not None:
+            self.passage_hydrator = passage_hydrator
+        elif self.config.passage_hydration_enabled:
+            from .passage_hydration import (
+                PagePassageClient,
+                PassageHydrator,
+                TransformersPassageScorer,
+            )
+
+            passage_client = PagePassageClient(
+                self.config.endpoint,
+                timeout=self.config.timeout_seconds,
+            )
+            passage_scorer = TransformersPassageScorer(
+                self.config.passage_model,
+                device=self.config.passage_device,
+                batch_size=self.config.passage_batch_size,
+                max_length=self.config.passage_max_length,
+                fp16=self.config.passage_fp16,
+                local_files_only=self.config.passage_local_files_only,
+            )
+            self.passage_hydrator = PassageHydrator(
+                passage_client,
+                passage_scorer,
+                max_pages=self.config.passage_max_pages,
+                chunks_per_page=self.config.passage_chunks_per_page,
+                max_chars=self.config.passage_max_chars,
+            )
+        else:
+            self.passage_hydrator = None
         self._executor: Optional[ThreadPoolExecutor] = None
         self._lock = threading.Lock()
         self._submitted = 0
@@ -98,8 +129,15 @@ class FineWikiShadowSearch:
                         "analyzed_query": shadow["analyzed_query"],
                         "count": len(shadow["evidence"]),
                         "evidence": shadow["evidence"],
+                        "legacy_evidence": shadow["legacy_evidence"],
+                        "evidence_variant": shadow["evidence_variant"],
+                        "passage_hydration": shadow["passage_hydration"],
                     },
                     "comparison": self._compare(primary, shadow["evidence"]),
+                    "evidence_pair_comparison": self._compare_evidence_variants(
+                        shadow["legacy_evidence"],
+                        shadow["evidence"],
+                    ),
                     "error": None,
                 }
                 self._append(record)
@@ -148,16 +186,55 @@ class FineWikiShadowSearch:
             limit=max(1, int(self.config.limit)),
         )
         analyzed = analysis.to_dict() if hasattr(analysis, "to_dict") else {}
-        evidence = [
+        legacy_evidence = [
             Evidence.from_candidate_hit(hit, evidence_id=f"W{index}").to_dict()
             for index, hit in enumerate(hits, start=1)
         ]
+        evidence = legacy_evidence
+        evidence_variant = "legacy"
+        hydration_stats: Dict[str, Any] = {
+            "enabled": bool(self.config.passage_hydration_enabled),
+            "status": (
+                "disabled"
+                if not self.config.passage_hydration_enabled
+                else "unavailable"
+            ),
+        }
+        if self.config.passage_hydration_enabled and self.passage_hydrator is not None:
+            try:
+                hydration = self.passage_hydrator.hydrate(
+                    query,
+                    index=self.config.index,
+                    hits=hits,
+                )
+                evidence = [
+                    Evidence.from_candidate_hit(
+                        hit,
+                        evidence_id=f"W{index}",
+                    ).to_dict()
+                    for index, hit in enumerate(hydration.hits, start=1)
+                ]
+                hydration_stats = dict(hydration.stats)
+                evidence_variant = "lead_plus_cross"
+            except Exception as exc:
+                hydration_stats = {
+                    "enabled": True,
+                    "status": "fallback_legacy",
+                    "error": f"{type(exc).__name__}: {str(exc)[:500]}",
+                }
         return {
             "query": query,
             "route": dict(route),
             "analyzed_query": analyzed,
-            "latency_ms": round(float(elapsed_ms), 3),
+            "latency_ms": round(
+                float(elapsed_ms)
+                + float(hydration_stats.get("latency_ms") or 0.0),
+                3,
+            ),
             "evidence": evidence,
+            "legacy_evidence": legacy_evidence,
+            "evidence_variant": evidence_variant,
+            "passage_hydration": hydration_stats,
             "hits": hits,
         }
 
@@ -254,6 +331,39 @@ class FineWikiShadowSearch:
         }
 
     @staticmethod
+    def _compare_evidence_variants(
+        legacy: Sequence[Mapping[str, Any]],
+        hydrated: Sequence[Mapping[str, Any]],
+    ) -> Dict[str, Any]:
+        compared = min(len(legacy), len(hydrated))
+        same_page_count = 0
+        changed_text_count = 0
+        legacy_chars = 0
+        hydrated_chars = 0
+        for old, new in zip(legacy, hydrated):
+            old_metadata = old.get("metadata") or {}
+            new_metadata = new.get("metadata") or {}
+            if str(old_metadata.get("page_id") or "") == str(
+                new_metadata.get("page_id") or ""
+            ):
+                same_page_count += 1
+            old_text = str(old.get("text") or "")
+            new_text = str(new.get("text") or "")
+            if old_text != new_text:
+                changed_text_count += 1
+            legacy_chars += len(old_text)
+            hydrated_chars += len(new_text)
+        return {
+            "compared_count": compared,
+            "same_page_count": same_page_count,
+            "same_page_rate": round(same_page_count / max(1, compared), 4),
+            "changed_text_count": changed_text_count,
+            "legacy_character_count": legacy_chars,
+            "hydrated_character_count": hydrated_chars,
+            "character_delta": hydrated_chars - legacy_chars,
+        }
+
+    @staticmethod
     def _url_key(value: str) -> str:
         if not value:
             return ""
@@ -292,6 +402,18 @@ class FineWikiShadowSearch:
                 "endpoint": self.config.endpoint,
                 "index": self.config.index,
                 "log_path": self.config.log_path,
+                "passage_hydration_enabled": bool(
+                    self.config.passage_hydration_enabled
+                ),
+                "passage_hydration_strategy": (
+                    "lead_plus_cross"
+                    if self.config.passage_hydration_enabled
+                    else "disabled"
+                ),
+                "passage_chunks_per_page": int(
+                    self.config.passage_chunks_per_page
+                ),
+                "passage_max_pages": int(self.config.passage_max_pages),
                 "submitted": self._submitted,
                 "completed": self._completed,
                 "failed": self._failed,

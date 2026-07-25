@@ -59,6 +59,9 @@ class RealtimeSearchConfig:
 
     enabled: bool = False
     searxng_url: str = "http://127.0.0.1:8888"
+    searxng_engines: List[str] = field(
+        default_factory=lambda: ["bing", "duckduckgo"]
+    )
     fallback_engines: List[str] = field(default_factory=lambda: ["bing"])
     bing_base_url: str = "https://www.bing.com"
     user_agent: str = (
@@ -85,6 +88,7 @@ class RealtimeSearchConfig:
     candidate_admission_enabled: bool = False
     candidate_pool_multiplier: int = 2
     candidate_per_domain_limit: int = 3
+    query_compaction_enabled: bool = False
     source_channels_enabled: bool = False
     domain_pivot_enabled: bool = False
     domain_pivot_max_domains: int = 2
@@ -112,6 +116,16 @@ class ShadowSearchConfig:
     max_workers: int = 2
     log_path: str = "data/shadow/finewiki-shadow-v1.jsonl"
     max_log_bytes: int = 64 * 1024 * 1024
+    passage_hydration_enabled: bool = False
+    passage_max_pages: int = 8
+    passage_chunks_per_page: int = 12
+    passage_max_chars: int = 3200
+    passage_model: str = "BAAI/bge-reranker-v2-m3"
+    passage_device: str = "auto"
+    passage_batch_size: int = 16
+    passage_max_length: int = 512
+    passage_fp16: bool = True
+    passage_local_files_only: bool = True
 
 
 @dataclass

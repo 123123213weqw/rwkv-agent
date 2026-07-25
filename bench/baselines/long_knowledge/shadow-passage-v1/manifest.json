@@ -1,0 +1,13 @@
+{
+  "schema_version": "shadow-passage-manifest.v1",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "be3df08b824dbe9c366aafe79cb7e485dab15b76f9cd6e00f50a4e396f20bb00"
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "f42edbffe111f173780416985302d66939a05f68e30fe37871f4341bcb17b4e8"
+    }
+  ]
+}

@@ -82,6 +82,58 @@ _OFFICIAL_VISIBLE_RE = re.compile(
     re.I,
 )
 _CJK_SEQUENCE_RE = re.compile(r"[\u3400-\u9fff]{2,}")
+_ENGLISH_QUERY_SHELL_RE = re.compile(
+    r"^(?:(?:please|could you|can you)\s+)?(?:"
+    r"find|search(?:\s+for)?|show|look\s+up|tell\s+me|"
+    r"what\s+is|what\s+are"
+    r")\s+",
+    re.I,
+)
+_ENGLISH_QUERY_TOKEN_RE = re.compile(
+    r"(?:[A-Za-z0-9][A-Za-z0-9_+#'-]*\.)+[A-Za-z]{2,}|"
+    r"[A-Za-z][A-Za-z0-9_+#'.-]*|\d+(?:\.\d+)+"
+)
+_ENGLISH_QUERY_NOISE = {
+    "a",
+    "according",
+    "an",
+    "and",
+    "are",
+    "at",
+    "current",
+    "find",
+    "for",
+    "from",
+    "in",
+    "is",
+    "its",
+    "latest",
+    "look",
+    "most",
+    "newest",
+    "of",
+    "official",
+    "on",
+    "please",
+    "recent",
+    "search",
+    "show",
+    "site",
+    "source",
+    "the",
+    "to",
+    "use",
+    "website",
+    "what",
+    "with",
+}
+_ENGLISH_QUERY_MODIFIERS = {
+    "current",
+    "latest",
+    "newest",
+    "official",
+    "recent",
+}
 _CJK_SCOPE_NOISE = {
     "当前",
     "最新",
@@ -109,6 +161,48 @@ _CJK_SCOPE_NOISE = {
     "一期",
     "一个",
 }
+
+
+def compact_general_query(query: str) -> str:
+    """Put a long English search request's subject before its chat shell.
+
+    HTML search fallbacks and several metasearch engines are markedly less
+    reliable when a natural-language request begins with ``Find`` or
+    ``What is``. This bounded lexical compaction keeps names, domains, version
+    strings and answer-bearing terms, then appends freshness/source modifiers.
+    It does not classify the topic or inject a preferred domain.
+    """
+
+    value = " ".join(str(query or "").split()).strip()
+    if not value or _CJK_SEQUENCE_RE.search(value):
+        return value
+    stripped = _ENGLISH_QUERY_SHELL_RE.sub("", value).strip(" ?.!,:;")
+    tokens = _ENGLISH_QUERY_TOKEN_RE.findall(stripped)
+    if len(tokens) < 5:
+        return stripped or value
+
+    priority: List[str] = []
+    content: List[str] = []
+    modifiers: List[str] = []
+    seen = set()
+    for token in tokens:
+        folded = token.casefold().strip("'")
+        if not folded or folded in seen:
+            continue
+        seen.add(folded)
+        if folded in _ENGLISH_QUERY_MODIFIERS:
+            modifiers.append(token)
+            continue
+        if folded in _ENGLISH_QUERY_NOISE:
+            continue
+        is_domain = "." in token and token.rsplit(".", 1)[-1].isalpha()
+        is_acronym = token.isupper() and 1 < len(token) <= 12
+        is_named = token[:1].isupper()
+        target = priority if is_domain or is_acronym or is_named else content
+        target.append(token)
+
+    compacted = [*priority, *content, *modifiers]
+    return " ".join(compacted[:14]) or stripped or value
 _LATIN_SCOPE_NOISE = {
     "current",
     "latest",

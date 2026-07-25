@@ -16,6 +16,15 @@ BASELINE_ROOT = ROOT / "bench" / "baselines" / "long_knowledge" / "finewiki-zh-m
 COMPAT_BASELINE_ROOT = (
     ROOT / "bench" / "baselines" / "long_knowledge" / "finewiki-zh-compat-v1"
 )
+EN_BASELINE_ROOT = (
+    ROOT / "bench" / "baselines" / "long_knowledge" / "finewiki-en-miracl-dev-v1"
+)
+EN_COMPAT_BASELINE_ROOT = (
+    ROOT / "bench" / "baselines" / "long_knowledge" / "finewiki-en-compat-v1"
+)
+BILINGUAL_BASELINE_ROOT = (
+    ROOT / "bench" / "baselines" / "long_knowledge" / "finewiki-bilingual-v1"
+)
 
 
 def sha256(path: Path) -> str:
@@ -25,6 +34,68 @@ def sha256(path: Path) -> str:
 
 
 class LongKnowledgeDatasetTests(unittest.TestCase):
+    def test_bilingual_baseline_is_hash_locked_and_public_safe(self) -> None:
+        manifest = json.loads(
+            (BILINGUAL_BASELINE_ROOT / "manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["name"], "finewiki-bilingual-v1")
+        input_paths = {
+            "zh_miracl_summary_sha256": BASELINE_ROOT / "summary.json",
+            "zh_compat_summary_sha256": COMPAT_BASELINE_ROOT / "summary.json",
+            "en_miracl_summary_sha256": EN_BASELINE_ROOT / "summary.json",
+            "en_compat_summary_sha256": EN_COMPAT_BASELINE_ROOT / "summary.json",
+        }
+        for key, path in input_paths.items():
+            self.assertEqual(manifest["inputs"][key], sha256(path))
+        for name, expected in manifest["files"].items():
+            self.assertEqual(expected, sha256(BILINGUAL_BASELINE_ROOT / name))
+        self.assertFalse(manifest["raw_traces_included"])
+        self.assertFalse(manifest["production_changed"])
+
+        comparison_text = (BILINGUAL_BASELINE_ROOT / "comparison.json").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("/home/", comparison_text)
+        self.assertNotIn("127.0.0.1", comparison_text)
+        comparison = json.loads(comparison_text)
+        self.assertEqual(
+            comparison["benchmarks"]["miracl_dev"]["en"]["cases_total"],
+            799,
+        )
+        self.assertEqual(
+            comparison["benchmarks"]["miracl_dev"]["zh"]["cases_total"],
+            393,
+        )
+        self.assertIn(
+            "hybrid lexical+dense retrieval for descriptive queries",
+            comparison["next_milestone_candidates_not_started"],
+        )
+
+    def test_frozen_english_baselines_are_hash_locked_and_public_safe(self) -> None:
+        cases_path = DATASET_ROOT / "miracl_long_knowledge_dev_v1.jsonl"
+        compat_cases_path = COMPAT_ROOT / "cases.jsonl"
+        expected = (
+            (EN_BASELINE_ROOT, cases_path, 799, 0),
+            (EN_COMPAT_BASELINE_ROOT, compat_cases_path, 24, 4),
+        )
+        for baseline, test_set_path, cases_total, expected_missing in expected:
+            manifest = json.loads(
+                (baseline / "manifest.json").read_text(encoding="utf-8")
+            )
+            summary_path = baseline / "summary.json"
+            summary_text = summary_path.read_text(encoding="utf-8")
+            self.assertEqual(manifest["summary_sha256"], sha256(summary_path))
+            self.assertEqual(manifest["test_set"]["sha256"], sha256(test_set_path))
+            self.assertFalse(manifest["raw_traces_included"])
+            self.assertFalse(manifest["production_changed"])
+            self.assertNotIn("/home/", summary_text)
+            self.assertNotIn("127.0.0.1", summary_text)
+
+            payload = json.loads(summary_text)
+            self.assertEqual(payload["cases_total"], cases_total)
+            self.assertEqual(payload["expected_missing_cases"], expected_missing)
+            self.assertEqual(payload["language_filter"], "en")
+
     def test_frozen_chinese_compatibility_baseline_is_hash_locked(self) -> None:
         manifest = json.loads(
             (COMPAT_BASELINE_ROOT / "manifest.json").read_text(encoding="utf-8")

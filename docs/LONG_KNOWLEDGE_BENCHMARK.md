@@ -113,3 +113,99 @@ The summary reports:
 
 The conditional view is diagnostic only. The unconditional score remains the primary end-to-end measure,
 because missing relevant pages are a real corpus-coverage failure.
+
+## Frozen milestone 5A results
+
+The English build completed in the isolated `rwkv-finewiki-en-full-v1` index with 6,498,759 effective
+latest-revision pages and 18,898,488 chunks. The source contained 6,614,655 rows; older duplicate
+revisions were not indexed. The final primary store size was 60,249,901,240 bytes.
+
+| Benchmark | Language | Cases scored | Qrel page coverage | Hit@10 | Recall@10 | MRR@10 | nDCG@10 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| MIRACL dev | zh | 393 | 86.85% | 43.51% | 28.31% | 30.36% | 24.16% |
+| MIRACL dev | en | 799 | 97.23% | 53.69% | 37.26% | 39.93% | 32.84% |
+| Project compatibility v1 | zh | 21 | 100% | 76.19% | 73.81% | 64.88% | 65.78% |
+| Project compatibility v1 | en | 20 | 100% | 45.00% | 40.00% | 38.75% | 34.75% |
+
+The compatibility set also has three Chinese and four English expected-missing probes. Accuracy was
+33.33% and 0% respectively because the lexical candidate index has no calibrated abstention threshold.
+The English query-type groups contain at most five positive cases each; descriptive and cross-language
+failures are useful regression targets, not statistically broad claims.
+
+Frozen public-safe artifacts:
+
+- `bench/baselines/long_knowledge/finewiki-zh-miracl-dev-v1/`
+- `bench/baselines/long_knowledge/finewiki-zh-compat-v1/`
+- `bench/baselines/long_knowledge/finewiki-en-miracl-dev-v1/`
+- `bench/baselines/long_knowledge/finewiki-en-compat-v1/`
+- `bench/baselines/long_knowledge/finewiki-bilingual-v1/`
+
+The bilingual report keeps MIRACL and the project compatibility set separate. It does not average
+different language splits, treat the small compatibility subsets as paired equivalents, or compare
+latency as a hardware-neutral language metric.
+
+## Frozen milestone 5B hybrid experiment
+
+Milestone 5B first expands the lexical candidate depth to 100 and separates failures into corpus miss,
+candidate-recall miss, ranking miss and Top-10 hit. It then compares two independent improvements:
+
+1. A Cross-Encoder reranks only the first 50 lexical candidates.
+2. A separate page-level dense index embeds title, aliases, section headings and the lead passage.
+
+The dense index deliberately has one vector per page rather than one vector per chunk. Elasticsearch uses
+384-dimensional cosine `int8_hnsw` vectors. Lexical and dense Top-100 results are combined with reciprocal
+rank fusion (`k=60`, equal weights), then the Cross-Encoder reranks the first 50 fused pages.
+
+| Benchmark | Language | Lexical Hit@10 | Lexical rerank | Dense | Equal RRF | Equal RRF + rerank |
+|---|---|---:|---:|---:|---:|---:|
+| MIRACL dev | zh | 43.51% | 50.13% | 61.58% | 65.14% | **67.18%** |
+| MIRACL dev | en | 53.69% | 60.45% | 82.23% | 77.97% | **85.11%** |
+| Project compatibility v1 | zh | 76.19% | 80.95% | 90.48% | 85.71% | **90.48%** |
+| Project compatibility v1 | en | 45.00% | 50.00% | **85.00%** | 75.00% | 80.00% |
+
+For MIRACL Chinese, final Recall@10 rises from 28.31% to 47.78%; for English it rises from 37.26% to
+62.43%. Candidate-recall misses fall from 98 to 58 in Chinese and from 258 to 60 in English. Corpus misses
+remain unchanged, which correctly distinguishes corpus coverage from retrieval quality.
+
+The Chinese page vector index contains 1,256,291 pages and occupies 5.7 GB. The English index contains
+6,498,758 pages and occupies 20.7 GB. The measured embedding plus Cross-Encoder process peaked at 3,292
+MiB of GPU memory. Chinese fusion latency is measured in one sequential run. English fusion latency is a
+composition of frozen lexical timing and current dense/rerank timing, so it is explicitly an estimate;
+no unmeasured parallel latency is claimed.
+
+A maximum Cross-Encoder score threshold of zero rejects six of seven compatibility missing probes. The
+same threshold loses 0.51 percentage points of Chinese MIRACL Hit@10 and 2.88 points of English Hit@10.
+Seven missing probes are insufficient for production calibration, so the threshold remains disabled.
+
+Public-safe results are frozen in:
+
+- `bench/baselines/long_knowledge/finewiki-hybrid-v1/`
+
+Raw candidates, queries, scores, host paths and model caches are excluded. No production Candidate Index
+default, chat router, answer path, service or frontend was changed.
+
+## Frozen milestone 5F Agent Shadow integration
+
+The desktop RWKV Agent now has the 5B retriever and 5C passage hydration behind
+an optional `knowledge_search` Shadow. The visible tool response remains the
+existing lexical `K1..K5`; the Shadow has one worker, an eight-request bounded
+queue, lazy model loading, per-stage telemetry and exception isolation.
+
+The Agent-specific frozen set contains 24 compatibility queries, split evenly
+between Chinese and English. No answer model was called:
+
+| Metric | Legacy | Hybrid Shadow |
+|---|---:|---:|
+| Hit@1 | 15/24 (62.5%) | 15/24 (62.5%) |
+| Hit@5 | 18/24 (75.0%) | 21/24 (87.5%) |
+| Mean latency | 851.9 ms | 1704.8 ms |
+| P95 latency | 2179.9 ms | 3088.7 ms |
+| Empty / failure | 0 | 0 |
+
+Chinese Hit@5 improves from 9/12 to 12/12; English remains 9/12. Hybrid wins
+six and loses six Top-1 cases, so the integration is accepted only for Shadow
+observation. It is not approved as the default Agent retriever.
+
+Public-safe results are frozen in:
+
+- `bench/baselines/long_knowledge/agent-hybrid-shadow-v1/`

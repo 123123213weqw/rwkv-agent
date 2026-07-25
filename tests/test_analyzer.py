@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import time
 import unittest
 from pathlib import Path
 
 from rwkv_search.analysis import AnalyzerCore, DocumentAnalyzer, QueryAnalyzer
+from rwkv_search.analysis.entities import EntityProtector
 from rwkv_search.analysis.normalization import normalize_text
 
 
@@ -124,6 +126,44 @@ class DocumentAnalyzerTests(unittest.TestCase):
         payload = result.to_index_payload()
         self.assertEqual(payload["title_words"].split().count("rwkv"), 2)
         self.assertIn("rwkv-7", payload["url_exact"])
+
+    def test_email_and_domain_candidates_keep_valid_entities(self) -> None:
+        spans = EntityProtector().find(
+            "Contact Foo.Bar+tag@example.co.uk or read docs.python.org today."
+        )
+        entities = {(span.entity_type, span.normalized) for span in spans}
+        self.assertIn(("email", "Foo.Bar+tag@example.co.uk"), entities)
+        self.assertIn("docs.python.org", {span.normalized for span in spans})
+
+    def test_fastq_quality_chart_does_not_stall_entity_analysis(self) -> None:
+        body = "\n".join(
+            [
+                "S" * 45,
+                "." * 79,
+                "X" * 46,
+                "." * 54,
+                "I" * 43,
+                "." * 57,
+                "J" * 40,
+                "." * 53,
+                "N" * 53 + "." * 43,
+                "".join(chr(value) for value in range(33, 127)),
+                "0" + "." * 26 + "31" + "." * 40,
+                "0" + "." * 20 + "30" + "." * 80 + "93",
+                "S - Sanger Phred+33, raw reads typically (0, 40)",
+                "X - Solexa Solexa+64, raw reads typically (-5, 40)",
+                "I - Illumina 1.3+ Phred+64, raw reads typically (0, 40)",
+            ]
+        )
+        started = time.perf_counter()
+        result = DocumentAnalyzer().analyze(
+            title="FASTQ format",
+            body=body,
+            headings=("Encoding",),
+        )
+        elapsed = time.perf_counter() - started
+        self.assertTrue(result.body.word_terms)
+        self.assertLess(elapsed, 1.0)
 
 
 class NormalizationPropertyTests(unittest.TestCase):

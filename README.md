@@ -2,7 +2,7 @@
 
 面向 RWKV 的本地优先联网搜索与证据问答系统。项目将**是否搜索、搜索词生成、URL 发现、网页抓取、证据选择和回答生成**拆成可单独评测的阶段，避免只凭最终回答主观判断搜索质量。
 
-> 当前状态：研究预览版。截至 2026-07-23，Tool Call、查询形成、实时 URL Discovery、候选准入与
+> 当前状态：研究预览版。截至 2026-07-25，Tool Call、查询形成、实时 URL Discovery、候选准入与
 > Rerank、低资源网页抽取、条件反馈搜索以及 FineWiki 长期知识 Benchmark 已经形成可复现链路；优化路径
 > 默认关闭，尚未自动替换生产聊天链路。
 
@@ -30,50 +30,48 @@ flowchart LR
 - **低资源抓取**：`aiohttp`抓取，Resiliparse快速正文 + Trafilatura轻量元数据；仅在通用低质量信号命中时运行完整Trafilatura兜底，并保留缺少可选依赖时的安全降级。
 - **可审计 Benchmark**：同时保存首轮候选、官网 Pivot、一跳扩展、抓取结果、阶段事件和延迟。
 
-## 当前效果
-
-### 已完成的可复现能力
-
-- G1I/P4 greedy 解码和严格单个 `web_search(query)` Tool Call，并保留格式、语义和真实搜索基线。
-- 冻结50条历史实时检索集、100条中英文配对开发集、30条网页抽取集、1,192条MIRACL人工qrels，
-  以及48条项目兼容集；测试标签只在返回后评分，不进入运行时查询。
-- SearXNG/HTML Discovery、通用Candidate Admission、官网Domain Pivot、同站一跳链接和可选BGE-M3
-  Rerank；没有按股票、软件、政策等领域硬编码检索路由。
-- Resiliparse正文快速路径 + Trafilatura元数据与有限完整兜底；固定网页快照上混合抽取通过率由
-  78.57%升至85.71%，平均耗时从197.83ms降至70.14ms。
-- FineWiki中文全量长期知识索引和英文全量构建工具；英文语料37.72GB、6,614,655行，独立索引仍在
-  构建，不覆盖中文索引。
+## 最新进展（2026-07-25）
 
 ### 实时网页检索
 
-同一组 50 条中英文实时检索问题、同一实验主机和冻结 P4 查询的配对结果：
+增强路径加入了英文查询压缩、召回保护重排、共享 Discovery 缓存、失败归因和空结果安全回退。
+同一组 50 条中英文问题的配对结果：
 
-| 指标 | 基线 | 精确发现 | 变化 |
-|---|---:|---:|---:|
-| Candidate Domain Recall@10 | 42% | **48%** | +6pp |
-| Candidate Target Page Recall@20 | 6% | **12%** | +6pp |
-| Result Domain Recall@10 | 20% | **32%** | +12pp |
-| 非空结果率 | 56% | **68%** | +12pp |
-| 垃圾结果率 | 1.11% | **0.97%** | -0.14pp |
-| 抓取成功率 | 44.01% | **53.95%** | +9.94pp |
-| 平均耗时 | 4263 ms | 5067 ms | +803 ms |
-| P95 | 8010 ms | 8010 ms | 基本不变 |
+| 指标 | Legacy | Enhanced |
+|---|---:|---:|
+| Candidate Domain Recall@10 | 30% | **50%** |
+| Result Domain Recall@10 | 24% | **40%** |
+| 非空结果率 | 72% | **88%** |
+| 垃圾结果率 | 9.15% | **1.12%** |
+| 抓取成功率 | 56.52% | **71.35%** |
+| 平均耗时 | 3291 ms | 3302 ms |
 
-搜索上游会波动，因此跨运行差值只作为观测；Pivot 与一跳扩展的算法贡献以同一次运行的 `initial → post_pivot → final` 阶段指标为准。详细方法见 [Benchmark 文档](docs/BENCHMARK.md)。
+冻结结果见
+[`agent-web-recall-5h-v1`](bench/baselines/realtime_retrieval/agent-web-recall-5h-v1/)。
+公开搜索引擎在持续负载下仍会超时或触发反爬，因此结果明确记录实际 fallback，不冒充稳定多引擎。
 
-在新增100条开发集上，条件反馈C相对单次P4的Candidate Domain Recall@10由36%升至39%，
-Target Page Recall@20由2%升至4%，没有已命中case回退；代价是平均查询数0.97→1.36，平均耗时
-1598ms→3067ms。它仍是隔离实验，绝对精确页面召回尚未达到生产目标。
+### FineWiki 长期知识检索
 
-### FineWiki长期知识检索
+本地链路已经完成 `Lexical + E5 Dense + RRF + Cross-Encoder + 段落回填`：
 
-| 测试集 | 页面覆盖 | Hit@10 | Recall@10 | MRR@10 | nDCG@10 |
-|---|---:|---:|---:|---:|---:|
-| MIRACL中文dev，393条 | 86.85% | 43.51% | 28.31% | 30.36% | 24.16% |
-| 项目中文兼容集，21条正例 | 100% | 76.19% | 73.81% | 64.88% | 65.78% |
+| 测试集 | Lexical Hit@10 | Hybrid Hit@10 | Lexical Recall@10 | Hybrid Recall@10 |
+|---|---:|---:|---:|---:|
+| MIRACL 中文（393条） | 43.51% | **67.18%** | 28.31% | **47.78%** |
+| MIRACL 英文（799条） | 53.69% | **85.11%** | 37.26% | **62.43%** |
 
-项目兼容集另有3条中文本地缺失探针，目前expected-missing准确率只有33.33%，说明Candidate Index
-仍缺少可靠的准入/拒答阈值。英文MIRACL和双语汇总将在英文全量索引完成后冻结。
+桌面 Agent 的 24 条 Shadow A/B 中，Hit@5 从 75.0% 提升到 87.5%，但 Hit@1 没有净提升，
+平均延迟约翻倍。因此 Hybrid 和增强 Web 都保持**默认关闭**，不会自动替换可见 `K1..K5` /
+`W1..W5`。冻结结果见
+[`finewiki-hybrid-v1`](bench/baselines/long_knowledge/finewiki-hybrid-v1/) 和
+[`agent-hybrid-shadow-v1`](bench/baselines/long_knowledge/agent-hybrid-shadow-v1/)。
+
+### 已完成
+
+- 严格 G1I/P4 `web_search(query)` Tool Call 与确定性约束合并。
+- SearXNG/HTML Discovery、候选准入、官网 Pivot、同站一跳和低资源网页抽取。
+- FineWiki 中英文独立索引、页面向量索引、轻量重排和段落回填。
+- 可复现的实时检索、长期知识、网页抽取和 Agent Shadow Benchmark。
+- 公开仓库只保留代码、测试和脱敏摘要，不包含模型、网页正文、密钥或完整 Trace。
 
 ## 快速开始
 
@@ -158,7 +156,8 @@ tests/              单元与回归测试
 ## 已知限制
 
 - 当前实时搜索的最大瓶颈是搜索引擎没有发现精确目标URL；Tool Call序列化和静态正文抽取已不是首要瓶颈。
-- 长期知识检索尚未加入Dense Retriever，且缺少可靠的本地知识准入/拒答阈值。
+- 页面级Dense Retriever与Rerank只接入桌面Agent的默认关闭Shadow，尚未接入生产；Top-1回归、
+  约2倍延迟及只有7条缺失探针的准入校准仍未解决。
 - SearXNG 的结果质量取决于可用搜索引擎和网络出口。
 - `configs/default.json` 中候选增强能力默认关闭；请先使用 Benchmark 或 Shadow 验证再启用。
 - 仓库不包含 RWKV 权重、第三方搜索 API 密钥、抓取正文、私有服务器配置或完整调试 Trace。

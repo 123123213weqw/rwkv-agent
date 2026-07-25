@@ -1,0 +1,82 @@
+{
+  "schema_version": "answer-evidence-ab-comparison.v1",
+  "status": "offline_inconclusive_answer_model_gate_failed",
+  "scope": {
+    "cases": 24,
+    "zh_cases": 12,
+    "en_cases": 12,
+    "correct_page_cases": 17,
+    "unmatched_known_qrel_cases": 7,
+    "page_order_identity_rate": 1.0,
+    "evidence_text_changed_cases": 20,
+    "visible_output_changed": false
+  },
+  "configuration": {
+    "model": "rwkv7-g1i-preview3260-7.2b",
+    "prompt_mode": "production_grounded_with_one_repair",
+    "decoding": "greedy",
+    "max_evidence": 5,
+    "evidence_chars": 900,
+    "max_tokens_per_generation": 256,
+    "dataset_sha256": "5c6156d06491a105f1b1b5f0f4b4efba8abda4d80a5a8559b1210fe2041fcb06"
+  },
+  "legacy": {
+    "answer_accepted_rate": 0.16666666666666666,
+    "repair_attempt_rate": 0.875,
+    "correct_page_content_success_rate": 0.0,
+    "correct_page_relevant_citation_rate": 0.0,
+    "correct_page_strict_grounded_rate": 0.0,
+    "unmatched_qrel_safe_abstention_rate": 0.42857142857142855,
+    "unmatched_qrel_unsupported_answer_rate": 0.14285714285714285,
+    "model_latency_ms": {
+      "mean": 6811.913583333334,
+      "p50": 7092.519,
+      "p95": 8990.75
+    },
+    "output_tokens": {
+      "mean": 396.375,
+      "p95": 512.0
+    }
+  },
+  "hydrated": {
+    "answer_accepted_rate": 0.08333333333333333,
+    "repair_attempt_rate": 0.9166666666666666,
+    "correct_page_content_success_rate": 0.0,
+    "correct_page_relevant_citation_rate": 0.0,
+    "correct_page_strict_grounded_rate": 0.0,
+    "unmatched_qrel_safe_abstention_rate": 0.14285714285714285,
+    "unmatched_qrel_unsupported_answer_rate": 0.14285714285714285,
+    "model_latency_ms": {
+      "mean": 7409.209583333333,
+      "p50": 7909.955,
+      "p95": 8890.481
+    },
+    "output_tokens": {
+      "mean": 433.7083333333333,
+      "p95": 512.0
+    }
+  },
+  "paired": {
+    "correct_page_strict_grounded": {
+      "improved": 0,
+      "regressed": 0,
+      "net": 0
+    },
+    "correct_page_relevant_citation": {
+      "improved": 0,
+      "regressed": 0,
+      "net": 0
+    },
+    "unmatched_qrel_safe_abstention": {
+      "improved": 0,
+      "regressed": 2,
+      "net": -2
+    }
+  },
+  "decision": {
+    "answer_model_admission_gate_passed": false,
+    "hydration_quality_conclusion": "inconclusive",
+    "production_enabled": false,
+    "next_step_requires_owner_authorization": true
+  }
+}
