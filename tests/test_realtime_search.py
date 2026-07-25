@@ -13,6 +13,7 @@ from pathlib import Path
 from rwkv_search.config import RealtimeSearchConfig
 from rwkv_search.db import SearchDatabase
 from rwkv_search.g1i_types import G1ICompletion
+from rwkv_search.realtime.cache import TTLByteCache
 from rwkv_search.realtime.discovery import (
     URLDiscovery,
     bing_search_headers,
@@ -24,6 +25,7 @@ from rwkv_search.realtime.discovery import (
 from rwkv_search.realtime.engine import RealtimeSearchEngine
 from rwkv_search.realtime.extractor import classify_source, extract_page
 from rwkv_search.realtime.fetcher import AsyncPageFetcher, FetchError
+from rwkv_search.realtime.precision_discovery import compact_general_query
 from rwkv_search.realtime.ranker import rank_documents, to_search_results
 from rwkv_search.realtime.types import DiscoveredURL, FetchedPage, RealtimeDocument
 from rwkv_search.search import SearchResult
@@ -288,7 +290,7 @@ class RealtimeSearchTests(unittest.TestCase):
 
         return complete
 
-    def test_searxng_params_use_query_language_without_disabling_engines(self) -> None:
+    def test_searxng_params_use_language_and_bounded_engine_pool(self) -> None:
         self.assertEqual(
             searxng_search_params("新能源汽车政策", "latest")["language"],
             "zh-CN",
@@ -302,11 +304,124 @@ class RealtimeSearchTests(unittest.TestCase):
         )
         self.assertNotIn("time_range", searxng_search_params("今日台风", "realtime"))
         self.assertNotIn("time_range", searxng_search_params("RWKV 是什么", "none"))
+        params = searxng_search_params(
+            "RWKV GitHub repository",
+            "latest",
+            ("general", "repos"),
+            ("bing", "duckduckgo", "bing"),
+        )
+        self.assertEqual(params["engines"], "bing,duckduckgo")
+        self.assertNotIn("categories", params)
+
+    def test_english_query_compaction_puts_subject_before_chat_shell(self) -> None:
         self.assertEqual(
-            searxng_search_params(
-                "RWKV GitHub repository", "latest", ("general", "repos")
-            )["categories"],
-            "general,repos",
+            compact_general_query(
+                "What is the current stable Python release according to python.org?"
+            ),
+            "Python python.org stable release current",
+        )
+        self.assertEqual(
+            compact_general_query(
+                "Find the Federal Reserve's latest FOMC monetary policy statement."
+            ),
+            "Federal Reserve's FOMC monetary policy statement latest",
+        )
+        chinese = "国家统计局最新公布的中国CPI数据是什么？"
+        self.assertEqual(compact_general_query(chinese), chinese)
+
+    def test_shared_discovery_cache_reuses_general_channel_response(self) -> None:
+        async def run():
+            config = RealtimeSearchConfig(
+                enabled=True,
+                searxng_url="http://127.0.0.1:8888",
+                searxng_engines=["bing", "duckduckgo"],
+                fallback_engines=[],
+            )
+            cache = TTLByteCache(1024 * 1024)
+            first = URLDiscovery(config, object(), cache=cache)
+            second = URLDiscovery(config, object(), cache=cache)
+            calls = 0
+
+            async def discover(*args, **kwargs):
+                nonlocal calls
+                calls += 1
+                return [
+                    DiscoveredURL(
+                        url="https://python.org/downloads/",
+                        title="Download Python",
+                        engine="bing",
+                    )
+                ]
+
+            first._searxng = discover
+            second._searxng = discover
+            left = await first._discover_one(
+                "Python latest release",
+                "latest",
+                source_channels=(),
+            )
+            right = await second._discover_one(
+                "Python latest release",
+                "latest",
+                source_channels=("general",),
+            )
+            return calls, left, right
+
+        calls, left, right = asyncio.run(run())
+        self.assertEqual(calls, 1)
+        self.assertEqual(left[0].url, right[0].url)
+
+    def test_multi_channel_discovery_populates_shared_general_cache(self) -> None:
+        async def run():
+            config = RealtimeSearchConfig(
+                enabled=True,
+                searxng_url="http://127.0.0.1:8888",
+                searxng_engines=["bing", "duckduckgo"],
+                fallback_engines=[],
+            )
+            cache = TTLByteCache(1024 * 1024)
+            enhanced = URLDiscovery(config, object(), cache=cache)
+            legacy = URLDiscovery(config, object(), cache=cache)
+            calls: list[tuple[str, tuple[str, ...]]] = []
+
+            async def discover(query, freshness, diagnostics, source_channels=()):
+                del freshness, diagnostics
+                calls.append((query, tuple(source_channels)))
+                channel = source_channels[0]
+                return [
+                    DiscoveredURL(
+                        url=f"https://example.org/{channel}",
+                        title=f"{channel} result",
+                        engine="bing",
+                    )
+                ]
+
+            enhanced._searxng = discover
+            legacy._searxng = discover
+            enhanced_results = await enhanced._discover_one(
+                "RWKV official GitHub repository",
+                "latest",
+                source_channels=("general", "repos"),
+            )
+            legacy_results = await legacy._discover_one(
+                "RWKV official GitHub repository",
+                "latest",
+                source_channels=(),
+            )
+            return calls, enhanced_results, legacy_results
+
+        calls, enhanced_results, legacy_results = asyncio.run(run())
+        self.assertEqual(
+            [channel for _, channel in calls],
+            [("general",), ("repos",)],
+        )
+        self.assertEqual(
+            legacy_results[0].url,
+            "https://example.org/general",
+        )
+        self.assertIn(
+            legacy_results[0].url,
+            {item.url for item in enhanced_results},
         )
 
     def test_bing_params_and_headers_follow_query_locale(self) -> None:

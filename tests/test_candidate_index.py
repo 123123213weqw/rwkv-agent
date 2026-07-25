@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 from rwkv_search.analysis import DocumentAnalyzer, QueryAnalyzer
 from rwkv_search.candidate_index import (
@@ -106,6 +107,7 @@ class CandidateIndexTests(unittest.TestCase):
         self.assertEqual(properties["metadata_words"]["analyzer"], "whitespace")
         self.assertEqual(properties["alias_normalized"]["type"], "keyword")
         self.assertEqual(properties["alias_words"]["analyzer"], "whitespace")
+        self.assertEqual(properties["analysis_ms"]["type"], "float")
 
     def test_chunk_payload_keeps_raw_evidence_and_separate_channels(self) -> None:
         chunk = WikipediaChunk(
@@ -132,6 +134,28 @@ class CandidateIndexTests(unittest.TestCase):
         self.assertEqual(payload["metadata_words"], "")
         self.assertEqual(payload["alias_original"], ["Python语言"])
         self.assertIn("python", payload["alias_words"].split())
+
+    def test_chunk_payload_bounds_analysis_timing_for_legacy_half_float_indexes(self) -> None:
+        class SlowAnalyzer(DocumentAnalyzer):
+            def analyze(self, **kwargs):
+                return replace(super().analyze(**kwargs), elapsed_ms=391_176.38)
+
+        chunk = WikipediaChunk(
+            doc_id="1#0",
+            page_id="1",
+            chunk_id=0,
+            title="Python",
+            text="Python is a programming language.",
+            headings=(),
+            url="https://en.wikipedia.org/wiki/Python",
+            snapshot_date="20250801",
+            page_type="article",
+            char_start=0,
+            char_end=33,
+            language="en",
+        )
+        payload = chunk_to_index_document(chunk, SlowAnalyzer())
+        self.assertEqual(payload["analysis_ms"], 65_504.0)
 
     def test_query_builds_exact_word_and_bigram_channels_without_noise_words(self) -> None:
         analysis = QueryAnalyzer().analyze("什么是胰腺癌的一个疾病")

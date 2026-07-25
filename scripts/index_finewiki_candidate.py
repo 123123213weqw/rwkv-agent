@@ -81,6 +81,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--shards", type=int, default=4)
     parser.add_argument("--recreate", action="store_true")
     parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Append/overwrite deterministic document IDs in an existing index.",
+    )
+    parser.add_argument(
+        "--start-article",
+        type=int,
+        default=0,
+        help="Skip this many deterministic source articles before resumed indexing.",
+    )
+    parser.add_argument(
+        "--checkpoint",
+        default="",
+        help="Atomic JSON checkpoint written only after all preceding chunks are indexed.",
+    )
+    parser.add_argument(
         "--report",
         default="/home/data/wangyue/search-index/reports/finewiki_candidate_v1_ingest.json",
     )
@@ -89,6 +105,18 @@ def parse_args() -> argparse.Namespace:
         default="/home/data/wangyue/search-index/reports/finewiki_candidate_v1_targets.jsonl",
     )
     return parser.parse_args()
+
+
+def write_checkpoint(path: Path | None, payload: dict) -> None:
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(path)
 
 
 def article_from_row(
@@ -285,6 +313,12 @@ def reservoir_add(items: List[dict], candidate: dict, *, seen: int, limit: int, 
 
 def main() -> int:
     args = parse_args()
+    if args.recreate and args.resume:
+        raise SystemExit("--recreate and --resume are mutually exclusive")
+    if args.start_article < 0:
+        raise SystemExit("--start-article must be non-negative")
+    if args.start_article and not args.resume:
+        raise SystemExit("--start-article requires --resume")
     language = args.language.strip().casefold()
     if not language:
         raise SystemExit("--language must not be empty")
@@ -320,8 +354,19 @@ def main() -> int:
 
     client = CandidateIndexClient(args.endpoint, timeout=90.0)
     print(json.dumps({"event": "cluster_health", "health": client.health()}), flush=True)
-    client.create_index(args.index, recreate=args.recreate, shards=args.shards)
+    if args.resume:
+        existing_count = client.count(args.index)
+        print(json.dumps({
+            "event": "resume",
+            "index": args.index,
+            "start_article": args.start_article,
+            "existing_documents": existing_count,
+        }), flush=True)
+    else:
+        client.create_index(args.index, recreate=args.recreate, shards=args.shards)
+        existing_count = 0
     client.set_refresh_interval(args.index, "-1")
+    checkpoint_path = Path(args.checkpoint) if args.checkpoint else None
 
     target_chars = args.target_chars or (700 if language == "zh" else 1800)
     max_chars = args.max_chars or (900 if language == "zh" else 2400)
@@ -332,6 +377,7 @@ def main() -> int:
         overlap_chars=overlap_chars,
     )
     pending_chunks: List = []
+    source_articles_seen = 0
     articles = chunks = skipped = indexed = total_text_chars = 0
     page_types: Counter[str] = Counter()
     chunk_counts: List[int] = []
@@ -370,6 +416,9 @@ def main() -> int:
             latest_versions=latest_versions, language=language, wikiname=wikiname,
         )
         for article in source:
+            source_articles_seen += 1
+            if source_articles_seen <= args.start_article:
+                continue
             articles += 1
             article_chunks = chunker.chunk(article, snapshot_date=args.snapshot_date)
             if not article_chunks:
@@ -403,13 +452,26 @@ def main() -> int:
             chunks += len(article_chunks)
             if len(pending_chunks) >= args.analysis_batch:
                 indexed += index_pending()
-            if articles % 5000 == 0:
+            if source_articles_seen % 5000 == 0:
+                # Checkpoints are safe boundaries: flush every chunk through
+                # this source position before publishing the resume offset.
+                indexed += index_pending()
                 elapsed = time.perf_counter() - started
                 print(json.dumps({
-                    "event": "progress", "articles": articles, "chunks": chunks,
+                    "event": "progress", "source_articles_seen": source_articles_seen,
+                    "articles": articles, "chunks": chunks,
                     "indexed": indexed, "articles_per_second": round(articles / elapsed, 2),
                     "elapsed_seconds": round(elapsed, 2),
                 }), flush=True)
+                write_checkpoint(checkpoint_path, {
+                    "schema_version": "finewiki-index-checkpoint.v1",
+                    "index": args.index,
+                    "complete": False,
+                    "next_start_article": source_articles_seen,
+                    "articles_processed_this_run": articles,
+                    "chunks_written_this_run": indexed,
+                    "index_documents_at_start": existing_count,
+                })
         indexed += index_pending()
     finally:
         if executor is not None:
@@ -421,8 +483,12 @@ def main() -> int:
     client.flush(args.index)
     stats = client.stats(args.index)
     primary = stats["_all"]["primaries"]
-    if count != indexed:
+    if not args.resume and count != indexed:
         raise RuntimeError(f"Index count mismatch: bulk indexed={indexed}, index count={count}")
+    if args.resume and count < existing_count:
+        raise RuntimeError(
+            f"Resumed index shrank unexpectedly: before={existing_count}, after={count}"
+        )
 
     targets_path = Path(args.targets_output)
     targets_path.parent.mkdir(parents=True, exist_ok=True)
@@ -441,6 +507,10 @@ def main() -> int:
             "overlap_chars": overlap_chars,
         },
         "index": args.index, "seed": args.seed, "analysis_workers": workers,
+        "resume": args.resume, "resume_start_article": args.start_article,
+        "source_articles_seen": source_articles_seen,
+        "index_documents_at_start": existing_count,
+        "index_document_count": count,
         "article_limit": args.limit or "full", "articles_processed": articles,
         "articles_skipped": skipped, "page_types": dict(page_types), "chunks_indexed": indexed,
         "chunks_per_article": {
@@ -458,6 +528,16 @@ def main() -> int:
     report_path = Path(args.report)
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_checkpoint(checkpoint_path, {
+        "schema_version": "finewiki-index-checkpoint.v1",
+        "index": args.index,
+        "complete": True,
+        "next_start_article": source_articles_seen,
+        "articles_processed_this_run": articles,
+        "chunks_written_this_run": indexed,
+        "index_documents_at_start": existing_count,
+        "index_document_count": count,
+    })
     print(json.dumps({"event": "complete", **report}, ensure_ascii=False), flush=True)
     return 0
 

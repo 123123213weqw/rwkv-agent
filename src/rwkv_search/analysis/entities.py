@@ -8,6 +8,9 @@ import regex
 from .normalization import normalize_token
 
 
+_PATTERN_TIMEOUT_SECONDS = 0.05
+
+
 @dataclass(frozen=True)
 class EntitySpan:
     start: int
@@ -30,8 +33,10 @@ _PATTERNS: Sequence[Tuple[str, int, regex.Pattern[str]]] = (
         "email",
         95,
         regex.compile(
-            r"(?i)(?<![\p{Latin}\p{N}._%+-])[\p{Latin}\p{N}._%+-]+@"
-            r"[\p{Latin}\p{N}.-]+\.[\p{Latin}]{2,}",
+            r"(?i)(?<![\p{Latin}\p{N}._%+-])"
+            r"[\p{Latin}\p{N}._%+-]++@"
+            r"[\p{Latin}\p{N}][\p{Latin}\p{N}.-]*+"
+            r"(?![\p{Latin}\p{N}_])",
             regex.VERSION1,
         ),
     ),
@@ -67,9 +72,10 @@ _PATTERNS: Sequence[Tuple[str, int, regex.Pattern[str]]] = (
         "domain",
         82,
         regex.compile(
-            r"(?i)(?<![\p{Latin}\p{N}_])(?:[\p{Latin}\p{N}]"
-            r"(?:[\p{Latin}\p{N}-]{0,61}[\p{Latin}\p{N}])?\.)+"
-            r"[\p{Latin}]{2,24}(?![\p{Latin}\p{N}_])",
+            r"(?i)(?<![\p{Latin}\p{N}_])"
+            r"[\p{Latin}\p{N}][\p{Latin}\p{N}-]*+"
+            r"(?:\.[\p{Latin}\p{N}-]++)+"
+            r"(?![\p{Latin}\p{N}_])",
             regex.VERSION1,
         ),
     ),
@@ -93,6 +99,30 @@ _PATTERNS: Sequence[Tuple[str, int, regex.Pattern[str]]] = (
         ),
     ),
 )
+_DOMAIN_LABEL_RE = regex.compile(
+    r"[\p{Latin}\p{N}](?:[\p{Latin}\p{N}-]{0,61}[\p{Latin}\p{N}])?",
+    regex.VERSION1,
+)
+_DOMAIN_TLD_RE = regex.compile(r"[\p{Latin}]{2,24}", regex.VERSION1)
+
+
+def _valid_domain(value: str) -> bool:
+    if not value or len(value) > 253:
+        return False
+    labels = value.split(".")
+    if len(labels) < 2 or not _DOMAIN_TLD_RE.fullmatch(labels[-1]):
+        return False
+    return all(
+        1 <= len(label) <= 63 and _DOMAIN_LABEL_RE.fullmatch(label)
+        for label in labels
+    )
+
+
+def _valid_email(value: str) -> bool:
+    if value.count("@") != 1:
+        return False
+    local, domain = value.split("@", 1)
+    return bool(local) and len(local) <= 64 and _valid_domain(domain)
 
 
 class EntityProtector:
@@ -105,14 +135,27 @@ class EntityProtector:
     def find(self, text: str) -> Tuple[EntitySpan, ...]:
         candidates: List[EntitySpan] = []
         for entity_type, priority, pattern in _PATTERNS:
-            for match in pattern.finditer(text):
-                start, end = match.span("value") if entity_type == "quoted" else match.span()
-                if entity_type == "url":
-                    while end > start and text[end - 1] in ".,;:!?)]}，。；：！？）】":
-                        end -= 1
-                value = text[start:end]
-                if value:
-                    candidates.append(EntitySpan(start, end, value, entity_type, priority))
+            try:
+                for match in pattern.finditer(text, timeout=_PATTERN_TIMEOUT_SECONDS):
+                    start, end = match.span("value") if entity_type == "quoted" else match.span()
+                    if entity_type == "url":
+                        while end > start and text[end - 1] in ".,;:!?)]}，。；：！？）】":
+                            end -= 1
+                    elif entity_type in {"email", "domain"}:
+                        while end > start and text[end - 1] == ".":
+                            end -= 1
+                    value = text[start:end]
+                    if entity_type == "email" and not _valid_email(value):
+                        continue
+                    if entity_type == "domain" and not _valid_domain(value):
+                        continue
+                    if value:
+                        candidates.append(EntitySpan(start, end, value, entity_type, priority))
+            except TimeoutError:
+                # A single malformed or machine-generated field must not pin an
+                # indexing worker. Candidate patterns are linear and bounded,
+                # while this timeout is a final guard for unforeseen inputs.
+                continue
 
         for term in self.protected_terms:
             cursor = 0

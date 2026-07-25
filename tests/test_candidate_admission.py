@@ -99,6 +99,28 @@ class CandidateAdmissionTests(unittest.TestCase):
         self.assertIn("b.example", hosts[:3])
         self.assertEqual(len(result.admitted), 5)
 
+    def test_rerank_preserves_admitted_search_top_ten_set(self) -> None:
+        values = [
+            candidate(
+                f"https://site-{index}.example/item",
+                "unrelated" if index == 10 else f"Project release {index}",
+                index,
+            )
+            for index in range(1, 13)
+        ]
+        values[10].title = "Project official release exact target"
+        result = admit_candidates(
+            "Project official release exact target",
+            ["Project official release exact target"],
+            values,
+            max_candidates=12,
+            per_domain_limit=2,
+        )
+        expected = {item.url for item in values[:10]}
+        actual = {item.url for item in result.admitted[:10]}
+        self.assertEqual(actual, expected)
+        self.assertNotIn(values[10].url, actual)
+
     def test_login_error_and_empty_metadata_are_rejected(self) -> None:
         values = [
             candidate("https://example.com/login", "Sign in to continue", 1),

@@ -1,0 +1,148 @@
+{
+  "schema_version": "long-knowledge-bilingual-comparison.v1",
+  "scope": "isolated FineWiki page-level candidate retrieval; no dense retriever, reranker, answer generation, router, or production switch",
+  "runner": {
+    "channel_size": 100,
+    "limit": 10
+  },
+  "corpora": {
+    "zh": {
+      "index": "rwkv-finewiki-zh-full-v1",
+      "unique_pages": 1256292,
+      "chunks": 2553392
+    },
+    "en": {
+      "index": "rwkv-finewiki-en-full-v1",
+      "unique_pages": 6498759,
+      "chunks": 18898488
+    }
+  },
+  "benchmarks": {
+    "miracl_dev": {
+      "same_public_benchmark_family": true,
+      "zh": {
+        "cases_total": 393,
+        "positive_cases": 393,
+        "expected_missing_cases": 0,
+        "expected_missing_accuracy": null,
+        "qrel_page_coverage": 0.8684546615581098,
+        "qrel_case_coverage": 0.9236641221374046,
+        "latency_ms": {
+          "mean": 169.44325823069056,
+          "p50": 164.76305993273854,
+          "p95": 232.23390895873308
+        },
+        "hit_at_1": 0.23918575063613232,
+        "hit_at_5": 0.3893129770992366,
+        "hit_at_10": 0.4351145038167939,
+        "recall_at_1": 0.1328486610929359,
+        "recall_at_5": 0.24406882345813644,
+        "recall_at_10": 0.2831091724221495,
+        "mrr_at_10": 0.30358758431277516,
+        "ndcg_at_10": 0.2416024249099467,
+        "empty_rate": 0.0
+      },
+      "en": {
+        "cases_total": 799,
+        "positive_cases": 799,
+        "expected_missing_cases": 0,
+        "expected_missing_accuracy": null,
+        "qrel_page_coverage": 0.9722524483133841,
+        "qrel_case_coverage": 0.9924906132665833,
+        "latency_ms": {
+          "mean": 1933.9828311074618,
+          "p50": 1902.2359759546816,
+          "p95": 2952.046297956258
+        },
+        "hit_at_1": 0.34167709637046306,
+        "hit_at_5": 0.47434292866082606,
+        "hit_at_10": 0.5369211514392991,
+        "recall_at_1": 0.22420982577428136,
+        "recall_at_5": 0.32251276397083656,
+        "recall_at_10": 0.37263692711127006,
+        "mrr_at_10": 0.39929376005721434,
+        "ndcg_at_10": 0.3284263633315726,
+        "empty_rate": 0.0
+      },
+      "en_minus_zh": {
+        "hit_at_1": 0.10249134573433075,
+        "hit_at_5": 0.08502995156158943,
+        "hit_at_10": 0.10180664762250519,
+        "recall_at_1": 0.09136116468134547,
+        "recall_at_5": 0.07844394051270012,
+        "recall_at_10": 0.08952775468912055,
+        "mrr_at_10": 0.09570617574443918,
+        "ndcg_at_10": 0.08682393842162589
+      }
+    },
+    "project_compat_v1": {
+      "same_schema_but_not_paired_equivalent_queries": true,
+      "zh": {
+        "cases_total": 24,
+        "positive_cases": 21,
+        "expected_missing_cases": 3,
+        "expected_missing_accuracy": 0.3333333333333333,
+        "qrel_page_coverage": 1.0,
+        "qrel_case_coverage": 1.0,
+        "latency_ms": {
+          "mean": 147.97544772071498,
+          "p50": 107.40506905131042,
+          "p95": 170.2210740186274
+        },
+        "hit_at_1": 0.6190476190476191,
+        "hit_at_5": 0.7142857142857143,
+        "hit_at_10": 0.7619047619047619,
+        "recall_at_1": 0.5714285714285714,
+        "recall_at_5": 0.6666666666666666,
+        "recall_at_10": 0.7380952380952381,
+        "mrr_at_10": 0.6488095238095238,
+        "ndcg_at_10": 0.6578333483148574,
+        "empty_rate": 0.0
+      },
+      "en": {
+        "cases_total": 24,
+        "positive_cases": 20,
+        "expected_missing_cases": 4,
+        "expected_missing_accuracy": 0.0,
+        "qrel_page_coverage": 1.0,
+        "qrel_case_coverage": 1.0,
+        "latency_ms": {
+          "mean": 1805.1881346153095,
+          "p50": 1439.2039440572262,
+          "p95": 3497.772125992924
+        },
+        "hit_at_1": 0.35,
+        "hit_at_5": 0.45,
+        "hit_at_10": 0.45,
+        "recall_at_1": 0.3,
+        "recall_at_5": 0.4,
+        "recall_at_10": 0.4,
+        "mrr_at_10": 0.3875,
+        "ndcg_at_10": 0.3475082528393248,
+        "empty_rate": 0.0
+      },
+      "en_minus_zh": {
+        "hit_at_1": -0.2690476190476191,
+        "hit_at_5": -0.2642857142857143,
+        "hit_at_10": -0.31190476190476185,
+        "recall_at_1": -0.2714285714285714,
+        "recall_at_5": -0.2666666666666666,
+        "recall_at_10": -0.3380952380952381,
+        "mrr_at_10": -0.2613095238095238,
+        "ndcg_at_10": -0.3103250954755326
+      }
+    }
+  },
+  "diagnosis": [
+    "English MIRACL has higher snapshot coverage and higher unconditional Hit@10, MRR@10 and nDCG@10 than Chinese MIRACL.",
+    "Chinese compatibility cases score higher than English compatibility cases, but the small language subsets are not paired equivalents and cannot isolate language quality.",
+    "Both compatibility runs return results for most or all expected-missing probes, so abstention is not calibrated.",
+    "English descriptive and cross-language compatibility queries are the clearest ranking failures; group sizes are small and are used only to set the next benchmark target.",
+    "Latency is host- and corpus-size-dependent; the bilingual table records it for operations, not as a language-quality comparison."
+  ],
+  "next_milestone_candidates_not_started": [
+    "hybrid lexical+dense retrieval for descriptive queries",
+    "cross-language retrieval support",
+    "calibrated candidate admission or missing-knowledge threshold"
+  ]
+}

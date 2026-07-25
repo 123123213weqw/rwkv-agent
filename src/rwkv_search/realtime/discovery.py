@@ -29,6 +29,7 @@ def searxng_search_params(
     query: str,
     freshness: str,
     source_channels: Sequence[str] = (),
+    engines: Sequence[str] = (),
 ) -> Dict[str, str]:
     """Build the small, deterministic SearXNG API contract used at runtime.
 
@@ -52,11 +53,16 @@ def searxng_search_params(
         "language": language,
         "safesearch": "1",
     }
-    channels = list(
-        dict.fromkeys(value.strip() for value in source_channels if value.strip())
+    # Internal source channels describe query formation, not SearXNG category
+    # names. Leaking values such as ``repos`` into ``categories`` silently
+    # disables otherwise useful engines on a stock SearXNG installation.
+    # Runtime engine selection is explicit and bounded so one suspended or
+    # rate-limited engine cannot make the whole metasearch request unstable.
+    selected_engines = list(
+        dict.fromkeys(value.strip() for value in engines if value.strip())
     )
-    if channels:
-        params["categories"] = ",".join(channels[:2])
+    if selected_engines:
+        params["engines"] = ",".join(selected_engines)
     return params
 
 
@@ -268,11 +274,20 @@ def parse_searxng_results(data: Mapping[str, Any]) -> List[DiscoveredURL]:
 
 
 class URLDiscovery:
-    def __init__(self, config: RealtimeSearchConfig, session: object) -> None:
+    def __init__(
+        self,
+        config: RealtimeSearchConfig,
+        session: object,
+        cache: Optional[TTLByteCache[List[DiscoveredURL]]] = None,
+    ) -> None:
         self.config = config
         self.session = session
-        self.cache: TTLByteCache[List[DiscoveredURL]] = TTLByteCache(
-            max(1024 * 1024, config.cache_max_bytes // 8)
+        self.cache = (
+            cache
+            if cache is not None
+            else TTLByteCache[List[DiscoveredURL]](
+                max(1024 * 1024, config.cache_max_bytes // 8)
+            )
         )
 
     async def discover(
@@ -368,8 +383,19 @@ class URLDiscovery:
         source_channels: Sequence[str] = (),
     ) -> List[DiscoveredURL]:
         direct = self._direct_urls(query)
-        channel_key = ",".join(source_channels)
-        key = f"{freshness}\0{channel_key}\0{query.casefold()}"
+        # ``general`` is the same external request as the no-channel legacy
+        # path. Normalizing it allows a Shadow arm to replay the exact cached
+        # discovery response instead of doubling search-engine traffic.
+        channel_key = ",".join(
+            value for value in source_channels if value and value != "general"
+        )
+        engine_key = ",".join(self.config.searxng_engines)
+        fallback_key = ",".join(self.config.fallback_engines)
+        key = (
+            f"{self.config.searxng_url.rstrip('/')}\0{engine_key}\0"
+            f"{fallback_key}\0{self.config.bing_base_url.rstrip('/')}\0"
+            f"{freshness}\0{channel_key}\0{query.casefold()}"
+        )
         cached = self.cache.get(key)
         if cached is not None:
             return direct + copy.deepcopy(cached)
@@ -377,7 +403,7 @@ class URLDiscovery:
         results: List[DiscoveredURL] = []
         if self.config.searxng_url.rstrip("/") and len(source_channels) > 1:
             channel_tasks = [
-                self._searxng(
+                self._discover_one(
                     source_channel_query(query, channel),
                     freshness,
                     diagnostics,
@@ -494,7 +520,12 @@ class URLDiscovery:
         base = self.config.searxng_url.rstrip("/")
         if not base:
             return []
-        params = searxng_search_params(query, freshness, source_channels)
+        params = searxng_search_params(
+            query,
+            freshness,
+            source_channels,
+            self.config.searxng_engines,
+        )
         headers = {}
         if (urlsplit(base).hostname or "").casefold() in {
             "127.0.0.1",

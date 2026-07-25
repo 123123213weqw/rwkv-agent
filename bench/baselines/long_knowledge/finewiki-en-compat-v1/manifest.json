@@ -1,0 +1,26 @@
+{
+  "schema_version": "long-knowledge-baseline-manifest.v1",
+  "name": "finewiki-en-compat-v1",
+  "corpus": {
+    "dataset": "HuggingFaceFW/finewiki",
+    "config": "enwiki",
+    "license": "CC BY-SA 4.0",
+    "raw_rows": 6614655,
+    "unique_pages": 6498759,
+    "aliases": 1166396,
+    "index": "rwkv-finewiki-en-full-v1",
+    "chunks": 18898488,
+    "store_bytes": 60249901240
+  },
+  "test_set": {
+    "source": "rwkv-search-compat",
+    "split": "v1",
+    "language": "en",
+    "cases": 24,
+    "sha256": "e709c9e7305cb8753b21242842b71a326d7cb1ac5b8ddbe14c03cd7b49ab8c74"
+  },
+  "source_run_summary_sha256": "e9d4b91c6a6f62825c17e0414de8da794344649ab080e644117fa2233b674d11",
+  "summary_sha256": "59fdc04f2232a238624b4615429367dd4d82db75650d7856b587aa0c3297c841",
+  "raw_traces_included": false,
+  "production_changed": false
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "long-knowledge-bilingual-manifest.v1",
+  "name": "finewiki-bilingual-v1",
+  "inputs": {
+    "zh_miracl_summary_sha256": "17f907b9156349c92676cade240cab7cc32707878f9ab80168879bcbde1962b4",
+    "zh_compat_summary_sha256": "beda74955e87feb93ab9bfac73666a58cb8f8c32e142351d6bc3666238f09f3e",
+    "en_miracl_summary_sha256": "61eb2f79b3da4efcc6accacd41fe162ee6ac07ce85afc338b09f309fc8251563",
+    "en_compat_summary_sha256": "59fdc04f2232a238624b4615429367dd4d82db75650d7856b587aa0c3297c841"
+  },
+  "files": {
+    "comparison.json": "fb58b9e08372e96469d1ad5b63f0f8f149d467cdb7869db8e237868d131722bb",
+    "README.md": "eda539b088118107274a256621e62b48c1a9463ba529fd965ee6ca6026452c31"
+  },
+  "raw_traces_included": false,
+  "production_changed": false
+}

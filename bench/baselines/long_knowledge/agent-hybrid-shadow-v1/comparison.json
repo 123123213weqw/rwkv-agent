@@ -1,0 +1,132 @@
+{
+  "schema_version": "agent-knowledge-shadow-comparison.v1",
+  "dataset": {
+    "path": "knowledge_shadow_cases_v1.jsonl",
+    "sha256": "b46e93f087308c4dce78c273636a58e959c81315482c977a04b7684604358270",
+    "cases": 24
+  },
+  "scope": {
+    "agent": "desktop RWKV Agent",
+    "visible_arm": "legacy lexical FineWiki",
+    "shadow_arm": "lexical + dense equal-weight RRF + CrossEncoder + lead_plus_cross hydration",
+    "answer_model_called": false,
+    "g1i_7_2b_called": false,
+    "production_enabled": false
+  },
+  "metrics": {
+    "overall": {
+      "legacy": {
+        "cases": 24,
+        "ok": 24,
+        "empty": 0,
+        "hit_at_1": 15,
+        "hit_at_5": 18,
+        "hit_at_1_rate": 0.625,
+        "hit_at_5_rate": 0.75,
+        "latency_ms": {
+          "mean": 851.8707496502126,
+          "p50": 894.710771040991,
+          "p95": 2179.8730390146375,
+          "max": 2376.8062088638544
+        }
+      },
+      "hybrid": {
+        "cases": 24,
+        "ok": 24,
+        "empty": 0,
+        "hit_at_1": 15,
+        "hit_at_5": 21,
+        "hit_at_1_rate": 0.625,
+        "hit_at_5_rate": 0.875,
+        "latency_ms": {
+          "mean": 1704.8056323158864,
+          "p50": 1423.1895939446986,
+          "p95": 3088.7088966555893,
+          "max": 3447.9425325989723
+        }
+      }
+    },
+    "by_language": {
+      "zh": {
+        "legacy": {
+          "cases": 12,
+          "ok": 12,
+          "empty": 0,
+          "hit_at_1": 8,
+          "hit_at_5": 9,
+          "hit_at_1_rate": 0.6666666666666666,
+          "hit_at_5_rate": 0.75,
+          "latency_ms": {
+            "mean": 206.30766381509602,
+            "p50": 118.07976313866675,
+            "p95": 912.1682071126997,
+            "max": 912.1682071126997
+          }
+        },
+        "hybrid": {
+          "cases": 12,
+          "ok": 12,
+          "empty": 0,
+          "hit_at_1": 8,
+          "hit_at_5": 12,
+          "hit_at_1_rate": 0.6666666666666666,
+          "hit_at_5_rate": 1.0,
+          "latency_ms": {
+            "mean": 899.3148431181908,
+            "p50": 924.6041534934193,
+            "p95": 1161.4585197530687,
+            "max": 1161.4585197530687
+          }
+        }
+      },
+      "en": {
+        "legacy": {
+          "cases": 12,
+          "ok": 12,
+          "empty": 0,
+          "hit_at_1": 7,
+          "hit_at_5": 9,
+          "hit_at_1_rate": 0.5833333333333334,
+          "hit_at_5_rate": 0.75,
+          "latency_ms": {
+            "mean": 1497.4338354853292,
+            "p50": 1402.9907463118434,
+            "p95": 2376.8062088638544,
+            "max": 2376.8062088638544
+          }
+        },
+        "hybrid": {
+          "cases": 12,
+          "ok": 12,
+          "empty": 0,
+          "hit_at_1": 7,
+          "hit_at_5": 9,
+          "hit_at_1_rate": 0.5833333333333334,
+          "hit_at_5_rate": 0.75,
+          "latency_ms": {
+            "mean": 2510.296421513582,
+            "p50": 2467.364845564589,
+            "p95": 3447.9425325989723,
+            "max": 3447.9425325989723
+          }
+        }
+      }
+    },
+    "paired": {
+      "hybrid_hit_at_1_wins": 6,
+      "legacy_hit_at_1_wins": 6,
+      "hybrid_hit_at_5_wins": 5,
+      "legacy_hit_at_5_wins": 2,
+      "page_order_changed": 24,
+      "hydrated_text_changed": 24,
+      "hybrid_fallbacks": 0
+    }
+  },
+  "decision": {
+    "shadow_integration_gate_passed": true,
+    "production_default_switch_passed": false,
+    "reason": "Hybrid improves overall Hit@5 from 75.0% to 87.5% with no failures, but Hit@1 is unchanged with 6 wins and 6 regressions, English Hit@5 is unchanged, and mean latency rises from 851.9ms to 1704.8ms.",
+    "visible_strategy": "legacy",
+    "next_step_requires_separate_authorization": "7.2B Agent-native K/W/L answer A/B after retrieval ranking is reviewed"
+  }
+}

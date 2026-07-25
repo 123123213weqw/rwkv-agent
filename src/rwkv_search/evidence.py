@@ -137,6 +137,12 @@ class Evidence:
                 "candidate_chunk_count": int(
                     getattr(hit, "candidate_chunk_count", 1) or 1
                 ),
+                "hydration_strategy": str(
+                    getattr(hit, "hydration_strategy", "") or ""
+                ),
+                "component_doc_ids": list(
+                    getattr(hit, "component_doc_ids", ()) or ()
+                ),
                 "page_type": str(getattr(hit, "page_type", "") or ""),
                 "wikidata_id": str(getattr(hit, "wikidata_id", "") or ""),
                 "ranks": dict(ranks),

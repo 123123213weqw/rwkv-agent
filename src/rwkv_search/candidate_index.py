@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 import json
+import math
 import re
 import time
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
@@ -23,6 +24,7 @@ _RETRIEVAL_STOPWORDS = {
 _OPENCC_T2S: Any = None
 _PASSAGE_INNER_HITS = "top_passages"
 _LEAD_INNER_HITS = "lead_passage"
+_HALF_FLOAT_MAX = 65_504.0
 _DEFINITION_QUERY = re.compile(
     r"(?:什么[是事]|是什[么麼]|是啥|啥是|何为|什么意思|定义|"
     r"\bwhat\s+(?:is|are)\b)",
@@ -103,7 +105,7 @@ def candidate_index_mapping(*, shards: int = 2) -> Dict[str, Any]:
                 "page_type": {"type": "keyword"},
                 "char_start": {"type": "integer"},
                 "char_end": {"type": "integer"},
-                "analysis_ms": {"type": "half_float"},
+                "analysis_ms": {"type": "float"},
             },
         },
     }
@@ -139,6 +141,16 @@ def chunk_to_index_document(chunk: WikipediaChunk, analyzer: DocumentAnalyzer) -
         include_bigrams=True,
     ) if metadata_text else None
     aliases = tuple(getattr(chunk, "aliases", ()) or ())
+    elapsed_ms = float(result.elapsed_ms)
+    # Existing FineWiki indexes used half_float for this diagnostic-only field.
+    # Long or descheduled analysis can exceed its finite range and must never
+    # abort an otherwise valid bulk ingest. New indexes use float, while the
+    # bound keeps resumed writes compatible with existing half_float mappings.
+    analysis_ms = (
+        min(max(elapsed_ms, 0.0), _HALF_FLOAT_MAX)
+        if math.isfinite(elapsed_ms)
+        else _HALF_FLOAT_MAX
+    )
     payload.update(
         {
             "doc_id": chunk.doc_id,
@@ -158,7 +170,7 @@ def chunk_to_index_document(chunk: WikipediaChunk, analyzer: DocumentAnalyzer) -
             "page_type": chunk.page_type,
             "char_start": chunk.char_start,
             "char_end": chunk.char_end,
-            "analysis_ms": round(result.elapsed_ms, 4),
+            "analysis_ms": round(analysis_ms, 4),
             "wikiname": getattr(chunk, "wikiname", "") or "",
             "wikidata_id": getattr(chunk, "wikidata_id", "") or "",
             "source_version": int(getattr(chunk, "source_version", 0) or 0),
@@ -192,12 +204,15 @@ class CandidateHit:
     headings: Tuple[str, ...] = ()
     passage_score: float = 0.0
     candidate_chunk_count: int = 1
+    hydration_strategy: str = ""
+    component_doc_ids: Tuple[str, ...] = ()
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         data["channels"] = list(self.channels)
         data["ranks"] = dict(self.ranks)
         data["headings"] = list(self.headings)
+        data["component_doc_ids"] = list(self.component_doc_ids)
         return data
 
 

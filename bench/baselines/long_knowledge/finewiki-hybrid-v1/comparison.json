@@ -1,0 +1,520 @@
+{
+  "schema_version": "long-knowledge-hybrid-comparison.v1",
+  "scope": "isolated FineWiki page-level retrieval only; no answer generation, router, chat, frontend, or production switch",
+  "datasets": {
+    "miracl_dev": {
+      "zh_cases": 393,
+      "en_cases": 799,
+      "human_qrels": true
+    },
+    "project_compat_v1": {
+      "zh_positive": 21,
+      "zh_missing": 3,
+      "en_positive": 20,
+      "en_missing": 4,
+      "human_reviewed_regression_set": true
+    }
+  },
+  "models": {
+    "dense": "intfloat/multilingual-e5-small compatible checkpoint; 384 dimensions; page title, aliases, section headings, and lead passage",
+    "cross_encoder": "BAAI/bge-reranker-v2-m3; top 50 fused candidates"
+  },
+  "candidate_limit": 100,
+  "dense_num_candidates": 1000,
+  "fusion": {
+    "method": "reciprocal_rank_fusion",
+    "lexical_weight": 1.0,
+    "dense_weight": 1.0,
+    "rrf_k": 60.0
+  },
+  "benchmarks": {
+    "miracl_dev": {
+      "zh": {
+        "lexical": {
+          "hit_at_1": 0.23918575063613232,
+          "hit_at_5": 0.3893129770992366,
+          "hit_at_10": 0.4351145038167939,
+          "hit_at_50": 0.5470737913486005,
+          "hit_at_100": 0.6743002544529262,
+          "recall_at_1": 0.1328486610929359,
+          "recall_at_5": 0.24406882345813644,
+          "recall_at_10": 0.2831091724221495,
+          "recall_at_50": 0.3748273355143584,
+          "recall_at_100": 0.49597116200169633,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 98,
+            "corpus_miss": 30,
+            "ranking_miss": 94,
+            "top10_hit": 171
+          },
+          "latency_ms": {
+            "mean": 247.51855813514243,
+            "p50": 238.0332611501217,
+            "p95": 347.2989988513291
+          }
+        },
+        "lexical_cross_encoder": {
+          "hit_at_1": 0.32061068702290074,
+          "hit_at_5": 0.4631043256997455,
+          "hit_at_10": 0.5012722646310432,
+          "hit_at_50": 0.5470737913486005,
+          "hit_at_100": 0.6743002544529262,
+          "recall_at_1": 0.1746819338422392,
+          "recall_at_5": 0.29112443959772205,
+          "recall_at_10": 0.33317581485520414,
+          "recall_at_50": 0.3748273355143584,
+          "recall_at_100": 0.49597116200169633,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 98,
+            "corpus_miss": 30,
+            "ranking_miss": 68,
+            "top10_hit": 197
+          },
+          "latency_ms": {
+            "mean": 605.7942045832399,
+            "p50": 596.4364891406149,
+            "p95": 710.1299671921879
+          }
+        },
+        "dense": {
+          "hit_at_1": 0.3384223918575064,
+          "hit_at_5": 0.5699745547073791,
+          "hit_at_10": 0.6157760814249363,
+          "hit_at_50": 0.727735368956743,
+          "hit_at_100": 0.7531806615776081,
+          "recall_at_1": 0.18953107960741547,
+          "recall_at_5": 0.3619895795468315,
+          "recall_at_10": 0.42055616139585605,
+          "recall_at_50": 0.5527505149642554,
+          "recall_at_100": 0.5886102023506604,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 67,
+            "corpus_miss": 30,
+            "ranking_miss": 54,
+            "top10_hit": 242
+          },
+          "latency_ms": {
+            "mean": 38.05865958551035,
+            "p50": 34.72928702831268,
+            "p95": 46.0839900188148
+          }
+        },
+        "lexical_dense_equal_rrf": {
+          "hit_at_1": 0.3511450381679389,
+          "hit_at_5": 0.539440203562341,
+          "hit_at_10": 0.6513994910941476,
+          "hit_at_50": 0.7557251908396947,
+          "hit_at_100": 0.7760814249363868,
+          "recall_at_1": 0.1915848782260996,
+          "recall_at_5": 0.34932751726644856,
+          "recall_at_10": 0.44708590815461047,
+          "recall_at_50": 0.5825760329577123,
+          "recall_at_100": 0.6251544892766266,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 58,
+            "corpus_miss": 30,
+            "ranking_miss": 49,
+            "top10_hit": 256
+          },
+          "latency_ms": {
+            "mean": 285.57721772065275,
+            "p50": 272.91815099306405,
+            "p95": 392.7838762756437
+          }
+        },
+        "lexical_dense_equal_rrf_cross_encoder": {
+          "hit_at_1": 0.42748091603053434,
+          "hit_at_5": 0.6361323155216285,
+          "hit_at_10": 0.6717557251908397,
+          "hit_at_50": 0.7557251908396947,
+          "hit_at_100": 0.7760814249363868,
+          "recall_at_1": 0.23297588755604023,
+          "recall_at_5": 0.43451472191930207,
+          "recall_at_10": 0.47779595298679267,
+          "recall_at_50": 0.5825760329577123,
+          "recall_at_100": 0.6251544892766266,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 58,
+            "corpus_miss": 30,
+            "ranking_miss": 41,
+            "top10_hit": 264
+          },
+          "latency_ms": {
+            "mean": 650.7683112114222,
+            "p50": 638.7482220306993,
+            "p95": 763.1821387913078
+          }
+        }
+      },
+      "en": {
+        "lexical": {
+          "hit_at_1": 0.34167709637046306,
+          "hit_at_5": 0.47434292866082606,
+          "hit_at_10": 0.5369211514392991,
+          "hit_at_50": 0.6282853566958698,
+          "hit_at_100": 0.6695869837296621,
+          "recall_at_1": 0.22420982577428136,
+          "recall_at_5": 0.32251276397083656,
+          "recall_at_10": 0.37263692711127006,
+          "recall_at_50": 0.46371804040765247,
+          "recall_at_100": 0.5099514273794624,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 258,
+            "corpus_miss": 6,
+            "ranking_miss": 106,
+            "top10_hit": 429
+          },
+          "latency_ms": {
+            "mean": 2103.3732428982416,
+            "p50": 2061.733553884551,
+            "p95": 3059.134950861335
+          }
+        },
+        "lexical_cross_encoder": {
+          "hit_at_1": 0.46307884856070086,
+          "hit_at_5": 0.5882352941176471,
+          "hit_at_10": 0.60450563204005,
+          "hit_at_50": 0.6282853566958698,
+          "hit_at_100": 0.6695869837296621,
+          "recall_at_1": 0.2875389872260961,
+          "recall_at_5": 0.4129084967320261,
+          "recall_at_10": 0.43782952897471045,
+          "recall_at_50": 0.46371804040765247,
+          "recall_at_100": 0.5099514273794624,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 258,
+            "corpus_miss": 6,
+            "ranking_miss": 52,
+            "top10_hit": 483
+          },
+          "latency_ms": {
+            "mean": 2483.6194688137807,
+            "p50": 2441.7054038494825,
+            "p95": 3440.530860796571
+          }
+        },
+        "dense": {
+          "hit_at_1": 0.5219023779724656,
+          "hit_at_5": 0.753441802252816,
+          "hit_at_10": 0.8222778473091364,
+          "hit_at_50": 0.8961201501877347,
+          "hit_at_100": 0.9111389236545682,
+          "recall_at_1": 0.3125533901503864,
+          "recall_at_5": 0.5060765440928144,
+          "recall_at_10": 0.5795086119554205,
+          "recall_at_50": 0.6819269035789687,
+          "recall_at_100": 0.7146419044729433,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 65,
+            "corpus_miss": 6,
+            "ranking_miss": 71,
+            "top10_hit": 657
+          },
+          "latency_ms": {
+            "mean": 39.51031218623237,
+            "p50": 38.79993408918381,
+            "p95": 45.05337309092283
+          }
+        },
+        "lexical_dense_equal_rrf": {
+          "hit_at_1": 0.5006257822277848,
+          "hit_at_5": 0.6996245306633292,
+          "hit_at_10": 0.7797246558197747,
+          "hit_at_50": 0.9011264080100125,
+          "hit_at_100": 0.9173967459324155,
+          "recall_at_1": 0.31497655799908614,
+          "recall_at_5": 0.47695730774579337,
+          "recall_at_10": 0.5469570097542563,
+          "recall_at_50": 0.6957819297931939,
+          "recall_at_100": 0.7300743895237011,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 60,
+            "corpus_miss": 6,
+            "ranking_miss": 110,
+            "top10_hit": 623
+          },
+          "latency_ms": {
+            "mean": 2142.8835550844738,
+            "p50": 2097.124508814886,
+            "p95": 3106.392656918615
+          }
+        },
+        "lexical_dense_equal_rrf_cross_encoder": {
+          "hit_at_1": 0.571964956195244,
+          "hit_at_5": 0.7897371714643304,
+          "hit_at_10": 0.851063829787234,
+          "hit_at_50": 0.9011264080100125,
+          "hit_at_100": 0.9173967459324155,
+          "recall_at_1": 0.3432067862606035,
+          "recall_at_5": 0.560519597910086,
+          "recall_at_10": 0.6242783638278006,
+          "recall_at_50": 0.6957819297931939,
+          "recall_at_100": 0.7300743895237011,
+          "expected_missing_accuracy_if_empty": null,
+          "failure_stages": {
+            "candidate_recall_miss": 60,
+            "corpus_miss": 6,
+            "ranking_miss": 53,
+            "top10_hit": 680
+          },
+          "latency_ms": {
+            "mean": 2529.7837812874295,
+            "p50": 2487.2861925978214,
+            "p95": 3496.085613965988
+          }
+        }
+      }
+    },
+    "project_compat_v1": {
+      "zh": {
+        "lexical": {
+          "hit_at_1": 0.6190476190476191,
+          "hit_at_5": 0.7142857142857143,
+          "hit_at_10": 0.7619047619047619,
+          "hit_at_50": 0.8095238095238095,
+          "hit_at_100": 0.8571428571428571,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_5": 0.6666666666666666,
+          "recall_at_10": 0.7380952380952381,
+          "recall_at_50": 0.7857142857142857,
+          "recall_at_100": 0.8095238095238095,
+          "expected_missing_accuracy_if_empty": 0.3333333333333333,
+          "failure_stages": {
+            "candidate_recall_miss": 3,
+            "ranking_miss": 2,
+            "top10_hit": 16
+          },
+          "latency_ms": {
+            "mean": 255.92719150396684,
+            "p50": 216.12057206220925,
+            "p95": 441.7958310805261
+          }
+        },
+        "lexical_cross_encoder": {
+          "hit_at_1": 0.7142857142857143,
+          "hit_at_5": 0.8095238095238095,
+          "hit_at_10": 0.8095238095238095,
+          "hit_at_50": 0.8095238095238095,
+          "hit_at_100": 0.8571428571428571,
+          "recall_at_1": 0.6190476190476191,
+          "recall_at_5": 0.7857142857142857,
+          "recall_at_10": 0.7857142857142857,
+          "recall_at_50": 0.7857142857142857,
+          "recall_at_100": 0.8095238095238095,
+          "expected_missing_accuracy_if_empty": 0.3333333333333333,
+          "failure_stages": {
+            "candidate_recall_miss": 3,
+            "ranking_miss": 1,
+            "top10_hit": 17
+          },
+          "latency_ms": {
+            "mean": 582.3855393779619,
+            "p50": 565.2521301526576,
+            "p95": 777.2987850476056
+          }
+        },
+        "dense": {
+          "hit_at_1": 0.7619047619047619,
+          "hit_at_5": 0.8095238095238095,
+          "hit_at_10": 0.9047619047619048,
+          "hit_at_50": 0.9047619047619048,
+          "hit_at_100": 0.9047619047619048,
+          "recall_at_1": 0.6666666666666666,
+          "recall_at_5": 0.7857142857142857,
+          "recall_at_10": 0.8809523809523809,
+          "recall_at_50": 0.8809523809523809,
+          "recall_at_100": 0.8809523809523809,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 2,
+            "top10_hit": 19
+          },
+          "latency_ms": {
+            "mean": 64.72378153315124,
+            "p50": 43.990724021568894,
+            "p95": 65.35091414116323
+          }
+        },
+        "lexical_dense_equal_rrf": {
+          "hit_at_1": 0.6666666666666666,
+          "hit_at_5": 0.8095238095238095,
+          "hit_at_10": 0.8571428571428571,
+          "hit_at_50": 0.9047619047619048,
+          "hit_at_100": 0.9047619047619048,
+          "recall_at_1": 0.6190476190476191,
+          "recall_at_5": 0.7857142857142857,
+          "recall_at_10": 0.8333333333333334,
+          "recall_at_50": 0.8809523809523809,
+          "recall_at_100": 0.8809523809523809,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 2,
+            "ranking_miss": 1,
+            "top10_hit": 18
+          },
+          "latency_ms": {
+            "mean": 320.6509730371181,
+            "p50": 275.2793561667204,
+            "p95": 484.3863951973617
+          }
+        },
+        "lexical_dense_equal_rrf_cross_encoder": {
+          "hit_at_1": 0.6666666666666666,
+          "hit_at_5": 0.8571428571428571,
+          "hit_at_10": 0.9047619047619048,
+          "hit_at_50": 0.9047619047619048,
+          "hit_at_100": 0.9047619047619048,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_5": 0.8095238095238095,
+          "recall_at_10": 0.8809523809523809,
+          "recall_at_50": 0.8809523809523809,
+          "recall_at_100": 0.8809523809523809,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 2,
+            "top10_hit": 19
+          },
+          "latency_ms": {
+            "mean": 687.9574159975164,
+            "p50": 631.9503381382674,
+            "p95": 847.3135142121464
+          }
+        }
+      },
+      "en": {
+        "lexical": {
+          "hit_at_1": 0.35,
+          "hit_at_5": 0.45,
+          "hit_at_10": 0.45,
+          "hit_at_50": 0.55,
+          "hit_at_100": 0.65,
+          "recall_at_1": 0.3,
+          "recall_at_5": 0.4,
+          "recall_at_10": 0.4,
+          "recall_at_50": 0.475,
+          "recall_at_100": 0.6,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 7,
+            "ranking_miss": 4,
+            "top10_hit": 9
+          },
+          "latency_ms": {
+            "mean": 1856.2605365392908,
+            "p50": 1673.4614938031882,
+            "p95": 2921.5760740917176
+          }
+        },
+        "lexical_cross_encoder": {
+          "hit_at_1": 0.35,
+          "hit_at_5": 0.5,
+          "hit_at_10": 0.5,
+          "hit_at_50": 0.55,
+          "hit_at_100": 0.65,
+          "recall_at_1": 0.3,
+          "recall_at_5": 0.425,
+          "recall_at_10": 0.425,
+          "recall_at_50": 0.475,
+          "recall_at_100": 0.6,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 7,
+            "ranking_miss": 3,
+            "top10_hit": 10
+          },
+          "latency_ms": {
+            "mean": 2247.199206302563,
+            "p50": 2056.958989938721,
+            "p95": 3305.945817148313
+          }
+        },
+        "dense": {
+          "hit_at_1": 0.4,
+          "hit_at_5": 0.8,
+          "hit_at_10": 0.85,
+          "hit_at_50": 0.95,
+          "hit_at_100": 0.95,
+          "recall_at_1": 0.375,
+          "recall_at_5": 0.775,
+          "recall_at_10": 0.825,
+          "recall_at_50": 0.925,
+          "recall_at_100": 0.925,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 1,
+            "ranking_miss": 2,
+            "top10_hit": 17
+          },
+          "latency_ms": {
+            "mean": 49.91839324551014,
+            "p50": 37.82490384764969,
+            "p95": 40.70665990002453
+          }
+        },
+        "lexical_dense_equal_rrf": {
+          "hit_at_1": 0.5,
+          "hit_at_5": 0.6,
+          "hit_at_10": 0.75,
+          "hit_at_50": 0.9,
+          "hit_at_100": 0.95,
+          "recall_at_1": 0.45,
+          "recall_at_5": 0.55,
+          "recall_at_10": 0.7,
+          "recall_at_50": 0.875,
+          "recall_at_100": 0.925,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 1,
+            "ranking_miss": 4,
+            "top10_hit": 15
+          },
+          "latency_ms": {
+            "mean": 1906.1789297848009,
+            "p50": 1709.9431108217686,
+            "p95": 2958.8252261746675
+          }
+        },
+        "lexical_dense_equal_rrf_cross_encoder": {
+          "hit_at_1": 0.65,
+          "hit_at_5": 0.75,
+          "hit_at_10": 0.8,
+          "hit_at_50": 0.9,
+          "hit_at_100": 0.95,
+          "recall_at_1": 0.6,
+          "recall_at_5": 0.7,
+          "recall_at_10": 0.775,
+          "recall_at_50": 0.875,
+          "recall_at_100": 0.925,
+          "expected_missing_accuracy_if_empty": 0.0,
+          "failure_stages": {
+            "candidate_recall_miss": 1,
+            "ranking_miss": 3,
+            "top10_hit": 16
+          },
+          "latency_ms": {
+            "mean": 2281.7386858320483,
+            "p50": 2069.8340237140656,
+            "p95": 3330.355662154034
+          }
+        }
+      }
+    }
+  },
+  "headline": {
+    "miracl_zh_hit_at_10_gain": 0.2366412213740458,
+    "miracl_en_hit_at_10_gain": 0.31414267834793497,
+    "miracl_zh_recall_at_10_gain": 0.19468678056464317,
+    "miracl_en_recall_at_10_gain": 0.2516414367165305
+  },
+  "latency_note": "Chinese dense runs measured all stages in one sequential run. English fusion latency composes frozen lexical timing with current dense/rerank timing; it is a sequential estimate, not a same-run wall-clock measurement. Production could execute lexical and dense channels in parallel, but no unmeasured parallel latency is claimed.",
+  "selection_note": "RRF weight sweeps are development-set diagnostics only. Equal weights are retained in the headline reranked comparison; no held-out evidence supports language-specific tuned weights."
+}

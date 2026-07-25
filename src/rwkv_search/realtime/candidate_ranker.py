@@ -329,30 +329,47 @@ def admit_candidates(
             admitted.append(item)
 
     _score_candidates(query, queries, admitted)
-    admitted.sort(
-        key=lambda item: (
+
+    def score_key(item: DiscoveredURL) -> tuple[float, float, int]:
+        return (
             item.candidate_score,
             item.rrf_score,
             -int(item.rank or 10**6),
-        ),
-        reverse=True,
-    )
+        )
+
+    # Preserve the set of the search engine's admitted top 10 while allowing
+    # metadata reranking and diversity inside that set. This is a standard
+    # recall-protected rerank boundary: a noisy metadata score may change
+    # fetch order, but cannot evict a first-page result from Recall@10.
+    protected = [
+        item
+        for item in admitted
+        if item.score_components.get("original_position", 10**6) <= 10
+    ]
+    protected_ids = {id(item) for item in protected}
+    tail = [item for item in admitted if id(item) not in protected_ids]
+    protected.sort(key=score_key, reverse=True)
+    tail.sort(key=score_key, reverse=True)
 
     # SearXNG applies result-container ranking and duplicate merging; this
     # second bounded pass adds fetch-budget diversity.  Overflow candidates are
     # retained after the diverse prefix, so Recall@20 is not needlessly lost.
-    selected: List[DiscoveredURL] = []
-    overflow: List[DiscoveredURL] = []
-    domains: Counter[str] = Counter()
-    limit = max(1, int(per_domain_limit))
-    for item in admitted:
-        host = _normalized_host(item.url)
-        if domains[host] >= limit:
-            overflow.append(item)
-            continue
-        domains[host] += 1
-        selected.append(item)
-    selected.extend(overflow)
+    def diversify(values: Sequence[DiscoveredURL]) -> List[DiscoveredURL]:
+        selected: List[DiscoveredURL] = []
+        overflow: List[DiscoveredURL] = []
+        domains: Counter[str] = Counter()
+        limit = max(1, int(per_domain_limit))
+        for item in values:
+            host = _normalized_host(item.url)
+            if domains[host] >= limit:
+                overflow.append(item)
+                continue
+            domains[host] += 1
+            selected.append(item)
+        selected.extend(overflow)
+        return selected
+
+    selected = [*diversify(protected), *diversify(tail)]
     return CandidateAdmission(
         admitted=selected[: max(0, max_candidates)],
         rejected=rejected,

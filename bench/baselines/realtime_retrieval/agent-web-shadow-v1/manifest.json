@@ -1,0 +1,21 @@
+{
+  "schema_version": "public-baseline-manifest.v1",
+  "name": "agent-web-shadow-v1",
+  "status": "public_summary",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "98957d319c92aec8adca01eb087e5cec2425f426f2402e2715f5b20debe0d261",
+      "bytes": 2206
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "b31d44b40938e66fec04e44e5d1d7cf03345391d46df44b341c7ea92a4ba3a3a",
+      "bytes": 5467
+    }
+  ],
+  "contains_full_urls": false,
+  "contains_queries": false,
+  "contains_page_content": false,
+  "production_changed": false
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "public-baseline-manifest.v1",
+  "name": "agent-web-recall-5h-v1",
+  "status": "public_summary",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "52ead3d8e1fc5493f2c65f5da42ad23f0690245fa2e95ca4e64e701e2ca8482c",
+      "bytes": 2868
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "5b31a3a19730ee1d1e5b7d80a493de7249e75e0242aa568844d5f121ad33e781",
+      "bytes": 7385
+    }
+  ],
+  "contains_full_urls": false,
+  "contains_queries": false,
+  "contains_page_content": false,
+  "production_changed": false
+}

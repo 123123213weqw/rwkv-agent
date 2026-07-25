@@ -102,9 +102,63 @@ Domain Recall 只能说明找到了组织网站，Target Page Recall 才说明�
 - `bench/baselines/query_formation/g1i-p4-v1/`
 - `bench/baselines/realtime_retrieval/precision-discovery-v1/`
 - `bench/baselines/realtime_retrieval/hybrid-live-audit-v1/`
+- `bench/baselines/realtime_retrieval/agent-web-shadow-v1/`
 - `bench/baselines/g1i/`
 
 完整网页正文、模型 Token Trace 和私有机器配置不进入 Git。
+
+### Agent Web Shadow v1
+
+桌面Agent保持原`web_search(query)`、Legacy可见`W1..W5`和回答Prompt不变，将增强路径放入默认关闭
+的单worker、最多两个等待任务的异步Shadow。每个A/B Arm记录完整候选阶段、抓取、最终结果、垃圾类型、
+告警、回退原因和延迟；队列满或异常只丢弃Shadow，不得影响聊天请求。
+
+50条冻结集在V100隔离环境的结果是：
+
+| 指标 | Legacy | Enhanced |
+|---|---:|---:|
+| Candidate Domain Recall@10 | 32% | 26% |
+| Candidate Target Page Recall@20 | 2% | 2% |
+| Result Domain Recall@10 | 24% | 20% |
+| Result Target Page Recall@20 | 0% | 0% |
+| 非空结果率 | 86% | 58% |
+| 垃圾结果率 | 17.56% | **1.08%** |
+| 抓取成功率 | 72.99% | 58.77% |
+| 平均/P95延迟 | 2820.5/7223.5ms | 2680.7/7072.9ms |
+
+通用候选准入明显降低垃圾，但当前组合牺牲了有效召回和非空，因此Shadow安全门槛通过、默认切换门槛
+失败。两臂交替先后顺序各25条，仍观察到Live上游/执行顺序干扰；实验机本地SearXNG不可用，两臂
+实际都使用Bing HTML fallback。因此这组结果不能包装成SearXNG或多搜索引擎的质量结论。
+
+### Agent Web Recall Repair 5H
+
+5H使用同一50条、同一指标修复5G暴露的召回与非空回退。增强Arm增加：
+
+1. 只对长英文自然语言请求做主题前置的通用Query Compaction，不按领域或金标站点路由；
+2. 候选重排可改变已准入首屏内部顺序，但后部候选不能挤掉原Top-10集合；
+3. Legacy/Enhanced发出相同查询时共享有TTL和字节上限的进程内Discovery缓存；
+4. Trace区分Discovery、Admission、Fetch、Post-fetch和Final-ranking失败；
+5. Enhanced无公开Evidence时记录Legacy Evidence安全回退；仍不改变用户可见输出。
+
+| 指标 | 配对Legacy | Enhanced |
+|---|---:|---:|
+| Candidate Domain Recall@10 | 30% | **50%** |
+| Result Domain Recall@10 | 24% | **40%** |
+| Candidate Target Page Recall@10 | 8% | **14%** |
+| Result Target Page Recall@10 | 6% | **10%** |
+| 非空结果率 | 72% | **88%** |
+| Evidence非空率 | 96% | **98%** |
+| 垃圾结果率 | 9.15% | **1.12%** |
+| 抓取成功率 | 56.52% | **71.35%** |
+| 平均/P95延迟 | 3291.3/8008.4ms | 3301.5/**6901.9ms** |
+
+Candidate Domain Recall@10、Result Domain Recall@10和非空结果逐例分别为Enhanced胜10/8/8、
+Legacy胜0/0/0。英文Candidate Domain Recall@10从0%提升到40%，中文两臂保持60%。
+
+隔离SearXNG的Bing/DuckDuckGo等公开引擎在持续运行中出现超时、连接重置、CAPTCHA或限流；
+失败诊断没有被包装成健康多引擎结果。最终通过门槛的运行使用已有Bing HTML fallback，证明的是
+Query/Admission/Fetch修复而非持久SearXNG能力。公开摘要位于
+`bench/baselines/realtime_retrieval/agent-web-recall-5h-v1/`。
 
 ## 静态网页抽取 Benchmark
 

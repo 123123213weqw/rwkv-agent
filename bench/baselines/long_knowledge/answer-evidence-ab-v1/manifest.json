@@ -1,0 +1,13 @@
+{
+  "schema_version": "answer-evidence-ab-manifest.v1",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "86a4bcaeb00699f92ebed342ca9ff7fcdde6d304cdc1ac085d7c2841a7701cc7"
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "18a00c78ca142cfe9f8915cdd2e02c497107083cf095bc9062290db312fb2239"
+    }
+  ]
+}
