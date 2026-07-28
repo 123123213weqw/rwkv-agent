@@ -2,34 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import math
-import re
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlsplit
 
+from ..pipeline.reranker import RetrievalReranker
+from ..pipeline.query_compiler import normalize_source_preference
+from ..semantic_selection import PairScorer
 from ..search import SearchResult
 from ..text import best_snippet, search_tokens
 from .types import RealtimeDocument
-
-
-_ENTITY_STOPWORDS = {
-    "what", "who", "where", "when", "why", "how", "is", "are", "the",
-    "a", "an", "of", "for", "and", "or", "latest", "recent", "current",
-    "official", "documentation", "docs", "news", "release", "notes",
-}
-
-_FINANCE_QUERY_RE = re.compile(
-    r"(股票|股市|A股|港股|美股|基金|ETF|买入|卖出|行情|市盈率|财报|"
-    r"stock|equity|NASDAQ|NYSE|filing)",
-    re.I,
-)
-_FINANCE_TITLE_RE = re.compile(
-    r"(股票|股市|A股|港股|美股|基金|ETF|行情|指数|上市公司|公告|财报|业绩|"
-    r"stock|equity|market|NASDAQ|NYSE|filing|earnings)",
-    re.I,
-)
-_FINANCE_PRIMARY_TYPES = {"regulator", "company_filing"}
 
 
 def rank_documents(
@@ -39,50 +22,19 @@ def rank_documents(
     freshness_mode: str,
     limit: int,
     per_domain_limit: int = 2,
+    scorer: PairScorer | None = None,
+    query_views: Sequence[str] = (),
+    source_preference: str = "any",
 ) -> List[RealtimeDocument]:
+    normalized_preference = normalize_source_preference(source_preference)
     query_tokens = set(search_tokens(query))
-    entity_tokens = {
-        token.casefold()
-        for token in query_tokens
-        if len(token) >= 2
-        and token.isascii()
-        and token.isalnum()
-        and token.casefold() not in _ENTITY_STOPWORDS
-    }
     now = datetime.now(timezone.utc)
-    finance_mode = bool(_FINANCE_QUERY_RE.search(query))
-    entity_matches: Dict[int, bool] = {}
-    finance_matches: Dict[int, bool] = {}
     for document in documents:
         title_tokens = set(search_tokens(document.title))
         body_tokens = set(search_tokens(document.text[:100000]))
         title_overlap = len(query_tokens & title_tokens) / max(1, len(query_tokens))
         body_overlap = len(query_tokens & body_tokens) / max(1, len(query_tokens))
         document.relevance = min(1.0, 0.7 * title_overlap + 0.3 * body_overlap)
-        host = (urlsplit(document.url).hostname or "").casefold()
-        domain_parts = set(host.replace("www.", "").split("."))
-        entity_haystack = title_tokens | body_tokens | set(
-            search_tokens(document.url)
-        )
-        entity_matches[id(document)] = not entity_tokens or bool(
-            entity_tokens & entity_haystack
-        )
-        finance_haystack = f"{document.title} {document.text[:3000]}"
-        finance_matches[id(document)] = (
-            not finance_mode
-            or (
-                document.source_type in _FINANCE_PRIMARY_TYPES
-                and bool(_FINANCE_TITLE_RE.search(finance_haystack))
-            )
-            or (
-                document.source_type == "news"
-                and bool(_FINANCE_TITLE_RE.search(document.title))
-            )
-        )
-        if entity_tokens & domain_parts:
-            document.authority = max(document.authority, 0.92)
-            if document.source_type == "web":
-                document.source_type = "official_docs"
         document.freshness = freshness_score(
             document.published_at, document.fetched_at, freshness_mode, now
         )
@@ -94,18 +46,38 @@ def rank_documents(
             + 0.14 * document.extraction_quality
             + source_bonus(document.source_type)
         )
-    # A named Latin entity such as Python/RWKV is a hard constraint. Without
-    # it, common Chinese question words can rank a completely unrelated page.
-    ordered = sorted(
-        (
-            item
-            for item in documents
-            if entity_matches.get(id(item), True)
-            and finance_matches.get(id(item), True)
-        ),
-        key=lambda item: item.score,
-        reverse=True,
+    rows = [
+        {
+            "title": item.title,
+            "content": item.text[:6000],
+            "uri": item.url,
+            "score": item.score,
+            "_best_position": index,
+            "_upstream_score": item.score,
+            "_preference_score": (
+                source_preference_score(item.source_type, item.authority)
+                if normalized_preference != "any"
+                else 0.0
+            ),
+        }
+        for index, item in enumerate(
+            sorted(documents, key=lambda value: value.score, reverse=True),
+            1,
+        )
+    ]
+    semantic_order = RetrievalReranker(scorer=scorer).rank(
+        query,
+        query_views,
+        rows,
+        limit=len(rows),
+        preference_weight=0.12 if normalized_preference != "any" else 0.0,
     )
+    by_url = {item.url: item for item in documents}
+    ordered = [
+        by_url[str(row.get("uri") or "")]
+        for row in semantic_order.items
+        if str(row.get("uri") or "") in by_url
+    ]
     selected: List[RealtimeDocument] = []
     domains: Dict[str, int] = {}
     hashes: List[int] = []
@@ -167,6 +139,21 @@ def source_bonus(source_type: str) -> float:
         "news": 0.04,
         "forum": -0.02,
     }.get(source_type, 0.0)
+
+
+def source_preference_score(source_type: str, authority: float) -> float:
+    """Score declared source metadata; never infer a topic from the query."""
+
+    preferred = {
+        "academic",
+        "company_filing",
+        "github_release",
+        "official_docs",
+        "official_repository",
+        "paper",
+        "regulator",
+    }
+    return max(0.0, min(1.0, float(authority))) if source_type in preferred else 0.0
 
 
 def freshness_score(

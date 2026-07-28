@@ -32,13 +32,13 @@ class PrecisionDiscoveryTest(unittest.TestCase):
         )
         self.assertEqual(
             source_channel_query("llama.cpp latest release GitHub", "repos"),
-            "llama.cpp",
+            "llama.cpp latest release GitHub",
         )
         self.assertEqual(
             source_channel_query(
                 "RWKV architecture original paper official", "science"
             ),
-            "rwkv architecture",
+            "RWKV architecture original paper official",
         )
 
     def test_organization_domain_is_conservative_for_government_and_subdomains(
@@ -99,7 +99,7 @@ class PrecisionDiscoveryTest(unittest.TestCase):
         )
         self.assertEqual(
             select_pivot_domains("Apple phone colors", [], candidates, max_domains=2),
-            [],
+            ["apple.com"],
         )
 
     def test_government_scope_needs_entity_or_title_alignment(self) -> None:

@@ -15,19 +15,8 @@ _NOISE_TERMS = {
     "什么", "怎么", "怎样", "如何", "为什么", "哪些", "哪个", "请问", "一下", "帮我",
     "搜索", "查询", "介绍", "介绍一下", "what", "which", "how", "please",
 }
-_FRESH_REALTIME = regex.compile(r"今天|今日|现在|当前|实时|刚刚|此刻|\btoday\b|\bnow\b", regex.I)
-_FRESH_LATEST = regex.compile(r"最新|最近|近期|目前|进展|新版本|\blatest\b|\brecent\b", regex.I)
-_TIME_TERM = regex.compile(
-    r"\d{4}[-/.年]\d{1,2}(?:[-/.月]\d{1,2}日?)?|"
-    r"\d{4}年|本周|上周|本月|上月|今年|去年|过去\d+(?:天|周|月|年)",
-    regex.I,
-)
 _SITE_FILTER = regex.compile(r"\bsite:([^\s]+)", regex.I)
 _CLAUSE_SPLIT = regex.compile(r"[。！？!?；;\n]+|(?<=[，,])\s*", regex.VERSION1)
-_ANSWER_TYPE = regex.compile(
-    r"是什么\s*(国家|组织|机构|公司|项目|产品|技术|语言|疾病|人物)[？?。.!！\s]*$",
-    regex.I,
-)
 
 
 class QueryAnalyzer:
@@ -113,20 +102,11 @@ class QueryAnalyzer:
         return replace(token, weight=round(weight, 4))
 
     def _constraints(self, value: str, *, original: str = "") -> Dict[str, Any]:
+        del original
         constraints: Dict[str, Any] = {}
-        if _FRESH_REALTIME.search(value):
-            constraints["freshness"] = "realtime"
-        elif _FRESH_LATEST.search(value):
-            constraints["freshness"] = "latest"
-        time_terms = self._unique(match.group(0) for match in _TIME_TERM.finditer(value))
-        if time_terms:
-            constraints["time_terms"] = list(time_terms)
         sites = self._unique(match.group(1).casefold().rstrip(".,;，。；") for match in _SITE_FILTER.finditer(value))
         if sites:
             constraints["site"] = list(sites)
-        answer_type = _ANSWER_TYPE.search(original)
-        if answer_type:
-            constraints["answer_type"] = answer_type.group(1).casefold()
         return constraints
 
     def _search_queries(

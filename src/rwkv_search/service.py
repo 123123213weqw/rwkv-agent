@@ -7,12 +7,12 @@ import re
 import threading
 import time
 from typing import Any, Dict, Iterable, List, Optional, Protocol
-from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .config import RealtimeSearchConfig, SearchConfig, ShadowSearchConfig
 from .db import SearchDatabase
 from .evidence import Evidence, EvidenceBuilder
+from .pipeline.answer_policy import AnswerPolicy
 from .router import RouteDecision, RuleRouter
 from .search import HybridSearcher, SearchResult
 from .text import search_tokens
@@ -43,9 +43,12 @@ class SearchService:
         realtime_engine: Optional[Any] = None,
         shadow_config: Optional[ShadowSearchConfig] = None,
         shadow_search: Optional[Any] = None,
+        router: Optional[RuleRouter] = None,
+        answer_policy: Optional[AnswerPolicy] = None,
     ) -> None:
         self.database = database
-        self.router = RuleRouter()
+        self.router = router or RuleRouter()
+        self.answer_policy = answer_policy or AnswerPolicy()
         self.searcher = HybridSearcher(database, search_config)
         self.evidence_builder = EvidenceBuilder(search_config)
         self.answerer = answerer
@@ -166,12 +169,17 @@ class SearchService:
             primary_latency_ms = (time.perf_counter() - primary_started) * 1000.0
             realtime_stats: Dict[str, Any] = {}
             if wants_web and self.realtime_engine:
+                realtime_kwargs: Dict[str, Any] = {
+                    "freshness": route.freshness,
+                    "depth": route.depth,
+                    "cancel_event": cancel_event,
+                }
+                if route.source_preference != "any":
+                    realtime_kwargs["source_preference"] = route.source_preference
                 for realtime_event in self.realtime_engine.search_events(
                     route.queries[0],
                     route.queries,
-                    freshness=route.freshness,
-                    depth=route.depth,
-                    cancel_event=cancel_event,
+                    **realtime_kwargs,
                 ):
                     kind = str(realtime_event.get("type") or "")
                     if kind == "realtime_result":
@@ -244,19 +252,6 @@ class SearchService:
             if cancel_event and cancel_event.is_set():
                 yield {"type": "cancelled"}
                 return
-
-        # For current financial facts, absence of primary evidence is itself
-        # the answer. Do not ask RWKV to fill the gap from model memory.
-        if route.intent == "finance" and not evidence:
-            as_of = datetime.now(timezone.utc).isoformat()
-            yield {
-                "type": "answer",
-                "answer": self._extractive_fallback(
-                    query, evidence, as_of, intent=route.intent
-                ),
-            }
-            yield {"type": "done"}
-            return
 
         as_of = datetime.now(timezone.utc).isoformat()
         answer: Dict[str, Any]
@@ -483,19 +478,8 @@ class SearchService:
                 boundary = boundaries[-1].end()
                 if boundary >= max(40, len(text) // 2):
                     text = text[:boundary].rstrip()
-        if re.search(r"(你是谁|介绍你自己|你是什么|who are you)", query, re.I) and re.search(
-            r"OpenAI|ChatGPT", text, re.I
-        ):
-            text = "我是 RWKV Search，由本地 RWKV-7 模型驱动，可以结合检索证据回答问题。"
-        abuse = re.search(
-            r"(我是你(?:爹|爸|爷)|你妈(?:死|逼)|傻[逼比]|蠢货|滚蛋|操你|fuck\s+you)",
-            query,
-            re.I,
-        )
-        if abuse and re.sub(r"\s+", "", text) == re.sub(r"\s+", "", query):
-            text = "我不会和你对骂。你可以直接说需要我解决什么问题。"
         if not text:
-            text = "模型没有生成可显示的内容。"
+            text = AnswerPolicy.chat_failure(query)
         return {
             "answer": text,
             "citations": [],
@@ -506,26 +490,10 @@ class SearchService:
 
     @staticmethod
     def _contextual_query(query: str, history: List[Dict[str, str]]) -> str:
-        """Resolve short follow-ups for retrieval without treating chat as evidence."""
-        if not history:
-            return query
-        follow_up = re.search(
-            r"(它|他|她|这个|那个|这点|上述|前面提到|继续说|再说说|其优点|其缺点)",
-            query,
-        ) or re.search(
-            r"\b(it|this|that|they|them|those|continue)\b", query, re.I
-        )
-        if not follow_up:
-            return query
-        previous_user = next(
-            (
-                str(item.get("content", "")).strip()
-                for item in reversed(history)
-                if item.get("role") == "user" and item.get("content")
-            ),
-            "",
-        )
-        return f"{previous_user}；追问：{query}" if previous_user else query
+        """Conversation-aware rewriting belongs to the model Query Compiler."""
+
+        del history
+        return query
 
     def search(self, query: str, *, freshness: str = "stable", limit: int = 10) -> List[Dict[str, Any]]:
         return [item.to_dict() for item in self.searcher.search(query, freshness=freshness, limit=limit)]
@@ -569,43 +537,10 @@ class SearchService:
     def _filter_results_for_route(
         route: RouteDecision, results: List[SearchResult]
     ) -> List[SearchResult]:
-        """Keep generic portal pages out of high-risk finance evidence."""
-        if route.intent != "finance":
-            return results
-        primary_hosts = (
-            "sec.gov",
-            "cninfo.com.cn",
-            "hkexnews.hk",
-            "sse.com.cn",
-            "szse.cn",
-            "bse.cn",
-            "hkex.com.hk",
-            "csrc.gov.cn",
-            "sfc.hk",
-            "finra.org",
-        )
-        finance_title = re.compile(
-            r"(股票|股市|A股|港股|美股|基金|ETF|行情|指数|上市公司|公告|财报|业绩|"
-            r"stock|equity|market|NASDAQ|NYSE|filing|earnings)",
-            re.I,
-        )
-        filtered: List[SearchResult] = []
-        for item in results:
-            host = (urlsplit(item.url).hostname or "").casefold()
-            primary_domain = any(
-                host == value or host.endswith("." + value)
-                for value in primary_hosts
-            )
-            primary = (
-                item.source_type in {"regulator", "company_filing"}
-                or primary_domain
-            ) and bool(finance_title.search(f"{item.title} {item.content[:3000]}"))
-            verified_news = item.source_type == "news" and bool(
-                finance_title.search(item.title)
-            )
-            if primary or verified_news:
-                filtered.append(item)
-        return filtered
+        """Risk/source constraints are carried as metadata, not domain branches."""
+
+        del route
+        return results
 
     @staticmethod
     def _has_web_tool(tools: List[str]) -> bool:
@@ -693,25 +628,10 @@ class SearchService:
         model_error: Optional[str] = None,
         intent: str = "",
     ) -> Dict[str, Any]:
-        if intent == "finance":
-            citations = [item.id for item in evidence[:3]]
-            if evidence:
-                text = (
-                    "已找到相关官方公告或监管来源，但本次没有生成可靠的带引用摘要。"
-                    "为避免误导，不直接拼接网页原文，请查看下方来源。"
-                )
-            else:
-                text = "暂未抓取到足以支持回答的官方市场公告或监管信息。"
-            return {
-                "answer": text,
-                "citations": citations,
-                "data_time": as_of,
-                "insufficient_evidence": True,
-                "needs_clarification": False,
-            }
+        del intent
         if not evidence:
             return {
-                "answer": "本地索引中没有找到足够证据。请添加相关站点种子或扩大抓取范围。",
+                "answer": AnswerPolicy.no_evidence_answer(query),
                 "citations": [],
                 "data_time": as_of,
                 "insufficient_evidence": True,
@@ -723,10 +643,7 @@ class SearchService:
             for token in query_tokens
             if len(token) >= 2 and token.isascii() and token.isalnum()
         }
-        definition_query = bool(
-            re.search(r"(什么是|是什么|指什么|定义|what is\b)", query, re.I)
-        )
-        candidates: List[tuple[int, float, str, str]] = []
+        candidates: List[tuple[float, str, str]] = []
         for evidence_rank, item in enumerate(evidence[:5]):
             sentences = re.split(r"(?<=[。！？!?])|(?<=\.)\s+|[\r\n]+", item.text)
             for sentence_index, sentence in enumerate(sentences[:80]):
@@ -741,22 +658,12 @@ class SearchService:
                 overlap = len(query_tokens & tokens) / max(1, len(query_tokens))
                 score = 2.0 * overlap + 0.18 * item.authority
                 score += 0.3 / (1 + evidence_rank) + 0.08 / (1 + sentence_index)
-                direct_definition = bool(definition_query and re.search(
-                    r"(?:Python|RWKV|[A-Za-z0-9_.+#-]{2,}|[\u4e00-\u9fff]{2,})"
-                    r".{0,20}(?:是一种|是一个|是由|指的是|属于).{0,30}"
-                    r"(?:语言|模型|框架|工具|系统|协议|方法|技术|平台|软件|项目|"
-                    r"组织|公司|人物|概念|架构|程序|库)",
-                    clean,
-                    re.I,
-                ))
-                if direct_definition:
-                    score += 2.5
-                candidates.append((int(direct_definition), score, clean, item.id))
-        candidates.sort(key=lambda value: (value[0], value[1]), reverse=True)
+                candidates.append((score, clean, item.id))
+        candidates.sort(key=lambda value: value[0], reverse=True)
         chosen: List[tuple[str, str]] = []
         source_counts: Dict[str, int] = {}
         normalized = set()
-        for _, _, sentence, source_id in candidates:
+        for _, sentence, source_id in candidates:
             key = re.sub(r"\W+", "", sentence.casefold())[:120]
             if key in normalized:
                 continue
@@ -787,12 +694,7 @@ class SearchService:
 
     @staticmethod
     def _chat_fallback(query: str, as_of: str) -> Dict[str, Any]:
-        if re.search(r"^(你好|您好|hello|hi)[！!。,.，\s]*$", query, re.I):
-            text = "你好！有什么我可以帮助你的吗？"
-        elif re.search(r"(你是谁|介绍你自己|who are you)", query, re.I):
-            text = "我是 RWKV Search，由本地 RWKV 模型驱动。"
-        else:
-            text = "我在。请直接告诉我你希望我帮你解决什么问题。"
+        text = AnswerPolicy.chat_failure(query)
         return {
             "answer": text,
             "citations": [],

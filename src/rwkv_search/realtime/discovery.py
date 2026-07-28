@@ -5,16 +5,21 @@ import base64
 import copy
 import html
 import json
+import os
+from pathlib import Path
 import re
+import sqlite3
 import zlib
 from html.parser import HTMLParser
 from typing import Any, Dict, List, Mapping, Optional, Sequence
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 
 from ..config import RealtimeSearchConfig
 from ..text import canonicalize_url
 from .cache import TTLByteCache
 from .precision_discovery import source_channel_query
+from .source_api import SourceAPIDiscovery
+from ..semantic_selection import PairScorer
 from .types import DiscoveredURL
 
 
@@ -23,6 +28,16 @@ _VERSION_RE = re.compile(r"\b\d+\.\d+(?:\.\d+)?\b")
 _CJK_RE = re.compile(r"[\u3400-\u9fff]")
 _JAPANESE_RE = re.compile(r"[\u3040-\u30ff]")
 _KOREAN_RE = re.compile(r"[\uac00-\ud7af]")
+_WIKIPEDIA_TERM = re.compile(r"[A-Za-z0-9]+(?:['.-][A-Za-z0-9]+)*")
+_WIKIPEDIA_STOP = frozenset(
+    {
+        "about", "after", "also", "and", "answer", "are", "as", "at",
+        "before", "by", "did", "do", "does", "for", "from", "had", "has",
+        "have", "how", "in", "into", "is", "it", "of", "on", "or", "question",
+        "scope", "search", "site", "that", "the", "their", "this", "to", "was",
+        "website", "were", "what", "when", "where", "which", "who", "why", "with",
+    }
+)
 
 
 def searxng_search_params(
@@ -114,7 +129,17 @@ class _SearchHTMLParser(HTMLParser):
             and "b_algo" in values.get("class", "")
         ):
             self._in_bing_result = True
-        if self.engine == "bing" and self._in_bing_result and lowered == "p":
+        if (
+            self.engine == "so360"
+            and lowered == "li"
+            and "res-list" in values.get("class", "")
+        ):
+            self._in_bing_result = True
+        if (
+            self.engine in {"bing", "so360"}
+            and self._in_bing_result
+            and lowered == "p"
+        ):
             self._snippet_capture = True
             self._snippet_parts = []
             return
@@ -124,11 +149,17 @@ class _SearchHTMLParser(HTMLParser):
         if lowered != "a" or not values.get("href"):
             return
         classes = values.get("class", "")
-        href = values["href"]
+        href = values.get("data-mdurl") or values["href"]
         if (
             self.engine == "bing"
             and self._in_bing_result
             and ("tilk" in classes or href.startswith("http"))
+        ):
+            self._capture, self._href, self._parts, self._depth = True, href, [], 0
+        elif (
+            self.engine == "so360"
+            and self._in_bing_result
+            and href.startswith("http")
         ):
             self._capture, self._href, self._parts, self._depth = True, href, [], 0
         elif self.engine == "baidu" and href.startswith("http"):
@@ -155,7 +186,7 @@ class _SearchHTMLParser(HTMLParser):
             self._snippet_capture = False
             self._snippet_parts = []
             return
-        if self.engine == "bing" and lowered == "li":
+        if self.engine in {"bing", "so360"} and lowered == "li":
             self._in_bing_result = False
 
     def handle_data(self, data: str) -> None:
@@ -167,7 +198,9 @@ class _SearchHTMLParser(HTMLParser):
 
 def _is_search_internal(url: str) -> bool:
     host = (urlsplit(url).hostname or "").casefold()
-    return host.endswith(("bing.com", "bing.net", "baidu.com", "searx.space"))
+    return host.endswith(
+        ("bing.com", "bing.net", "baidu.com", "so.com", "searx.space")
+    )
 
 
 def _result_url(href: str, engine: str) -> Optional[str]:
@@ -220,6 +253,34 @@ def parse_search_html(raw_html: str, engine: str) -> List[DiscoveredURL]:
                             engine=engine,
                         )
                     )
+        elif engine == "so360":
+            containers = tree.css("li.res-list")
+            for container in containers:
+                node = container.css_first("h3 a")
+                if node is None:
+                    continue
+                href = (
+                    node.attributes.get("data-mdurl", "")
+                    or node.attributes.get("href", "")
+                )
+                url = _result_url(href, engine)
+                title = " ".join(node.text(separator=" ", strip=True).split())
+                if url and title and url not in seen and not _is_search_internal(url):
+                    seen.add(url)
+                    paragraph = container.css_first("p.res-desc")
+                    snippet = (
+                        " ".join(paragraph.text(separator=" ", strip=True).split())
+                        if paragraph is not None
+                        else ""
+                    )
+                    output.append(
+                        DiscoveredURL(
+                            url=url,
+                            title=title[:500],
+                            snippet=snippet[:1500],
+                            engine=engine,
+                        )
+                    )
         else:
             for selector in ("div.result h3 a", "div.c-container h3 a"):
                 for node in tree.css(selector):
@@ -243,6 +304,113 @@ def parse_search_html(raw_html: str, engine: str) -> List[DiscoveredURL]:
     parser = _SearchHTMLParser(engine)
     parser.feed(raw_html)
     return parser.results
+
+
+def parse_wikipedia_results(value: Mapping[str, Any]) -> List[DiscoveredURL]:
+    """Convert the public MediaWiki search API into discovery candidates."""
+
+    output: List[DiscoveredURL] = []
+    query = value.get("query")
+    search = query.get("search", []) if isinstance(query, Mapping) else []
+    if not isinstance(search, list):
+        return output
+    for item in search:
+        if not isinstance(item, Mapping):
+            continue
+        title = " ".join(str(item.get("title") or "").split())
+        if not title:
+            continue
+        raw_snippet = re.sub(r"<[^>]+>", " ", str(item.get("snippet") or ""))
+        snippet = " ".join(html.unescape(raw_snippet).split())
+        output.append(
+            DiscoveredURL(
+                url="https://en.wikipedia.org/wiki/"
+                + quote(title.replace(" ", "_")),
+                title=title[:500],
+                snippet=snippet[:1500],
+                engine="wikipedia",
+            )
+        )
+    return output
+
+
+def _wikipedia_snippet(text: str, query_terms: Sequence[str]) -> str:
+    passages = [" ".join(value.split()) for value in str(text or "").splitlines()]
+    passages = [value for value in passages if value]
+    if not passages:
+        return ""
+    wanted = set(query_terms)
+    ranked = sorted(
+        (
+            (
+                sum(1 for term in wanted if term in value.casefold()),
+                -index,
+                value,
+            )
+            for index, value in enumerate(passages)
+        ),
+        reverse=True,
+    )
+    selected = [value for score, _index, value in ranked if score > 0][:3]
+    if not selected:
+        selected = passages[:2]
+    return " ".join(selected)[:1800]
+
+
+def search_local_wikipedia(
+    database: str | Path,
+    query: str,
+    *,
+    limit: int = 20,
+) -> List[DiscoveredURL]:
+    """Search the immutable local title index and return grounded snippets."""
+
+    path = Path(database).expanduser().resolve()
+    if not path.is_file():
+        return []
+    terms = []
+    for match in _WIKIPEDIA_TERM.finditer(str(query or "")):
+        term = match.group(0).casefold().strip(".-'")
+        if len(term) < 3 or term in _WIKIPEDIA_STOP or term in terms:
+            continue
+        terms.append(term)
+        if len(terms) >= 14:
+            break
+    if not terms:
+        return []
+    expression = " OR ".join('"' + value.replace('"', '""') + '"' for value in terms)
+    connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=2.0)
+    connection.execute("PRAGMA query_only=ON")
+    try:
+        rows = connection.execute(
+            """
+            SELECT pages.title, pages.url, pages.content_zlib, bm25(titles, 8.0)
+            FROM titles JOIN pages ON pages.rowid=titles.rowid
+            WHERE titles MATCH ?
+            ORDER BY bm25(titles, 8.0)
+            LIMIT ?
+            """,
+            (expression, max(1, int(limit))),
+        ).fetchall()
+    finally:
+        connection.close()
+    output: List[DiscoveredURL] = []
+    for rank, (title, url, content, score) in enumerate(rows, 1):
+        try:
+            text = zlib.decompress(content).decode("utf-8", "replace")
+        except (TypeError, zlib.error):
+            text = ""
+        output.append(
+            DiscoveredURL(
+                url=str(url),
+                title=str(title)[:500],
+                snippet=_wikipedia_snippet(text, terms),
+                engine="wikipedia_local",
+                rank=rank,
+                rrf_score=1.0 / (40.0 + rank) + max(0.0, -float(score)) * 1e-4,
+            )
+        )
+    return output
 
 
 def parse_searxng_results(data: Mapping[str, Any]) -> List[DiscoveredURL]:
@@ -279,6 +447,7 @@ class URLDiscovery:
         config: RealtimeSearchConfig,
         session: object,
         cache: Optional[TTLByteCache[List[DiscoveredURL]]] = None,
+        semantic_scorer: PairScorer | None = None,
     ) -> None:
         self.config = config
         self.session = session
@@ -288,6 +457,11 @@ class URLDiscovery:
             else TTLByteCache[List[DiscoveredURL]](
                 max(1024 * 1024, config.cache_max_bytes // 8)
             )
+        )
+        self.api_sources = SourceAPIDiscovery(
+            config,
+            session,
+            semantic_scorer=semantic_scorer,
         )
 
     async def discover(
@@ -391,15 +565,20 @@ class URLDiscovery:
         )
         engine_key = ",".join(self.config.searxng_engines)
         fallback_key = ",".join(self.config.fallback_engines)
+        provider_key = ",".join(self.config.api_discovery_providers)
         key = (
             f"{self.config.searxng_url.rstrip('/')}\0{engine_key}\0"
-            f"{fallback_key}\0{self.config.bing_base_url.rstrip('/')}\0"
+            f"{fallback_key}\0{provider_key}\0"
+            f"{self.config.bing_base_url.rstrip('/')}\0"
             f"{freshness}\0{channel_key}\0{query.casefold()}"
         )
         cached = self.cache.get(key)
         if cached is not None:
             return direct + copy.deepcopy(cached)
 
+        api_task = asyncio.create_task(
+            self.api_sources.discover(query, diagnostics=diagnostics)
+        )
         results: List[DiscoveredURL] = []
         if self.config.searxng_url.rstrip("/") and len(source_channels) > 1:
             channel_tasks = [
@@ -467,12 +646,15 @@ class URLDiscovery:
                 query, freshness, diagnostics, source_channels=source_channels
             )
         if not results:
-            for engine in self.config.fallback_engines:
+            engines = [
+                engine
+                for engine in self.config.fallback_engines
+                if engine in {"bing", "baidu", "so360", "wikipedia"}
+            ]
+
+            async def fallback(engine: str) -> tuple[str, List[DiscoveredURL]]:
                 try:
-                    if engine == "bing":
-                        results = await self._html_engine(query, "bing")
-                    elif engine == "baidu":
-                        results = await self._html_engine(query, "baidu")
+                    return engine, await self._html_engine(query, engine)
                 except Exception as exc:
                     if diagnostics is not None:
                         diagnostics.append(
@@ -483,9 +665,65 @@ class URLDiscovery:
                                 "message": str(exc)[:300],
                             }
                         )
-                    results = []
-                if results:
-                    break
+                    return engine, []
+
+            groups = await asyncio.gather(*(fallback(engine) for engine in engines))
+            merged_fallbacks: Dict[str, DiscoveredURL] = {}
+            for _engine, group in groups:
+                for rank, item in enumerate(group, start=1):
+                    item.rrf_score += 1.0 / (60.0 + rank)
+                    item.engines = list(
+                        dict.fromkeys([*item.engines, item.engine])
+                    )
+                    existing = merged_fallbacks.get(item.url)
+                    if existing is None:
+                        merged_fallbacks[item.url] = item
+                    else:
+                        existing.rrf_score += item.rrf_score
+                        existing.engines = list(
+                            dict.fromkeys([*existing.engines, *item.engines])
+                        )
+                        if len(item.snippet) > len(existing.snippet):
+                            existing.snippet = item.snippet
+            results = sorted(
+                merged_fallbacks.values(),
+                key=lambda item: item.rrf_score,
+                reverse=True,
+            )
+        api_results = await api_task
+        if api_results:
+            merged_sources: Dict[str, DiscoveredURL] = {}
+            for group in (results, api_results):
+                for rank, item in enumerate(group, start=1):
+                    url = canonicalize_url(item.url)
+                    if not url:
+                        continue
+                    item.url = url
+                    item.rrf_score += 1.0 / (60.0 + rank)
+                    item.engines = list(
+                        dict.fromkeys([*item.engines, item.engine])
+                    )
+                    existing = merged_sources.get(url)
+                    if existing is None:
+                        merged_sources[url] = item
+                        continue
+                    existing.rrf_score += item.rrf_score
+                    existing.engine_score = max(
+                        existing.engine_score,
+                        item.engine_score,
+                    )
+                    existing.engines = list(
+                        dict.fromkeys([*existing.engines, *item.engines])
+                    )
+                    if len(item.snippet) > len(existing.snippet):
+                        existing.snippet = item.snippet
+                    if not existing.published_hint and item.published_hint:
+                        existing.published_hint = item.published_hint
+            results = sorted(
+                merged_sources.values(),
+                key=lambda item: item.rrf_score,
+                reverse=True,
+            )
         unique_results: List[DiscoveredURL] = []
         seen_urls = set()
         for item in results:
@@ -576,10 +814,33 @@ class URLDiscovery:
         return parse_searxng_results(data)
 
     async def _html_engine(self, query: str, engine: str) -> List[DiscoveredURL]:
-        if engine == "baidu":
+        if engine == "wikipedia":
+            local_database = os.getenv("RWKV_AGENT_WIKIPEDIA_DB", "").strip()
+            if local_database:
+                return await asyncio.to_thread(
+                    search_local_wikipedia,
+                    local_database,
+                    query,
+                )
+            url = "https://en.wikipedia.org/w/api.php"
+            params = {
+                "action": "query",
+                "list": "search",
+                "srsearch": query,
+                "srlimit": "20",
+                "format": "json",
+                "formatversion": "2",
+                "utf8": "1",
+            }
+            headers: Dict[str, str] = {}
+        elif engine == "baidu":
             url = "https://www.baidu.com/s"
             params = {"wd": query}
             headers: Dict[str, str] = {}
+        elif engine == "so360":
+            url = "https://www.so.com/s"
+            params = {"q": query}
+            headers = {}
         else:
             url = f"{self.config.bing_base_url.rstrip('/')}/search"
             params = bing_search_params(query)
@@ -599,7 +860,14 @@ class URLDiscovery:
             raw = await _read_limited(response.content, 2 * 1024 * 1024)
             raw = _decode_http_body(raw, response.headers.get("Content-Encoding", ""))
             charset = response.charset or "utf-8"
-        return parse_search_html(raw.decode(charset, "replace"), engine)
+        decoded = raw.decode(charset, "replace")
+        if engine == "wikipedia":
+            try:
+                value = json.loads(decoded)
+            except json.JSONDecodeError:
+                return []
+            return parse_wikipedia_results(value)
+        return parse_search_html(decoded, engine)
 
     @staticmethod
     def _direct_urls(query: str) -> List[DiscoveredURL]:

@@ -7,6 +7,9 @@ from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Sequence, Tuple
 from urllib.parse import unquote, urlsplit
 
+from ..pipeline.reranker import RetrievalReranker
+from ..pipeline.query_compiler import SourcePreference
+from ..semantic_selection import PairScorer
 from ..text import search_tokens
 from .types import DiscoveredURL
 
@@ -49,14 +52,6 @@ _QUERY_NOISE = {
     "请找",
     "请以",
 }
-_SOURCE_INTENT_RE = re.compile(
-    r"官方|官网|原始来源|一手来源|official|primary source|original source",
-    re.I,
-)
-_DEFINITION_INTENT_RE = re.compile(
-    r"什么意思|含义|释义|词典|字典|怎么读|definition|dictionary|meaning|pronunciation",
-    re.I,
-)
 _SEARCH_HOST_RE = re.compile(
     r"(^|\.)(?:bing|google|baidu|sogou|so|duckduckgo)\.[a-z.]+$", re.I
 )
@@ -141,7 +136,7 @@ def candidate_rejection_reasons(
         path in {"", "/"} or _SEARCH_PATH_RE.search(path)
     ):
         reasons.append("search_homepage")
-    if not _DEFINITION_INTENT_RE.search(query) and _DICTIONARY_RE.search(page_shape):
+    if _DICTIONARY_RE.search(page_shape):
         reasons.append("dictionary")
     if _LOGIN_RE.search(page_shape):
         reasons.append("login_or_captcha")
@@ -237,7 +232,6 @@ def _score_candidates(
         for token in query_tokens
     }
     entity_tokens = _entity_tokens(query_tokens)
-    source_intent = bool(_SOURCE_INTENT_RE.search(" ".join([query, *queries])))
     maximum_rrf = max((item.rrf_score for item in candidates), default=0.0)
     maximum_engine_score = max((item.engine_score for item in candidates), default=0.0)
 
@@ -257,24 +251,6 @@ def _score_candidates(
         engine_prior = (
             item.engine_score / maximum_engine_score if maximum_engine_score > 0 else 0.0
         )
-        host = _normalized_host(item.url)
-        host_folded = re.sub(r"[^a-z0-9]+", "", host)
-        official_alignment = 0.0
-        if source_intent and any(
-            re.sub(r"[^a-z0-9]+", "", token) in host_folded
-            for token in entity_tokens
-            if token.isascii()
-        ):
-            official_alignment = 1.0
-        root_penalty = 0.0
-        if (
-            source_intent
-            and urlsplit(item.url).path in {"", "/"}
-            and len(query_tokens) >= 2
-            and max(title_coverage, url_coverage) < 0.15
-        ):
-            root_penalty = 0.03
-
         score = (
             0.25 * title_coverage
             + 0.22 * url_coverage
@@ -283,8 +259,6 @@ def _score_candidates(
             + 0.25 * rank_prior
             + 0.08 * rrf_prior
             + 0.06 * engine_prior
-            + 0.10 * official_alignment
-            - root_penalty
         )
         if item.engine == "direct":
             score += 1.0
@@ -297,8 +271,6 @@ def _score_candidates(
             "rank_prior": round(rank_prior, 6),
             "rrf_prior": round(rrf_prior, 6),
             "engine_prior": round(engine_prior, 6),
-            "official_alignment": official_alignment,
-            "root_penalty": root_penalty,
             "original_position": float(original_position),
         }
 
@@ -310,6 +282,8 @@ def admit_candidates(
     *,
     max_candidates: int,
     per_domain_limit: int = 3,
+    scorer: PairScorer | None = None,
+    source_preference: SourcePreference | str = "any",
 ) -> CandidateAdmission:
     """Filter obvious garbage, score candidates, and diversify the fetch prefix."""
 
@@ -350,6 +324,23 @@ def admit_candidates(
     tail = [item for item in admitted if id(item) not in protected_ids]
     protected.sort(key=score_key, reverse=True)
     tail.sort(key=score_key, reverse=True)
+    reranker = RetrievalReranker(scorer=scorer)
+    if protected:
+        protected, _ = reranker.rank_candidates(
+            query,
+            queries,
+            protected,
+            limit=len(protected),
+            source_preference=source_preference,
+        )
+    if tail:
+        tail, _ = reranker.rank_candidates(
+            query,
+            queries,
+            tail,
+            limit=len(tail),
+            source_preference=source_preference,
+        )
 
     # SearXNG applies result-container ranking and duplicate merging; this
     # second bounded pass adds fetch-budget diversity.  Overflow candidates are

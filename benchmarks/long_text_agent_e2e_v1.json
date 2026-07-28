@@ -1,0 +1,278 @@
+{
+  "schema": "rwkv-agent-pasted-text-e2e-v1",
+  "model_mode": "greedy_argmax",
+  "input": {
+    "name": "三体1.txt",
+    "bytes": 558654,
+    "chars": 189093,
+    "sha256": "8462a7cf972859a61edd058a4f6aebc8451cf01ee94296fae60aad76d40a4e54",
+    "transport": "chat_message_then_question"
+  },
+  "question": "红岸工程这次常规发射是第几次？",
+  "capture": {
+    "status": "ok",
+    "route": {
+      "mode": "document_capture",
+      "tool": null
+    },
+    "answer": "已接收长文本，共189092个字符。请继续提问。",
+    "document": {
+      "source": "session_pasted_text",
+      "name": "pasted-02af6928",
+      "chars": 189092
+    },
+    "model_called": false
+  },
+  "qa": {
+    "status": "ok",
+    "session_id": "bench-pasted-text-e2e",
+    "message": "红岸工程这次常规发射是第几次？",
+    "route": {
+      "mode": "tool",
+      "tool": "long_text_qa",
+      "arguments": {
+        "question": "红岸工程这次常规发射是第几次？"
+      },
+      "strict": true
+    },
+    "tool_result": {
+      "status": "ok",
+      "tool": "long_text_qa",
+      "answer_hint": "147次",
+      "answer_hint_evidence_id": "L1",
+      "document": {
+        "source": "session_pasted_text",
+        "name": "pasted-02af6928",
+        "chars": 189092,
+        "chunks": 187
+      },
+      "retrieval": {
+        "method": "query_feature_idf",
+        "selected_chunks": 16,
+        "top_k": 16
+      },
+      "workers": {
+        "submitted": 16,
+        "completed": 16,
+        "concurrency": 8,
+        "candidates": 12,
+        "errors": 0,
+        "elapsed_ms": 13188.275
+      },
+      "evidence": [
+        {
+          "id": "L1",
+          "title": "pasted-02af6928 · chunk 18",
+          "content": "中国人民解放军第二炮兵，红岸工程第147次常规发射，授权确认完毕，30秒倒数！",
+          "uri": "session-text://current#chunk=18",
+          "chunk_id": 18,
+          "answer_candidate": "147次",
+          "retrieval_score": 65.956857
+        },
+        {
+          "id": "L2",
+          "title": "pasted-02af6928 · chunk 71",
+          "content": "一个人到这里来。 对雷政委的问话，叶文洁有些不知所措。她只负责设备的维护和维修，对红岸系统的整体情况，包括它的作用方式、攻击目标等，一概不知，也不允许她知道，每次常规发射她都不能在场。她想了想，欲言又止。 “大胆说吧，没关系。”雷政委扯下身边的一根草在手里摆弄着说。 “它……不过就是一台无线电发射机嘛。” “不错，它就是一台无线",
+          "uri": "session-text://current#chunk=71",
+          "chunk_id": 71,
+          "answer_candidate": "次常规发射",
+          "retrieval_score": 47.886473
+        },
+        {
+          "id": "L3",
+          "title": "pasted-02af6928 · chunk 74",
+          "content": "文洁总觉得这不可理解。 另一件事则令她震惊：虽然身在监听部，但发射部有些事情还让她去做。一次，她无意中看到了未来几次发射计划的频率设置，发现在第304、318和325次发射中，确定的发射频率已低出了微波范围，不可能在目标上产生任何热效应。 这天，突然有人通知叶文洁到基地总部办公室去，从那名军官的语气和神色中，叶文洁感到了不祥。",
+          "uri": "session-text://current#chunk=74",
+          "chunk_id": 74,
+          "answer_candidate": "325次",
+          "retrieval_score": 46.653096
+        },
+        {
+          "id": "L4",
+          "title": "pasted-02af6928 · chunk 124",
+          "content": "阳是银河系中最亮的一颗星。 23. 红岸之六 以后的八年，是叶文洁一生中最平静的一段时间。“文革”中的经历造成的惊惧渐渐平息，她终于能够稍微放松一下自己的精神。红岸工程已经完成了实验和磨合期，一切渐渐转入常规，需要解决的技术问题越来越少，工作和生活变得有规律了。 平静之后，一直被紧张和恐惧压抑着的记忆开始苏醒，叶文洁发现，真正",
+          "uri": "session-text://current#chunk=124",
+          "chunk_id": 124,
+          "answer_candidate": "红岸工程",
+          "retrieval_score": 39.944169
+        },
+        {
+          "id": "L5",
+          "title": "pasted-02af6928 · chunk 79",
+          "content": "——其效应也能通过人类群体的心理和文化透镜被放大，对文明的进程产生巨大的实质性的影响。这种接触一旦被某个国家或者政治力量所垄断，其经济和军事意义超乎想象。 “那红岸工程的结局呢？”汪淼问。 “你应该能想到的。” 汪淼又点点头，他当然知道，如果红岸成功了，世界就不是今天的世界了，但他还是说了一句安慰的话：“其实成功与否现在还不得而",
+          "uri": "session-text://current#chunk=79",
+          "chunk_id": 79,
+          "answer_candidate": "红岸工程的",
+          "retrieval_score": 34.119769
+        },
+        {
+          "id": "L6",
+          "title": "pasted-02af6928 · chunk 118",
+          "content": "躯体。几个人把他拖了出去，他口中吐出的血在地上拖了长长的一道。 “啊，小汪也来了，你好。”叶文洁的目光落到了汪淼身上，向他亲切地微笑着点点头，然后对其他人说，“这是国家科学院院士汪淼教授，我的朋友，他研究纳米材料，这是主首先要在地球扑灭的技术。” 没有人看汪淼一眼，汪淼也没有力量做任何表示，他不由得一手拉住旁边人的衣袖，使",
+          "uri": "session-text://current#chunk=118",
+          "chunk_id": 118,
+          "answer_candidate": "这是",
+          "retrieval_score": 37.082949
+        },
+        {
+          "id": "L7",
+          "title": "pasted-02af6928 · chunk 56",
+          "content": "传说大多来自于那本书，据我了解是真的。红岸工程的参与者大都还健在。",
+          "uri": "session-text://current#chunk=56",
+          "chunk_id": 56,
+          "answer_candidate": "红岸工程的参与者大都还健在",
+          "retrieval_score": 32.3845
+        },
+        {
+          "id": "L8",
+          "title": "pasted-02af6928 · chunk 77",
+          "content": "导组今后不要介入红岸。这样重要的信件应慎重起草，最好成立一个专门小组，并在政治局会议上讨论通过。 【签字】□□□196□年□月□日 第二稿【略】 第三稿【略】 第四稿【全文】",
+          "uri": "session-text://current#chunk=77",
+          "chunk_id": 77,
+          "answer_candidate": "第四",
+          "retrieval_score": 33.738218
+        }
+      ],
+      "trace": [
+        {
+          "chunk_id": 18,
+          "status": "candidate",
+          "elapsed_ms": 1813.796,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 19,
+          "status": "candidate",
+          "elapsed_ms": 1802.432,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 55,
+          "status": "candidate",
+          "elapsed_ms": 6471.639,
+          "output_tokens": 67
+        },
+        {
+          "chunk_id": 56,
+          "status": "candidate",
+          "elapsed_ms": 6408.842,
+          "output_tokens": 94
+        },
+        {
+          "chunk_id": 71,
+          "status": "candidate",
+          "elapsed_ms": 3174.024,
+          "output_tokens": 67
+        },
+        {
+          "chunk_id": 73,
+          "status": "null_or_invalid",
+          "elapsed_ms": 6755.633,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 74,
+          "status": "candidate",
+          "elapsed_ms": 3627.221,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 75,
+          "status": "candidate",
+          "elapsed_ms": 5968.956,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 76,
+          "status": "null_or_invalid",
+          "elapsed_ms": 5968.158,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 77,
+          "status": "candidate",
+          "elapsed_ms": 6938.468,
+          "output_tokens": 85
+        },
+        {
+          "chunk_id": 79,
+          "status": "candidate",
+          "elapsed_ms": 6065.688,
+          "output_tokens": 24
+        },
+        {
+          "chunk_id": 80,
+          "status": "null_or_invalid",
+          "elapsed_ms": 6715.127,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 118,
+          "status": "candidate",
+          "elapsed_ms": 7197.243,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 122,
+          "status": "candidate",
+          "elapsed_ms": 5999.753,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 123,
+          "status": "null_or_invalid",
+          "elapsed_ms": 5412.789,
+          "output_tokens": 96
+        },
+        {
+          "chunk_id": 124,
+          "status": "candidate",
+          "elapsed_ms": 4964.773,
+          "output_tokens": 96
+        }
+      ],
+      "message": ""
+    },
+    "answer": "红岸工程第147次常规发射 [L1]",
+    "trace": {
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "source": "session_document",
+        "reason": "an active pasted long text is available",
+        "threshold": null,
+        "margin": null,
+        "elapsed_ms": 0.0
+      },
+      "context": {
+        "history_messages": 2,
+        "mode": "session_transcript"
+      },
+      "routing_completion": {
+        "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"红岸工程这次常规发射是第几次？\"}}</tool_call>",
+        "stop": "</tool_call>",
+        "output_tokens": 39,
+        "model_elapsed_ms": 689.971,
+        "request_elapsed_ms": 693.78,
+        "model": "rwkv7-g1i-preview3260-7.2b",
+        "url": "http://127.0.0.1:8118"
+      },
+      "answer_completion": {
+        "raw": " 红岸工程第147次常规发射 [L1]",
+        "stop": "\n\nUser:",
+        "output_tokens": 20,
+        "model_elapsed_ms": 690.836,
+        "request_elapsed_ms": 695.36,
+        "model": "rwkv7-g1i-preview3260-7.2b",
+        "url": "http://127.0.0.1:8119"
+      },
+      "elapsed_ms": 14580.811
+    }
+  },
+  "checks": {
+    "capture_without_model": true,
+    "strict_question_only_tool_call": true,
+    "has_grounded_evidence": true
+  },
+  "elapsed_s": 14.597499
+}

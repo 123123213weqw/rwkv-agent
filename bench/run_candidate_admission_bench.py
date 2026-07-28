@@ -17,6 +17,7 @@ else:
     from retrieval_schema import load_cases
 from rwkv_search.realtime.candidate_ranker import admit_candidates
 from rwkv_search.realtime.types import DiscoveredURL
+from rwkv_search.pipeline.query_compiler import normalize_source_preference
 
 
 def _candidate(value: Dict[str, Any]) -> DiscoveredURL:
@@ -128,6 +129,7 @@ def main() -> None:
         if source.get("strategy") != args.strategy:
             continue
         case = cases[str(source["id"])]
+        source_preference = normalize_source_preference(case.get("source_policy"))
         before = [_candidate(value) for value in source.get("candidates", ())]
         admission = admit_candidates(
             str(source["query"]),
@@ -135,6 +137,7 @@ def main() -> None:
             before,
             max_candidates=args.max_candidates,
             per_domain_limit=args.per_domain_limit,
+            source_preference=source_preference,
         )
         before_serialized = [
             _serialize(value, position) for position, value in enumerate(before, 1)
@@ -149,6 +152,7 @@ def main() -> None:
                 "id": source["id"],
                 "query": source["query"],
                 "queries": source.get("queries", []),
+                "source_preference": source_preference,
                 "expected_domains_any": case.get("expected_domains_any", []),
                 "before_candidates": before_serialized,
                 "after_candidates": after_serialized,

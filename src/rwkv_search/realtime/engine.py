@@ -11,6 +11,8 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlsplit
 
 from ..config import RealtimeSearchConfig, SearchConfig
+from ..semantic_selection import PairScorer
+from ..text import canonicalize_url
 from .candidate_ranker import (
     CandidateAdmission,
     admit_candidates,
@@ -62,10 +64,12 @@ class RealtimeSearchEngine:
         search_config: Optional[SearchConfig] = None,
         feedback_planner: Optional[Any] = None,
         discovery_cache: Optional[TTLByteCache[List[DiscoveredURL]]] = None,
+        semantic_scorer: PairScorer | None = None,
     ) -> None:
         self.config = config or RealtimeSearchConfig()
         self.search_config = search_config or SearchConfig()
         self.feedback_planner = feedback_planner
+        self.semantic_scorer = semantic_scorer
         self._shared_discovery_cache = discovery_cache
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._thread: Optional[threading.Thread] = None
@@ -101,6 +105,8 @@ class RealtimeSearchEngine:
         *,
         freshness: str,
         depth: str,
+        source_preference: str = "any",
+        seed_urls: Sequence[str] = (),
         cancel_event: Optional[threading.Event] = None,
         include_candidates: bool = False,
     ) -> Iterable[Dict[str, Any]]:
@@ -127,6 +133,8 @@ class RealtimeSearchEngine:
                 cancel_event,
                 events,
                 include_candidates,
+                source_preference=source_preference,
+                seed_urls=seed_urls,
             ),
             self._loop,
         )
@@ -161,6 +169,8 @@ class RealtimeSearchEngine:
         cancel_event: Optional[threading.Event],
         events: "queue.Queue[Dict[str, Any]]",
         include_candidates: bool,
+        source_preference: str = "any",
+        seed_urls: Sequence[str] = (),
     ) -> None:
         assert self._discovery is not None and self._fetcher is not None
         deep = depth == "multi"
@@ -184,6 +194,11 @@ class RealtimeSearchEngine:
         selected_queries = list(dict.fromkeys(q.strip() for q in queries if q.strip()))[
             :max_queries
         ] or [query]
+        seed_candidates = self._seed_candidates(
+            seed_urls,
+            selected_queries[0],
+            max_candidates=max_candidates,
+        )
         initial_model_plan = None
         feedback_model_plan = None
         planning_errors: List[Dict[str, str]] = []
@@ -210,7 +225,11 @@ class RealtimeSearchEngine:
             discovery_limit *= max(1, self.config.candidate_pool_multiplier)
         source_channels: Sequence[str] = ()
         if self.config.source_channels_enabled and not feedback_mode:
-            source_channels = select_source_channels(query, selected_queries)
+            source_channels = select_source_channels(
+                query,
+                selected_queries,
+                scorer=self.semantic_scorer,
+            )
         planned_initial_discovery_request_count = len(selected_queries)
         if self.config.searxng_url.rstrip("/") and len(source_channels) > 1:
             planned_initial_discovery_request_count *= len(source_channels)
@@ -266,6 +285,12 @@ class RealtimeSearchEngine:
                             "message": "initial discovery exceeded the remaining deadline",
                         }
                     )
+        if seed_candidates:
+            initial_raw_candidates = merge_candidate_groups(
+                seed_candidates,
+                initial_raw_candidates,
+                max_candidates=discovery_limit,
+            )
         initial_admission = CandidateAdmission(admitted=list(initial_raw_candidates))
         if self.config.candidate_admission_enabled:
             initial_admission = admit_candidates(
@@ -274,6 +299,8 @@ class RealtimeSearchEngine:
                 initial_raw_candidates,
                 max_candidates=max_candidates,
                 per_domain_limit=self.config.candidate_per_domain_limit,
+                scorer=self.semantic_scorer,
+                source_preference=source_preference,
             )
         feedback_candidates: List[DiscoveredURL] = []
         feedback_query = ""
@@ -356,6 +383,8 @@ class RealtimeSearchEngine:
                 model_query_candidates,
                 max_candidates=max_candidates,
                 per_domain_limit=self.config.candidate_per_domain_limit,
+                scorer=self.semantic_scorer,
+                source_preference=source_preference,
             )
         pivot_selection = pre_pivot_admission.admitted
         if (
@@ -368,6 +397,8 @@ class RealtimeSearchEngine:
                 model_query_candidates,
                 max_candidates=max_candidates,
                 per_domain_limit=self.config.candidate_per_domain_limit,
+                scorer=self.semantic_scorer,
+                source_preference=source_preference,
             ).admitted
         pivot_domains = select_pivot_domains(
             query,
@@ -382,6 +413,7 @@ class RealtimeSearchEngine:
                 )
                 else 0
             ),
+            scorer=self.semantic_scorer,
         )
         pivot_queries: List[str] = []
         pivot_candidates: List[DiscoveredURL] = []
@@ -440,11 +472,14 @@ class RealtimeSearchEngine:
                 raw_candidates,
                 max_candidates=max_candidates,
                 per_domain_limit=self.config.candidate_per_domain_limit,
+                scorer=self.semantic_scorer,
+                source_preference=source_preference,
             )
         candidates = admission.admitted
         discovery_elapsed_ms = round((time.monotonic() - discovery_started) * 1000.0, 3)
         discovery_progress: Dict[str, Any] = {
             "candidate_count": len(candidates),
+            "seed_candidate_count": len(seed_candidates),
             "raw_candidate_count": len(raw_candidates),
             "rejected_candidate_count": len(admission.rejected),
             "rejection_counts": admission.rejection_counts,
@@ -510,6 +545,7 @@ class RealtimeSearchEngine:
                     "results": [],
                     "stats": {
                         "candidates": len(candidates),
+                        "seed_candidates": len(seed_candidates),
                         "initial_candidates": len(initial_admission.admitted),
                         "pivot_candidates": len(pivot_candidates),
                         "feedback_candidates": len(feedback_candidates),
@@ -680,6 +716,7 @@ class RealtimeSearchEngine:
                     max_links=max(
                         0, self.config.one_hop_max_links - one_hop_candidate_count
                     ),
+                    scorer=self.semantic_scorer,
                 )
                 if precision and self.config.candidate_admission_enabled:
                     precision = admit_candidates(
@@ -688,6 +725,8 @@ class RealtimeSearchEngine:
                         precision,
                         max_candidates=len(precision),
                         per_domain_limit=max(1, self.config.one_hop_max_links),
+                        scorer=self.semantic_scorer,
+                        source_preference=source_preference,
                     ).admitted
             if precision:
                 processed_count = offset + len(batch)
@@ -772,6 +811,9 @@ class RealtimeSearchEngine:
             freshness_mode=freshness,
             limit=self.search_config.result_limit,
             per_domain_limit=self.search_config.per_domain_limit,
+            scorer=self.semantic_scorer,
+            query_views=selected_queries,
+            source_preference=source_preference,
         )
         results = to_search_results(query, ranked)
         fetch_elapsed_ms = round((time.monotonic() - fetch_started) * 1000.0, 3)
@@ -781,6 +823,7 @@ class RealtimeSearchEngine:
                 "results": results,
                 "stats": {
                     "candidates": len(candidates),
+                    "seed_candidates": len(seed_candidates),
                     "initial_candidates": len(initial_admission.admitted),
                     "pivot_candidates": len(pivot_candidates),
                     "feedback_candidates": len(feedback_candidates),
@@ -864,6 +907,46 @@ class RealtimeSearchEngine:
             if callable(to_trace):
                 traces.append(dict(to_trace()))
         return traces
+
+    @staticmethod
+    def _seed_candidates(
+        seed_urls: Sequence[str],
+        matched_query: str,
+        *,
+        max_candidates: int,
+    ) -> List[DiscoveredURL]:
+        """Convert bounded caller-provided public roots into direct candidates."""
+
+        output: List[DiscoveredURL] = []
+        seen: set[str] = set()
+        limit = min(4, max(0, int(max_candidates)))
+        if limit <= 0:
+            return output
+        for raw_url in seed_urls:
+            url = canonicalize_url(str(raw_url or ""))
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            host = (urlsplit(url).hostname or "").removeprefix("www.")
+            position = len(output) + 1
+            output.append(
+                DiscoveredURL(
+                    url=url,
+                    title=host or url,
+                    engine="direct",
+                    rank=position,
+                    rrf_score=1.0,
+                    engines=["direct"],
+                    positions=[position],
+                    matched_queries=[matched_query],
+                    query_positions={matched_query: position},
+                    discovery_stage="seed_url",
+                    discovery_stages=["seed_url"],
+                )
+            )
+            if len(output) >= limit:
+                break
+        return output
 
     @staticmethod
     def _candidate_debug_dict(item: DiscoveredURL, position: int) -> Dict[str, Any]:
@@ -994,6 +1077,7 @@ class RealtimeSearchEngine:
             self.config,
             self._session,
             cache=self._shared_discovery_cache,
+            semantic_scorer=self.semantic_scorer,
         )
         self._fetcher = AsyncPageFetcher(self.config, self._session)
 

@@ -28,6 +28,12 @@ class SearchConfig:
     per_domain_limit: int = 2
     evidence_limit: int = 8
     evidence_character_budget: int = 18000
+    passage_selection_enabled: bool = True
+    passage_min_document_chars: int = 700
+    passage_target_chars: int = 900
+    passage_hard_max_chars: int = 1400
+    passage_max_per_document: int = 3
+    passage_max_chars_per_evidence: int = 3200
 
 
 @dataclass
@@ -63,6 +69,14 @@ class RealtimeSearchConfig:
         default_factory=lambda: ["bing", "duckduckgo"]
     )
     fallback_engines: List[str] = field(default_factory=lambda: ["bing"])
+    # Optional structured discovery providers. They remain disabled by default
+    # and preserve the single model-facing ``web_search(query)`` contract.
+    api_discovery_providers: List[str] = field(default_factory=list)
+    api_provider_timeout_seconds: float = 4.5
+    api_provider_max_results: int = 10
+    tavily_api_key_env: str = "TAVILY_API_KEY"
+    github_token_env: str = "GITHUB_TOKEN"
+    crossref_mailto: str = ""
     bing_base_url: str = "https://www.bing.com"
     user_agent: str = (
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
