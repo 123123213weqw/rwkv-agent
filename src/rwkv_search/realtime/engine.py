@@ -1077,6 +1077,7 @@ class RealtimeSearchEngine:
             self.config,
             self._session,
             cache=self._shared_discovery_cache,
+            semantic_scorer=self.semantic_scorer,
         )
         self._fetcher = AsyncPageFetcher(self.config, self._session)
 

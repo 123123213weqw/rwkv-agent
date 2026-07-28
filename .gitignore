@@ -23,6 +23,11 @@ bench/runs/
 *.db
 *.db-*
 *.log
+*.pid
+*.sqlite3
+target/
+runs/
+var/
 
 # Models and large datasets
 *.pth

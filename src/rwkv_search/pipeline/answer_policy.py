@@ -40,6 +40,25 @@ class AnswerPolicy:
         )
 
     @staticmethod
+    def insufficient_support_answer(question: str) -> str:
+        return (
+            "找到了一些相关信息，但现有证据不足以支持可靠结论。"
+            if any("\u3400" <= char <= "\u9fff" for char in str(question))
+            else (
+                "Related information was found, but the evidence does not "
+                "support a reliable conclusion."
+            )
+        )
+
+    @staticmethod
+    def partial_support_notice(question: str) -> str:
+        return (
+            "其余部分缺少足够证据，未予输出。"
+            if any("\u3400" <= char <= "\u9fff" for char in str(question))
+            else "Other requested details were omitted because support was insufficient."
+        )
+
+    @staticmethod
     def chat_failure(question: str) -> str:
         return (
             "模型本次没有生成可显示的回答，请重试。"

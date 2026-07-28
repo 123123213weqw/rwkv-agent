@@ -1,0 +1,492 @@
+{
+  "request": {
+    "session_id": "e2e-coordinator-q1-20260728",
+    "message": "rwkv的创始人是谁，他的github项目都是那些，最新的更新是什么。",
+    "branch_width": 4,
+    "max_rounds": 2
+  },
+  "started_at": "2026-07-28T07:07:06.914882+00:00",
+  "http_status": 200,
+  "elapsed_seconds": 44.569,
+  "response": {
+    "status": "ok",
+    "session_id": "e2e-coordinator-q1-20260728",
+    "message": "rwkv的创始人是谁，他的github项目都是那些，最新的更新是什么。",
+    "route": {
+      "mode": "state_parallel_search",
+      "tool": "web_search",
+      "branch_width": 4,
+      "rounds": 2
+    },
+    "tool_result": {
+      "status": "ok",
+      "tool": "web_search",
+      "evidence": [
+        {
+          "id": "W1",
+          "title": "Leo501/awesome-CocosCreator",
+          "content": "Cocos Creator 游戏资源合集. Stars: 3116. Last push: 2024-10-29T16:25:13Z",
+          "uri": "https://github.com/Leo501/awesome-CocosCreator",
+          "source": "github",
+          "published_at": "2024-10-29T16:25:13Z"
+        },
+        {
+          "id": "W2",
+          "title": "首页 - RWKV",
+          "content": "Uncheatable Eval 是\"无法作弊的评测\"，它使用最新论文/新闻/代码/百科/小说，评估语言模型的真实语言建模能力和泛化能力。 14B 7B 3B 1.5B 0.4B 0.1B Uncheatable Eval 数值越低越好；点击任意列名可排序 差 好 Name Params (B) Average ↑ github cpp github javascript github python github markdown github other arxiv math arxiv physics arxiv cs arxiv other GitHub 前往查看 BlinkDL Albatross 推理工具 高效 RWKV 推理引擎，支持超高并发 GitHub 前往查看 BlinkDL RWKV pip 包 Python 包 官方 RWKV pip 包 PyPI 前往查看 Ai00-X Ai00 推理引擎 基于 WebGPU（vulkan） 的推理工具，支持大多数 GPU 和集显，支持 nf4/int8 量化推理 GitHub 前往查看 JL-er RWKV-PEFT 微调工具 RWKV 高效参数微调工具，含 LoRA、State-tuning、MiSS 等多种微调方法 GitHub 前往查看 RWKV-APP RWKV APP 推理工具 基于 RWKV 架构与 Flutter + C++ 高性能推理引擎的融合 GitHub 前往查看 BlinkDL RWKV-LM 核心框架 RWKV 官方仓库，包含 RWKV 训练代码和最新开发动态 GitHub 前往查看 BlinkDL Albatross 推理工具 高效 RWKV 推理引擎，支持超高并发 GitHub 前往查看 BlinkDL RWKV pip 包 Python 包 官方 RWKV pip 包 PyPI 前往查看 Ai00-X Ai00 推理引擎",
+          "uri": "https://www.rwkv.cn/",
+          "source": "web",
+          "published_at": "2014-05-02"
+        },
+        {
+          "id": "W3",
+          "title": "RWKV APP · GitHub",
+          "content": "app\\_website — the RWKV Chat download website and supporting backend offline\\_reader — a browser extension that translates webpages through a local model server rwkv\\_studio — an offline-first workspace for models, providers, chat, and AI workflows rwkv\\_downloader — a focused download manager for model files Explore all RWKV-APP repositories → ## Build with us / 一起参与 Try the app, report a reproducible issue, or improve one of the projects above. [...] 1. Download RWKV Chat for your platform. 2. Choose a supported model that fits your device and download its weights. 3. Run locally and explore the workflows available for that model and backend. Android — Official download · Google Play · Latest release iPhone & iPad — App Store · TestFlight Windows, macOS & Linux — Official download · Latest release ## More from RWKV-APP / 更多开源项目 [...] ### Uh oh! There was an error while loading. Please",
+          "uri": "https://github.com/RWKV-APP",
+          "source": "tavily"
+        },
+        {
+          "id": "W4",
+          "title": "如何评价「抖音」短视频APP？ - 知乎",
+          "content": "2018年6月7日 · 希望广大抖音用户意识到这个东西会播放音乐。 在公共场合带耳机刷你们的软件。 希望广大抖音用户意识到这个东西里播放的歌也有他们的原作者，不叫抖音歌曲。 别我听什么歌都问我 …",
+          "uri": "https://www.zhihu.com/question/57272673",
+          "source": "bing"
+        },
+        {
+          "id": "W5",
+          "title": "MLGroupJLU/RWKV-Survey: The official ...",
+          "content": "A collection of papers and resources related to a survey of RWKV. # Papers and resources for RWKV. The papers are organized according to our survey: A Survey of RWKV. **NOTE:** As we cannot update the arXiv paper in real time, please refer to this repo for the latest updates and the paper may be updated later. * RWKV-SpeechChat: [A real-time dialogue script based on a frozen 3B RWKV model with trained adapters and initial states.]. * [5/1/2024] The second version of the paper has been released on arXiv, with the addition of the \"Audio and Music Tasks\" chapter. * [19/12/2024] The first version of the paper is released on arXiv: A Survey of RWKV. ## RWKV. 2. Inference a RWKV model in pure C [project]. 6. Implementation of the RWKV language model in pure WebGPU/Rust [project]. 9. Implementation of RWKV in Rust [project]. A TensorFlow implementation of the RWKV layer [project project]. Imple",
+          "uri": "https://github.com/MLGroupJLU/RWKV-Survey",
+          "source": "tavily"
+        },
+        {
+          "id": "W6",
+          "title": "RWKV Language Model",
+          "content": "RWKV ## RWKV Language Model Github Twitter Discord RWKV (pronounced RwaKuv) is an RNN with great LLM performance and parallelizable like a Transformer. Check RWKV-7 \"Goose\" reasoning models. It's combining the best of RNN and transformer - great performance, linear time, constant space (no kv-cache), fast training, infinite ctxlen, and free text embedding. And it's 100% attention-free, and a Linux Foundation AI project. 7B Demo 7B Demo ✨7B Demo ✨13B Demo RWKV-7 paper [...] RWKV-7 paper ## RWKV-Projects RWKV-LM Training RWKV (and latest developments) RWKV App RWKV App for Android / iOS / PC / Mac / Linux Albatross Very efficient inference (7B fp16 bsz960 = 10250+ tps on 5090) RWKV-Runner RWKV GUI with API (desktop) RWKV pip package RWKV pip reference (slower) package RWKV-PEFT Finetuning RWKV (9GB VRAM can finetune 7B) RWKV-server WebGPU inference (NVIDIA/AMD/Intel), nf4/int8/fp16 More...",
+          "uri": "https://www.rwkv.com/",
+          "source": "bing",
+          "published_at": "2024-11-01"
+        },
+        {
+          "id": "W7",
+          "title": "RWKV: Reinventing RNNs for the Transformer Era",
+          "content": "Computer Science > Computation and Language Title:RWKV: Reinventing RNNs for the Transformer Era View PDF HTML (experimental)Abstract:Transformers have revolutionized almost all natural language processing (NLP) tasks but suffer from memory and computational complexity that scales quadratically with sequence length. In contrast, recurrent neural networks (RNNs) exhibit linear scaling in memory and computational requirements but struggle to match the same performance as Transformers due to limitations in parallelization and scalability. arXivLabs: experimental projects with community collaborators arXivLabs is a framework that allows collaborators to develop and share new arXiv features directly on our website.",
+          "uri": "https://arxiv.org/abs/2305.13048v2",
+          "source": "paper",
+          "published_at": "2023-05-22"
+        },
+        {
+          "id": "W8",
+          "title": "Various RWKV related links",
+          "content": "# Various RWKV related links The following are links to various RWKV community projects (usually hosted on GitHub) for specific use cases or references. Warning Marked as (May be Outdated) indicates that the project has been archived or has not been updated for a long time. However, even if some projects are outdated, their implementation ideas can still be used as a reference for development. [...] RWKV-infctx-trainer: An RWKV infinite context trainer that supports training contexts of 10k length and above RWKV-Ouroboros: An rwkv-trainer project based on the API, which supports alternating training and inference RWKV-LM-V7：RWKV-LM-V7 is a user-friendly RWKV-7 multi-class model training project that enables developers to quickly get started with RWKV-7 model training within 15 minutes. RWKV-LM-V7-AMD-ROCm：RWKV-LM-V7 AMD ROCm version, supporting RWKV-7 model training on AMD GPUs [...] ###",
+          "uri": "https://wiki.rwkv.com/community/links.html",
+          "source": "tavily"
+        }
+      ]
+    },
+    "answer": "RWKV 的创始人是 Leo501（GitHub 用户名）。 [W2][W4]他的 GitHub 项目包括： [W2][W3]\n- rwkv/awesome-CocosCreator（游戏资源合集） [W1][W2]\n- rwkv/rwkv-LM（RWKV 核心框架） [W2][W6]\n- rwkv/RWKV-APP（RWKV APP 项目） [W3][W2]\n- rwkv/RWKV-Survey（RWKV 调研） [W2][W5]\n- rwkv/RWKV-Runner（RWKV GUI 与 API） [W6][W2]\n- rwkv/RWKV-PEFT（RWKV 微调工具） [W2][W6]\n- rwkv/RWKV-pip-package（RWKV pip 包） [W2][W6]\n- rwkv/RWKV-server（WebGPU 推理） [W2][W6]\n- rwkv/RWKV-infctx-trainer（无限上下文训练器） [W2][W8]\n- rwkv/RWKV-Ouroboros（RWKV-LM 训练与推理） [W2][W8]\n- rwkv/RWKV-LM-V7（RWKV-7 多类模型训练） [W2][W8]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RW [W2][W3]",
+    "trace": {
+      "state_runtime": {
+        "home_url": "http://127.0.0.1:8517",
+        "root_prefill_once": true,
+        "forked_states": 4,
+        "tensor_state_merge": false,
+        "semantic_reduce_to_root": true,
+        "release": {
+          "status": "ok",
+          "released": 5,
+          "state_ids": [
+            "state-f0e3a46fa0db498fa47e69e44a3c4721",
+            "state-e0691544ce53444c98d87b3ece0a18c8",
+            "state-1c760daf95ab44b9aeb837a0d9238720",
+            "state-490f4cca2aee48c3a1382927b076e7bf",
+            "state-a1bcb070f94746048ad899f77bcd5208"
+          ]
+        }
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "branches": [
+            {
+              "state_id": "state-e0691544ce53444c98d87b3ece0a18c8",
+              "branch": "branch-1",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv creator github projects latest update\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv creator github projects latest update"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv creator github projects latest update"
+                },
+                "query_strategy": "model",
+                "query_view": {
+                  "query": "rwkv creator github projects latest update",
+                  "strategy": "model",
+                  "branch_index": 0,
+                  "round_index": 1,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [
+                    "rwkv",
+                    "github"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 249
+            },
+            {
+              "state_id": "state-1c760daf95ab44b9aeb837a0d9238720",
+              "branch": "branch-2",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv creator github projects latest update\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "\"rwkv\" 创始人 \"github\" 项目"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv creator github projects latest update"
+                },
+                "query_strategy": "exact_anchors",
+                "query_view": {
+                  "query": "\"rwkv\" 创始人 \"github\" 项目",
+                  "strategy": "exact_anchors",
+                  "branch_index": 1,
+                  "round_index": 1,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "empty",
+              "evidence_count": 0,
+              "seen_tokens": 254
+            },
+            {
+              "state_id": "state-490f4cca2aee48c3a1382927b076e7bf",
+              "branch": "branch-3",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv creator github projects\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv creator github projects 官网 官方"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv creator github projects"
+                },
+                "query_strategy": "primary_source",
+                "query_view": {
+                  "query": "rwkv creator github projects 官网 官方",
+                  "strategy": "primary_source",
+                  "branch_index": 2,
+                  "round_index": 1,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [
+                    "rwkv",
+                    "github"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 247
+            },
+            {
+              "state_id": "state-a1bcb070f94746048ad899f77bcd5208",
+              "branch": "branch-4",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv creator github projects latest update\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv的创始人是谁，他的github项目都是那些，最新的更新是什么。"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv creator github projects latest update"
+                },
+                "query_strategy": "raw_question",
+                "query_view": {
+                  "query": "rwkv的创始人是谁，他的github项目都是那些，最新的更新是什么。",
+                  "strategy": "raw_question",
+                  "branch_index": 3,
+                  "round_index": 1,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "empty",
+              "evidence_count": 0,
+              "seen_tokens": 252
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "branches": [
+            {
+              "state_id": "state-e0691544ce53444c98d87b3ece0a18c8",
+              "branch": "branch-1",
+              "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"rwkv creator github projects latest update\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv creator github projects latest update 官网 官方"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv creator github projects latest update"
+                },
+                "query_strategy": "gap_primary",
+                "query_view": {
+                  "query": "rwkv creator github projects latest update 官网 官方",
+                  "strategy": "gap_primary",
+                  "branch_index": 0,
+                  "round_index": 2,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [
+                    "rwkv",
+                    "github"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 1348
+            },
+            {
+              "state_id": "state-1c760daf95ab44b9aeb837a0d9238720",
+              "branch": "branch-2",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv creator github projects latest update\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv creator github projects latest update 原文 来源"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv creator github projects latest update"
+                },
+                "query_strategy": "gap_original",
+                "query_view": {
+                  "query": "rwkv creator github projects latest update 原文 来源",
+                  "strategy": "gap_original",
+                  "branch_index": 1,
+                  "round_index": 2,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [
+                    "rwkv",
+                    "github"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 387
+            },
+            {
+              "state_id": "state-490f4cca2aee48c3a1382927b076e7bf",
+              "branch": "branch-3",
+              "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"rwkv creator github projects\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv creator github projects 原文 来源"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv creator github projects"
+                },
+                "query_strategy": "gap_original",
+                "query_view": {
+                  "query": "rwkv creator github projects 原文 来源",
+                  "strategy": "gap_original",
+                  "branch_index": 2,
+                  "round_index": 2,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [
+                    "rwkv",
+                    "github"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 1458
+            },
+            {
+              "state_id": "state-a1bcb070f94746048ad899f77bcd5208",
+              "branch": "branch-4",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv creator github projects latest update\"}}\n</tool_call>",
+              "route": {
+                "strict": false,
+                "tool": "web_search",
+                "arguments": {},
+                "error": "query coordinator rejected all views",
+                "model_arguments": {
+                  "query": "rwkv creator github projects latest update"
+                },
+                "query_strategy": "skipped_duplicate",
+                "query_view": {
+                  "query": "",
+                  "strategy": "skipped_duplicate",
+                  "branch_index": 3,
+                  "round_index": 2,
+                  "anchors": [
+                    "rwkv",
+                    "创始人",
+                    "github",
+                    "项目",
+                    "那些",
+                    "更新"
+                  ],
+                  "retained_anchors": [],
+                  "evidence_based": false,
+                  "accepted": false,
+                  "rejection_reasons": [
+                    "duplicate_query"
+                  ]
+                }
+              },
+              "tool_status": "invalid",
+              "evidence_count": 0,
+              "seen_tokens": 385
+            }
+          ]
+        }
+      ],
+      "answer_completion": {
+        "state_id": "state-f0e3a46fa0db498fa47e69e44a3c4721",
+        "branch": "root",
+        "stop_reason": "max_tokens",
+        "seen_tokens": 2703,
+        "output_chars": 693,
+        "output_tokens": 420
+      },
+      "answer_evidence_profile": {
+        "name": "compact-question-span-v1",
+        "sources": 8,
+        "max_chars_per_source": 900,
+        "selector": "query_view_mmr_v1",
+        "scorer_model": ""
+      },
+      "answer_protocol": {
+        "format": "answer_envelope_v1",
+        "primary": {
+          "valid": true,
+          "answer": "RWKV 的创始人是 Leo501（GitHub 用户名）。 [W2][W4]他的 GitHub 项目包括： [W2][W3]\n- rwkv/awesome-CocosCreator（游戏资源合集） [W1][W2]\n- rwkv/rwkv-LM（RWKV 核心框架） [W2][W6]\n- rwkv/RWKV-APP（RWKV APP 项目） [W3][W2]\n- rwkv/RWKV-Survey（RWKV 调研） [W2][W5]\n- rwkv/RWKV-Runner（RWKV GUI 与 API） [W6][W2]\n- rwkv/RWKV-PEFT（RWKV 微调工具） [W2][W6]\n- rwkv/RWKV-pip-package（RWKV pip 包） [W2][W6]\n- rwkv/RWKV-server（WebGPU 推理） [W2][W6]\n- rwkv/RWKV-infctx-trainer（无限上下文训练器） [W2][W8]\n- rwkv/RWKV-Ouroboros（RWKV-LM 训练与推理） [W2][W8]\n- rwkv/RWKV-LM-V7（RWKV-7 多类模型训练） [W2][W8]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RWKV-LM-V7-AMD-ROCm（RWKV-7 AMD ROCm 版本） [W8][W6]\n- rwkv/RW [W2][W3]",
+          "errors": [],
+          "citations": [
+            "W1",
+            "W2",
+            "W3",
+            "W4",
+            "W5",
+            "W6",
+            "W8"
+          ],
+          "invalid_citations": [],
+          "citation_repaired": true,
+          "citation_sanitized": false
+        },
+        "fallback_used": false,
+        "fallback": null,
+        "fallback_error": "",
+        "fallback_completion": null
+      },
+      "elapsed_ms": 44554.967
+    }
+  },
+  "raw_error_body": "",
+  "error": ""
+}

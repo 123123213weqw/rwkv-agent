@@ -1,0 +1,547 @@
+from __future__ import annotations
+
+from pathlib import Path
+import tempfile
+import unittest
+
+from rwkv_agent.controller import (
+    AgentController,
+    parse_tool_call,
+    policy_tool_gate,
+    render_direct_answer_prompt,
+    render_routing_context,
+)
+from rwkv_agent.memory import MemoryStore
+from rwkv_agent.routing import render_tool_gate_prompt
+from rwkv_agent.tools.web import WebSearchAdapter
+
+
+class MemoryStoreTests(unittest.TestCase):
+    def test_memory_persists_and_is_session_scoped(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "memory.sqlite3"
+            first = MemoryStore(path)
+            saved = first.save(
+                "MVP retrieval budget is 3 rounds.",
+                session_id="alpha",
+            )
+            second = MemoryStore(path)
+            hits = second.search(
+                "MVP retrieval budget",
+                session_id="alpha",
+            )
+            self.assertEqual(hits[0].id, saved.id)
+            self.assertEqual(
+                second.search("MVP retrieval budget", session_id="beta"),
+                [],
+            )
+
+    def test_empty_and_oversized_memory_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = MemoryStore(Path(directory) / "memory.sqlite3")
+            with self.assertRaises(ValueError):
+                store.save("", session_id="alpha")
+            with self.assertRaises(ValueError):
+                store.save("x" * 4001, session_id="alpha")
+
+    def test_conversation_history_is_persistent_ordered_and_session_scoped(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "memory.sqlite3"
+            first = MemoryStore(path)
+            first.append_exchange(
+                session_id="alpha",
+                user="我是奶龙",
+                assistant="好的。",
+            )
+            second = MemoryStore(path)
+            history = second.history(session_id="alpha")
+            self.assertEqual(
+                [(item.role, item.content) for item in history],
+                [("user", "我是奶龙"), ("assistant", "好的。")],
+            )
+            self.assertEqual(second.history(session_id="beta"), [])
+
+
+class FakeWebEngine:
+    def search_events(self, *args, **kwargs):
+        yield {
+            "type": "discovery_progress",
+            "progress": {
+                "candidates": [
+                    {
+                        "title": "Official release",
+                        "snippet": "Version 1.2 is current.",
+                        "url": "https://example.invalid/releases",
+                        "rrf_score": 0.2,
+                    }
+                ]
+            },
+        }
+        yield {"type": "realtime_result", "results": [], "stats": {}}
+
+    def close(self) -> None:
+        return
+
+
+class WebAdapterTests(unittest.TestCase):
+    def test_discovery_fallback_is_callable_evidence(self) -> None:
+        adapter = WebSearchAdapter(engine=FakeWebEngine())
+        result = adapter.execute("current release")
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["retrieval"]["evidence_stage"], "discovery")
+        self.assertEqual(result["evidence"][0]["id"], "W1")
+
+    def test_web_trace_is_private_and_shadow_keeps_legacy_visible(self) -> None:
+        class Shadow:
+            def __init__(self):
+                self.calls = []
+
+            def submit(self, query, **kwargs):
+                self.calls.append({"query": query, **kwargs})
+                return {
+                    "enabled": True,
+                    "submitted": True,
+                    "visible_strategy": "legacy",
+                }
+
+        shadow = Shadow()
+        adapter = WebSearchAdapter(engine=FakeWebEngine(), shadow=shadow)
+        result = adapter.execute("current release")
+        self.assertEqual(result["evidence"][0]["uri"], "https://example.invalid/releases")
+        self.assertNotIn("candidates", result)
+        self.assertEqual(
+            result["retrieval"]["shadow"]["visible_strategy"],
+            "legacy",
+        )
+        self.assertEqual(
+            shadow.calls[0]["legacy_trace"]["candidates"][0]["url"],
+            "https://example.invalid/releases",
+        )
+
+
+class FakeModel:
+    def __init__(
+        self,
+        *,
+        use_tool: bool,
+        routing_tool: str = "web_search",
+    ):
+        self.use_tool = use_tool
+        self.routing_tool = routing_tool
+        self.prompts: list[str] = []
+        self.gate_messages: list[str] = []
+        self.gate_requests: list[dict] = []
+
+    def gate_tool(
+        self,
+        message: str,
+        *,
+        threshold: float = 0.7,
+        context: str = "",
+        has_pasted_text: bool = False,
+    ) -> dict:
+        self.gate_messages.append(message)
+        self.gate_requests.append(
+            {
+                "message": message,
+                "context": context,
+                "has_pasted_text": has_pasted_text,
+                "threshold": threshold,
+            }
+        )
+        return {
+            "use_tool": self.use_tool,
+            "label": "tool" if self.use_tool else "chat",
+            "margin": 3.0 if self.use_tool else -3.0,
+            "threshold": threshold,
+        }
+
+    def health(self) -> dict:
+        return {"status": "ready", "model": "fake"}
+
+    def complete(self, prompt: str, *, max_tokens: int = 192) -> dict:
+        self.prompts.append(prompt)
+        if "Call exactly one function" in prompt:
+            argument = (
+                {
+                    "question": "Who founded the base?",
+                }
+                if self.routing_tool == "long_text_qa"
+                else {"query": "RWKV current release"}
+            )
+            raw = (
+                "<tool_call>"
+                f'{{"name":"{self.routing_tool}","arguments":'
+                f"{__import__('json').dumps(argument)}}}"
+                "</tool_call>"
+            )
+        else:
+            raw = "你好！有什么可以帮助你的？"
+        return {
+            "raw": raw,
+            "stop": "</s>",
+            "output_tokens": 8,
+            "model_elapsed_ms": 1.0,
+            "request_elapsed_ms": 1.0,
+            "model": "fake",
+            "url": "fake://model",
+        }
+
+
+class FakeKnowledge:
+    def execute(self, query: str) -> dict:
+        return {
+            "status": "ok",
+            "evidence": [
+                {
+                    "id": "K1",
+                    "title": "RWKV",
+                    "content": query,
+                    "uri": "knowledge://rwkv",
+                }
+            ],
+        }
+
+
+class FakeLongText:
+    def execute(
+        self,
+        text: str,
+        question: str,
+        *,
+        document_name: str = "pasted-text",
+    ) -> dict:
+        return {
+            "status": "ok",
+            "workers": {
+                "submitted": 4,
+                "completed": 4,
+                "concurrency": 4,
+                "candidates": 1,
+                "errors": 0,
+            },
+            "evidence": [
+                {
+                    "id": "L1",
+                    "title": f"{document_name} · chunk 3",
+                    "content": f"{question}: answer",
+                    "uri": "session-text://current#chunk=3",
+                }
+            ],
+        }
+
+
+class ControllerGateTests(unittest.TestCase):
+    def controller(self, directory: str, model: FakeModel) -> AgentController:
+        controller = AgentController(
+            model_urls=["http://unused.invalid"],
+            memory_path=str(Path(directory) / "memory.sqlite3"),
+            web_adapter=WebSearchAdapter(engine=FakeWebEngine()),
+            knowledge_adapter=FakeKnowledge(),
+            long_text_adapter=FakeLongText(),
+            long_text_capture_chars=256,
+        )
+        controller.model = model
+        return controller
+
+    def test_direct_gate_skips_all_tools(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=False)
+            controller = self.controller(directory, model)
+            result = controller.run("你好", session_id="gate-test")
+            self.assertEqual(result["route"], {"mode": "direct", "tool": None})
+            self.assertIsNone(result["tool_result"])
+            self.assertEqual(result["answer"], "你好！有什么可以帮助你的？")
+            self.assertEqual(result["trace"]["gate"]["label"], "chat")
+            self.assertNotIn("<functions>", model.prompts[0])
+            controller.close()
+
+    def test_direct_conversation_receives_prior_session_context(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=False)
+            controller = self.controller(directory, model)
+            controller.run("我是奶龙", session_id="context-test")
+            result = controller.run("我是谁？", session_id="context-test")
+            self.assertEqual(result["trace"]["context"]["history_messages"], 2)
+            self.assertIn("User: 我是奶龙", model.prompts[-1])
+            self.assertIn("Assistant: 你好！有什么可以帮助你的？", model.prompts[-1])
+            controller.close()
+
+    def test_tool_gate_continues_to_two_tool_router(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=True, routing_tool="knowledge_search")
+            controller = self.controller(directory, model)
+            result = controller.run(
+                "Search the local knowledge base for RWKV.",
+                session_id="gate-test",
+            )
+            self.assertEqual(result["route"]["mode"], "tool")
+            self.assertEqual(result["route"]["tool"], "knowledge_search")
+            self.assertEqual(result["tool_result"]["status"], "ok")
+            self.assertEqual(result["trace"]["gate"]["label"], "tool")
+            controller.close()
+
+    def test_pasted_text_routes_with_question_only(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=True, routing_tool="long_text_qa")
+            controller = self.controller(directory, model)
+            captured = controller.run(
+                "红岸工程第147次常规发射。" + "长文本" * 100,
+                session_id="long-text-test",
+            )
+            self.assertEqual(
+                captured["route"]["mode"],
+                "document_capture",
+            )
+            self.assertFalse(captured["trace"]["model_called"])
+            self.assertNotIn("红岸工程第147次", "\n".join(model.prompts))
+            result = controller.run(
+                "Who founded the base?",
+                session_id="long-text-test",
+            )
+            self.assertEqual(result["route"]["tool"], "long_text_qa")
+            self.assertEqual(
+                result["route"]["arguments"],
+                {
+                    "question": "Who founded the base?",
+                },
+            )
+            self.assertEqual(result["tool_result"]["evidence"][0]["id"], "L1")
+            self.assertTrue(model.gate_requests[-1]["has_pasted_text"])
+            routing_prompt = next(
+                prompt
+                for prompt in model.prompts
+                if "Call exactly one function" in prompt
+            )
+            self.assertIn("Active pasted long text: yes.", routing_prompt)
+            self.assertNotIn("红岸工程第147次", routing_prompt)
+            controller.close()
+
+    def test_active_pasted_text_does_not_force_an_unrelated_tool_call(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=False)
+            controller = self.controller(directory, model)
+            controller.run(
+                "红岸工程第147次常规发射。" + "长文本" * 100,
+                session_id="long-text-chat-test",
+            )
+            result = controller.run("你好", session_id="long-text-chat-test")
+            self.assertEqual(result["route"], {"mode": "direct", "tool": None})
+            self.assertIsNone(result["tool_result"])
+            controller.close()
+
+    def test_pasted_text_is_not_visible_in_another_session(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            controller = self.controller(
+                directory,
+                FakeModel(use_tool=False),
+            )
+            controller.run(
+                "secret-source-" + "x" * 300,
+                session_id="alpha",
+            )
+            result = controller.execute_tool(
+                "long_text_qa",
+                {"question": "What is the secret?"},
+                session_id="beta",
+            )
+            self.assertEqual(result["status"], "empty")
+            controller.close()
+
+    def test_direct_long_text_tool_rejects_legacy_path_argument(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            controller = self.controller(
+                directory,
+                FakeModel(use_tool=False),
+            )
+            controller.run(
+                "source-" + "x" * 300,
+                session_id="alpha",
+            )
+            result = controller.execute_tool(
+                "long_text_qa",
+                {
+                    "path": "/tmp/source.txt",
+                    "question": "What does it say?",
+                },
+                session_id="alpha",
+            )
+            self.assertEqual(result["status"], "invalid")
+            controller.close()
+
+    def test_direct_prompt_forbids_fake_search_and_citations(self) -> None:
+        prompt = render_direct_answer_prompt("Hello")
+        self.assertIn("Do not claim to have searched", prompt)
+        self.assertIn("do not invent sources or citation IDs", prompt)
+
+    def test_routing_context_is_recent_and_bounded(self) -> None:
+        class Entry:
+            def __init__(self, role: str, content: str) -> None:
+                self.role = role
+                self.content = content
+
+        context = render_routing_context(
+            [
+                Entry("user", "old-" + "x" * 2500),
+                Entry("assistant", "recent entity is RWKV"),
+            ]
+        )
+        self.assertLessEqual(len(context), 2000)
+        self.assertIn("recent entity is RWKV", context)
+
+    def test_semantic_gate_prompt_uses_context_and_not_keyword_policy(self) -> None:
+        prompt = render_tool_gate_prompt(
+            "那它是谁创建的？",
+            context="User: 我们在讨论RWKV。",
+            has_pasted_text=True,
+        )
+        self.assertIn("Decide from meaning", prompt)
+        self.assertIn("Mamba架构最初是谁提出的？\nAssistant: search", prompt)
+        self.assertIn("把“Mamba架构是谁提出的”翻译成英文。\nAssistant: chat", prompt)
+        self.assertIn("Recent conversation reference", prompt)
+        self.assertIn("Active pasted long text: yes", prompt)
+        self.assertIn("Current user request: 那它是谁创建的？", prompt)
+
+    def test_policy_gate_only_applies_explicit_ui_search_mode(self) -> None:
+        for message in (
+            "你好",
+            "把“今天天气很好”翻译成英文",
+            "Implement binary search in Python.",
+            "Search the local knowledge base for RWKV.",
+        ):
+            self.assertIsNone(policy_tool_gate(message), message)
+        forced = policy_tool_gate("你好", search_mode="always")
+        self.assertEqual(forced["label"], "tool")
+        self.assertTrue(forced["forced"])
+        disabled = policy_tool_gate("查最新新闻", search_mode="never")
+        self.assertEqual(disabled["label"], "chat")
+        self.assertTrue(disabled["forced"])
+
+    def test_tool_parser_exposes_only_bounded_tools(self) -> None:
+        valid = parse_tool_call(
+            '<tool_call>{"name":"knowledge_search","arguments":'
+            '{"query":"RWKV Agent"}}</tool_call>'
+        )
+        self.assertTrue(valid["strict"])
+        self.assertEqual(valid["arguments"]["query"], "RWKV Agent")
+        long_text = parse_tool_call(
+            '<tool_call>{"name":"long_text_qa","arguments":'
+            '{"question":"Who founded it?"}}'
+            "</tool_call>"
+        )
+        self.assertTrue(long_text["strict"])
+        self.assertEqual(
+            long_text["arguments"]["question"],
+            "Who founded it?",
+        )
+        legacy_path = parse_tool_call(
+            '<tool_call>{"name":"long_text_qa","arguments":'
+            '{"path":"/tmp/source.txt","question":"Who founded it?"}}'
+            "</tool_call>"
+        )
+        self.assertFalse(legacy_path["strict"])
+        invalid = parse_tool_call(
+            '<tool_call>{"name":"memory","arguments":'
+            '{"action":"read","text":"answer preference"}}</tool_call>'
+        )
+        self.assertFalse(invalid["strict"])
+
+    def test_gate_and_router_receive_bounded_context_for_followups(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=True, routing_tool="web_search")
+            controller = self.controller(directory, model)
+            controller.run("我是奶龙", session_id="router-isolation")
+            model.gate_messages.clear()
+            result = controller.run(
+                "它怎么样？",
+                session_id="router-isolation",
+            )
+            self.assertEqual(result["route"]["tool"], "web_search")
+            self.assertEqual(result["trace"]["gate"]["source"], "g1i")
+            self.assertEqual(model.gate_messages[-1], "它怎么样？")
+            self.assertIn("我是奶龙", model.gate_requests[-1]["context"])
+            routing_prompt = next(
+                prompt
+                for prompt in reversed(model.prompts)
+                if "Call exactly one function" in prompt
+            )
+            self.assertIn("Use this recent conversation", routing_prompt)
+            self.assertIn("我是奶龙", routing_prompt)
+            self.assertIn("User: 它怎么样？", routing_prompt)
+            controller.close()
+
+    def test_model_specific_gate_threshold_is_used(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=True)
+            controller = self.controller(directory, model)
+            controller.tool_gate_threshold = -3.2
+            controller.decide_tool("它怎么样？")
+            self.assertEqual(model.gate_requests[-1]["threshold"], -3.2)
+            self.assertEqual(controller.health()["tool_gate"]["threshold"], -3.2)
+            controller.close()
+
+    def test_long_term_memory_is_dormant_in_context_only_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=False)
+            controller = self.controller(directory, model)
+            controller.memory.save(
+                "回答尽量简短",
+                session_id="profile-test",
+            )
+            result = controller.run("你好", session_id="profile-test")
+            self.assertEqual(
+                result["trace"]["context"]["mode"],
+                "session_transcript",
+            )
+            self.assertNotIn("<core_memory>", model.prompts[-1])
+            self.assertNotIn("回答尽量简短", model.prompts[-1])
+            controller.close()
+
+    def test_direct_answer_does_not_extract_long_term_memory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeModel(use_tool=False)
+            controller = self.controller(directory, model)
+            result = controller.run(
+                "以后回答尽量短一点。",
+                session_id="implicit-memory",
+            )
+            self.assertEqual(
+                result["trace"]["memory_consolidation"],
+                {
+                    "enabled": False,
+                    "reason": "context_only_mode",
+                },
+            )
+            self.assertEqual(
+                controller.memory.recent(
+                    session_id="implicit-memory",
+                    limit=5,
+                ),
+                [],
+            )
+            controller.close()
+
+    def test_memory_function_is_disabled_but_transcript_is_kept(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            controller = self.controller(
+                directory,
+                FakeModel(use_tool=False),
+            )
+            disabled = controller.execute_tool(
+                "memory",
+                {"action": "write", "text": "回答尽量简短"},
+                session_id="alpha",
+            )
+            self.assertEqual(disabled["status"], "disabled")
+            controller.run("我是奶龙", session_id="alpha")
+            self.assertEqual(
+                len(controller.memory.history(session_id="alpha")),
+                2,
+            )
+            controller.close()
+
+
+if __name__ == "__main__":
+    unittest.main()

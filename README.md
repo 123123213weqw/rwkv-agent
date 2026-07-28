@@ -73,6 +73,15 @@ flowchart LR
 - 可复现的实时检索、长期知识、网页抽取和 Agent Shadow Benchmark。
 - 公开仓库只保留代码、测试和脱敏摘要，不包含模型、网页正文、密钥或完整 Trace。
 
+### State-native RWKV Agent
+
+仓库同时包含显式启用的 State-native Agent：一次 Root Prefill 后分叉多个
+RWKV recurrent state，执行有界并行检索，再由保留的 Root state 生成带引用回答。
+它加入了实体证据准入、结构化 GitHub 资料保留、Claim-to-Evidence 验证和安全拒答，
+但不会自动替换普通聊天路径。完整设计、接口和实验结果见
+[RWKV Agent](docs/RWKV_AGENT.md) 与
+[State-native Agent](docs/STATE_NATIVE_AGENT.md)。
+
 ## 快速开始
 
 要求 Python 3.10+。
@@ -90,6 +99,17 @@ rwkv-search --config configs/default.json serve --host 127.0.0.1 --port 8765 --n
 ```
 
 打开 <http://127.0.0.1:8765>。
+
+安装 Agent 依赖并查看服务入口：
+
+```bash
+pip install -e '.[realtime,agent,dev]'
+rwkv-agent-server --help
+rwkv-g1i-sidecar --help
+```
+
+模型权重和 Albatross runtime 必须通过 `G1I_MODEL_PATH` 与
+`G1I_RUNTIME_DIR` 显式配置，仓库不包含这些大文件。
 
 接入 Hugging Face 格式 RWKV：
 
@@ -136,6 +156,10 @@ PYTHONPATH=src:. python -m bench.run_long_knowledge_bench \
 
 ```text
 src/rwkv_search/    聊天、RWKV、实时检索和本地检索实现
+src/rwkv_agent/     Agent Controller、State research、工具与 HTTP 服务
+src/rwkv7_scheduler/ RWKV state pool 与连续批处理调度器
+cli/                Agent Rust 终端客户端
+benchmarks/         Agent 专用 Benchmark runner 与小型固定输入
 bench/              公开测试集、Runner、指标与冻结摘要
 configs/            通用配置和 Benchmark 配置
 contracts/          前后端事件与来源契约
