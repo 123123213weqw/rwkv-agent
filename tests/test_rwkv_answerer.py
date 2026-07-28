@@ -7,6 +7,7 @@ from rwkv_search.rwkv_answerer import (
     HFLocalRWKVAnswerer,
     build_rwkv_chat_prompt,
     build_rwkv_grounded_prompt,
+    clean_chat_output,
     extract_last_json,
     grounded_text_envelope,
     natural_answer_envelope,
@@ -16,6 +17,13 @@ from rwkv_search.router import RouteDecision
 
 
 class RWKVAnswerExtractionTests(unittest.TestCase):
+    def test_chat_cleanup_does_not_rewrite_semantic_content(self) -> None:
+        self.assertEqual(
+            clean_chat_output("我是 OpenAI 的模型。", "你是谁？"),
+            "我是 OpenAI 的模型。",
+        )
+        self.assertEqual(clean_chat_output("我是你爹", "我是你爹"), "我是你爹")
+
     def test_chat_prompt_is_compact_and_does_not_claim_search_mode(self) -> None:
         prompt = build_rwkv_chat_prompt("什么是奶龙", [])
         self.assertLess(len(prompt), 180)
@@ -43,6 +51,7 @@ class RWKVAnswerExtractionTests(unittest.TestCase):
         )
         self.assertNotIn("最终回答模块", prompt)
         self.assertNotIn("搜索引擎", prompt)
+        self.assertNotIn("金融", prompt)
         self.assertIn("[S1]", prompt)
 
     def test_grounded_answer_gets_one_citation_repair_before_fallback(self) -> None:

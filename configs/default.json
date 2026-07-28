@@ -18,7 +18,13 @@
     "result_limit": 10,
     "per_domain_limit": 2,
     "evidence_limit": 8,
-    "evidence_character_budget": 18000
+    "evidence_character_budget": 18000,
+    "passage_selection_enabled": true,
+    "passage_min_document_chars": 700,
+    "passage_target_chars": 900,
+    "passage_hard_max_chars": 1400,
+    "passage_max_per_document": 3,
+    "passage_max_chars_per_evidence": 3200
   },
   "model": {
     "enabled": false,

@@ -729,14 +729,6 @@ def build_channel_queries(
                 "must": [{"bool": {"should": alias_should, "minimum_should_match": 1}}]
             }
         }
-        answer_type = str(analysis.constraints.get("answer_type") or "")
-        if answer_type:
-            alias_query["bool"]["should"] = [
-                {"term": {"title_words": {"value": answer_type, "boost": 12.0}}},
-                {"term": {"heading_words": {"value": answer_type, "boost": 6.0}}},
-                {"term": {"body_words": {"value": answer_type, "boost": 3.0}}},
-                {"term": {"metadata_words": {"value": answer_type, "boost": 3.0}}},
-            ]
         output.append(
             (
                 "alias",

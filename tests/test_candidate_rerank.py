@@ -116,7 +116,7 @@ class CandidateRerankTest(unittest.TestCase):
             ranked["hybrid"]["rejected"][0]["rejection_reasons"],
         )
 
-    def test_definition_query_keeps_encyclopedia_page_shape(self) -> None:
+    def test_dictionary_page_shape_is_rejected_independently_of_topic(self) -> None:
         candidate = {
             "url": "https://baike.baidu.com/item/Python/407313",
             "title": "Python（计算机编程语言）_百度百科",
@@ -125,7 +125,11 @@ class CandidateRerankTest(unittest.TestCase):
             "rank": 1,
         }
         ranked = rank_candidates("Python 是什么意思", [candidate], [1.0])
-        self.assertFalse(ranked["hybrid"]["rejected"])
+        self.assertEqual(len(ranked["hybrid"]["rejected"]), 1)
+        self.assertIn(
+            "dictionary",
+            ranked["hybrid"]["rejected"][0]["rejection_reasons"],
+        )
 
     def test_rejected_login_on_expected_domain_is_not_counted_as_useful(self) -> None:
         candidate = {

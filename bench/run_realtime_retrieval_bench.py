@@ -19,6 +19,7 @@ else:
     from retrieval_schema import load_cases as load_validated_cases
 from rwkv_search.config import AppConfig
 from rwkv_search.realtime import RealtimeSearchEngine
+from rwkv_search.pipeline.query_compiler import QueryHints, normalize_source_preference
 from rwkv_search.search_request import SearchRequestBuilder
 
 
@@ -87,9 +88,14 @@ def run_case(
     started = time.perf_counter()
     query = str(case["query"])
     model_query = str(case.get("model_query") or query)
-    request = builder.build(query, model_query)
-    effective_freshness = str(case.get("freshness") or request.freshness)
-    effective_depth = str(case.get("depth") or request.depth)
+    hints = QueryHints(
+        freshness=str(case.get("freshness") or "stable"),
+        source_preference=normalize_source_preference(case.get("source_policy")),
+        depth=str(case.get("depth") or "single"),
+    )
+    request = builder.build(query, model_query, hints=hints)
+    effective_freshness = request.freshness
+    effective_depth = request.depth
     candidates: List[Dict[str, Any]] = []
     initial_candidates: List[Dict[str, Any]] = []
     post_pivot_candidates: List[Dict[str, Any]] = []
@@ -104,6 +110,7 @@ def run_case(
             request.execution_queries,
             freshness=effective_freshness,
             depth=effective_depth,
+            source_preference=request.source_preference,
             include_candidates=True,
         )
         for event in stream:

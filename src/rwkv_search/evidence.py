@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from .config import SearchConfig
+from .passage_selection import PassageScorer, select_page_passages
 from .search import SearchResult
 from .text import best_snippet
 
@@ -156,8 +157,14 @@ class Evidence:
 
 
 class EvidenceBuilder:
-    def __init__(self, config: Optional[SearchConfig] = None) -> None:
+    def __init__(
+        self,
+        config: Optional[SearchConfig] = None,
+        *,
+        passage_scorer: PassageScorer | None = None,
+    ) -> None:
         self.config = config or SearchConfig()
+        self.passage_scorer = passage_scorer
 
     def build(self, query: str, results: Sequence[SearchResult]) -> List[Evidence]:
         selected: List[Evidence] = []
@@ -166,17 +173,41 @@ class EvidenceBuilder:
         chosen = list(results[: self.config.evidence_limit])
         for index, result in enumerate(chosen, start=1):
             budget = min(3200, max(600, remaining // max(1, len(chosen) - index + 1)))
-            text = best_snippet(result.content, query, limit=budget)
+            selection = None
+            if (
+                self.config.passage_selection_enabled
+                and len(result.content) >= self.config.passage_min_document_chars
+                and result.source_type not in {"finewiki"}
+            ):
+                selection = select_page_passages(
+                    query,
+                    result.title,
+                    result.content,
+                    max_passages=self.config.passage_max_per_document,
+                    max_chars=min(
+                        budget,
+                        self.config.passage_max_chars_per_evidence,
+                    ),
+                    target_chars=self.config.passage_target_chars,
+                    hard_max_chars=self.config.passage_hard_max_chars,
+                    scorer=self.passage_scorer,
+                )
+            text = (
+                selection.text
+                if selection is not None and selection.text
+                else best_snippet(result.content, query, limit=budget)
+            )
             text = self._sanitize(text)
             if not text:
                 continue
-            selected.append(
-                Evidence.from_search_result(
-                    result,
-                    evidence_id=f"S{index}",
-                    text=text,
-                )
+            evidence = Evidence.from_search_result(
+                result,
+                evidence_id=f"S{index}",
+                text=text,
             )
+            if selection is not None:
+                evidence.metadata["passage_selection"] = selection.metadata()
+            selected.append(evidence)
             remaining -= len(text)
             if remaining <= 0:
                 break

@@ -33,8 +33,6 @@ class QueryAnalyzerTests(unittest.TestCase):
                     self.assertIn(term, all_terms)
                 for script in case.get("scripts", []):
                     self.assertIn(script, result.scripts)
-                if case.get("freshness"):
-                    self.assertEqual(result.constraints.get("freshness"), case["freshness"])
                 if case.get("multi_query"):
                     self.assertTrue(result.needs_multi_query)
                     self.assertGreaterEqual(len(result.search_queries), 2)
@@ -88,7 +86,7 @@ class QueryAnalyzerTests(unittest.TestCase):
 
         country = self.analyzer.analyze("中国是什么国家")
         self.assertEqual(country.resolved_query, "中国")
-        self.assertEqual(country.constraints["answer_type"], "国家")
+        self.assertNotIn("answer_type", country.constraints)
 
         overview = self.analyzer.analyze("中华人民共和国基本情况")
         self.assertEqual(overview.resolved_query, "中华人民共和国")
@@ -96,7 +94,7 @@ class QueryAnalyzerTests(unittest.TestCase):
     def test_surface_cleaning_strips_search_shell_but_keeps_meaning(self) -> None:
         result = self.analyzer.analyze("帮我搜索 RWKV 最新进展，请给出来源")
         self.assertEqual(result.resolved_query, "RWKV 最新进展")
-        self.assertEqual(result.constraints.get("freshness"), "latest")
+        self.assertNotIn("freshness", result.constraints)
 
         topic = self.analyzer.analyze("搜索系统是什么")
         self.assertEqual(topic.resolved_query, "搜索系统")

@@ -28,6 +28,12 @@ class SearchConfig:
     per_domain_limit: int = 2
     evidence_limit: int = 8
     evidence_character_budget: int = 18000
+    passage_selection_enabled: bool = True
+    passage_min_document_chars: int = 700
+    passage_target_chars: int = 900
+    passage_hard_max_chars: int = 1400
+    passage_max_per_document: int = 3
+    passage_max_chars_per_evidence: int = 3200
 
 
 @dataclass

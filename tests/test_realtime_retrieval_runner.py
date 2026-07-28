@@ -22,6 +22,7 @@ class FakeBenchEngine:
         *,
         freshness,
         depth,
+        source_preference="any",
         include_candidates=False,
     ):
         self.call = {
@@ -29,6 +30,7 @@ class FakeBenchEngine:
             "queries": list(queries),
             "freshness": freshness,
             "depth": depth,
+            "source_preference": source_preference,
             "include_candidates": include_candidates,
         }
         yield {
@@ -123,6 +125,7 @@ class RealtimeRetrievalRunnerTest(unittest.TestCase):
         record = run_case(self.case, engine, SearchRequestBuilder())
         self.assertTrue(engine.call["include_candidates"])
         self.assertEqual(record["execution"]["freshness"], "latest")
+        self.assertEqual(engine.call["source_preference"], "official")
         self.assertEqual(record["candidates"][0]["position"], 1)
         self.assertEqual(record["fetches"][0]["status"], "succeeded")
         self.assertEqual(record["results"][0]["content_length"], 36)

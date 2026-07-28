@@ -40,7 +40,33 @@ class CandidateAdmissionTests(unittest.TestCase):
         self.assertGreater(result.admitted[0].candidate_score, 0)
         self.assertIn("url_coverage", result.admitted[0].score_components)
 
-    def test_dictionary_is_rejected_unless_the_query_requests_a_definition(self) -> None:
+    def test_explicit_source_preference_reaches_generic_reranker(self) -> None:
+        values = [
+            candidate(
+                "https://industry.example/quasarkit-release",
+                "QuasarKit stable release analysis",
+                1,
+            ),
+            candidate(
+                "https://quasarkit.example/releases/v3",
+                "QuasarKit v3",
+                3,
+            ),
+        ]
+        result = admit_candidates(
+            "QuasarKit stable release",
+            ["QuasarKit stable release"],
+            values,
+            max_candidates=10,
+            source_preference="official_required",
+        )
+        self.assertEqual(result.admitted[0].url, values[1].url)
+        self.assertEqual(
+            result.admitted[0].score_components["source_preference_alignment"],
+            1.0,
+        )
+
+    def test_dictionary_is_a_structural_rejection_not_an_intent_branch(self) -> None:
         value = candidate(
             "https://dictionary.example/latest",
             "latest dictionary definition",
@@ -50,7 +76,7 @@ class CandidateAdmissionTests(unittest.TestCase):
             "dictionary",
             candidate_rejection_reasons("latest Python release", value),
         )
-        self.assertNotIn(
+        self.assertIn(
             "dictionary",
             candidate_rejection_reasons("latest 的词典释义", value),
         )

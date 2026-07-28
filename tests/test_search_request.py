@@ -4,32 +4,45 @@ import re
 from rwkv_search.g1i_types import G1ICompletion
 from rwkv_search.p4_search import P4SearchPlanner, P4_SYSTEM_PROMPT
 from rwkv_search.search_request import SearchRequestBuilder
+from rwkv_search.pipeline.query_compiler import QueryHints
 
 
 class SearchRequestBuilderTest(unittest.TestCase):
     def setUp(self):
         self.builder = SearchRequestBuilder()
 
-    def test_raw_constraints_are_merged_into_model_query(self):
+    def test_explicit_hints_are_metadata_not_keyword_injection(self):
         request = self.builder.build(
             "Python 当前最新稳定版本是什么？请以官网为准。",
-            "Python latest stable version",
+            "Python latest stable version official",
+            hints=QueryHints(freshness="realtime", source_preference="official"),
         )
         self.assertEqual(request.freshness, "realtime")
         self.assertEqual(request.source_policy, "official_preferred")
+        self.assertEqual(request.source_preference, "official")
         self.assertIn("official", request.execution_queries[0])
         self.assertEqual(len(request.execution_queries), 1)
         self.assertNotIn("请以官网为准", request.execution_queries[0])
         self.assertEqual(request.depth, "single")
 
-    def test_original_entity_and_time_are_reinserted(self):
-        request = self.builder.build("RWKV 最近一个月有什么新进展？", "latest progress")
-        self.assertNotIn("RWKV", request.execution_queries[0])
-        self.assertIn("最近一个月", request.execution_queries[0])
+    def test_raw_semantics_are_not_reinserted_after_model_compilation(self):
+        request = self.builder.build(
+            "RWKV 最近一个月有什么新进展？",
+            "RWKV progress last month",
+            hints=QueryHints(time_terms=("最近一个月",)),
+        )
+        self.assertIn("RWKV", request.execution_queries[0])
+        self.assertNotIn("最近一个月", request.execution_queries[0])
+        self.assertEqual(request.time_terms, ("最近一个月",))
 
-    def test_original_source_policy_wins(self):
-        request = self.builder.build("查找这条新闻的首发来源", "news headline")
+    def test_source_policy_comes_from_explicit_hint(self):
+        request = self.builder.build(
+            "查找这条新闻的首发来源",
+            "news headline original source",
+            hints=QueryHints(source_preference="original"),
+        )
         self.assertEqual(request.source_policy, "original_source")
+        self.assertEqual(request.source_preference, "original")
         self.assertIn("original source", request.execution_queries[0])
 
     def test_explicit_site_is_preserved_without_raw_query_replay(self):
@@ -89,7 +102,7 @@ class SearchRequestBuilderTest(unittest.TestCase):
         planner = P4SearchPlanner(lambda prompt, stops, max_tokens: completion)
         plan = planner.plan("Python 当前最新版本是什么？请以官网为准。")
         self.assertIsNotNone(plan.search_request)
-        self.assertIn("official", plan.search_request.execution_queries[0])
+        self.assertEqual(plan.search_request.execution_queries, ("Python latest version",))
         self.assertIn("Output only <tool_call>", P4_SYSTEM_PROMPT)
 
     def test_p4_planner_does_not_repair_non_tool_answer(self):

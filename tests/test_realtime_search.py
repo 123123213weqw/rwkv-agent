@@ -318,13 +318,13 @@ class RealtimeSearchTests(unittest.TestCase):
             compact_general_query(
                 "What is the current stable Python release according to python.org?"
             ),
-            "Python python.org stable release current",
+            "Python python.org current stable release",
         )
         self.assertEqual(
             compact_general_query(
                 "Find the Federal Reserve's latest FOMC monetary policy statement."
             ),
-            "Federal Reserve's FOMC monetary policy statement latest",
+            "Federal Reserve's FOMC latest monetary policy statement",
         )
         chinese = "国家统计局最新公布的中国CPI数据是什么？"
         self.assertEqual(compact_general_query(chinese), chinese)
@@ -558,6 +558,54 @@ class RealtimeSearchTests(unittest.TestCase):
         self.assertEqual(result["stats"]["fetched"], 1)
         self.assertEqual(result["stats"]["failed"], 0)
         self.assertGreaterEqual(result["stats"]["fetch_success_rate"], 1.0)
+
+    def test_seed_urls_are_bounded_direct_candidates_and_reach_fetch(self) -> None:
+        config = RealtimeSearchConfig(
+            enabled=True,
+            candidate_admission_enabled=True,
+            fast_max_queries=1,
+            fast_max_candidates=5,
+            fast_max_fetch_pages=2,
+            fast_deadline_seconds=2.0,
+        )
+        engine = RealtimeSearchEngine(config)
+        engine._discovery = FakeDiscovery()
+        fetcher = FakePageFetcher()
+        engine._fetcher = fetcher
+        events = queue.Queue()
+
+        asyncio.run(
+            engine._search(
+                "official release",
+                ["official release site:example.org"],
+                "latest",
+                "single",
+                None,
+                events,
+                True,
+                seed_urls=(
+                    "https://www.example.org/",
+                    "https://www.example.org/#duplicate",
+                    "file:///etc/passwd",
+                ),
+            )
+        )
+        emitted = []
+        while not events.empty():
+            emitted.append(events.get_nowait())
+        discovery = next(
+            item["progress"] for item in emitted if item["type"] == "discovery_progress"
+        )
+        result = next(item for item in emitted if item["type"] == "realtime_result")
+
+        self.assertEqual(discovery["seed_candidate_count"], 1)
+        direct = next(
+            item for item in discovery["candidates"] if item["engine"] == "direct"
+        )
+        self.assertEqual(direct["url"], "https://www.example.org/")
+        self.assertIn("seed_url", direct["discovery_stages"])
+        self.assertEqual(fetcher.calls[0], "https://www.example.org/")
+        self.assertEqual(result["stats"]["seed_candidates"], 1)
 
     def test_c_feedback_runs_two_discoveries_then_one_shared_fetch_stage(self) -> None:
         config = RealtimeSearchConfig(
@@ -1099,7 +1147,7 @@ class RealtimeSearchTests(unittest.TestCase):
             discovery.calls,
             [
                 ("llama.cpp latest release GitHub", ("general",)),
-                ("llama.cpp", ("repos",)),
+                ("llama.cpp latest release GitHub", ("repos",)),
             ],
         )
         self.assertEqual({item.discovery_stage for item in results}, {"initial"})
@@ -1202,7 +1250,13 @@ class RealtimeSearchTests(unittest.TestCase):
             service = SearchService(
                 SearchDatabase(Path(tmp) / "search.db"), realtime_engine=engine
             )
-            events = list(service.ask_events("搜索一下实时抓取方案"))
+            events = list(
+                service.ask_events(
+                    "搜索一下实时抓取方案",
+                    search_mode="always",
+                    source_scope="web",
+                )
+            )
         kinds = [event["type"] for event in events]
         self.assertTrue(engine.called)
         self.assertIn("discovery_progress", kinds)
@@ -1212,7 +1266,7 @@ class RealtimeSearchTests(unittest.TestCase):
             evidence["evidence"][0]["url"], "https://docs.example/realtime"
         )
 
-    def test_named_entity_is_a_hard_relevance_constraint(self) -> None:
+    def test_semantic_reranker_handles_named_entity_relevance(self) -> None:
         now = time.time()
         wrong = RealtimeDocument(
             url="https://dictionary.example/what",
@@ -1243,10 +1297,21 @@ class RealtimeSearchTests(unittest.TestCase):
             [wrong, right],
             freshness_mode="stable",
             limit=5,
+            scorer=type(
+                "EntityScorer",
+                (),
+                {
+                    "model_name": "test",
+                    "score": lambda self, query, documents: [
+                        10.0 if "python" in value.casefold() else -10.0
+                        for value in documents
+                    ],
+                },
+            )(),
         )
         self.assertEqual([item.url for item in ranked], ["https://www.python.org/"])
 
-    def test_finance_ranking_rejects_generic_portal_homepages(self) -> None:
+    def test_semantic_reranker_prefers_primary_evidence_without_vertical_rules(self) -> None:
         now = time.time()
         portal = RealtimeDocument(
             url="https://portal.example/",
@@ -1289,6 +1354,19 @@ class RealtimeSearchTests(unittest.TestCase):
             [portal, unrelated_government, filing],
             freshness_mode="realtime",
             limit=5,
+            scorer=type(
+                "PrimaryEvidenceScorer",
+                (),
+                {
+                    "model_name": "test",
+                    "score": lambda self, query, documents: [
+                        10.0
+                        if "交易所" in value or "上市公司最新公告" in value
+                        else -10.0
+                        for value in documents
+                    ],
+                },
+            )(),
         )
         self.assertEqual([item.url for item in ranked], [filing.url])
 
