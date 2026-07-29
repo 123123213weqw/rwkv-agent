@@ -22,6 +22,8 @@ class KnowledgeShadowBenchTests(unittest.TestCase):
             / "data"
             / "knowledge_shadow_cases_v1.jsonl"
         )
+        if not path.is_file():
+            self.skipTest("private knowledge benchmark fixture is not published")
         self.assertEqual(
             hashlib.sha256(path.read_bytes()).hexdigest(),
             "b46e93f087308c4dce78c273636a58e959c81315482c977a04b7684604358270",

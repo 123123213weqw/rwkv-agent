@@ -20,6 +20,8 @@ class WebShadowBenchTests(unittest.TestCase):
             / "data"
             / "realtime_web_retrieval_v1.jsonl"
         )
+        if not path.is_file():
+            self.skipTest("private realtime benchmark fixture is not published")
         self.assertEqual(
             hashlib.sha256(path.read_bytes()).hexdigest(),
             "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc",
@@ -129,13 +131,17 @@ class WebShadowBenchTests(unittest.TestCase):
                     },
                 )
 
-        path = (
-            Path(__file__).resolve().parents[1]
-            / "benchmarks"
-            / "data"
-            / "realtime_web_retrieval_v1.jsonl"
-        )
-        case = load_cases(path)[0]
+        case = {
+            "id": "fixture-free-fallback",
+            "query": "Find the official example page",
+            "language": "en",
+            "category": "test",
+            "freshness": "stable",
+            "source_policy": "official_required",
+            "expected_domains_any": ["example.invalid"],
+            "target_url_patterns_any": ["/official"],
+            "forbidden_result_types": ["empty_content"],
+        }
         row = run_case(
             case,
             legacy=Adapter(
