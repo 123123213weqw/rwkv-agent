@@ -154,6 +154,7 @@ tests/                Unit and regression tests
 
 - [Quickstart](docs/QUICKSTART.md)
 - [Model setup](docs/MODEL_SETUP.md)
+- [Local knowledge service](docs/KNOWLEDGE_SETUP.md)
 - [Deployment](docs/DEPLOYMENT.md)
 - [Configuration](docs/CONFIGURATION.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
