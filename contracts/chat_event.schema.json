@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rwkv-search.local/contracts/chat_event.schema.json",
-  "title": "RWKV Search SSE Event v1",
+  "title": "RWKV Agent SSE Event v1",
   "type": "object",
   "required": ["schema_version", "type", "request_id", "conversation_id", "message_id", "sequence", "timestamp"],
   "properties": {

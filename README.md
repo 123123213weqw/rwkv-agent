@@ -1,15 +1,19 @@
-# RWKV Search
+# RWKV Agent
 
-Local-first Web search, tool use, evidence retrieval and cited answers for RWKV.
+Local-first RWKV chat, tool use, Web research and evidence-grounded answers.
 
 - **Current release:** `v0.3.0-beta.1`
-- **Primary interface:** RWKV Agent HTTP backend + Rust terminal client
+- **Primary interface:** `rwkv` terminal client + RWKV Agent HTTP backend
 - **Verified model:** RWKV-7 G1I Preview4922 13.3B, context 12,288
 
-RWKV Search keeps ordinary chat fast and enters retrieval only when the user
+RWKV Agent keeps ordinary chat fast and enters retrieval only when the user
 explicitly requests search or the semantic Search Gate selects a tool. Search,
 URL discovery, page extraction, Evidence selection and answer generation remain
 separate and auditable stages.
+
+**RWKV Agent** is the user-facing product. **RWKV Search** is its internal
+retrieval subsystem. The repository and Python package retain the `rwkv-search`
+compatibility name in this Beta.
 
 > This Beta is suitable for local use and controlled internal deployment. The
 > HTTP service has no public authentication or rate limiting; keep it on
@@ -65,18 +69,24 @@ Set absolute values for `RWKV_AGENT_PROJECT_ROOT`, `RWKV_AGENT_PYTHON`,
 ### 3. Start and chat
 
 ```bash
-rwkv-agent-service start
-rwkv-agent doctor
-rwkv-agent chat
+rwkv
 ```
+
+The `rwkv` launcher checks the local Controller, starts the configured RWKV
+model backend when needed, and opens an interactive conversation.
 
 Useful commands:
 
 ```bash
-rwkv-agent ask "你好"
-rwkv-agent tool web-search "Python latest stable release"
-rwkv-agent research --branches 4 --rounds 2 \
+rwkv ask "你好"
+rwkv tool web-search "Python latest stable release"
+rwkv research --branches 4 --rounds 2 \
   "Who created RWKV and what did the official repositories update recently?"
+```
+
+Administrator commands:
+
+```bash
 rwkv-agent-service status
 rwkv-agent-service logs
 rwkv-agent-service stop
@@ -89,7 +99,7 @@ recovery.
 
 ```mermaid
 flowchart LR
-    U["User / Rust CLI"] --> API["Agent HTTP"]
+    U["User / rwkv"] --> API["Agent HTTP"]
     API --> G["Semantic Search Gate"]
     G -->|"chat"| M["RWKV 13.3B"]
     G -->|"tool"| T["Strict Tool Call"]
@@ -139,7 +149,7 @@ Machine-readable summaries:
 ```text
 src/rwkv_agent/       Current Agent Controller, tools and Sidecar
 src/rwkv7_scheduler/  Recurrent state pool and continuous batching
-src/rwkv_search/      Retrieval stack and Legacy Web Preview
+src/rwkv_search/      RWKV Search retrieval subsystem and Legacy Web Preview
 cli/                  Rust terminal client and local service lifecycle
 configs/              Default, production example and benchmark configs
 deploy/               Agent host and optional SearXNG examples

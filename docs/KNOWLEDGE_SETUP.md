@@ -152,7 +152,7 @@ RWKV_AGENT_KNOWLEDGE_ENDPOINT=http://127.0.0.1:19220
 Restart the local Agent after changing its environment, then test:
 
 ```bash
-rwkv-agent tool knowledge-search "Python是什么"
+rwkv tool knowledge-search "Python是什么"
 ```
 
 The lexical `K1..K5` path is the current visible knowledge result. Realtime Web

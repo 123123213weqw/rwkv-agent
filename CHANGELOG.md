@@ -2,6 +2,16 @@
 
 All notable public changes are recorded here.
 
+## Unreleased
+
+### Changed
+
+- renamed the user-facing product to **RWKV Agent** while retaining RWKV Search
+  as the internal retrieval subsystem and keeping repository, package and API
+  compatibility identifiers unchanged;
+- made `rwkv` the primary documented user command; lifecycle commands remain
+  available for administrators.
+
 ## 0.3.0-beta.1 - 2026-07-29
 
 ### Added

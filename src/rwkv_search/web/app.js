@@ -123,7 +123,7 @@ function assistantHTML(message) {
   const inProgress = message.pending || ['queued', 'routing', 'discovering', 'fetching', 'ranking', 'generating'].includes(message.state);
   if (inProgress && !message.content) {
     return `<article class="message assistant" data-message="${message.id}">
-      <div class="assistant-avatar">R</div><div class="assistant-content"><div class="assistant-name">RWKV Search</div><div class="thinking">${escapeHTML(message.status || STATE_LABELS[message.state] || '正在思考')}</div>${message.progress ? `<div class="request-progress">${escapeHTML(message.progress)}</div>` : ''}</div>
+      <div class="assistant-avatar">R</div><div class="assistant-content"><div class="assistant-name">RWKV Agent</div><div class="thinking">${escapeHTML(message.status || STATE_LABELS[message.state] || '正在思考')}</div>${message.progress ? `<div class="request-progress">${escapeHTML(message.progress)}</div>` : ''}</div>
     </article>`;
   }
   const sources = message.sources || [];
@@ -144,7 +144,7 @@ function assistantHTML(message) {
   return `<article class="message assistant" data-message="${message.id}">
     <div class="assistant-avatar">R</div>
     <div class="assistant-content">
-      <div class="assistant-name">RWKV Search ${modelChip}${stateChip}</div>
+      <div class="assistant-name">RWKV Agent ${modelChip}${stateChip}</div>
       <div class="answer-text">${renderMarkdown(message.content || '')}</div>
       ${sources.length ? `<details class="sources"><summary>${sources.length} 个参考来源</summary><div class="source-grid">${sources.map(sourceHTML).join('')}</div></details>` : ''}
       <div class="message-tools"><button type="button" data-copy="${message.id}">复制</button>${meta.length ? `<span>${escapeHTML(meta.join(' · '))}</span>` : ''}</div>

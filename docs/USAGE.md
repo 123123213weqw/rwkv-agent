@@ -14,9 +14,7 @@ cd cli && ./install.sh && cd ..
 rwkv-agent-service init
 $EDITOR ~/.config/rwkv-agent/rwkv-agent.env
 rwkv-agent-service doctor
-rwkv-agent-service start
-rwkv-agent doctor
-rwkv-agent chat
+rwkv
 ```
 
 Detailed instructions:
@@ -30,11 +28,11 @@ Detailed instructions:
 ## Agent commands
 
 ```bash
-rwkv-agent ask "hello"
-rwkv-agent tool web-search "latest official RWKV update"
-rwkv-agent tool knowledge-search "RWKV architecture"
-rwkv-agent research --branches 4 --rounds 2 "compare official RWKV projects"
-rwkv-agent --json health
+rwkv ask "hello"
+rwkv tool web-search "latest official RWKV update"
+rwkv tool knowledge-search "RWKV architecture"
+rwkv research --branches 4 --rounds 2 "compare official RWKV projects"
+rwkv --json health
 ```
 
 Interactive chat supports `/web`, `/knowledge`, `/research`, `/longtext`,
@@ -66,7 +64,7 @@ curl 'http://127.0.0.1:8888/search?q=rwkv&format=json'
 ```
 
 SearXNG performs URL discovery. Page fetching, extraction, Evidence selection
-and answer generation remain in RWKV Search.
+and answer generation remain in the internal RWKV Search retrieval subsystem.
 
 ## Benchmarks
 

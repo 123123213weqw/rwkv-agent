@@ -3,7 +3,7 @@
 ## Supported Beta topology
 
 ```text
-rwkv-agent CLI
+rwkv CLI
   -> Controller 127.0.0.1:8120
   -> Sidecar    127.0.0.1:8118
   -> one CUDA device
@@ -15,7 +15,7 @@ Start it with:
 ```bash
 rwkv-agent-service doctor
 rwkv-agent-service start
-rwkv-agent doctor
+rwkv doctor
 ```
 
 Runtime state and PID files are stored under

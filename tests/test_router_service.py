@@ -21,7 +21,7 @@ class GeneralAnswerer:
         self.evidence_count = len(evidence)
         return SimpleNamespace(
             answer={
-                "answer": "你好，我是 RWKV Search。",
+                "answer": "你好，我是 RWKV Agent。",
                 "citations": [],
                 "data_time": as_of,
                 "insufficient_evidence": False,
@@ -114,7 +114,7 @@ class RouterServiceTests(unittest.TestCase):
             self.assertNotIn("sources", [event["type"] for event in events])
             self.assertNotIn("evidence", [event["type"] for event in events])
             self.assertTrue(answer_event["model"]["used"])
-            self.assertIn("RWKV Search", answer_event["answer"]["answer"])
+            self.assertIn("RWKV Agent", answer_event["answer"]["answer"])
 
             tomorrow = next(
                 event

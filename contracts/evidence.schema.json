@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rwkv-search.local/contracts/evidence.schema.json",
-  "title": "RWKV Search Evidence v1",
+  "title": "RWKV Agent Evidence v1",
   "type": "object",
   "required": [
     "schema_version",

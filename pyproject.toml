@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rwkv-search"
 version = "0.3.0b1"
-description = "Local-first realtime web retrieval and evidence-grounded answer stack for RWKV."
+description = "Local-first RWKV agent with chat, tool use, Web research and evidence-grounded answers."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [{name = "RWKV Search contributors"}]
+authors = [{name = "RWKV Agent contributors"}]
 dependencies = ["regex>=2024.5.15"]
 
 [project.urls]

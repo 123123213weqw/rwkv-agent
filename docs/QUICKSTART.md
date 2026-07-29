@@ -1,4 +1,4 @@
-# Quickstart
+# RWKV Agent quickstart
 
 This guide starts the `v0.3.0-beta.1` Agent on one local CUDA host. The current
 public service script starts one model Sidecar and one Controller. It never
@@ -56,9 +56,12 @@ The environment file is mode `0600`. Do not commit it.
 
 ```bash
 rwkv-agent-service doctor
-rwkv-agent-service start
-rwkv-agent doctor
+rwkv
 ```
+
+`rwkv` automatically starts the configured local Sidecar and Controller when
+they are offline, then enters interactive chat. Service lifecycle commands are
+kept for administrators and troubleshooting.
 
 The two local endpoints are:
 
@@ -68,10 +71,10 @@ The two local endpoints are:
 ## Use
 
 ```bash
-rwkv-agent chat
-rwkv-agent ask "Explain recurrent state in RWKV."
-rwkv-agent tool web-search "RWKV latest official repository update"
-rwkv-agent research --branches 4 --rounds 2 \
+rwkv
+rwkv ask "Explain recurrent state in RWKV."
+rwkv tool web-search "RWKV latest official repository update"
+rwkv research --branches 4 --rounds 2 \
   "Compare the latest official progress across RWKV repositories."
 ```
 
@@ -105,8 +108,8 @@ Run the installation and service on the GPU host, then forward the Controller:
 
 ```bash
 ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent doctor
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent chat
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv doctor
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv
 ```
 
 Do not bind the Beta Controller to a public interface without adding your own

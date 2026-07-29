@@ -5,7 +5,7 @@
 ```bash
 rwkv-agent-service doctor
 rwkv-agent-service status
-rwkv-agent doctor
+rwkv doctor
 ```
 
 The service Doctor validates local paths and Python imports. The CLI Doctor
@@ -60,7 +60,7 @@ State research intentionally fans out up to four branches and two rounds by
 default. Use smaller values when latency matters:
 
 ```bash
-rwkv-agent research --branches 2 --rounds 1 "question"
+rwkv research --branches 2 --rounds 1 "question"
 ```
 
 The current FRAMES P95 was about 33 seconds on one V100. Search result caching,
@@ -73,5 +73,5 @@ Verify the backend locally on the GPU host, then verify your tunnel separately:
 ```bash
 curl -fsS http://127.0.0.1:8120/health
 ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent doctor
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv doctor
 ```
