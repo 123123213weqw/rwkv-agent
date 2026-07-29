@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rwkv-search.local/contracts/chat_request.schema.json",
-  "title": "RWKV Search Chat Request v1",
+  "title": "RWKV Agent Chat Request v1",
   "type": "object",
   "required": ["schema_version", "conversation_id", "message_id", "query", "history", "search_mode", "research_depth", "timezone", "locale"],
   "properties": {

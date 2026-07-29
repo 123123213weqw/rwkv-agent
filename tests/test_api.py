@@ -135,7 +135,7 @@ class APITests(unittest.TestCase):
                 )
                 with urllib.request.urlopen(base + "/", timeout=3) as response:
                     homepage = response.read()
-                    self.assertIn(b"RWKV Search", homepage)
+                    self.assertIn(b"RWKV Agent", homepage)
                     self.assertIn(b"FineWiki", homepage)
                     self.assertIn("仅下一条消息使用搜索".encode(), homepage)
                 request = urllib.request.Request(

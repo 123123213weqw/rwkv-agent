@@ -34,7 +34,7 @@ The installed lifecycle script starts a user-configured local CUDA backend. It
 contains no built-in remote server, account, model path or tunnel:
 
 ```text
-rwkv / rwkv-agent
+rwkv
   -> 127.0.0.1:8120 (Agent Controller)
   -> 127.0.0.1:8118 (single-GPU RWKV 13.3B Sidecar)
 ```
@@ -46,8 +46,8 @@ own SSH tunnel or authenticated gateway.
 ```bash
 rwkv-agent-service start
 rwkv-agent-service status
-rwkv-agent doctor
-rwkv-agent research --branches 4 --rounds 2 "your question"
+rwkv doctor
+rwkv research --branches 4 --rounds 2 "your question"
 rwkv-agent-service stop
 ```
 
@@ -143,7 +143,7 @@ An additional **explicit, opt-in** State-native path is available at
 to four GPU-resident branch states, runs one `web_search` per branch for one to
 three rounds, resumes every branch with its own Tool Result, deduplicates
 Evidence and resumes the retained root for the final answer. It does not merge
-state tensors. The equivalent CLI entry points are `rwkv-agent research ...`
+state tensors. The equivalent CLI entry points are `rwkv research ...`
 and interactive `/research ...`. See `docs/STATE_NATIVE_AGENT.md`.
 
 `long_text_qa` is the general part borrowed from the Three Body batch-QA
@@ -278,8 +278,8 @@ cargo clippy --all-targets -- -D warnings
 Explicit research examples:
 
 ```bash
-rwkv-agent research "Who created RWKV and who maintains it?"
-rwkv-agent chat
+rwkv research "Who created RWKV and who maintains it?"
+rwkv
 # then: /research Who created RWKV and who maintains it?
 ```
 
@@ -347,7 +347,7 @@ Legacy output remains unchanged.
 ```bash
 rwkv-agent-service doctor
 rwkv-agent-service start
-rwkv-agent doctor
+rwkv doctor
 ```
 
 The Sidecar requires the external G1I weights, Albatross `faster3a_2607`, CUDA,

@@ -49,7 +49,7 @@ not copy it to a different checkpoint without a routing regression test.
 rwkv-agent-service doctor
 rwkv-agent-service start
 curl -fsS http://127.0.0.1:8118/health | python -m json.tool
-rwkv-agent doctor
+rwkv doctor
 ```
 
 Health must report the intended model ID, context, CUDA device, zero worker

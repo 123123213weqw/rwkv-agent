@@ -92,7 +92,7 @@ per round. Web calls run concurrently; observations resume the matching states.
 The Rust CLI exposes the same bounded request as:
 
 ```text
-rwkv-agent research "What organization and author created RWKV?"
+rwkv research "What organization and author created RWKV?"
 /research What organization and author created RWKV?
 ```
 

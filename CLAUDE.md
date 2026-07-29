@@ -47,7 +47,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture overview
 
-RWKV Search is a local-first retrieval and evidence-grounded answering stack. It separates search gating, query/tool-call formation, URL discovery, candidate filtering, fetching/extraction, evidence construction, and answer generation so each stage can be benchmarked independently.
+RWKV Agent is the user-facing local-first chat and research product. Its internal RWKV Search subsystem separates search gating, query/tool-call formation, URL discovery, candidate filtering, fetching/extraction, evidence construction, and answer generation so each stage can be benchmarked independently.
 
 Two request paths are central:
 
