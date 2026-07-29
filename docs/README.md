@@ -4,6 +4,7 @@
 
 - [QUICKSTART.md](QUICKSTART.md): install, configure, start and chat
 - [MODEL_SETUP.md](MODEL_SETUP.md): verified checkpoint and runtime contract
+- [KNOWLEDGE_SETUP.md](KNOWLEDGE_SETUP.md): corpus, model and Elasticsearch download links plus index setup
 - [DEPLOYMENT.md](DEPLOYMENT.md): local and remote GPU-host deployment
 - [CONFIGURATION.md](CONFIGURATION.md): environment and Web configuration
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md): Doctor-led failure diagnosis

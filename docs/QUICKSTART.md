@@ -78,6 +78,15 @@ rwkv-agent research --branches 4 --rounds 2 \
 Interactive commands include `/status`, `/web`, `/knowledge`, `/research`,
 `/longtext`, `/session` and `/json`.
 
+## Optional local knowledge service
+
+`knowledge_search` requires a separately running Elasticsearch-compatible
+FineWiki index. The public service script does not download or start it.
+
+See [Local knowledge service setup](KNOWLEDGE_SETUP.md) for the official
+FineWiki, Elasticsearch, Embedding and Reranker download links, storage sizes,
+copyable download commands and index-building steps.
+
 ## Optional SearXNG
 
 ```bash

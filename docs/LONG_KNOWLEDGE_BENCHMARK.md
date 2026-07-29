@@ -5,13 +5,20 @@ discovery, page fetching, answer generation, or the production chat router.
 
 ## Corpora
 
-- `HuggingFaceFW/finewiki`, `zhwiki`, August 2025 snapshot: the frozen Chinese baseline.
-- `HuggingFaceFW/finewiki`, `enwiki`, August 2025 snapshot: the English expansion built by milestone 5A.
+- [`HuggingFaceFW/finewiki`](https://huggingface.co/datasets/HuggingFaceFW/finewiki),
+  [`zhwiki` files](https://huggingface.co/datasets/HuggingFaceFW/finewiki/tree/main/data/zhwiki),
+  August 2025 snapshot: the frozen Chinese baseline.
+- [`HuggingFaceFW/finewiki`](https://huggingface.co/datasets/HuggingFaceFW/finewiki),
+  [`enwiki` files](https://huggingface.co/datasets/HuggingFaceFW/finewiki/tree/main/data/enwiki),
+  August 2025 snapshot: the English expansion built by milestone 5A.
 - License: Wikipedia content is CC BY-SA 4.0 / GFDL; the processed FineWiki release is CC BY-SA 4.0.
 
 FineWiki is preferred over a generic web crawl because it renders templates, retains headings, tables,
 math and infobox metadata, and excludes redirects, disambiguation pages and reference-like tails. Chinese
 and English are kept in separate physical indexes so identical Wikipedia page IDs cannot collide.
+
+Download commands, storage estimates, Elasticsearch setup and optional E5/BGE
+model links are in [Local knowledge service setup](KNOWLEDGE_SETUP.md).
 
 ## External test set
 

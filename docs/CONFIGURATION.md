@@ -25,6 +25,7 @@ Change it with `RWKV_AGENT_ENV_FILE`.
 | `RWKV_AGENT_TOOL_GATE_THRESHOLD` | model-specific | Semantic Search Gate threshold |
 | `RWKV_AGENT_WEB_CONFIG` | no | JSON config path |
 | `RWKV_AGENT_WEB_API_PROVIDERS` | no | Ordered structured providers |
+| `RWKV_AGENT_KNOWLEDGE_ENDPOINT` | no | External local knowledge index; see [knowledge setup](KNOWLEDGE_SETUP.md) |
 | `TAVILY_API_KEY` | no | Enables Tavily when present |
 | `GITHUB_TOKEN` | no | Raises GitHub API allowance |
 | `RWKV_AGENT_STATE_DIR` | no | Logs, PIDs and sessions |
