@@ -1,0 +1,127 @@
+{
+  "checkpoint": {
+    "adapter_model_bytes": 75546488,
+    "adapter_model_sha256": "9636a39e7d59eca1aed42f1f602bdf816d9c0ae7fa61899a1dbf17351f861dc8",
+    "artifact_location": "private_runtime_artifact_not_published",
+    "name": "fit200-v1-cachefix-r8-s200/checkpoint-000200"
+  },
+  "created_at": "2026-07-28T21:44:54.363894+00:00",
+  "data": {
+    "fit_distribution": {
+      "alce": 40,
+      "bfcl": 40,
+      "frames": 40,
+      "longbench_v2": 40,
+      "webwalkerqa": 40
+    },
+    "fit_holdout_id_overlap": 0,
+    "fit_records": 200,
+    "fit_sha256": "b1c266cd56c25a606dd0a911e80b98f073bf1f7ce1118ac7902361de9fccfb3e",
+    "holdout_records": 50,
+    "holdout_sha256": "54f26d2c68b23b4e53343f96093bdb289dd9e902ce0f91042758474d5000f554",
+    "locked_test_files_read": 0,
+    "source_rows": 3359,
+    "source_sha256": "ab852f7f7bded9a44db0257f06c1435a5901ee2d796c42efe7113ca9aa3b53a5",
+    "source_split": "fitgen_sft_v7/train"
+  },
+  "eval_curve": [
+    {
+      "dev_loss": 0.3968914972560015,
+      "event": "eval",
+      "step": 50
+    },
+    {
+      "dev_loss": 0.25693832462420685,
+      "event": "eval",
+      "step": 100
+    },
+    {
+      "dev_loss": 0.19171294049592688,
+      "event": "eval",
+      "step": 150
+    },
+    {
+      "dev_loss": 0.17907160392205695,
+      "event": "eval",
+      "step": 200
+    }
+  ],
+  "limitations": [
+    "Teacher-forced fit metrics use a deterministic 20-row subset of the 200 fitted rows and a disjoint 10-row Train holdout.",
+    "This is an in-sample fitting probe, not Fit-ID, Structural-OOD, Fresh-Web, end-to-end Agent, or production validation.",
+    "The 200 fitted records come only from fitgen_sft_v7 Train; no Dev or locked Test Gold is read."
+  ],
+  "no_op_bug": {
+    "affected_runs": 2,
+    "cause": "autocast reused BF16 LoRA weight casts created during no-grad prefix prefill, detaching trainable parameters from supervised windows",
+    "checkpoint_hash_verification": "fixed checkpoints at steps 50, 100, 150, and 200 are all different",
+    "fix": "disable autocast weight caching for detached-BPTT training and fail fast when step-1 gradient audit finds no non-zero trainable gradients"
+  },
+  "production_changed": false,
+  "schema_version": "rwkv-agent-fit200-summary.v1",
+  "scope": "isolated_train_only_fit_probe",
+  "status": "completed_isolated_fit_probe",
+  "teacher_forced_sample_metrics": {
+    "disjoint_train_holdout10_after": {
+      "loss": 0.13691520367701945,
+      "perplexity": 1.1467309058332824,
+      "rows": 10,
+      "supervised_tokens": 356,
+      "teacher_forced_sequence_exact_rate": 0.5,
+      "teacher_forced_token_accuracy": 0.9606741573033708
+    },
+    "disjoint_train_holdout10_before": {
+      "loss": 0.5178254353866149,
+      "perplexity": 1.6783739459403482,
+      "rows": 10,
+      "supervised_tokens": 356,
+      "teacher_forced_sequence_exact_rate": 0.0,
+      "teacher_forced_token_accuracy": 0.8960674157303371
+    },
+    "disjoint_train_holdout10_delta": {
+      "loss": -0.38091023170959537,
+      "perplexity": -0.5316430401070658,
+      "teacher_forced_sequence_exact_rate": 0.5,
+      "teacher_forced_token_accuracy": 0.0646067415730337
+    },
+    "fit20_after": {
+      "loss": 0.099590810213238,
+      "perplexity": 1.1047187859335807,
+      "rows": 20,
+      "supervised_tokens": 625,
+      "teacher_forced_sequence_exact_rate": 0.6,
+      "teacher_forced_token_accuracy": 0.9712
+    },
+    "fit20_before": {
+      "loss": 0.5733315782546997,
+      "perplexity": 1.774167995761612,
+      "rows": 20,
+      "supervised_tokens": 625,
+      "teacher_forced_sequence_exact_rate": 0.05,
+      "teacher_forced_token_accuracy": 0.8992
+    },
+    "fit20_delta": {
+      "loss": -0.4737407680414617,
+      "perplexity": -0.6694492098280314,
+      "teacher_forced_sequence_exact_rate": 0.5499999999999999,
+      "teacher_forced_token_accuracy": 0.07199999999999995
+    }
+  },
+  "training": {
+    "bptt_window": 4,
+    "effective_passes": 1.0,
+    "gradient_audit": {
+      "grad_none": 0,
+      "grad_nonzero": 192,
+      "trainable_parameters": 384
+    },
+    "learning_rate": 5e-05,
+    "lora_alpha": 16,
+    "lora_rank": 8,
+    "max_length": 768,
+    "max_response_tokens": 192,
+    "peak_memory_bytes": 11287262208,
+    "steps": 200,
+    "trainer_sha256": "70193ac4e52d495f07607a483ad20406e37e21065942424ae03a764f55d9ac20"
+  }
+}

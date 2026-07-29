@@ -36,6 +36,8 @@ HIGHER_IS_BETTER = {
     "citation_source_recall",
     "citation_source_domain_precision",
     "citation_source_domain_recall",
+    "citation_exact_page_precision",
+    "citation_exact_page_recall",
     "claim_citation_coverage",
     "evidence_id_precision",
     "evidence_id_recall",
@@ -43,6 +45,8 @@ HIGHER_IS_BETTER = {
     "result_status_ok",
     "source_precision",
     "source_recall",
+    "exact_page_precision",
+    "exact_page_recall",
     "source_domain_precision",
     "source_domain_recall",
     "state_cleanup_success",
@@ -83,12 +87,16 @@ RATE_METRICS = {
     "citation_source_recall",
     "citation_source_domain_precision",
     "citation_source_domain_recall",
+    "citation_exact_page_precision",
+    "citation_exact_page_recall",
     "citation_validity_precision",
     "claim_citation_coverage",
     "evidence_id_precision",
     "evidence_id_recall",
     "source_precision",
     "source_recall",
+    "exact_page_precision",
+    "exact_page_recall",
     "source_domain_precision",
     "source_domain_recall",
     "state_release_rate",
@@ -433,6 +441,10 @@ def evaluate_agent_case(
         precision, recall = _set_scores(actual_sources, expected_sources)
         metrics["source_precision"] = round(precision, 6)
         metrics["source_recall"] = round(recall, 6)
+        # Exact canonical page recall is the primary retrieval-quality signal.
+        # Keep the legacy source_* names as compatible aliases.
+        metrics["exact_page_precision"] = round(precision, 6)
+        metrics["exact_page_recall"] = round(recall, 6)
         expected_domains = {_uri_domain(value) for value in expected_sources}
         actual_domains = {_uri_domain(value) for value in actual_sources}
         precision, recall = _domain_scores(actual_domains, expected_domains)
@@ -467,6 +479,8 @@ def evaluate_agent_case(
         precision, recall = _set_scores(cited_sources, expected_sources)
         metrics["citation_source_precision"] = round(precision, 6)
         metrics["citation_source_recall"] = round(recall, 6)
+        metrics["citation_exact_page_precision"] = round(precision, 6)
+        metrics["citation_exact_page_recall"] = round(recall, 6)
         cited_domains = {_uri_domain(value) for value in cited_sources}
         expected_domains = {_uri_domain(value) for value in expected_sources}
         precision, recall = _domain_scores(cited_domains, expected_domains)

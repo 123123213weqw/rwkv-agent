@@ -45,10 +45,7 @@ from benchmarks.run_agent_benchmark_metrics import build_report  # noqa: E402
 from rwkv_agent.controller import AgentController, ModelClient  # noqa: E402
 from rwkv_agent.claim_verifier import verify_answer_claims  # noqa: E402
 from rwkv_agent.longbench_state import (  # noqa: E402
-    build_state_evidence_views,
     run_state_longbench_chunk_ensemble,
-    run_state_longbench_reader,
-    run_state_longbench_permutation_reader,
 )
 from rwkv_agent.state_agent import (  # noqa: E402
     ANSWER_STOPS,
@@ -691,10 +688,19 @@ def score_web(
     fallback = dict(protocol.get("fallback") or {})
     answer_valid = bool(primary.get("valid")) or bool(fallback.get("valid")) or not bool(native.get("tool_result", {}).get("evidence"))
     native_status = str(native.get("status") or "")
-    normalized_status = "ok" if native_status == "ok" else "error"
+    normalized_status = (
+        "ok" if native_status in {"ok", "insufficient_evidence"} else "error"
+    )
     row = base_result(case, status=normalized_status, answer=str(native.get("answer") or ""))
     row["evidence"] = _safe_evidence(list(native.get("tool_result", {}).get("evidence") or []))
-    row["claims"] = verify_answer_claims(row["answer"], row["evidence"])
+    row["abstained"] = (
+        native_status == "insufficient_evidence" or not row["evidence"]
+    )
+    row["claims"] = (
+        []
+        if row["abstained"]
+        else verify_answer_claims(row["answer"], row["evidence"])
+    )
     row["trace"] = {
         "requests": requests,
         "rounds": len(rounds),
@@ -730,7 +736,13 @@ def score_web(
             str(dict(branch.get("route") or {}).get("arguments", {}).get("query") or "")
             for branch in branch_rows
         ],
+        "executed_search_queries": [
+            str(branch.get("effective_query") or "")
+            for branch in branch_rows
+            if str(branch.get("effective_query") or "")
+        ],
         "search_scope": str(case.get("metadata", {}).get("root_url") or ""),
+        "primary_retrieval_metric": "exact_page_recall",
         "release_status": str(release.get("status") or ""),
     })
     return row
@@ -856,6 +868,16 @@ def score_longbench_state(
     return row
 
 
+def _is_insufficient_evidence_validation(errors: Sequence[str]) -> bool:
+    """Separate safe evidence abstention from malformed answer protocol."""
+
+    normalized = {str(value) for value in errors if str(value)}
+    return bool(
+        "unsupported_claim" in normalized
+        and normalized <= {"missing_citation", "unsupported_claim"}
+    )
+
+
 def score_alce(
     case: Mapping[str, Any],
     model: ModelClient,
@@ -883,11 +905,32 @@ def score_alce(
         stops=list(ANSWER_STOPS),
     )
     validation = coordinate_answer_output(str(completion.get("raw") or ""), evidence)
-    answer = str(validation.get("answer") or "")
+    validation_errors = list(validation.get("errors") or [])
+    insufficient_evidence = _is_insufficient_evidence_validation(
+        validation_errors
+    )
+    answer = (
+        str(validation.get("answer") or "")
+        if validation.get("valid")
+        else ""
+    )
     elapsed = (time.perf_counter() - started) * 1000.0
-    row = base_result(case, status="ok" if validation.get("valid") else "error", answer=answer)
+    row = base_result(
+        case,
+        status=(
+            "ok"
+            if validation.get("valid") or insufficient_evidence
+            else "error"
+        ),
+        answer=answer,
+    )
+    row["abstained"] = insufficient_evidence
     row["evidence"] = evidence
-    row["claims"] = verify_answer_claims(row["answer"], row["evidence"])
+    row["claims"] = (
+        []
+        if insufficient_evidence
+        else verify_answer_claims(row["answer"], row["evidence"])
+    )
     row["trace"] = {"requests": 1, "rounds": 1}
     row["resources"] = {
         "latency_ms": round(elapsed, 3),
@@ -897,7 +940,12 @@ def score_alce(
     row["benchmark"].update({
         "subset": str(case.get("metadata", {}).get("subset") or ""),
         "method": f"oracle-top5-{prompt_profile}-evidence-plus-greedy-cited-answer",
-        "answer_validation_errors": list(validation.get("errors") or []),
+        "answer_validation_errors": validation_errors,
+        "answer_outcome": (
+            "insufficient_evidence"
+            if insufficient_evidence
+            else "answered" if validation.get("valid") else "protocol_error"
+        ),
         "citation_repaired": bool(validation.get("citation_repaired")),
         "citations": list(validation.get("citations") or []),
         "completion": {

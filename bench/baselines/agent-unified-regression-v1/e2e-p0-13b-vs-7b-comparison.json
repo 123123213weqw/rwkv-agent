@@ -1,0 +1,94 @@
+{
+  "schema_version": "rwkv-agent-p0-13b-vs-7b-comparison.v1",
+  "created_at": "2026-07-29",
+  "baseline": "p0-preview3260-7.2b",
+  "candidate": "p0-preview4922-13.3b",
+  "cases": 200,
+  "metrics": {
+    "bfcl.official_ast_exact_match": {
+      "baseline": 0.675,
+      "candidate": 0.875,
+      "delta": 0.2
+    },
+    "bfcl.tool_protocol_valid": {
+      "baseline": 1.0,
+      "candidate": 0.925,
+      "delta": -0.075
+    },
+    "bfcl.tool_call_exact_match": {
+      "baseline": 0.45,
+      "candidate": 0.575,
+      "delta": 0.125
+    },
+    "webwalkerqa.answer_token_f1": {
+      "baseline": 0.017343,
+      "candidate": 0.026278,
+      "delta": 0.008935
+    },
+    "webwalkerqa.domain_recall": {
+      "baseline": 0.2,
+      "candidate": 0.2,
+      "delta": 0.0
+    },
+    "webwalkerqa.exact_page_recall": {
+      "baseline": 0.0,
+      "candidate": 0.025,
+      "delta": 0.025
+    },
+    "webwalkerqa.answered_rate": {
+      "baseline": 0.0,
+      "candidate": 0.05,
+      "delta": 0.05
+    },
+    "frames.answer_token_f1": {
+      "baseline": 0.01004,
+      "candidate": 0.109042,
+      "delta": 0.099002
+    },
+    "frames.domain_recall": {
+      "baseline": 0.0,
+      "candidate": 0.575,
+      "delta": 0.575
+    },
+    "frames.exact_page_recall": {
+      "baseline": 0.0,
+      "candidate": 0.147917,
+      "delta": 0.147917
+    },
+    "frames.answered_rate": {
+      "baseline": 0.075,
+      "candidate": 0.725,
+      "delta": 0.65
+    },
+    "frames.unsupported_claim_rate_answered_only": {
+      "baseline": 0.083333,
+      "candidate": 0.155172,
+      "delta": 0.071839
+    },
+    "longbench_v2.choice_accuracy": {
+      "baseline": 0.25,
+      "candidate": 0.275,
+      "delta": 0.025
+    },
+    "alce.answer_token_f1": {
+      "baseline": 0.18174,
+      "candidate": 0.175708,
+      "delta": -0.006032
+    },
+    "alce.citation_exact_page_recall": {
+      "baseline": 0.355,
+      "candidate": 0.355,
+      "delta": 0.0
+    },
+    "alce.answered_rate": {
+      "baseline": 0.825,
+      "candidate": 0.875,
+      "delta": 0.05
+    }
+  },
+  "decision": {
+    "model_hypothesis": "supported_but_not_sufficient",
+    "production_release": "not_decided_by_this_run",
+    "reason": "The large FRAMES gain is consistent with stronger 13.3B planning and synthesis, while unchanged WebWalker discovery coverage and ALCE citation recall show that retrieval remains the limiting subsystem."
+  }
+}

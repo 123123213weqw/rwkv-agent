@@ -1,0 +1,280 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+COMMAND=${1:-status}
+CONFIG_HOME=${XDG_CONFIG_HOME:-"$HOME/.config"}
+STATE_HOME=${XDG_STATE_HOME:-"$HOME/.local/state"}
+ENV_FILE=${RWKV_AGENT_ENV_FILE:-"$CONFIG_HOME/rwkv-agent/rwkv-agent.env"}
+
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
+PROJECT_ROOT=${RWKV_AGENT_PROJECT_ROOT:-"$PWD"}
+PYTHON_BIN=${RWKV_AGENT_PYTHON:-"$PROJECT_ROOT/.venv/bin/python"}
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  PYTHON_BIN=${RWKV_AGENT_PYTHON:-python3}
+fi
+RUN_DIR=${RWKV_AGENT_STATE_DIR:-"$STATE_HOME/rwkv-agent"}
+MODEL_PATH=${G1I_MODEL_PATH:-}
+RUNTIME_DIR=${G1I_RUNTIME_DIR:-}
+MODEL_ID=${G1I_MODEL_ID:-rwkv7-g1i-preview4922-13.3b}
+CONTEXT=${G1I_CONTEXT:-12288}
+CUDA_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+SIDECAR_PORT=${RWKV_AGENT_SIDECAR_PORT:-8118}
+CONTROLLER_PORT=${RWKV_AGENT_CONTROLLER_PORT:-8120}
+CONTROLLER_HOST=${RWKV_AGENT_CONTROLLER_HOST:-127.0.0.1}
+WEB_CONFIG=${RWKV_AGENT_WEB_CONFIG:-"$PROJECT_ROOT/configs/production.example.json"}
+KNOWLEDGE_ENDPOINT=${RWKV_AGENT_KNOWLEDGE_ENDPOINT:-http://127.0.0.1:19220}
+TOOL_GATE_THRESHOLD=${RWKV_AGENT_TOOL_GATE_THRESHOLD:--3.2}
+PROVIDERS=${RWKV_AGENT_WEB_API_PROVIDERS:-github,mediawiki,crossref}
+EXTENSIONS_DIR=${TORCH_EXTENSIONS_DIR:-"$RUN_DIR/torch-extensions"}
+CUDA_HOME_VALUE=${RWKV_AGENT_CUDA_HOME:-${CUDA_HOME:-}}
+
+SIDECAR_PID="$RUN_DIR/sidecar-$SIDECAR_PORT.pid"
+SIDECAR_LOG="$RUN_DIR/sidecar-$SIDECAR_PORT.log"
+CONTROLLER_PID="$RUN_DIR/controller-$CONTROLLER_PORT.pid"
+CONTROLLER_LOG="$RUN_DIR/controller-$CONTROLLER_PORT.log"
+MEMORY_PATH=${RWKV_AGENT_MEMORY_PATH:-"$RUN_DIR/sessions.sqlite3"}
+
+usage() {
+  cat <<'EOF'
+Usage: rwkv-agent-service init|doctor|start|status|logs|stop|restart
+
+  init     Create the user environment file from .env.example
+  doctor   Validate paths, Python imports and required commands
+  start    Start one local model Sidecar and one Agent Controller
+  status   Show process and HTTP health
+  logs     Tail Sidecar and Controller logs
+  stop     Stop only processes recorded in this service state directory
+  restart  Stop and start the configured local backend
+
+Set RWKV_AGENT_ENV_FILE to use a different environment file.
+EOF
+}
+
+ok() { printf '[ok] %s\n' "$*"; }
+fail() { printf '[fail] %s\n' "$*" >&2; return 1; }
+
+pid_alive() {
+  [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null
+}
+
+pid_matches() {
+  local pidfile=$1
+  local marker=$2
+  pid_alive "$pidfile" || return 1
+  ps -p "$(cat "$pidfile")" -o command= 2>/dev/null | grep -F -- "$marker" >/dev/null
+}
+
+port_open() {
+  "$PYTHON_BIN" - "$1" <<'PY' >/dev/null 2>&1
+import socket
+import sys
+with socket.create_connection(("127.0.0.1", int(sys.argv[1])), timeout=0.3):
+    pass
+PY
+}
+
+wait_health() {
+  local url=$1
+  local attempts=$2
+  for _ in $(seq 1 "$attempts"); do
+    if curl -fsS --max-time 3 "$url" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+init_env() {
+  local destination=$ENV_FILE
+  local template="$PROJECT_ROOT/.env.example"
+  [[ -f "$template" ]] || fail "missing template: $template"
+  mkdir -p "$(dirname "$destination")"
+  if [[ -e "$destination" ]]; then
+    fail "environment file already exists: $destination"
+  fi
+  cp "$template" "$destination"
+  chmod 600 "$destination"
+  ok "created $destination"
+  printf 'Edit the absolute model, runtime, project and Python paths before start.\n'
+}
+
+doctor_env() {
+  local failed=0
+  command -v curl >/dev/null 2>&1 && ok "curl" || { fail "curl is required" || true; failed=1; }
+  command -v "$PYTHON_BIN" >/dev/null 2>&1 && ok "python: $PYTHON_BIN" \
+    || { fail "python is not executable: $PYTHON_BIN" || true; failed=1; }
+  [[ -f "$PROJECT_ROOT/pyproject.toml" && -d "$PROJECT_ROOT/src/rwkv_agent" ]] \
+    && ok "project: $PROJECT_ROOT" \
+    || { fail "invalid RWKV_AGENT_PROJECT_ROOT: $PROJECT_ROOT" || true; failed=1; }
+  [[ -f "$MODEL_PATH" ]] && ok "model file" \
+    || { fail "set G1I_MODEL_PATH to an existing .pth file" || true; failed=1; }
+  [[ -f "$RUNTIME_DIR/rwkv7_fast_v3a.py" ]] && ok "Albatross runtime" \
+    || { fail "set G1I_RUNTIME_DIR to a runtime containing rwkv7_fast_v3a.py" || true; failed=1; }
+  [[ -f "$WEB_CONFIG" ]] && ok "web config: $WEB_CONFIG" \
+    || { fail "missing web config: $WEB_CONFIG" || true; failed=1; }
+  if [[ $failed -eq 0 ]]; then
+    PYTHONPATH="$PROJECT_ROOT/src" "$PYTHON_BIN" - <<'PY'
+import rwkv_agent
+import rwkv7_scheduler
+print("[ok] Python packages: rwkv_agent, rwkv7_scheduler")
+PY
+  fi
+  [[ $failed -eq 0 ]]
+}
+
+start_sidecar() {
+  if pid_matches "$SIDECAR_PID" "rwkv_agent.sidecar"; then
+    ok "Sidecar already running pid=$(cat "$SIDECAR_PID") port=$SIDECAR_PORT"
+    return
+  fi
+  [[ ! -f "$SIDECAR_PID" ]] || rm -f "$SIDECAR_PID"
+  if port_open "$SIDECAR_PORT"; then
+    fail "port $SIDECAR_PORT is occupied outside $SIDECAR_PID"
+  fi
+  local -a runtime_env=(
+    env -u G1I_PP_DEVICES
+    "PYTHONPATH=$PROJECT_ROOT/src"
+    "CUDA_VISIBLE_DEVICES=$CUDA_DEVICES"
+    "G1I_MODEL_PATH=$MODEL_PATH"
+    "G1I_RUNTIME_DIR=$RUNTIME_DIR"
+    "G1I_MODEL_ID=$MODEL_ID"
+    "G1I_CONTEXT=$CONTEXT"
+    "G1I_PERSISTENT_STATE_CAPACITY=${G1I_PERSISTENT_STATE_CAPACITY:-8}"
+    "G1I_PERSISTENT_STATE_TTL_SECONDS=${G1I_PERSISTENT_STATE_TTL_SECONDS:-600}"
+    "G1I_REQUEST_TIMEOUT_SECONDS=${G1I_REQUEST_TIMEOUT_SECONDS:-300}"
+    "TORCH_EXTENSIONS_DIR=$EXTENSIONS_DIR"
+  )
+  if [[ -n "$CUDA_HOME_VALUE" ]]; then
+    runtime_env+=("CUDA_HOME=$CUDA_HOME_VALUE")
+  fi
+  mkdir -p "$RUN_DIR" "$EXTENSIONS_DIR"
+  cd "$PROJECT_ROOT"
+  nohup "${runtime_env[@]}" "$PYTHON_BIN" -m rwkv_agent.sidecar \
+    --host 127.0.0.1 --port "$SIDECAR_PORT" >"$SIDECAR_LOG" 2>&1 < /dev/null &
+  echo $! >"$SIDECAR_PID"
+  if ! wait_health "http://127.0.0.1:$SIDECAR_PORT/health" 240; then
+    tail -n 80 "$SIDECAR_LOG" >&2 || true
+    fail "Sidecar failed to become ready"
+  fi
+  ok "Sidecar ready pid=$(cat "$SIDECAR_PID") port=$SIDECAR_PORT"
+}
+
+start_controller() {
+  if pid_matches "$CONTROLLER_PID" "rwkv_agent.server"; then
+    ok "Controller already running pid=$(cat "$CONTROLLER_PID") port=$CONTROLLER_PORT"
+    return
+  fi
+  [[ ! -f "$CONTROLLER_PID" ]] || rm -f "$CONTROLLER_PID"
+  if port_open "$CONTROLLER_PORT"; then
+    fail "port $CONTROLLER_PORT is occupied outside $CONTROLLER_PID"
+  fi
+  if [[ -n "${TAVILY_API_KEY:-}" && ",$PROVIDERS," != *,tavily,* ]]; then
+    PROVIDERS="tavily,$PROVIDERS"
+  fi
+  mkdir -p "$RUN_DIR"
+  cd "$PROJECT_ROOT"
+  nohup env \
+    "PYTHONPATH=$PROJECT_ROOT/src" \
+    "RWKV_AGENT_WEB_API_PROVIDERS=$PROVIDERS" \
+    "RWKV_AGENT_WEB_FALLBACK_ENGINES=${RWKV_AGENT_WEB_FALLBACK_ENGINES:-bing}" \
+    "RWKV_AGENT_TOOL_GATE_THRESHOLD=$TOOL_GATE_THRESHOLD" \
+    "TAVILY_API_KEY=${TAVILY_API_KEY:-}" \
+    "$PYTHON_BIN" -m rwkv_agent.server \
+      --host "$CONTROLLER_HOST" --port "$CONTROLLER_PORT" \
+      --model-urls "http://127.0.0.1:$SIDECAR_PORT" \
+      --knowledge-endpoint "$KNOWLEDGE_ENDPOINT" \
+      --memory-path "$MEMORY_PATH" \
+      --web-config "$WEB_CONFIG" \
+      --tool-gate-threshold "$TOOL_GATE_THRESHOLD" \
+      >"$CONTROLLER_LOG" 2>&1 < /dev/null &
+  echo $! >"$CONTROLLER_PID"
+  if ! wait_health "http://127.0.0.1:$CONTROLLER_PORT/health" 60; then
+    tail -n 80 "$CONTROLLER_LOG" >&2 || true
+    fail "Controller failed to become ready"
+  fi
+  ok "Controller ready pid=$(cat "$CONTROLLER_PID") port=$CONTROLLER_PORT"
+}
+
+start_all() {
+  doctor_env
+  start_sidecar
+  start_controller
+  RWKV_AGENT_ENDPOINT="http://127.0.0.1:$CONTROLLER_PORT" \
+    rwkv-agent doctor >/dev/null 2>&1 \
+    && ok "CLI doctor" \
+    || printf '[warn] rwkv-agent CLI is not installed or its doctor failed\n' >&2
+}
+
+stop_pid() {
+  local label=$1
+  local pidfile=$2
+  local marker=$3
+  if ! pid_alive "$pidfile"; then
+    rm -f "$pidfile"
+    printf '[skip] %s is not running\n' "$label"
+    return
+  fi
+  if ! pid_matches "$pidfile" "$marker"; then
+    fail "$label PID does not match $marker; refusing to signal it"
+  fi
+  local pid
+  pid=$(cat "$pidfile")
+  kill "$pid"
+  for _ in $(seq 1 20); do
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 0.25
+  done
+  if kill -0 "$pid" 2>/dev/null; then
+    fail "$label did not stop: pid=$pid"
+  fi
+  rm -f "$pidfile"
+  ok "$label stopped"
+}
+
+status_all() {
+  local failed=0
+  if pid_matches "$SIDECAR_PID" "rwkv_agent.sidecar" \
+    && curl -fsS --max-time 3 "http://127.0.0.1:$SIDECAR_PORT/health" >/dev/null; then
+    ok "Sidecar pid=$(cat "$SIDECAR_PID") http://127.0.0.1:$SIDECAR_PORT"
+  else
+    fail "Sidecar unavailable" || true
+    failed=1
+  fi
+  if pid_matches "$CONTROLLER_PID" "rwkv_agent.server" \
+    && curl -fsS --max-time 3 "http://127.0.0.1:$CONTROLLER_PORT/health" >/dev/null; then
+    ok "Controller pid=$(cat "$CONTROLLER_PID") http://127.0.0.1:$CONTROLLER_PORT"
+  else
+    fail "Controller unavailable" || true
+    failed=1
+  fi
+  [[ $failed -eq 0 ]]
+}
+
+case "$COMMAND" in
+  init) init_env ;;
+  doctor) doctor_env ;;
+  start) start_all ;;
+  status) status_all ;;
+  logs)
+    mkdir -p "$RUN_DIR"
+    touch "$SIDECAR_LOG" "$CONTROLLER_LOG"
+    tail -n 80 -f "$SIDECAR_LOG" "$CONTROLLER_LOG"
+    ;;
+  stop)
+    stop_pid "Controller" "$CONTROLLER_PID" "rwkv_agent.server"
+    stop_pid "Sidecar" "$SIDECAR_PID" "rwkv_agent.sidecar"
+    ;;
+  restart)
+    "$0" stop
+    "$0" start
+    ;;
+  -h|--help|help) usage ;;
+  *) usage >&2; exit 2 ;;
+esac

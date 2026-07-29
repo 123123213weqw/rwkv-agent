@@ -46,6 +46,9 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    /// Verify the controller, model Sidecar and required tools.
+    Doctor,
+
     /// Check Agent and model health.
     Health,
 
@@ -350,6 +353,83 @@ fn render(value: &Value, raw_json: bool) {
     }
 }
 
+fn doctor_checks(health: &Value) -> Vec<(&'static str, bool, String)> {
+    let controller_ready = status_of(health) == "ready";
+    let models = health.get("model").and_then(Value::as_array);
+    let model_ready = models.is_some_and(|items| {
+        !items.is_empty()
+            && items
+                .iter()
+                .all(|item| item.get("status").and_then(Value::as_str) == Some("ready"))
+    });
+    let tools = health
+        .get("tools")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let has_tool = |name: &str| tools.iter().any(|item| item.as_str() == Some(name));
+    let required_tools = ["web_search", "knowledge_search", "long_text_qa"];
+    let tools_ready = required_tools.iter().all(|name| has_tool(name));
+    let state_ready = health
+        .pointer("/state_parallel_search/enabled")
+        .and_then(Value::as_bool)
+        == Some(true);
+    vec![
+        (
+            "controller",
+            controller_ready,
+            format!("status={}", status_of(health)),
+        ),
+        (
+            "model_sidecar",
+            model_ready,
+            format!("ready={}", models.map_or(0, Vec::len)),
+        ),
+        ("required_tools", tools_ready, required_tools.join(",")),
+        (
+            "state_parallel_search",
+            state_ready,
+            if state_ready { "enabled" } else { "disabled" }.to_string(),
+        ),
+    ]
+}
+
+fn doctor(client: &AgentClient, raw_json: bool) -> Result<(), String> {
+    let health = client.health()?;
+    let checks = doctor_checks(&health);
+    let ready = checks.iter().all(|(_, passed, _)| *passed);
+    if raw_json {
+        let payload = json!({
+            "status": if ready { "ready" } else { "failed" },
+            "endpoint": client.endpoint,
+            "checks": checks
+                .iter()
+                .map(|(name, passed, detail)| json!({
+                    "name": name,
+                    "passed": passed,
+                    "detail": detail,
+                }))
+                .collect::<Vec<_>>(),
+            "health": health,
+        });
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&payload).unwrap_or_else(|_| compact_json(&payload))
+        );
+    } else {
+        println!("RWKV Agent doctor");
+        println!("endpoint: {}", client.endpoint);
+        for (name, passed, detail) in &checks {
+            println!("[{}] {name}: {detail}", if *passed { "ok" } else { "fail" });
+        }
+    }
+    if ready {
+        Ok(())
+    } else {
+        Err("doctor found an incomplete Agent deployment".to_string())
+    }
+}
+
 fn shorten(value: &str, limit: usize) -> String {
     let normalized = value.split_whitespace().collect::<Vec<_>>().join(" ");
     if normalized.chars().count() <= limit {
@@ -384,6 +464,7 @@ where
 
 fn execute(cli: &Cli, client: &mut AgentClient) -> Result<(), String> {
     match cli.command.as_ref() {
+        Some(Command::Doctor) => doctor(client, cli.json)?,
         Some(Command::Health) => render(&client.health()?, cli.json),
         Some(Command::Ask { message }) => render(
             &with_spinner("Thinking…", || client.ask(&joined(message, "message")?))?,
@@ -682,6 +763,35 @@ mod tests {
     fn defaults_to_interactive_chat() {
         let cli = Cli::try_parse_from(["rwkv-agent"]).unwrap();
         assert!(cli.command.is_none());
+    }
+
+    #[test]
+    fn parses_doctor_command() {
+        let cli = Cli::try_parse_from(["rwkv-agent", "doctor"]).unwrap();
+        assert!(matches!(cli.command, Some(Command::Doctor)));
+    }
+
+    #[test]
+    fn doctor_requires_controller_model_tools_and_state_search() {
+        let ready = json!({
+            "status": "ready",
+            "tools": ["web_search", "knowledge_search", "long_text_qa", "memory"],
+            "model": [{"status": "ready"}],
+            "state_parallel_search": {"enabled": true},
+        });
+        assert!(doctor_checks(&ready).iter().all(|(_, passed, _)| *passed));
+
+        let missing_model = json!({
+            "status": "ready",
+            "tools": ["web_search", "knowledge_search", "long_text_qa"],
+            "model": [],
+            "state_parallel_search": {"enabled": true},
+        });
+        assert!(
+            doctor_checks(&missing_model)
+                .iter()
+                .any(|(name, passed, _)| *name == "model_sidecar" && !passed)
+        );
     }
 
     #[test]

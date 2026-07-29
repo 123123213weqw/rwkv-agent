@@ -64,7 +64,7 @@ class QueryCoordinatorTests(unittest.TestCase):
         self.assertNotEqual(view.strategy, "evidence_pivot")
         self.assertNotIn("CocosCreator", view.query)
 
-    def test_related_primary_evidence_can_become_pivot(self) -> None:
+    def test_second_round_uses_model_gap_without_copying_page_title(self) -> None:
         view = self.coordinator.coordinate(
             "RWKV最近有什么官方项目进展？",
             "RWKV newest release",
@@ -83,9 +83,11 @@ class QueryCoordinatorTests(unittest.TestCase):
         )
 
         self.assertTrue(view.accepted)
-        self.assertEqual(view.strategy, "evidence_pivot")
+        self.assertEqual(view.strategy, "gap_anchor_merge")
         self.assertTrue(view.evidence_based)
-        self.assertIn("RWKV-LM", view.query)
+        self.assertTrue(view.gap_validated)
+        self.assertEqual(view.safe_observation_count, 1)
+        self.assertNotIn("RWKV-LM releases", view.query)
 
     def test_drifted_model_query_falls_back_to_original_anchors(self) -> None:
         view = self.coordinator.coordinate(
@@ -160,6 +162,29 @@ class QueryCoordinatorTests(unittest.TestCase):
         self.assertEqual(trace["strategy"], "model")
         self.assertIn("Python", trace["anchors"])
         self.assertNotIn("reasoning", trace)
+
+    def test_dictionary_observation_cannot_seed_second_round_query(self) -> None:
+        view = self.coordinator.coordinate(
+            "What is the average left-field distance in retractable-roof MLB parks?",
+            "MLB retractable roof left field park dimensions",
+            branch_index=0,
+            round_index=2,
+            observation={
+                "evidence": [
+                    {
+                        "title": "average definition and pronunciation",
+                        "content": "The meaning of average.",
+                        "uri": "https://dictionary.cambridge.org/dictionary/english/average",
+                    }
+                ]
+            },
+            used_queries={"MLB retractable roof stadium average distance"},
+        )
+
+        self.assertTrue(view.accepted)
+        self.assertEqual(view.safe_observation_count, 0)
+        self.assertNotIn("definition", view.query)
+        self.assertNotIn("Cambridge", view.query)
 
 
 if __name__ == "__main__":

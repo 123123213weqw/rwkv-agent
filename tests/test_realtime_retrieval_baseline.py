@@ -85,7 +85,7 @@ class RealtimeRetrievalBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
     def test_hybrid_live_audit_freezes_failure_priority(self) -> None:
@@ -128,7 +128,7 @@ class RealtimeRetrievalBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
     def test_engine_stability_selection_is_not_overstated(self) -> None:
@@ -165,7 +165,7 @@ class RealtimeRetrievalBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
     def test_bing_trial_wins_without_approving_production(self) -> None:
@@ -208,7 +208,7 @@ class RealtimeRetrievalBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
     def test_v100_direct_trial_rejects_all_smoke_candidates(self) -> None:
@@ -241,7 +241,7 @@ class RealtimeRetrievalBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
     def test_hybrid_rerank_passes_offline_quality_gates(self) -> None:

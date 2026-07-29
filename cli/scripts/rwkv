@@ -6,7 +6,7 @@ SERVICE=${RWKV_AGENT_SERVICE_COMMAND:-"$HOME/.local/bin/rwkv-agent-service"}
 CLIENT=${RWKV_AGENT_CLIENT_COMMAND:-"$HOME/.local/bin/rwkv-agent"}
 
 if ! /usr/bin/curl -fsS --max-time 2 "$ENDPOINT/health" >/dev/null 2>&1; then
-  echo "RWKV Agent backend is offline; starting the V100 experiment backend…" >&2
+  echo "RWKV Agent backend is offline; starting the configured local backend…" >&2
   "$SERVICE" start >&2
 fi
 

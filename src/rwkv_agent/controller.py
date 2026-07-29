@@ -63,6 +63,25 @@ TOOL_ENVELOPE = re.compile(
     r"<tool_call>\s*(\{.*\})\s*</tool_call>",
     re.S,
 )
+LEADING_THINK_BLOCKS = re.compile(
+    r"\A\s*(?:<think>.*?</think>\s*)+",
+    re.S,
+)
+
+
+def strip_leading_think_blocks(raw: str) -> tuple[str, bool]:
+    """Hide complete leading reasoning blocks without relaxing the protocol.
+
+    Only complete ``<think>...</think>`` blocks anchored at the beginning are
+    removed. Other prefixes, suffixes, malformed blocks and commentary remain
+    and therefore still fail strict Tool Call parsing.
+    """
+
+    value = str(raw or "")
+    match = LEADING_THINK_BLOCKS.match(value)
+    if match is None:
+        return value.strip(), False
+    return value[match.end() :].strip(), True
 
 
 def build_semantic_scorer_from_env() -> Any | None:
@@ -112,7 +131,14 @@ def render_session_context(
 ) -> str:
     return _bounded_context(
         [
-            ("User" if item.role == "user" else "Assistant", item.content)
+            (
+                "User" if item.role == "user" else "Assistant",
+                (
+                    item.content
+                    if item.role == "user"
+                    else strip_leading_think_blocks(item.content)[0]
+                ),
+            )
             for item in history
         ],
         max_chars=8000,
@@ -124,7 +150,14 @@ def render_routing_context(history: list[Any]) -> str:
 
     return _bounded_context(
         [
-            ("User" if item.role == "user" else "Assistant", item.content)
+            (
+                "User" if item.role == "user" else "Assistant",
+                (
+                    item.content
+                    if item.role == "user"
+                    else strip_leading_think_blocks(item.content)[0]
+                ),
+            )
             for item in history
         ],
         max_chars=2000,
@@ -145,7 +178,8 @@ def render_tool_prompt(
         "- knowledge_search(query): local indexed knowledge, no file path\n"
         "- long_text_qa(question): active pasted session text only\n"
         f"Active pasted long text: {'yes' if has_pasted_text else 'no'}.\n"
-        "Do not copy source text into arguments. Do not answer."
+        "Do not copy source text into arguments. Do not answer. "
+        "Do not emit <think> or any text before the tool call."
     )
     prompt += (
         "\nUser: What is the current stable Python version?\n\nAssistant:"
@@ -171,7 +205,7 @@ def render_tool_prompt(
 
 
 def parse_tool_call(raw: str) -> dict[str, Any]:
-    candidate = str(raw or "").strip()
+    candidate, reasoning_stripped = strip_leading_think_blocks(raw)
     match = TOOL_ENVELOPE.fullmatch(candidate)
     if not match:
         return {
@@ -179,6 +213,7 @@ def parse_tool_call(raw: str) -> dict[str, Any]:
             "tool": "",
             "arguments": {},
             "error": "envelope",
+            "reasoning_stripped": reasoning_stripped,
         }
     try:
         value = json.loads(match.group(1))
@@ -208,6 +243,7 @@ def parse_tool_call(raw: str) -> dict[str, Any]:
             "tool": name,
             "arguments": normalized,
             "error": "",
+            "reasoning_stripped": reasoning_stripped,
         }
     except (ValueError, json.JSONDecodeError, TypeError) as exc:
         return {
@@ -215,6 +251,7 @@ def parse_tool_call(raw: str) -> dict[str, Any]:
             "tool": "",
             "arguments": {},
             "error": str(exc),
+            "reasoning_stripped": reasoning_stripped,
         }
 
 
@@ -236,7 +273,8 @@ def render_direct_answer_prompt(message: str, *, context: str = "") -> str:
         "invent sources or citation IDs, and do not emit a tool call. Use the "
         "supplied conversation when relevant. The conversation is the only memory "
         "available; there is no extracted long-term profile. Do not mention memory "
-        "machinery unless the user asks about it.\n\n"
+        "machinery unless the user asks about it. Never output <think> tags or "
+        "hidden reasoning.\n\n"
     )
     if context:
         prompt += context + "\n\n"
@@ -721,7 +759,10 @@ class AgentController:
                 render_direct_answer_prompt(case["query"], context=context),
                 max_tokens=256,
             )
-            answer = answer_completion["raw"].strip()
+            answer, reasoning_stripped = strip_leading_think_blocks(
+                answer_completion["raw"]
+            )
+            answer_completion["reasoning_stripped"] = reasoning_stripped
             self.memory.append_exchange(
                 session_id=session_id,
                 user=case["query"],
@@ -763,6 +804,7 @@ class AgentController:
             )
         )
         parsed = parse_tool_call(routing["raw"])
+        routing["reasoning_stripped"] = parsed["reasoning_stripped"]
         if not parsed["strict"]:
             return {
                 "status": "route_error",
@@ -790,7 +832,10 @@ class AgentController:
                 ),
                 max_tokens=192,
             )
-            answer = answer_completion["raw"].strip()
+            answer, reasoning_stripped = strip_leading_think_blocks(
+                answer_completion["raw"]
+            )
+            answer_completion["reasoning_stripped"] = reasoning_stripped
         self.memory.append_exchange(
             session_id=session_id,
             user=case["query"],

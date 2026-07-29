@@ -218,6 +218,66 @@ def test_public_crawl_root_becomes_site_query_without_polluting_model_text() -> 
     assert adapter._scope_root == ""
 
 
+def test_scoped_web_search_hard_filters_outside_results_even_if_engine_ignores_site() -> None:
+    class IgnoringEngine:
+        def search_events(self, query, queries, **_kwargs):
+            assert "site:example.org" in query
+            yield {
+                "type": "discovery_progress",
+                "progress": {
+                    "candidates": [
+                        {
+                            "url": "https://example.org/answer",
+                            "title": "Official answer",
+                            "snippet": "Alice won the award.",
+                        },
+                        {
+                            "url": "https://outside.test/wrong",
+                            "title": "Wrong result",
+                            "snippet": "An unrelated page.",
+                        },
+                    ]
+                },
+            }
+            yield {
+                "type": "realtime_result",
+                "results": [
+                    {
+                        "url": "https://example.org/answer",
+                        "title": "Official answer",
+                        "content": "Alice won the award.",
+                    },
+                    {
+                        "url": "https://outside.test/wrong",
+                        "title": "Wrong result",
+                        "content": "Mallory won the award.",
+                    },
+                ],
+                "stats": {},
+            }
+
+        def close(self) -> None:
+            pass
+
+    adapter = __import__(
+        "rwkv_agent.tools.web", fromlist=["WebSearchAdapter"]
+    ).WebSearchAdapter(engine=IgnoringEngine(), profile="legacy", shadow=False)
+
+    with adapter.scoped("https://www.example.org/"):
+        public, trace = adapter.execute_with_trace("Who won the award?")
+
+    assert public["scope_mode"] == "strict"
+    assert [item["uri"] for item in public["evidence"]] == [
+        "https://example.org/answer"
+    ]
+    assert public["scope_rejected"]["results"] == 1
+    assert public["scope_rejected"]["candidates"] == 1
+    assert all(
+        item["url"].startswith("https://example.org/")
+        for item in trace["candidates"]
+    )
+
+
 def test_realtime_engine_contract_accepts_and_normalizes_seed_urls() -> None:
     engine = RealtimeSearchEngine(RealtimeSearchConfig(enabled=False))
 

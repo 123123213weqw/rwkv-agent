@@ -1,123 +1,91 @@
-# 使用指南
+# Usage
 
-## 1. 安装
+## Current Agent path
+
+The supported `v0.3.0-beta.1` experience is the Rust CLI connected to the
+state-native Python Agent backend.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e '.[realtime,dev]'
+pip install -e '.[realtime,agent]'
+
+cd cli && ./install.sh && cd ..
+rwkv-agent-service init
+$EDITOR ~/.config/rwkv-agent/rwkv-agent.env
+rwkv-agent-service doctor
+rwkv-agent-service start
+rwkv-agent doctor
+rwkv-agent chat
 ```
 
-可选依赖：
+Detailed instructions:
+
+- [Quickstart](QUICKSTART.md)
+- [Model setup](MODEL_SETUP.md)
+- [Deployment](DEPLOYMENT.md)
+- [Configuration](CONFIGURATION.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
+
+## Agent commands
 
 ```bash
-pip install -e '.[model]'      # Hugging Face RWKV
-pip install -e '.[browser]'    # 少量 JS 页面后备
-pip install -e '.[extraction-bench,dev]'  # 静态抽取器固定快照A/B
+rwkv-agent ask "hello"
+rwkv-agent tool web-search "latest official RWKV update"
+rwkv-agent tool knowledge-search "RWKV architecture"
+rwkv-agent research --branches 4 --rounds 2 "compare official RWKV projects"
+rwkv-agent --json health
 ```
 
-## 2. 本地聊天界面
+Interactive chat supports `/web`, `/knowledge`, `/research`, `/longtext`,
+`/session`, `/status` and `/json`.
+
+## Legacy Web Preview
+
+The earlier local Web UI remains available for retrieval development and
+Hugging Face-format RWKV checkpoints:
 
 ```bash
+pip install -e '.[realtime,model]'
 rwkv-search --config configs/default.json init
-rwkv-search --config configs/default.json serve --host 127.0.0.1 --port 8765 --no-model
-```
-
-加载本地 HF RWKV：
-
-```bash
 rwkv-search --config configs/default.json serve \
   --host 127.0.0.1 --port 8765 \
   --model /path/to/rwkv-hf --device cuda:0 --dtype fp16
 ```
 
-## 3. SearXNG
+Extractive fallback without a model can be started with `--no-model`, but it is
+not representative of the current 13.3B Agent quality.
 
-示例只监听本机：
+## SearXNG
 
 ```bash
 cd deploy/searxng
-# 将 settings.yml 中的示例 secret_key 替换为随机值
-# python -c 'import secrets; print(secrets.token_hex(32))'
-
+# Replace settings.yml secret_key first.
 docker compose up -d
-curl 'http://127.0.0.1:8888/search?q=python&format=json'
+curl 'http://127.0.0.1:8888/search?q=rwkv&format=json'
 ```
 
-主程序通过 `realtime_search.searxng_url` 连接它。SearXNG 负责聚合 Discovery，不负责网页正文抽取或答案生成。
+SearXNG performs URL discovery. Page fetching, extraction, Evidence selection
+and answer generation remain in RWKV Search.
 
-## 4. 精确发现配置
+## Benchmarks
 
-`configs/benchmark.json` 展示了完整实验开关：
-
-```json
-{
-  "candidate_admission_enabled": true,
-  "source_channels_enabled": true,
-  "domain_pivot_enabled": true,
-  "domain_pivot_max_domains": 2,
-  "one_hop_link_expansion_enabled": true,
-  "one_hop_max_links": 8
-}
-```
-
-请先跑 Benchmark。不要仅因为功能可用就直接覆盖生产配置。
-
-## 5. G1I/P4 查询生成
-
-原生适配器需要 RWKV G1I 权重及对应本地运行时：
+Run ordinary tests before live-network benchmarks:
 
 ```bash
-PYTHONPATH=src python bench/generate_p4_queries.py \
-  --model /path/to/model.pth \
-  --runtime-dir /path/to/rwkv-runtime \
-  --output bench/runs/p4_queries.jsonl \
-  --summary bench/runs/p4_queries_summary.json
+pytest -q
+python scripts/check_public_release.py
 ```
 
-生成格式：
-
-```xml
-<tool_call>{"name":"web_search","arguments":{"query":"Python latest stable version"}}</tool_call>
-```
-
-运行时使用 greedy 解码，并在完整 `</tool_call>` 处停止。解析失败时不猜测或执行半截工具调用。
-
-## 6. 联网 Benchmark
+Realtime retrieval smoke:
 
 ```bash
 PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
   --config configs/benchmark.json \
-  --bench bench/realtime_web_retrieval.jsonl \
-  --output bench/runs/retrieval.jsonl \
-  --summary bench/runs/retrieval_summary.json
+  --case-id retrieval-zh-001 \
+  --case-id retrieval-en-006
 ```
 
-使用已生成的模型查询：
-
-```bash
-PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
-  --config configs/benchmark.json \
-  --model-queries bench/runs/p4_queries.jsonl
-```
-
-## 7. 固定网页抽取 Benchmark
-
-首次抓取原始快照（不会写入Git）：
-
-```bash
-PYTHONPATH=src python bench/run_web_extraction_bench.py \
-  --capture --capture-only
-```
-
-离线比较同一批字节：
-
-```bash
-PYTHONPATH=src python bench/run_web_extraction_bench.py \
-  --repeat 3 \
-  --extractors current,hybrid_fast,trafilatura,justext,readability,resiliparse
-```
-
-`data/web-extraction-bench/`保存网页快照，`bench/runs/`保存本地逐例结果，两者均被Git忽略。可公开摘要必须只包含指标、失败类型、长度和哈希。
-
-`hybrid_fast`直接复用实时链路的`src/rwkv_search/realtime/hybrid_extractor.py`。安装`realtime`可选依赖后，HTML正文默认使用Resiliparse快速抽取和Trafilatura轻量元数据；仅在通用质量信号命中时运行完整Trafilatura兜底。缺少可选依赖时会安全降级到原抽取实现。接入前冻结结果见`bench/baselines/web_extraction/hybrid-fast-v1/`。
+Agent benchmark methodology and license boundaries are documented in
+[AGENT_BENCHMARK.md](AGENT_BENCHMARK.md). Local outputs go to ignored `runs/`
+directories. Only reviewed summaries belong under `bench/baselines/`.

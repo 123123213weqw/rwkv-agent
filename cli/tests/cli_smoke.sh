@@ -11,12 +11,14 @@ PID=$!
 trap 'kill "$PID" 2>/dev/null || true' EXIT
 
 for _ in $(seq 1 30); do
-  curl -fsS "http://127.0.0.1:$PORT/health" >/dev/null && break
+  curl -fsS "http://127.0.0.1:$PORT/health" >/dev/null 2>&1 && break
   sleep 0.1
 done
 
 ENDPOINT="http://127.0.0.1:$PORT"
 "$BIN" --endpoint "$ENDPOINT" health | grep -q "status: ready"
+"$BIN" --endpoint "$ENDPOINT" doctor | grep -q "\[ok\] model_sidecar"
+"$BIN" --endpoint "$ENDPOINT" --json doctor | grep -q '"status": "ready"'
 "$BIN" --endpoint "$ENDPOINT" ask "hello world" | grep -q "mock answer"
 "$BIN" --endpoint "$ENDPOINT" research --branches 4 --rounds 2 \
   "Who created RWKV?" | grep -q "mock research"

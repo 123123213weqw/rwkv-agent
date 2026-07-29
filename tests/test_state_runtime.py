@@ -6,12 +6,12 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from rwkv7_scheduler import (
+from rwkv7_scheduler import (  # noqa: E402
     AlbatrossChunkScheduler,
     AlbatrossStatePool,
     SchedulerConfig,
 )
-from rwkv_agent.state_runtime import PersistentStateRuntime
+from rwkv_agent.state_runtime import PersistentStateRuntime  # noqa: E402
 
 
 class FakeAlbatross:

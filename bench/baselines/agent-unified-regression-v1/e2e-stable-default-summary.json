@@ -1,0 +1,230 @@
+{
+  "schema_version": "rwkv-agent-unified-regression-summary.v1",
+  "run_id": "agent-unified-regression-v1-stable-default",
+  "model": "rwkv7-g1i-preview3260-7.2b",
+  "context_tokens": 12288,
+  "dataset_cases": {
+    "total": 200,
+    "bfcl": 40,
+    "webwalkerqa": 40,
+    "frames": 40,
+    "longbench_v2": 40,
+    "alce": 40
+  },
+  "configuration": {
+    "mode": "full",
+    "concurrency": 2,
+    "web_profile": "legacy",
+    "web_fallback_engines": [
+      "bing"
+    ],
+    "longbench_mode": "lexical",
+    "alce_prompt_profile": "full",
+    "alce_max_tokens": 32,
+    "isolated_benchmark_sidecars": true,
+    "production_stable_controller_called": false
+  },
+  "status_ok": {
+    "count": 200,
+    "rate": 1.0
+  },
+  "total_elapsed_seconds": 748.773,
+  "reliability": {
+    "http_409_count": 0,
+    "state_leak_count": 0,
+    "protocol_leak_count": 0,
+    "route_error_count": 0,
+    "budget_overrun_count": 0
+  },
+  "tracks": {
+    "bfcl": {
+      "ast_exact_match": 0.675,
+      "by_category": {
+        "multiple": {
+          "cases": 10,
+          "passed": 8,
+          "rate": 0.8
+        },
+        "parallel": {
+          "cases": 10,
+          "passed": 5,
+          "rate": 0.5
+        },
+        "parallel_multiple": {
+          "cases": 10,
+          "passed": 4,
+          "rate": 0.4
+        },
+        "simple": {
+          "cases": 10,
+          "passed": 10,
+          "rate": 1.0
+        }
+      },
+      "tool_protocol_valid": 1.0,
+      "tool_call_exact_match": 0.45,
+      "tool_name_exact_match": 0.85,
+      "tool_sequence_exact_match": 0.4,
+      "latency_ms": {
+        "mean": 1890.407725,
+        "p50": 1259.688,
+        "p95": 6456.89,
+        "p99": 8315.504,
+        "max": 8315.504
+      }
+    },
+    "webwalkerqa": {
+      "answer_token_f1": 0.227145,
+      "answer_exact_match": 0.0,
+      "source_domain_recall": 0.225,
+      "exact_source_recall": 0.025,
+      "citation_presence": 1.0,
+      "citation_validity_precision": 1.0,
+      "supported_claim_rate": 0.03625,
+      "unsupported_claim_rate": 0.96375,
+      "request_count": {
+        "mean": 7.8,
+        "p50": 8.0,
+        "p95": 8.0,
+        "p99": 8.0,
+        "max": 8.0
+      },
+      "round_count": {
+        "mean": 2.0,
+        "p50": 2.0,
+        "p95": 2.0,
+        "p99": 2.0,
+        "max": 2.0
+      },
+      "latency_ms": {
+        "mean": 13771.7785,
+        "p50": 12892.977,
+        "p95": 19377.881,
+        "p99": 21761.082,
+        "max": 21761.082
+      }
+    },
+    "frames": {
+      "answer_token_f1": 0.07293,
+      "answer_exact_match": 0.0,
+      "source_domain_recall": 0.0,
+      "exact_source_recall": 0.0,
+      "citation_presence": 1.0,
+      "citation_validity_precision": 1.0,
+      "supported_claim_rate": 0.009375,
+      "unsupported_claim_rate": 0.990625,
+      "answer_f1_by_reasoning_type": {
+        "Multiple constraints": {
+          "cases": 28,
+          "mean": 0.078704
+        },
+        "Numerical reasoning": {
+          "cases": 13,
+          "mean": 0.05485
+        },
+        "Post processing": {
+          "cases": 4,
+          "mean": 0.007353
+        },
+        "Tabular reasoning": {
+          "cases": 11,
+          "mean": 0.019794
+        },
+        "Temporal reasoning": {
+          "cases": 12,
+          "mean": 0.044066
+        }
+      },
+      "request_count": {
+        "mean": 8.0,
+        "p50": 8.0,
+        "p95": 8.0,
+        "p99": 8.0,
+        "max": 8.0
+      },
+      "round_count": {
+        "mean": 2.0,
+        "p50": 2.0,
+        "p95": 2.0,
+        "p99": 2.0,
+        "max": 2.0
+      },
+      "latency_ms": {
+        "mean": 17943.591775,
+        "p50": 18127.4,
+        "p95": 20851.88,
+        "p99": 22950.373,
+        "max": 22950.373
+      }
+    },
+    "longbench_v2": {
+      "choice_accuracy": 0.25,
+      "accuracy_by_context_bucket": {
+        "long": {
+          "cases": 8,
+          "mean": 0.25
+        },
+        "medium": {
+          "cases": 18,
+          "mean": 0.166667
+        },
+        "short": {
+          "cases": 14,
+          "mean": 0.357143
+        }
+      },
+      "accuracy_by_difficulty": {
+        "easy": {
+          "cases": 14,
+          "mean": 0.285714
+        },
+        "hard": {
+          "cases": 26,
+          "mean": 0.230769
+        }
+      },
+      "mode": "lexical",
+      "latency_ms": {
+        "mean": 2252.957625,
+        "p50": 2263.274,
+        "p95": 2879.984,
+        "p99": 3156.265,
+        "max": 3156.265
+      }
+    },
+    "alce": {
+      "answer_token_f1": 0.211623,
+      "answer_f1_by_subset": {
+        "asqa": {
+          "cases": 20,
+          "mean": 0.297113
+        },
+        "qampari": {
+          "cases": 20,
+          "mean": 0.126133
+        }
+      },
+      "citation_presence": 1.0,
+      "citation_validity_precision": 1.0,
+      "exact_source_recall": 0.41,
+      "supported_claim_rate": 0.695833,
+      "unsupported_claim_rate": 0.304167,
+      "latency_ms": {
+        "mean": 1286.708825,
+        "p50": 1303.866,
+        "p95": 1491.184,
+        "p99": 1709.133,
+        "max": 1709.133
+      }
+    }
+  },
+  "assessment": {
+    "runtime_reliability": "pass",
+    "answer_quality": "below_target",
+    "notes": [
+      "All 200 cases completed successfully with no recorded state leak, HTTP 409, protocol leak, route error, or budget overrun.",
+      "BFCL parallel composition, WebWalkerQA retrieval/answering, FRAMES multihop reasoning, LongBench accuracy, and ALCE claim support remain below release targets.",
+      "LongBench v2 used the lexical baseline mode in this run; it is not evidence of recurrent-state Agent improvement."
+    ]
+  }
+}

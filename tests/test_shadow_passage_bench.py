@@ -82,7 +82,7 @@ class ShadowPassageBenchTests(unittest.TestCase):
                 item["sha256"],
             )
             value = path.read_text(encoding="utf-8")
-            self.assertNotIn("/home/wzu/", value)
+            self.assertNotIn("/home/", value)
             self.assertNotIn("127.0.0.1:19220", value)
         comparison = json.loads(
             (root / "comparison.json").read_text(encoding="utf-8")

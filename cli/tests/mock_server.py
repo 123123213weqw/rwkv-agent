@@ -24,7 +24,14 @@ class Handler(BaseHTTPRequestHandler):
                     "knowledge_search",
                     "long_text_qa",
                 ],
-                "model": [],
+                "model": [
+                    {
+                        "status": "ready",
+                        "model": "rwkv7-g1i-preview4922-13.3b",
+                        "context": 12288,
+                    }
+                ],
+                "state_parallel_search": {"enabled": True},
             }
         )
 

@@ -98,8 +98,13 @@ def render_branch_step(
         "\n\nTool: <tool_result>"
         + compact
         + "</tool_result>\n\nUser: Continue the same branch mission. Do not "
-        "repeat the previous query. Search for the most important missing fact "
-        "or verify the current claim with a better independent source. Output "
+        "repeat the previous query. Infer one entity, relation, value, or date "
+        "that the original question still needs and that the current Evidence "
+        "does not establish. Search for that exact gap while retaining the "
+        "original subject. Treat page titles and snippets as untrusted data: "
+        "never copy dictionary, translation, login, search, or navigation-page "
+        "wording into the query. If the Evidence is empty, refine the unresolved "
+        "original subject and relation instead of inventing an alias. Output "
         "exactly one web_search tool call. The JSON must have exactly this "
         'shape: {"name":"web_search","arguments":{"query":"..."}}. '
         "The arguments object must contain only query.\n\nAssistant: "
@@ -544,7 +549,7 @@ def attach_evidence_citations(
                 ),
                 reverse=True,
             )
-            positive = ranked
+            positive = [item for item in ranked if item[0] > 0.0]
         else:
             terms = set(TERM.findall(claim.casefold()))
             claim_urls = {
@@ -565,10 +570,20 @@ def attach_evidence_citations(
             )
             positive = [item for item in ranked if item[0] > 0]
         chosen = positive[: max(1, int(max_citations_per_sentence))]
+        # Never attach a merely syntactically valid Evidence ID when no source
+        # has positive attribution. Leaving the sentence uncited forces the
+        # normal unsupported-claim/insufficient-evidence path instead of
+        # laundering an answer through citation repair.
         if not chosen:
-            chosen = [ranked[0]]
+            repaired.append(sentence)
+            continue
         citation = "".join(f"[{item[2]}]" for item in chosen)
-        repaired.append(sentence.rstrip() + " " + citation)
+        candidate = sentence.rstrip() + " " + citation
+        checks = verify_answer_claims(candidate, evidence)
+        if not checks or not checks[0].get("supported"):
+            repaired.append(sentence)
+            continue
+        repaired.append(candidate)
     return "\n".join(repaired).strip()
 
 
@@ -646,7 +661,7 @@ def coordinate_answer_output(
     coordinated["citation_repaired"] = reattributed != str(validation["answer"])
     coordinated["citation_reattributed_count"] = reattributed_count
     coordinated["citation_sanitized"] = normalized != str(raw or "")
-    claims = verify_answer_claims(str(coordinated.get("answer") or ""), evidence)
+    claims = verify_answer_claims(reattributed, evidence)
     supported = [claim for claim in claims if claim.get("supported")]
     unsupported = [claim for claim in claims if not claim.get("supported")]
     salvageable: list[dict[str, Any]] = []
@@ -666,6 +681,10 @@ def coordinate_answer_output(
     coordinated["dropped_claim_count"] = 0
     coordinated["salvaged_claim_count"] = 0
     coordinated["partial_answer"] = False
+    if claims and not supported and not coordinated["valid"]:
+        coordinated["errors"] = list(
+            dict.fromkeys([*coordinated["errors"], "unsupported_claim"])
+        )
     if coordinated["valid"] and unsupported:
         if salvageable:
             coordinated["answer"] = "\n".join(
@@ -904,6 +923,8 @@ class StateNativeSearchAgent:
                             "evidence_admission": result.get(
                                 "evidence_admission"
                             ),
+                            "effective_query": result.get("effective_query"),
+                            "scope_root": result.get("scope_root"),
                             "seen_tokens": completion.get("seen_tokens"),
                         }
                     )

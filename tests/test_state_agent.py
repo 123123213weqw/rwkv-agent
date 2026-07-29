@@ -491,9 +491,26 @@ class StateNativeSearchAgentTests(unittest.TestCase):
         self.assertEqual(repaired["citations"], ["W1"])
         self.assertEqual(
             attach_evidence_citations("Fact one.\nFact two.", evidence).count("[W"),
-            2,
+            0,
         )
 
+    def test_citation_repair_never_attaches_unrelated_evidence(self) -> None:
+        coordinated = coordinate_answer_output(
+            "Alice won the award in 2024.",
+            [
+                {
+                    "id": "W1",
+                    "title": "Weather report",
+                    "content": "The forecast says it will rain tomorrow.",
+                }
+            ],
+        )
+
+        self.assertFalse(coordinated["valid"])
+        self.assertIn("unsupported_claim", coordinated["errors"])
+        self.assertFalse(coordinated["citation_repaired"])
+
+        evidence = [{"id": "W1"}, {"id": "W2"}]
         invalid_grouped = validate_answer_output(
             "RWKV is supported [W1, W9].",
             evidence,

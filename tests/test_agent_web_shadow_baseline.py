@@ -30,8 +30,8 @@ class AgentWebShadowBaselineTests(unittest.TestCase):
             )
             value = path.read_text(encoding="utf-8")
             for forbidden in (
-                "/home/wzu/",
-                "/Users/wangyue/",
+                "/home/",
+                "/Users/",
                 "127.0.0.1",
                 "100.70.",
                 '"query":',
