@@ -285,7 +285,7 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     fresh_manifest_path = args.fresh_manifest.expanduser().resolve()
     fresh_claim_path = args.fresh_blind_claim.expanduser().resolve()
     fresh_scoring_manifest_path = args.fresh_scoring_manifest.expanduser().resolve()
-    fresh_manifest = load_json(fresh_manifest_path)
+    load_json(fresh_manifest_path)
     fresh_claim = load_json(fresh_claim_path)
     fresh_scoring_manifest = load_json(fresh_scoring_manifest_path)
     book.add("fresh.case_count", "fresh", fresh.summary("webwalkerqa").get("cases"), "==", 200, str(fresh.path))

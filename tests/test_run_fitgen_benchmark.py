@@ -195,6 +195,97 @@ class CoreScoreTest(unittest.TestCase):
         self.assertEqual(controller.message, case["prompt"])
         self.assertNotIn("private/gold", controller.message)
         self.assertEqual(row["benchmark"]["search_scope"], "https://www.example.org/")
+        self.assertTrue(row["abstained"])
+        self.assertEqual(row["claims"], [])
+
+    def test_web_score_treats_insufficient_evidence_as_safe_abstention(self):
+        class FakeWeb:
+            @contextmanager
+            def scoped(self, _root: str):
+                yield
+
+        class FakeController:
+            def __init__(self) -> None:
+                self.web = FakeWeb()
+
+            def run_stateful_search(self, _message: str, **_kwargs):
+                return {
+                    "status": "insufficient_evidence",
+                    "answer": "No sufficient verifiable evidence was found.",
+                    "tool_result": {"evidence": []},
+                    "trace": {
+                        "rounds": [
+                            {
+                                "round": 1,
+                                "branches": [
+                                    {
+                                        "route": {
+                                            "strict": True,
+                                            "arguments": {"query": "award winner"},
+                                        },
+                                        "effective_query": (
+                                            "award winner site:example.org"
+                                        ),
+                                    }
+                                ],
+                            }
+                        ],
+                        "state_runtime": {
+                            "forked_states": 0,
+                            "release": {"released": 1},
+                        },
+                    },
+                }
+
+        case = {
+            "schema_version": "agent-benchmark-case.v1",
+            "id": "web-insufficient",
+            "dataset": "webwalkerqa",
+            "split": "dev",
+            "track": "web_research",
+            "language": "en",
+            "prompt": "Who won the award?",
+            "metadata": {"root_url": "https://example.org/"},
+            "gold": {
+                "answerable": True,
+                "answers": ["Alice"],
+                "requires_citations": True,
+                "source_uris": ["https://example.org/answer"],
+            },
+            "limits": {"max_requests": 8, "max_rounds": 2},
+        }
+
+        row = module.score_web(case, FakeController())
+
+        self.assertEqual(row["status"], "ok")
+        self.assertTrue(row["abstained"])
+        self.assertEqual(row["claims"], [])
+        self.assertEqual(
+            row["benchmark"]["executed_search_queries"],
+            ["award winner site:example.org"],
+        )
+        self.assertEqual(
+            row["benchmark"]["primary_retrieval_metric"],
+            "exact_page_recall",
+        )
+
+    def test_alce_only_treats_unsupported_evidence_as_safe_abstention(self):
+        self.assertTrue(
+            module._is_insufficient_evidence_validation(
+                ["missing_citation", "unsupported_claim"]
+            )
+        )
+        self.assertTrue(
+            module._is_insufficient_evidence_validation(["unsupported_claim"])
+        )
+        self.assertFalse(
+            module._is_insufficient_evidence_validation(["missing_citation"])
+        )
+        self.assertFalse(
+            module._is_insufficient_evidence_validation(
+                ["unsupported_claim", "protocol_tag"]
+            )
+        )
 
     def test_official_ast_accepts_frozen_gold_for_every_category(self):
         if not self.bfcl:

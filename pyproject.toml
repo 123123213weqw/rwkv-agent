@@ -4,13 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rwkv-search"
-version = "0.2.0"
+version = "0.3.0b1"
 description = "Local-first realtime web retrieval and evidence-grounded answer stack for RWKV."
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 authors = [{name = "RWKV Search contributors"}]
 dependencies = ["regex>=2024.5.15"]
+
+[project.urls]
+Homepage = "https://github.com/123123213weqw/rwkv-search"
+Documentation = "https://github.com/123123213weqw/rwkv-search/tree/main/docs"
+Issues = "https://github.com/123123213weqw/rwkv-search/issues"
 
 [project.optional-dependencies]
 extract = ["trafilatura>=2.0"]
@@ -47,3 +52,11 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 rwkv_search = ["web/*"]
+
+[tool.ruff]
+target-version = "py310"
+
+[tool.ruff.lint]
+# Keep CI focused on correctness checks. Opt into additional style rules in a
+# dedicated cleanup instead of inheriting version-dependent Ruff defaults.
+select = ["E4", "E7", "E9", "F"]

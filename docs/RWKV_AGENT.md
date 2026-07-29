@@ -5,10 +5,10 @@ comparison are documented in `docs/AGENT_BENCHMARK.md`.
 
 Clean desktop workspace for the current RWKV Agent implementation.
 
-**Status:** the scheme-B Albatross state scheduler is now integrated into the
-G1I Sidecar through a continuous batching worker and is deployed to the
-localhost-only V100 Agent services on ports 8118/8119/8120. The public
-production chat, Router, index aliases and frontend are unchanged.
+**Status:** the scheme-B Albatross state scheduler is integrated into the G1I
+Sidecar through a continuous batching worker. The public Beta topology is one
+loopback Sidecar on port 8118 and one loopback Controller on port 8120. The
+Legacy Web frontend remains a separate preview surface.
 
 The FineWiki Hybrid retriever is also integrated as an opt-in, bounded Shadow
 behind `knowledge_search`. It preserves the existing visible `K1..K5` lexical
@@ -27,6 +27,36 @@ State-native Web research is exposed only through the explicit
 interactive `/research` command. It passed the real G1I 7.2B Root/Fork/Resume
 equivalence and two-round strict Tool Call gates. Ordinary messages still use
 `/v1/agent/run`, and `/web` remains a direct one-shot tool call.
+
+## Current CLI backend
+
+The installed lifecycle script starts a user-configured local CUDA backend. It
+contains no built-in remote server, account, model path or tunnel:
+
+```text
+rwkv / rwkv-agent
+  -> 127.0.0.1:8120 (Agent Controller)
+  -> 127.0.0.1:8118 (single-GPU RWKV 13.3B Sidecar)
+```
+
+`rwkv-agent-service stop` only stops PIDs recorded under the configured local
+state directory. Remote users run the service on the GPU host and provide their
+own SSH tunnel or authenticated gateway.
+
+```bash
+rwkv-agent-service start
+rwkv-agent-service status
+rwkv-agent doctor
+rwkv-agent research --branches 4 --rounds 2 "your question"
+rwkv-agent-service stop
+```
+
+The default model is `rwkv7-g1i-preview4922-13.3b` with a 12,288-token context
+on one V100. Discovery providers default to GitHub, MediaWiki and Crossref,
+with Bing as the bounded fallback. Tavily is prepended when
+`TAVILY_API_KEY` is present at service start. Paths, ports, model ID and
+provider order can be overridden through the `RWKV_AGENT_*` environment
+variables documented in `cli/scripts/rwkv-agent-service`.
 
 ## Architecture
 
@@ -54,7 +84,7 @@ flowchart LR
     SR --> P
     M --> Q["ContinuousBatchEngine"]
     Q --> P["Exact-chunk prefill\nactive-row decode"]
-    P --> R["Albatross G1I 7.2B"]
+    P --> R["Albatross G1I 13.3B"]
 ```
 
 ## Clean workspace layout
@@ -66,7 +96,7 @@ src/rwkv_search/           Internal realtime and FineWiki dependencies
 cli/                       Claude-style Rust terminal client
 tests/                     Current unit and scheduler tests
 benchmarks/                Current reproducible performance runners/results
-deployment/                Isolated localhost V100 lifecycle scripts
+deploy/                    Local Agent and optional SearXNG examples
 configs/                   Retrieval configuration
 docs/                      Architecture and scheduler notes
 archive/                   Historical Agent experiments, outside active path
@@ -95,6 +125,15 @@ call:
 3. bounded tool execution and Evidence;
 4. final answer;
 5. append the exchange to the session transcript.
+
+Visible model output passes through a narrow reasoning-boundary normalizer:
+only complete leading `<think>...</think>` blocks are hidden. Tool output is
+then checked by the unchanged full-envelope JSON/schema/tool allowlist parser;
+ordinary prefixes, incomplete reasoning blocks and trailing commentary remain
+invalid. The raw completion is retained in the private trace, while only the
+visible answer is returned and stored in session history. Historical turns are
+normalized again when rendered, so an older leaked block cannot poison a later
+Tool Call.
 
 Long-term extracted memory remains disabled. Only the latest 12 messages from
 the current session are supplied to answer generation.
@@ -303,16 +342,12 @@ remain healthy under sustained load, so the accepted run used the existing
 Bing HTML fallback and does not claim durable multi-engine operation. Visible
 Legacy output remains unchanged.
 
-## Run locally on the V100
+## Run locally on a CUDA host
 
 ```bash
-./deployment/start_g1i_sidecars.sh 2
-PYTHONPATH=src python -m rwkv_agent.server \
-  --host 127.0.0.1 --port 8120 \
-  --model-urls http://127.0.0.1:8118,http://127.0.0.1:8119 \
-  --knowledge-endpoint http://127.0.0.1:19220 \
-  --memory-path var/sessions.sqlite3 \
-  --web-config configs/default.json
+rwkv-agent-service doctor
+rwkv-agent-service start
+rwkv-agent doctor
 ```
 
 The Sidecar requires the external G1I weights, Albatross `faster3a_2607`, CUDA,
@@ -321,15 +356,15 @@ into this workspace.
 
 ## Remaining boundaries
 
-- the deployed services are the localhost-only Agent experiment, not the
-  public production chat;
+- the supported Beta services are localhost-only and require an authenticated
+  gateway before public exposure;
 - persistent HTTP states are turn-scoped, owner-isolated, capped at eight per
   Sidecar and expire after 120 seconds; there is no CPU state offload;
 - no multi-GPU state spanning—each request stays within one Sidecar;
 - the default Agent still performs at most one external function call per
   turn; only explicit State research runs B1-B4 for one to three rounds;
 - State research uses fixed bounded rounds and semantic Evidence reduction;
-  it has no adaptive early stop, claim verifier or tensor-state merge;
+  it has no evidence-sufficiency adaptive early stop or tensor-state merge;
 - pasted text is transient process memory and is lost on restart; there is no
   file-path, upload, attachment, PDF or Office ingestion surface;
 - citation obedience and long-text answer quality remain model-quality work.

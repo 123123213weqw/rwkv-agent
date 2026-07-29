@@ -1,0 +1,96 @@
+{
+  "schema_version": "rwkv-agent-p0-scope-gap-comparison.v1",
+  "created_at": "2026-07-28",
+  "baseline": "stable-default",
+  "candidate": "p0-scope-gap",
+  "metrics": {
+    "bfcl.ast_exact_match": {
+      "baseline": 0.675,
+      "candidate": 0.675,
+      "delta": 0.0
+    },
+    "webwalkerqa.answer_token_f1": {
+      "baseline": 0.227145,
+      "candidate": 0.017343,
+      "delta": -0.209802
+    },
+    "webwalkerqa.domain_recall": {
+      "baseline": 0.225,
+      "candidate": 0.2,
+      "delta": -0.025
+    },
+    "webwalkerqa.exact_page_recall": {
+      "baseline": 0.025,
+      "candidate": 0.0,
+      "delta": -0.025
+    },
+    "webwalkerqa.abstention_rate": {
+      "baseline": 0.0,
+      "candidate": 1.0,
+      "delta": 1.0
+    },
+    "frames.answer_token_f1": {
+      "baseline": 0.07293,
+      "candidate": 0.01004,
+      "delta": -0.06289
+    },
+    "frames.domain_recall": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "delta": 0.0
+    },
+    "frames.exact_page_recall": {
+      "baseline": 0.0,
+      "candidate": 0.0,
+      "delta": 0.0
+    },
+    "frames.abstention_rate": {
+      "baseline": 0.0,
+      "candidate": 0.925,
+      "delta": 0.925
+    },
+    "longbench_v2.choice_accuracy": {
+      "baseline": 0.25,
+      "candidate": 0.25,
+      "delta": 0.0
+    },
+    "alce.answer_token_f1": {
+      "baseline": 0.211623,
+      "candidate": 0.18174,
+      "delta": -0.029883
+    },
+    "alce.citation_exact_page_recall": {
+      "baseline": 0.41,
+      "candidate": 0.355,
+      "delta": -0.055
+    },
+    "alce.status_ok_rate": {
+      "baseline": 1.0,
+      "candidate": 0.975,
+      "delta": -0.025
+    },
+    "alce.unsupported_claim_rate_answered_only": {
+      "baseline": 0.304167,
+      "candidate": 0.0,
+      "delta": -0.304167
+    }
+  },
+  "interpretation": {
+    "improved": [
+      "scope enforcement",
+      "garbage-page exclusion",
+      "unsupported-claim suppression"
+    ],
+    "unchanged": [
+      "BFCL AST",
+      "LongBench lexical accuracy"
+    ],
+    "regressed": [
+      "WebWalker answer coverage and F1",
+      "WebWalker exact-page recall",
+      "FRAMES answer coverage and F1",
+      "ALCE F1 and reliability"
+    ],
+    "release_decision": "reject_candidate_for_production"
+  }
+}

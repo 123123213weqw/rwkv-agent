@@ -10,6 +10,8 @@ from rwkv_agent.controller import (
     policy_tool_gate,
     render_direct_answer_prompt,
     render_routing_context,
+    render_session_context,
+    strip_leading_think_blocks,
 )
 from rwkv_agent.memory import MemoryStore
 from rwkv_agent.routing import render_tool_gate_prompt
@@ -258,6 +260,67 @@ class ControllerGateTests(unittest.TestCase):
             self.assertNotIn("<functions>", model.prompts[0])
             controller.close()
 
+    def test_leading_think_is_hidden_without_relaxing_tool_protocol(self) -> None:
+        block = (
+            '<tool_call>{"name":"web_search","arguments":'
+            '{"query":"RWKV creator GitHub"}}</tool_call>'
+        )
+        parsed = parse_tool_call(f"<think>Need current data.</think>\n{block}")
+        self.assertTrue(parsed["strict"])
+        self.assertTrue(parsed["reasoning_stripped"])
+        self.assertEqual(parsed["arguments"]["query"], "RWKV creator GitHub")
+
+        for invalid in (
+            f"commentary\n{block}",
+            f"<think>unfinished\n{block}",
+            f"<think>done</think>\n{block}\ncommentary",
+        ):
+            with self.subTest(invalid=invalid):
+                self.assertFalse(parse_tool_call(invalid)["strict"])
+
+    def test_think_is_removed_from_visible_answers_history_and_router(self) -> None:
+        class ThinkModel(FakeModel):
+            def gate_tool(self, message: str, **kwargs) -> dict:
+                self.use_tool = message != "你好"
+                return super().gate_tool(message, **kwargs)
+
+            def complete(self, prompt: str, *, max_tokens: int = 192) -> dict:
+                result = super().complete(prompt, max_tokens=max_tokens)
+                result["raw"] = "<think>private reasoning</think>\n" + result["raw"]
+                return result
+
+        with tempfile.TemporaryDirectory() as directory:
+            model = ThinkModel(use_tool=False)
+            controller = self.controller(directory, model)
+            greeting = controller.run("你好", session_id="think-session")
+            self.assertEqual(greeting["answer"], "你好！有什么可以帮助你的？")
+            self.assertTrue(
+                greeting["trace"]["answer_completion"]["reasoning_stripped"]
+            )
+
+            result = controller.run(
+                "搜索RWKV创始人最热门的GitHub项目",
+                session_id="think-session",
+            )
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["route"]["tool"], "web_search")
+            self.assertTrue(
+                result["trace"]["routing_completion"]["reasoning_stripped"]
+            )
+            self.assertNotIn("<think>", result["answer"])
+
+            routing_prompt = next(
+                prompt
+                for prompt in reversed(model.prompts)
+                if "Call exactly one function" in prompt
+            )
+            self.assertNotIn("private reasoning", routing_prompt)
+            history = controller.memory.history(session_id="think-session")
+            self.assertTrue(
+                all("<think>" not in item.content for item in history)
+            )
+            controller.close()
+
     def test_direct_conversation_receives_prior_session_context(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             model = FakeModel(use_tool=False)
@@ -390,6 +453,17 @@ class ControllerGateTests(unittest.TestCase):
         )
         self.assertLessEqual(len(context), 2000)
         self.assertIn("recent entity is RWKV", context)
+
+    def test_existing_think_history_is_hidden_from_both_contexts(self) -> None:
+        class Entry:
+            role = "assistant"
+            content = "<think>private chain</think>\nVisible answer"
+
+        visible, stripped = strip_leading_think_blocks(Entry.content)
+        self.assertTrue(stripped)
+        self.assertEqual(visible, "Visible answer")
+        self.assertEqual(render_routing_context([Entry()]), "Assistant: Visible answer")
+        self.assertEqual(render_session_context([Entry()]), "Assistant: Visible answer")
 
     def test_semantic_gate_prompt_uses_context_and_not_keyword_policy(self) -> None:
         prompt = render_tool_gate_prompt(

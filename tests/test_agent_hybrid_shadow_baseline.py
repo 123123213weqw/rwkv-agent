@@ -27,7 +27,7 @@ class AgentHybridShadowBaselineTests(unittest.TestCase):
                 item["sha256"],
             )
             value = path.read_text(encoding="utf-8")
-            self.assertNotIn("/home/wzu/", value)
+            self.assertNotIn("/home/", value)
             self.assertNotIn("127.0.0.1", value)
 
     def test_public_decision_does_not_claim_production_switch(self) -> None:

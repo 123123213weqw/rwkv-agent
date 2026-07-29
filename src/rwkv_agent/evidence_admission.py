@@ -8,6 +8,8 @@ from typing import Any, Mapping, Sequence
 from rwkv_search.search_reasoning import query_anchors
 from rwkv_search.text import search_tokens
 
+from .page_quality import classify_page_quality
+
 
 _RELATION_NOISE = frozenset(
     {
@@ -19,6 +21,18 @@ _RELATION_NOISE = frozenset(
         "creator",
         "founder",
         "github",
+        "how",
+        "when",
+        "why",
+        "many",
+        "much",
+        "times",
+        "total",
+        "did",
+        "does",
+        "do",
+        "is",
+        "are",
         "latest",
         "maintain",
         "maintained",
@@ -80,25 +94,35 @@ class EntityEvidenceAdmission:
         anchors = self.entity_anchors(question)
         admitted: list[dict[str, Any]] = []
         rejected_ids: list[str] = []
+        rejection_counts: dict[str, int] = {}
         for item in evidence:
             value = dict(item)
-            if not anchors or self._matches(value, anchors):
-                admitted.append(value)
+            quality = classify_page_quality(question, value)
+            if not quality.evidence_allowed:
+                rejected_ids.append(str(value.get("id") or value.get("uri") or ""))
+                for reason in quality.reasons or (f"page_type:{quality.page_type}",):
+                    rejection_counts[reason] = rejection_counts.get(reason, 0) + 1
                 continue
-            rejected_ids.append(str(value.get("id") or value.get("uri") or ""))
+            if anchors and not self._matches(value, anchors):
+                rejected_ids.append(str(value.get("id") or value.get("uri") or ""))
+                rejection_counts["entity_mismatch"] = (
+                    rejection_counts.get("entity_mismatch", 0) + 1
+                )
+                continue
+            admitted.append(value)
         rejected = len(evidence) - len(admitted)
         trace = EvidenceAdmissionTrace(
             anchors=anchors,
             admitted=len(admitted),
             rejected=rejected,
             rejected_ids=tuple(rejected_ids),
-            rejection_counts={"entity_mismatch": rejected} if rejected else {},
+            rejection_counts=rejection_counts,
         )
         return admitted, trace
 
     @staticmethod
     def entity_anchors(question: str) -> tuple[str, ...]:
-        anchors = query_anchors(question, limit=8)
+        anchors = query_anchors(question, limit=20)
         identifiers = [
             value
             for value in anchors
@@ -115,12 +139,18 @@ class EntityEvidenceAdmission:
 
     @staticmethod
     def _is_identifier(value: str) -> bool:
-        folded = value.casefold().strip()
+        raw = value.strip()
+        folded = raw.casefold()
         return bool(
             folded not in _RELATION_NOISE
             and len(folded) >= 3
             and folded.isascii()
             and any(character.isalpha() for character in folded)
+            and (
+                any(character.isupper() for character in raw)
+                or any(character.isdigit() for character in raw)
+                or any(character in "._+-/#" for character in raw)
+            )
         )
 
     @staticmethod

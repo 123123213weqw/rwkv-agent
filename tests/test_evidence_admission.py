@@ -67,3 +67,60 @@ def test_entity_admission_preserves_recall_without_stable_anchor() -> None:
 
     assert admitted == evidence
     assert trace.anchors == ()
+
+
+def test_evidence_admission_rejects_dictionary_for_nonlexical_question() -> None:
+    evidence = [
+        {
+            "id": "W1",
+            "title": "average是什么意思_average的翻译和音标",
+            "content": "average：平均的；平均数。",
+            "uri": "https://www.iciba.com/word?w=average",
+        },
+        {
+            "id": "W2",
+            "title": "Retractable-roof MLB park dimensions",
+            "content": "The listed left-field distances are 330 and 332 feet.",
+            "uri": "https://baseball.example/park-dimensions",
+        },
+    ]
+
+    admitted, trace = EntityEvidenceAdmission().admit(
+        "What is the average left-field distance in retractable-roof MLB parks?",
+        evidence,
+    )
+
+    assert [item["id"] for item in admitted] == ["W2"]
+    assert trace.rejection_counts["dictionary_not_requested"] == 1
+
+
+def test_entity_anchors_do_not_treat_plain_question_words_as_identifiers() -> None:
+    question = (
+        "How many times in total did the Argentina women's field hockey team "
+        "and the Uruguay women's field hockey team enter the Pan American "
+        "Games and the Olympic Games from 2000 to 2020?"
+    )
+
+    anchors = EntityEvidenceAdmission.entity_anchors(question)
+
+    assert anchors == ("Argentina", "Uruguay", "Pan")
+
+
+def test_relation_word_dictionary_pages_cannot_match_named_subjects() -> None:
+    question = (
+        "How many times in total did the Argentina women's field hockey team "
+        "enter the Olympic Games from 2000 to 2020?"
+    )
+    evidence = [
+        {
+            "id": "W1",
+            "title": "many: meaning, synonyms and examples",
+            "content": "Many is used with countable nouns.",
+            "uri": "https://usdictionary.com/definitions/many",
+        }
+    ]
+
+    admitted, trace = EntityEvidenceAdmission().admit(question, evidence)
+
+    assert admitted == []
+    assert trace.anchors[:1] == ("Argentina",)

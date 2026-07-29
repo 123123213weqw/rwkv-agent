@@ -1,0 +1,44 @@
+{
+  "schema_version": "rwkv-agent-public-results-manifest.v1",
+  "benchmark": "RWKV-Agent-Unified-Regression-v1",
+  "release": "0.3.0-beta.1",
+  "dataset_manifest": "manifest.json",
+  "artifacts": {
+    "discovery-profile-abcd-v1-summary.json": {
+      "bytes": 7293,
+      "sha256": "d7d5bec3bb0473bc6ba0dcb727c24b12c997d3ca2221bec4b68af5a3a6f89cfc"
+    },
+    "discovery-profile-abcd-v1.md": {
+      "bytes": 3022,
+      "sha256": "05ebe34fe5b1d6dcf5cd5f5a48848b6dd43f2267f18e30b42617f2758b6ddef1"
+    },
+    "e2e-p0-13b-preview4922-summary.json": {
+      "bytes": 3939,
+      "sha256": "2437ee4bfca9bc52adac2f91a91c48a1b98f3af060d5b0cebc753e32ae3e53a5"
+    },
+    "e2e-p0-13b-vs-7b-comparison.json": {
+      "bytes": 2404,
+      "sha256": "a1aa98550f1b879cf54bc7f129e0051b690e8777faac29007b88562f07e80a55"
+    },
+    "e2e-p0-scope-gap-comparison.json": {
+      "bytes": 2241,
+      "sha256": "d5f1a38bdd76cb6aeeb0b236c7d2f2e4aa263729e87decc4660f87f2063604f3"
+    },
+    "e2e-p0-scope-gap-summary.json": {
+      "bytes": 3371,
+      "sha256": "c7aa288001163185ff2f0b2e280441c0b0c56d3ee1c1793cdb752f1356655948"
+    },
+    "e2e-stable-default-summary.json": {
+      "bytes": 5609,
+      "sha256": "a9d8fc18327cf9a4c8b875f6b55ad13b4d8b83d0d741a17391c8a9607cf107c3"
+    },
+    "fit200-v1-summary.json": {
+      "bytes": 4343,
+      "sha256": "4fd17e88842c8879ee73bf79af8a30c53db2c3181c2b5bf88294633552795b3b"
+    },
+    "fit200-v1.md": {
+      "bytes": 2628,
+      "sha256": "029766eba59d20272a0fd97469676f99e2348ae3815614221b9ad29e13428451"
+    }
+  }
+}

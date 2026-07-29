@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python-cpu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[realtime,segment,dev]' fastapi uvicorn ruff==0.15.22 build
+      - name: Public release audit
+        run: python scripts/check_public_release.py
+      - name: Lint
+        run: ruff check src bench benchmarks tests scripts
+      - name: Test
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:. python -m pytest -q
+      - name: Build package
+        run: python -m build
+
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cli
+      - run: cargo fmt --check
+      - run: cargo test --locked
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo build --release --locked
+      - name: CLI mock smoke
+        run: bash tests/cli_smoke.sh
+
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: >-
+          bash -n cli/install.sh cli/scripts/rwkv cli/scripts/rwkv-agent-service
+          deploy/agent/start_g1i_sidecars.sh deploy/agent/stop_g1i_sidecars.sh

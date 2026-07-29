@@ -47,7 +47,7 @@ class SearchReasoningBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
     def test_feedback_wins_and_react_is_not_approved(self) -> None:
@@ -92,7 +92,7 @@ class SearchReasoningBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
         summary = json.loads(
@@ -134,7 +134,7 @@ class SearchReasoningBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
         summary = json.loads(
@@ -179,7 +179,7 @@ class SearchReasoningBaselineTest(unittest.TestCase):
         ).casefold()
         self.assertNotIn("http://", visible)
         self.assertNotIn("https://", visible)
-        self.assertNotIn("/home/wzu/", visible)
+        self.assertNotIn("/home/", visible)
         self.assertNotIn("/users/wangyue/", visible)
 
         summary = json.loads(

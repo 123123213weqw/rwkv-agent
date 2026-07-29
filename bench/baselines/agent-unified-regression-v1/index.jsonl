@@ -1,0 +1,200 @@
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0019", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0021", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0031", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0038", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0061", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0065", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0070", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0163", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0176", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=multiple", "language=en"], "id": "bfcl-v3-multiple-0189", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0010", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0016", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0017", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0030", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0060", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0092", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0110", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0158", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0161", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel", "language=en"], "id": "bfcl-v3-parallel-0176", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0005", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0007", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0020", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0027", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0041", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0078", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0104", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0125", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0145", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=parallel_multiple", "language=en"], "id": "bfcl-v3-parallel_multiple-0189", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0016", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0033", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0061", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0143", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0147", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0155", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0247", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0283", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0315", "language": "en", "track": "tool_protocol"}
+{"dataset": "bfcl", "features": ["category=simple", "language=en"], "id": "bfcl-v3-simple-0392", "language": "en", "track": "tool_protocol"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=conference", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0008", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=conference", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0013", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=game", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0016", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0040", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=conference", "language=en", "question_type=single_source"], "id": "webwalkerqa-main-0044", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0063", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=game", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0092", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=game", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0100", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=education", "language=unknown", "question_type=single_source"], "id": "webwalkerqa-main-0126", "language": "unknown", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=education", "language=unknown", "question_type=single_source"], "id": "webwalkerqa-main-0141", "language": "unknown", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=organization", "language=unknown", "question_type=single_source"], "id": "webwalkerqa-main-0150", "language": "unknown", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=education", "language=unknown", "question_type=single_source"], "id": "webwalkerqa-main-0176", "language": "unknown", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0217", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0227", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0248", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=game", "language=en", "question_type=single_source"], "id": "webwalkerqa-main-0252", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0289", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=organization", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0299", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=conference", "language=en", "question_type=single_source"], "id": "webwalkerqa-main-0331", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=education", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0340", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=conference", "language=en", "question_type=single_source"], "id": "webwalkerqa-main-0344", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=education", "language=zh", "question_type=single_source"], "id": "webwalkerqa-main-0362", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=conference", "language=en", "question_type=single_source"], "id": "webwalkerqa-main-0369", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=conference", "language=en", "question_type=single_source"], "id": "webwalkerqa-main-0399", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0424", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=game", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0445", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=organization", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0453", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=organization", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0458", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=easy", "domain=conference", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0469", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=conference", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0493", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0494", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=game", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0520", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0528", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0547", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0559", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0620", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=game", "language=en", "question_type=multi_source"], "id": "webwalkerqa-main-0631", "language": "en", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=hard", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0633", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0640", "language": "zh", "track": "web_research"}
+{"dataset": "webwalkerqa", "features": ["difficulty=medium", "domain=education", "language=zh", "question_type=multi_source"], "id": "webwalkerqa-main-0641", "language": "zh", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning", "reasoning=Tabular reasoning"], "id": "frames-test-0091", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Post processing", "reasoning=Tabular reasoning"], "id": "frames-test-0103", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning", "reasoning=Tabular reasoning"], "id": "frames-test-0123", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0145", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Post processing"], "id": "frames-test-0153", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0186", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Temporal reasoning"], "id": "frames-test-0190", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Tabular reasoning"], "id": "frames-test-0196", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0203", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning"], "id": "frames-test-0217", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Numerical reasoning"], "id": "frames-test-0218", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Temporal reasoning"], "id": "frames-test-0248", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0258", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Tabular reasoning"], "id": "frames-test-0289", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning"], "id": "frames-test-0296", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Tabular reasoning"], "id": "frames-test-0341", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning", "reasoning=Temporal reasoning"], "id": "frames-test-0345", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Numerical reasoning", "reasoning=Tabular reasoning", "reasoning=Temporal reasoning"], "id": "frames-test-0348", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Numerical reasoning"], "id": "frames-test-0362", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Numerical reasoning"], "id": "frames-test-0386", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Temporal reasoning"], "id": "frames-test-0413", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0418", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Temporal reasoning"], "id": "frames-test-0472", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Tabular reasoning", "reasoning=Temporal reasoning"], "id": "frames-test-0482", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0493", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Post processing"], "id": "frames-test-0495", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0498", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0513", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Temporal reasoning"], "id": "frames-test-0527", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0603", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Tabular reasoning"], "id": "frames-test-0620", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Numerical reasoning"], "id": "frames-test-0630", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning"], "id": "frames-test-0633", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning", "reasoning=Post processing"], "id": "frames-test-0634", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Temporal reasoning"], "id": "frames-test-0666", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Tabular reasoning", "reasoning=Temporal reasoning"], "id": "frames-test-0685", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Temporal reasoning"], "id": "frames-test-0723", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints"], "id": "frames-test-0802", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Tabular reasoning"], "id": "frames-test-0806", "language": "en", "track": "web_research"}
+{"dataset": "frames", "features": ["language=en", "reasoning=Multiple constraints", "reasoning=Numerical reasoning", "reasoning=Temporal reasoning"], "id": "frames-test-0820", "language": "en", "track": "web_research"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=easy", "domain=Single-Document QA", "language=en", "sub_domain=Literary"], "id": "longbench-v2-0013", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Multi-Document QA", "language=en", "sub_domain=Governmental"], "id": "longbench-v2-0035", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Long In-context Learning", "language=en", "sub_domain=Many-shot learning"], "id": "longbench-v2-0043", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Long-dialogue History Understanding", "language=en", "sub_domain=Agent history QA"], "id": "longbench-v2-0048", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Single-Document QA", "language=en", "sub_domain=Detective"], "id": "longbench-v2-0064", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Multi-Document QA", "language=en", "sub_domain=Governmental"], "id": "longbench-v2-0070", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Multi-Document QA", "language=en", "sub_domain=Legal"], "id": "longbench-v2-0081", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Financial"], "id": "longbench-v2-0108", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Multi-Document QA", "language=en", "sub_domain=Legal"], "id": "longbench-v2-0113", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=easy", "domain=Single-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0164", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Multi-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0181", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Long Structured Data Understanding", "language=en", "sub_domain=Knowledge graph reasoning"], "id": "longbench-v2-0183", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=easy", "domain=Code Repository Understanding", "language=en", "sub_domain=Code repo QA"], "id": "longbench-v2-0194", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Code Repository Understanding", "language=en", "sub_domain=Code repo QA"], "id": "longbench-v2-0197", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Long Structured Data Understanding", "language=en", "sub_domain=Knowledge graph reasoning"], "id": "longbench-v2-0205", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=hard", "domain=Long In-context Learning", "language=en", "sub_domain=User guide QA"], "id": "longbench-v2-0206", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Single-Document QA", "language=en", "sub_domain=Event ordering"], "id": "longbench-v2-0207", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Long-dialogue History Understanding", "language=en", "sub_domain=Dialogue history QA"], "id": "longbench-v2-0215", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Multi-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0238", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=hard", "domain=Code Repository Understanding", "language=en", "sub_domain=Code repo QA"], "id": "longbench-v2-0252", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Long-dialogue History Understanding", "language=en", "sub_domain=Dialogue history QA"], "id": "longbench-v2-0258", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0288", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Long Structured Data Understanding", "language=en", "sub_domain=Knowledge graph reasoning"], "id": "longbench-v2-0303", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Legal"], "id": "longbench-v2-0305", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=easy", "domain=Single-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0328", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Long In-context Learning", "language=en", "sub_domain=Many-shot learning"], "id": "longbench-v2-0341", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=easy", "domain=Long In-context Learning", "language=en", "sub_domain=Many-shot learning"], "id": "longbench-v2-0360", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Event ordering"], "id": "longbench-v2-0386", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Long In-context Learning", "language=en", "sub_domain=User guide QA"], "id": "longbench-v2-0397", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Code Repository Understanding", "language=en", "sub_domain=Code repo QA"], "id": "longbench-v2-0405", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=easy", "domain=Multi-Document QA", "language=en", "sub_domain=Legal"], "id": "longbench-v2-0417", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=easy", "domain=Multi-Document QA", "language=en", "sub_domain=Financial"], "id": "longbench-v2-0418", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0423", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=hard", "domain=Multi-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0424", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Event ordering"], "id": "longbench-v2-0427", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Academic"], "id": "longbench-v2-0449", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=long", "difficulty=hard", "domain=Code Repository Understanding", "language=en", "sub_domain=Code repo QA"], "id": "longbench-v2-0454", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=short", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Literary"], "id": "longbench-v2-0473", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Multi-Document QA", "language=en", "sub_domain=Governmental"], "id": "longbench-v2-0494", "language": "en", "track": "long_text"}
+{"dataset": "longbench_v2", "features": ["context_bucket=medium", "difficulty=hard", "domain=Single-Document QA", "language=en", "sub_domain=Detective"], "id": "longbench-v2-0501", "language": "en", "track": "long_text"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0009", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0031", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0120", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0124", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0125", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0136", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0210", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0278", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0307", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0336", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0348", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0353", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0411", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0434", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0448", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0458", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0471", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0479", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0490", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=asqa"], "id": "alce-asqa-0491", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0010", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0014", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0051", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0056", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0118", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0183", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0196", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0235", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0238", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0254", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0310", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0311", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0323", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0334", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0371", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0426", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0430", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0443", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0452", "language": "en", "track": "citation_grounding"}
+{"dataset": "alce", "features": ["language=en", "subset=qampari"], "id": "alce-qampari-0490", "language": "en", "track": "citation_grounding"}

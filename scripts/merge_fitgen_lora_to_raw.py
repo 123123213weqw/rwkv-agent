@@ -15,7 +15,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
-from typing import Any, Mapping, Sequence
+from typing import Any, Sequence
 
 
 ADAPTER_KEY = re.compile(

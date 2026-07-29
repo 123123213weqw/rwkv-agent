@@ -2481,7 +2481,7 @@ wheels = [
 
 [[package]]
 name = "rwkv-search"
-version = "0.2.0"
+version = "0.3.0b1"
 source = { editable = "." }
 dependencies = [
     { name = "regex" },

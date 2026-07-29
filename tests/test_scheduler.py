@@ -6,7 +6,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from rwkv7_scheduler import (
+from rwkv7_scheduler import (  # noqa: E402
     AlbatrossChunkScheduler,
     AlbatrossStatePool,
     SchedulerConfig,

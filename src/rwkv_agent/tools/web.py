@@ -243,6 +243,24 @@ def _result(item: Any) -> dict[str, Any]:
     return value
 
 
+def _item_url(item: Any) -> str:
+    if isinstance(item, Mapping):
+        return str(item.get("url") or item.get("uri") or "")
+    return str(getattr(item, "url", "") or getattr(item, "uri", "") or "")
+
+
+def _within_scope(item: Any, scope_host: str) -> bool:
+    """Enforce an explicitly bound site on final URLs, not search syntax alone."""
+
+    if not scope_host:
+        return True
+    host = (urlsplit(_item_url(item)).hostname or "").casefold().strip(".")
+    expected = str(scope_host or "").casefold().strip(".")
+    host = host[4:] if host.startswith("www.") else host
+    expected = expected[4:] if expected.startswith("www.") else expected
+    return bool(host and expected and (host == expected or host.endswith("." + expected)))
+
+
 def _public_evidence(
     results: Sequence[Any],
     candidates: Sequence[Mapping[str, Any]],
@@ -574,6 +592,34 @@ class WebSearchAdapter:
                         "message": str(event.get("message") or "")[:300],
                     }
                 )
+        scope_rejected = {
+            "results": sum(not _within_scope(item, scope_host) for item in results),
+            "candidates": sum(
+                not _within_scope(item, scope_host) for item in candidates
+            ),
+            "initial_candidates": sum(
+                not _within_scope(item, scope_host) for item in initial_candidates
+            ),
+            "post_pivot_candidates": sum(
+                not _within_scope(item, scope_host)
+                for item in post_pivot_candidates
+            ),
+        }
+        if scope_host:
+            results = [item for item in results if _within_scope(item, scope_host)]
+            candidates = [
+                item for item in candidates if _within_scope(item, scope_host)
+            ]
+            initial_candidates = [
+                item
+                for item in initial_candidates
+                if _within_scope(item, scope_host)
+            ]
+            post_pivot_candidates = [
+                item
+                for item in post_pivot_candidates
+                if _within_scope(item, scope_host)
+            ]
         evidence, evidence_stage = _public_evidence(
             results,
             candidates,
@@ -587,6 +633,8 @@ class WebSearchAdapter:
             "effective_query": effective_query,
             "compiled_query": compiled.to_dict(),
             "scope_root": scope_root,
+            "scope_mode": "strict" if scope_host else "open",
+            "scope_rejected": scope_rejected,
             "evidence": [asdict(item) for item in evidence],
             "warnings": warnings,
             "retrieval": {
@@ -610,6 +658,8 @@ class WebSearchAdapter:
             "effective_query": effective_query,
             "compiled_query": compiled.to_dict(),
             "scope_root": scope_root,
+            "scope_mode": "strict" if scope_host else "open",
+            "scope_rejected": scope_rejected,
             "initial_candidates": initial_candidates,
             "post_pivot_candidates": post_pivot_candidates,
             "candidates": candidates,

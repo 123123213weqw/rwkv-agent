@@ -7,8 +7,17 @@
 5. 提交前运行：
 
 ```bash
-PYTHONPATH=src python -m unittest discover -s tests
-ruff check src bench tests
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:. python -m pytest -q
+ruff check src bench benchmarks tests scripts
+python scripts/check_public_release.py
+
+cd cli
+cargo fmt --check
+cargo test --locked
+cargo clippy --all-targets -- -D warnings
 ```
 
 新的来源策略应基于通用页面/来源特征，不应添加行业专用路由表。
+
+面向用户的改动还必须更新对应Quickstart、配置模板、CHANGELOG和Known Issues。不得把内部服务器生命周期、
+本机绝对路径或实验密钥做成公开默认值。

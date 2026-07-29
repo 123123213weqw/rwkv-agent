@@ -93,7 +93,9 @@ class AgentBenchmarkMetricTests(unittest.TestCase):
         metrics = row["metrics"]
         self.assertTrue(metrics["answer_exact_match"])
         self.assertEqual(metrics["source_recall"], 1.0)
+        self.assertEqual(metrics["exact_page_recall"], 1.0)
         self.assertEqual(metrics["citation_source_recall"], 1.0)
+        self.assertEqual(metrics["citation_exact_page_recall"], 1.0)
         self.assertEqual(metrics["claim_citation_coverage"], 1.0)
         self.assertTrue(metrics["state_cleanup_success"])
         self.assertTrue(metrics["state_reuse_success"])
@@ -228,8 +230,10 @@ class AgentBenchmarkMetricTests(unittest.TestCase):
         result["evidence"][0]["uri"] = "https://docs.example.com/other"
         metrics = evaluate_agent_case(base_case(), result)["metrics"]
         self.assertEqual(metrics["source_recall"], 0.0)
+        self.assertEqual(metrics["exact_page_recall"], 0.0)
         self.assertEqual(metrics["source_domain_recall"], 1.0)
         self.assertEqual(metrics["citation_source_recall"], 0.0)
+        self.assertEqual(metrics["citation_exact_page_recall"], 0.0)
         self.assertEqual(metrics["citation_source_domain_recall"], 1.0)
 
     def test_aggregate_is_null_aware_and_never_builds_grand_score(self) -> None:
