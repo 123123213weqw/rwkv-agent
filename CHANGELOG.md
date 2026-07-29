@@ -10,7 +10,9 @@ All notable public changes are recorded here.
   as the internal retrieval subsystem and keeping repository, package and API
   compatibility identifiers unchanged;
 - made `rwkv` the primary documented user command; lifecycle commands remain
-  available for administrators.
+  available for administrators;
+- increased the launcher's health-check tolerance for SSH-forwarded remote
+  Agents so normal tunnel latency does not trigger a false local autostart.
 
 ## 0.3.0-beta.1 - 2026-07-29
 

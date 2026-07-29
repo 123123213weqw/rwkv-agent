@@ -4,8 +4,9 @@ set -euo pipefail
 ENDPOINT=${RWKV_AGENT_ENDPOINT:-http://127.0.0.1:8120}
 SERVICE=${RWKV_AGENT_SERVICE_COMMAND:-"$HOME/.local/bin/rwkv-agent-service"}
 CLIENT=${RWKV_AGENT_CLIENT_COMMAND:-"$HOME/.local/bin/rwkv-agent"}
+HEALTH_TIMEOUT=${RWKV_AGENT_HEALTH_TIMEOUT_SECONDS:-5}
 
-if ! /usr/bin/curl -fsS --max-time 2 "$ENDPOINT/health" >/dev/null 2>&1; then
+if ! /usr/bin/curl -fsS --max-time "$HEALTH_TIMEOUT" "$ENDPOINT/health" >/dev/null 2>&1; then
   echo "RWKV Agent backend is offline; starting the configured local backend…" >&2
   "$SERVICE" start >&2
 fi
