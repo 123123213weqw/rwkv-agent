@@ -90,6 +90,36 @@ def _parse_choice(text: str) -> str:
     return match.group(1).upper() if match else ""
 
 
+def _finalize_state_release(
+    state_model: Any,
+    *,
+    home_url: str,
+    owner_id: str,
+    state_ids: list[str],
+    response: dict[str, Any] | None,
+) -> dict[str, Any]:
+    release: dict[str, Any] = {}
+    if home_url and state_ids:
+        try:
+            release = state_model.state_release(
+                home_url=home_url,
+                owner_id=owner_id,
+                state_ids=state_ids,
+            )
+        except Exception as exc:
+            release = {
+                "status": "error",
+                "error": f"{type(exc).__name__}: {exc}"[:300],
+                "released": 0,
+            }
+    if response is not None:
+        released = int(release.get("released") or 0)
+        response["release"] = release
+        response["states_released"] = released
+        response["state_leak_count"] = max(0, len(state_ids) - released)
+    return release
+
+
 def _permutation_root_prompt(
     question: str,
     selected: Sequence[tuple[float, TextChunk]],
@@ -227,24 +257,13 @@ def run_state_longbench_permutation_reader(
         }
         return response
     finally:
-        if home_url and state_ids:
-            try:
-                release = state_model.state_release(
-                    home_url=home_url,
-                    owner_id=owner_id,
-                    state_ids=state_ids,
-                )
-            except Exception as exc:
-                release = {
-                    "status": "error",
-                    "error": f"{type(exc).__name__}: {exc}"[:300],
-                    "released": 0,
-                }
-        if response is not None:
-            released = int(release.get("released") or 0)
-            response["release"] = release
-            response["states_released"] = released
-            response["state_leak_count"] = max(0, len(state_ids) - released)
+        _finalize_state_release(
+            state_model,
+            home_url=home_url,
+            owner_id=owner_id,
+            state_ids=state_ids,
+            response=response,
+        )
 
 
 def run_state_longbench_chunk_ensemble(
@@ -386,24 +405,13 @@ def run_state_longbench_chunk_ensemble(
         }
         return response
     finally:
-        if home_url and state_ids:
-            try:
-                release = state_model.state_release(
-                    home_url=home_url,
-                    owner_id=owner_id,
-                    state_ids=state_ids,
-                )
-            except Exception as exc:
-                release = {
-                    "status": "error",
-                    "error": f"{type(exc).__name__}: {exc}"[:300],
-                    "released": 0,
-                }
-        if response is not None:
-            released = int(release.get("released") or 0)
-            response["release"] = release
-            response["states_released"] = released
-            response["state_leak_count"] = max(0, len(state_ids) - released)
+        _finalize_state_release(
+            state_model,
+            home_url=home_url,
+            owner_id=owner_id,
+            state_ids=state_ids,
+            response=response,
+        )
 
 
 def build_state_evidence_views(
@@ -582,21 +590,10 @@ def run_state_longbench_reader(
         }
         return response
     finally:
-        if home_url and state_ids:
-            try:
-                release = state_model.state_release(
-                    home_url=home_url,
-                    owner_id=owner_id,
-                    state_ids=state_ids,
-                )
-            except Exception as exc:
-                release = {
-                    "status": "error",
-                    "error": f"{type(exc).__name__}: {exc}"[:300],
-                    "released": 0,
-                }
-        if response is not None:
-            released = int(release.get("released") or 0)
-            response["release"] = release
-            response["states_released"] = released
-            response["state_leak_count"] = max(0, len(state_ids) - released)
+        _finalize_state_release(
+            state_model,
+            home_url=home_url,
+            owner_id=owner_id,
+            state_ids=state_ids,
+            response=response,
+        )

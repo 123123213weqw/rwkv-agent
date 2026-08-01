@@ -28,6 +28,7 @@ bench/runs/
 target/
 runs/
 var/
+/cli/dist/
 
 # Models and large datasets
 *.pth

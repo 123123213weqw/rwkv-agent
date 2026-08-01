@@ -94,13 +94,15 @@ async def run_one(
     params = searxng_search_params(query, str(case.get("freshness") or "none"))
     params.pop("categories", None)
     params["engines"] = engine
-    started = time.perf_counter()
+    queued_at = time.perf_counter()
     candidates: List[Dict[str, Any]] = []
     status = 0
     unresponsive: Sequence[Any] = ()
     error_type = ""
     error_message = ""
     async with semaphore:
+        queue_elapsed_ms = round((time.perf_counter() - queued_at) * 1000.0, 3)
+        started = time.perf_counter()
         try:
             status, data = await fetch_json(session, endpoint + "/search", params=params)
             unresponsive = data.get("unresponsive_engines", ())
@@ -111,7 +113,7 @@ async def run_one(
         except Exception as exc:
             error_type = type(exc).__name__
             error_message = str(exc)[:300]
-    elapsed_ms = round((time.perf_counter() - started) * 1000.0, 3)
+        elapsed_ms = round((time.perf_counter() - started) * 1000.0, 3)
     request_success = (
         status == 200
         and not error_type
@@ -137,6 +139,7 @@ async def run_one(
         "unresponsive_engines": list(unresponsive),
         "error_type": error_type,
         "error_message": error_message,
+        "queue_elapsed_ms": queue_elapsed_ms,
         "elapsed_ms": elapsed_ms,
         "candidates": candidates,
         "metrics": metrics,

@@ -12,9 +12,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Sequence
 
 if __package__:
+    from .query_formation import load_p4_plans, resolve_p4_plan_query
     from .retrieval_metrics import aggregate, evaluate_candidate_stage, evaluate_case
     from .retrieval_schema import load_cases as load_validated_cases
 else:
+    from query_formation import load_p4_plans, resolve_p4_plan_query
     from retrieval_metrics import aggregate, evaluate_candidate_stage, evaluate_case
     from retrieval_schema import load_cases as load_validated_cases
 from rwkv_search.config import AppConfig
@@ -40,24 +42,19 @@ def load_cases(path: Path, case_ids: Sequence[str], limit: int) -> List[Dict[str
 def apply_model_queries(
     cases: Sequence[Mapping[str, Any]], path: Path
 ) -> List[Dict[str, Any]]:
-    """Attach frozen planner queries without changing the canonical case file."""
-    rows = [
-        json.loads(line)
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-    queries = {
-        str(row["id"]): str(row.get("model_query") or "").strip()
-        for row in rows
-        if row.get("id") and row.get("model_query")
-    }
-    missing = [str(case["id"]) for case in cases if str(case["id"]) not in queries]
+    """Attach runtime-equivalent frozen planner queries by canonical case id."""
+    plans = load_p4_plans(path)
+    missing = [str(case["id"]) for case in cases if str(case["id"]) not in plans]
     if missing:
         raise ValueError(f"missing model queries: {', '.join(missing)}")
     output: List[Dict[str, Any]] = []
     for case in cases:
         value = dict(case)
-        value["model_query"] = queries[str(case["id"])]
+        resolution = resolve_p4_plan_query(
+            str(case.get("query") or ""), plans[str(case["id"])]
+        )
+        value["model_query"] = str(resolution["query"])
+        value["model_query_resolution"] = resolution
         output.append(value)
     return output
 
@@ -183,6 +180,7 @@ def run_case(
         "expected_domains_any": list(case.get("expected_domains_any", ())),
         "target_url_patterns_any": list(case.get("target_url_patterns_any", ())),
         "forbidden_result_types": list(case.get("forbidden_result_types", ())),
+        "model_query_resolution": dict(case.get("model_query_resolution") or {}),
         "search_request": request.to_dict(),
         "execution": {
             "freshness": effective_freshness,

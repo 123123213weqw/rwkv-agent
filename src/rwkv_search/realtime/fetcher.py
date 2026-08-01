@@ -28,6 +28,8 @@ class AsyncPageFetcher:
         "text/plain",
         "application/json",
         "application/ld+json",
+        "text/markdown",
+        "text/x-markdown",
     )
 
     def __init__(self, config: RealtimeSearchConfig, session: object) -> None:
@@ -49,8 +51,9 @@ class AsyncPageFetcher:
             return cached
         host = (urlsplit(canonical).hostname or "").casefold()
         async with self.global_limit, self.host_limits[host]:
-            page = await asyncio.wait_for(
-                self._fetch_redirects(navigation_url), timeout=self.config.page_timeout_seconds
+            page = await self._await_fetch_with_cleanup(
+                navigation_url,
+                timeout=self.config.page_timeout_seconds,
             )
         self.cache.put(
             canonical,
@@ -66,6 +69,34 @@ class AsyncPageFetcher:
                 size=len(page.body) + len(page.final_url) + 512,
             )
         return page
+
+    async def _await_fetch_with_cleanup(
+        self,
+        navigation_url: str,
+        *,
+        timeout: float,
+    ) -> FetchedPage:
+        """Apply the page deadline and always retrieve the child task outcome.
+
+        ``asyncio.wait_for`` can leave a raced aiohttp connection task with an
+        unobserved exception when the outer request deadline cancels the fetch at
+        the same instant as a connect timeout.  An explicit task plus a cleanup
+        ``gather`` makes timeout and caller cancellation deterministic.
+        """
+
+        task = asyncio.create_task(self._fetch_redirects(navigation_url))
+        try:
+            done, _ = await asyncio.wait(
+                (task,),
+                timeout=max(0.001, float(timeout)),
+            )
+            if task not in done:
+                raise asyncio.TimeoutError
+            return task.result()
+        finally:
+            if not task.done():
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
 
     async def _fetch_redirects(self, requested_url: str) -> FetchedPage:
         current = requested_url

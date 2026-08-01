@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 import unittest
 
 import pytest
@@ -12,6 +13,7 @@ from rwkv7_scheduler import (  # noqa: E402
     SchedulerConfig,
 )
 from rwkv_agent.state_runtime import PersistentStateRuntime  # noqa: E402
+from rwkv_agent.batching import ContinuousBatchEngine  # noqa: E402
 
 
 class FakeAlbatross:
@@ -112,6 +114,63 @@ class PersistentStateRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(released["released"], 3)
         self.assertEqual(scheduler.pool.allocated, 0)
+
+    def test_concurrent_runtime_calls_use_unified_ready_queue(self) -> None:
+        scheduler, _unused = self.make_runtime()
+        tokenizer = FakeTokenizer()
+        engine = ContinuousBatchEngine(
+            tokenizer=tokenizer,
+            scheduler=scheduler,
+            context_limit=128,
+            eos_token_id=999,
+            max_state_rows=8,
+            batch_window_ms=20,
+            request_timeout_seconds=2,
+        )
+        self.addCleanup(engine.close)
+        runtime = PersistentStateRuntime(
+            tokenizer=tokenizer,
+            scheduler=scheduler,
+            context_limit=128,
+            eos_token_id=999,
+            capacity=5,
+            ttl_seconds=5,
+            decode_engine=engine,
+        )
+        roots = [
+            runtime.prefill(owner_id=f"turn-{index}", prompt="abc")
+            for index in range(2)
+        ]
+        barrier = threading.Barrier(2)
+        results = {}
+
+        def run(index: int) -> None:
+            barrier.wait()
+            results[index] = runtime.continue_many(
+                owner_id=f"turn-{index}",
+                items=[
+                    {
+                        "state_id": roots[index]["state_id"],
+                        "input": "de",
+                    }
+                ],
+                stops=[],
+                max_tokens=2,
+            )
+
+        threads = [threading.Thread(target=run, args=(index,)) for index in range(2)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        self.assertEqual(len(results), 2)
+        self.assertEqual(engine.health()["metrics"]["completed_state_rows"], 2)
+        self.assertIn("B2T1", scheduler.metrics()["shape_counts"])
+        for index, root in enumerate(roots):
+            runtime.release(
+                owner_id=f"turn-{index}",
+                state_ids=[root["state_id"]],
+            )
 
     def test_persistent_batch_classification_returns_label_logits(self) -> None:
         scheduler, runtime = self.make_runtime()

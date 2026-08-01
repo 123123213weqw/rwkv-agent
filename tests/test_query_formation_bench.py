@@ -8,6 +8,7 @@ from bench.query_formation import (
     QueryFormationError,
     evaluate_discovery,
     load_p4_plans,
+    resolve_p4_plan_query,
     strategy_queries,
     summarize_records,
 )
@@ -38,11 +39,47 @@ def test_strategy_queries_keep_p4_query_isolated() -> None:
     assert queries["raw"][0] not in queries["p4"]
 
 
-def test_invalid_p4_plan_produces_no_p4_query() -> None:
+def test_invalid_p4_plan_uses_runtime_raw_fallback() -> None:
     queries = strategy_queries(
         _case(), {"strict_success": False, "model_query": "Python latest"}
     )
-    assert queries["p4"] == ()
+    assert queries["p4"] == (
+        "What is the current stable Python release according to python.org",
+    )
+
+
+def test_effective_query_takes_priority_over_raw_model_output() -> None:
+    resolution = resolve_p4_plan_query(
+        _case()["query"],
+        {
+            "strict_success": True,
+            "model_query": "stale model output",
+            "effective_query": "Python stable release official",
+        },
+    )
+    assert resolution["query"] == "Python stable release official"
+    assert resolution["source"] == "effective_query"
+    assert resolution["fallback_to_raw"] is False
+
+
+def test_legacy_plan_with_invented_year_uses_current_runtime_repair() -> None:
+    raw = "国家卫健委最新发布的法定传染病疫情概况。"
+    resolution = resolve_p4_plan_query(
+        raw,
+        {
+            "strict_success": True,
+            "fallback_to_raw": True,
+            "model_query": "国家卫健委 法定传染病 疫情概况 2025年",
+        },
+    )
+    assert resolution["query"] == "国家卫健委 法定传染病 疫情概况"
+    assert resolution["source"] == "repaired_model_query"
+    assert resolution["fallback_to_raw"] is False
+    assert resolution["fallback_reason"] == ""
+    evaluation = resolution["constraint_evaluation"]
+    assert evaluation["repair_applied"] is True
+    assert evaluation["removed_absolute_terms"] == ["2025"]
+    assert evaluation["original_evaluation"]["introduced_years"] == ["2025"]
 
 
 def test_load_p4_plans_rejects_duplicate_ids(tmp_path) -> None:

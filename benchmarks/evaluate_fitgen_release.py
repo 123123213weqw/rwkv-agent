@@ -284,9 +284,11 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
 
     fresh_manifest_path = args.fresh_manifest.expanduser().resolve()
     fresh_claim_path = args.fresh_blind_claim.expanduser().resolve()
+    fresh_prediction_seal_path = args.fresh_prediction_seal.expanduser().resolve()
     fresh_scoring_manifest_path = args.fresh_scoring_manifest.expanduser().resolve()
     load_json(fresh_manifest_path)
     fresh_claim = load_json(fresh_claim_path)
+    fresh_prediction_seal = load_json(fresh_prediction_seal_path)
     fresh_scoring_manifest = load_json(fresh_scoring_manifest_path)
     book.add("fresh.case_count", "fresh", fresh.summary("webwalkerqa").get("cases"), "==", 200, str(fresh.path))
     book.add("fresh.claim.run_id", "fresh", fresh_claim.get("run_id"), "==", fresh.run_id, str(fresh_claim_path))
@@ -299,10 +301,21 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
         checkpoint_record.get("checkpoint_manifest_sha256"),
         str(fresh_claim_path),
     )
+    book.add("fresh.seal.event", "fresh", fresh_prediction_seal.get("event"), "==", "fresh_blind_predictions_sealed", str(fresh_prediction_seal_path))
+    book.add("fresh.seal.run_id", "fresh", fresh_prediction_seal.get("run_id"), "==", fresh.run_id, str(fresh_prediction_seal_path))
+    book.add("fresh.seal.collection", "fresh", fresh_prediction_seal.get("collection_manifest_sha256"), "==", sha256(fresh_manifest_path), str(fresh_prediction_seal_path))
+    book.add("fresh.seal.claim", "fresh", fresh_prediction_seal.get("blind_claim_sha256"), "==", sha256(fresh_claim_path), str(fresh_prediction_seal_path))
+    book.add("fresh.seal.no_tavily", "fresh", fresh_prediction_seal.get("require_no_tavily"), "==", True, str(fresh_prediction_seal_path))
+    book.add("fresh.seal.providers", "fresh", "tavily" not in [str(value).casefold() for value in fresh_prediction_seal.get("web_api_providers") or []], "==", True, str(fresh_prediction_seal_path))
+    book.add("fresh.run.defer_scoring", "fresh", fresh.manifest.get("defer_scoring"), "==", True, str(fresh.manifest_path))
+    book.add("fresh.run.providers", "fresh", "tavily" not in [str(value).casefold() for value in fresh.manifest.get("web_api_providers") or []], "==", True, str(fresh.manifest_path))
     book.add("fresh.scoring.event", "fresh", fresh_scoring_manifest.get("event"), "==", "fresh_blind_scoring_cases_materialized", str(fresh_scoring_manifest_path))
     book.add("fresh.scoring.run_id", "fresh", fresh_scoring_manifest.get("run_id"), "==", fresh.run_id, str(fresh_scoring_manifest_path))
     book.add("fresh.scoring.collection", "fresh", fresh_scoring_manifest.get("collection_manifest_sha256"), "==", sha256(fresh_manifest_path), str(fresh_scoring_manifest_path))
     book.add("fresh.scoring.claim", "fresh", fresh_scoring_manifest.get("blind_claim_sha256"), "==", sha256(fresh_claim_path), str(fresh_scoring_manifest_path))
+    book.add("fresh.scoring.seal", "fresh", fresh_scoring_manifest.get("prediction_seal_sha256"), "==", sha256(fresh_prediction_seal_path), str(fresh_scoring_manifest_path))
+    book.add("fresh.summary.seal", "fresh", nested(fresh.summary("webwalkerqa"), "blind_scoring.prediction_seal_sha256"), "==", sha256(fresh_prediction_seal_path), str(fresh.path))
+    book.add("fresh.summary.gold_order", "fresh", nested(fresh.summary("webwalkerqa"), "blind_scoring.gold_revealed_after_predictions"), "==", True, str(fresh.path))
     scoring_artifact = dict(fresh_scoring_manifest.get("artifacts") or {}).get(
         "webwalkerqa.jsonl"
     )
@@ -467,6 +480,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--fresh-run", type=Path, required=True)
     parser.add_argument("--fresh-manifest", type=Path, required=True)
     parser.add_argument("--fresh-blind-claim", type=Path, required=True)
+    parser.add_argument("--fresh-prediction-seal", type=Path, required=True)
     parser.add_argument("--fresh-scoring-manifest", type=Path, required=True)
     parser.add_argument("--eli5-run", type=Path, required=True)
     parser.add_argument("--longbench-state-fit-id-run", type=Path, required=True)

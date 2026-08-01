@@ -54,6 +54,39 @@ class RWKVAnswerExtractionTests(unittest.TestCase):
         self.assertNotIn("金融", prompt)
         self.assertIn("[S1]", prompt)
 
+    def test_grounded_prompt_labels_search_snippet_fallback(self) -> None:
+        evidence = [
+            Evidence(
+                id="S1",
+                title="Official release",
+                url="https://example.com/release",
+                source_type="official_docs",
+                published_at=None,
+                fetched_at=1.0,
+                authority=0.82,
+                text="Search result excerpt with limited release information.",
+                score=0.5,
+                metadata={"score_components": {"snippet_fallback": 1.0}},
+            )
+        ]
+        route = RouteDecision(
+            "latest_knowledge",
+            ["web_search"],
+            "latest",
+            "single",
+            False,
+            ["release"],
+            [],
+            "test",
+        )
+
+        prompt = build_rwkv_grounded_prompt(
+            "latest release", route, evidence, as_of="now", timezone="UTC"
+        )
+
+        self.assertIn("原网页抓取失败", prompt)
+        self.assertIn("只能作为有限证据", prompt)
+
     def test_grounded_answer_gets_one_citation_repair_before_fallback(self) -> None:
         answerer = object.__new__(HFLocalRWKVAnswerer)
         answerer.session_cache_enabled = False

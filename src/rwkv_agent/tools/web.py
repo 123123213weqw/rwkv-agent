@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 import json
+import math
 import os
 from pathlib import Path
+import random
 import socket
 import threading
 import time
@@ -13,11 +16,14 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from rwkv_search.config import AppConfig
+from rwkv_search.analysis.query import QueryAnalyzer
+from rwkv_search.p4_search import resolve_model_query_constraints
 from rwkv_search.passage_selection import select_page_passages
 from rwkv_search.pipeline.query_compiler import QueryCompiler, QueryHints
 from rwkv_search.realtime import RealtimeSearchEngine
 from rwkv_search.realtime.cache import TTLByteCache
 from rwkv_search.realtime.types import DiscoveredURL
+from rwkv_search.realtime.precision_discovery import build_original_query_lane
 from rwkv_search.semantic_selection import PairScorer, select_diverse_items
 from rwkv_search.text import canonicalize_url
 
@@ -366,14 +372,18 @@ def _public_evidence(
     selection_pool = [
         item for item in pool if item.get("origin") != "structured"
     ] + structured
+    reservable_structured = [
+        item for item in structured if _structured_preference(item) > 1.0
+    ]
     reserved = select_diverse_items(
         query,
         (),
-        structured,
-        # Preserve a bounded primary-source lane before generic fetched pages.
-        # Four records are enough to retain identity, index and recency records
-        # from a structured provider without taking over the eight-item result.
-        limit=min(4, len(structured)),
+        reservable_structured,
+        # Reserve only records whose provider declared a high-information
+        # capability stage (profile, repository index, commit, release).  A
+        # source label alone no longer forces a weak structured result into the
+        # final packet; it still competes in the normal global selection.
+        limit=min(4, len(reservable_structured)),
         scorer=scorer,
         preference_weight=0.18,
     ).items
@@ -438,10 +448,13 @@ class WebSearchAdapter:
         api_providers: Sequence[str] | None = None,
         semantic_scorer: PairScorer | None = None,
         query_compiler: QueryCompiler | None = None,
+        trace_observer: Any | None = None,
     ) -> None:
         self.profile = profile
         self.semantic_scorer = semantic_scorer
         self.query_compiler = query_compiler or QueryCompiler()
+        self.query_analyzer = QueryAnalyzer(max_queries=1)
+        self.trace_observer = trace_observer
         if engine is None:
             config = _configure(
                 config_path,
@@ -457,24 +470,58 @@ class WebSearchAdapter:
             )
         self.engine = engine
         self._scope_root = ""
+        self._scope_original_query = ""
+        self._trace_case_id = ""
+        self._query_lane_lock = threading.Lock()
+        self._original_query_lane_claimed = False
         if shadow is None and profile == "legacy":
             shadow = build_web_shadow_from_env(config_path)
         self.shadow = shadow
 
     @contextmanager
-    def scoped(self, root_url: str):
+    def scoped(self, root_url: str, *, original_query: str = ""):
         """Bind one leased controller request to a public crawl root."""
 
-        previous = self._scope_root
+        previous = (self._scope_root, self._scope_original_query)
+        with self._query_lane_lock:
+            previous_claimed = self._original_query_lane_claimed
+            self._original_query_lane_claimed = False
         self._scope_root = str(root_url or "").strip()
+        self._scope_original_query = str(original_query or "").strip()
         try:
             yield self
         finally:
-            self._scope_root = previous
+            self._scope_root, self._scope_original_query = previous
+            with self._query_lane_lock:
+                self._original_query_lane_claimed = previous_claimed
+
+    def _claim_original_query_lane(self) -> bool:
+        """Claim the request-level complementary lane exactly once."""
+
+        if not self._scope_root:
+            return False
+        with self._query_lane_lock:
+            if self._original_query_lane_claimed:
+                return False
+            self._original_query_lane_claimed = True
+            return True
+
+    @contextmanager
+    def capture_trace_case(self, case_id: str):
+        """Bind benchmark-only trace callbacks to one leased controller case."""
+
+        previous = self._trace_case_id
+        self._trace_case_id = str(case_id or "")
+        try:
+            yield self
+        finally:
+            self._trace_case_id = previous
 
     def execute_with_trace(
         self,
         query: str,
+        *,
+        original_query: str | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         value = str(query or "").strip()
         if not value:
@@ -496,6 +543,9 @@ class WebSearchAdapter:
                 "latency_ms": 0.0,
             }
         started = time.perf_counter()
+        original = str(original_query or value).strip()
+        query_resolution = resolve_model_query_constraints(original, value)
+        resolved_query = str(query_resolution["effective_query"] or original)
         scope_root = self._scope_root
         scope_host = (urlsplit(scope_root).hostname or "").removeprefix("www.")
         hints = QueryHints(
@@ -503,8 +553,37 @@ class WebSearchAdapter:
             sites=(scope_host,) if scope_host else (),
             depth="single",
         )
-        compiled = self.query_compiler.compile(value, value, hints=hints)
+        compiled = self.query_compiler.compile(
+            original,
+            resolved_query,
+            hints=hints,
+        )
         effective_query = compiled.execution_queries[0]
+        execution_queries = [effective_query]
+        original_query_lane = ""
+        engine_config = getattr(self.engine, "config", None)
+        if (
+            scope_host
+            and bool(
+                getattr(
+                    engine_config,
+                    "original_query_lane_enabled",
+                    False,
+                )
+            )
+        ):
+            candidate_lane = build_original_query_lane(
+                self._scope_original_query or original,
+                effective_query,
+                site=scope_host,
+                analyzer=self.query_analyzer,
+            )
+            if candidate_lane and self._claim_original_query_lane():
+                original_query_lane = candidate_lane
+                execution_queries.append(candidate_lane)
+        ranking_query = (
+            compiled.raw_query if original_query is not None else effective_query
+        )
         seed_urls = (
             (scope_root,)
             if scope_root
@@ -513,16 +592,18 @@ class WebSearchAdapter:
             else ()
         )
         results: list[Any] = []
+        raw_candidates: list[dict[str, Any]] = []
         candidates: list[dict[str, Any]] = []
         initial_candidates: list[dict[str, Any]] = []
         post_pivot_candidates: list[dict[str, Any]] = []
+        rejected_candidates: list[dict[str, Any]] = []
         fetches: list[dict[str, Any]] = []
         stats: dict[str, Any] = {}
         warnings: list[dict[str, Any]] = []
         events: list[dict[str, Any]] = []
         for event in self.engine.search_events(
-            effective_query,
-            [effective_query],
+            ranking_query,
+            execution_queries,
             freshness=compiled.freshness,
             depth=compiled.depth,
             source_preference=compiled.source_preference,
@@ -559,6 +640,11 @@ class WebSearchAdapter:
                         if warning not in warnings:
                             warnings.append(warning)
                     raw = progress.get("candidates") or ()
+                    raw_candidates = [
+                        _candidate(item)
+                        for item in progress.get("raw_candidates") or raw
+                        if isinstance(item, Mapping)
+                    ]
                     candidates = [
                         _candidate(item)
                         for item in raw
@@ -571,6 +657,11 @@ class WebSearchAdapter:
                         if isinstance(item, Mapping)
                     ]
                     post_pivot_candidates = list(candidates)
+                    rejected_candidates = [
+                        _candidate(item)
+                        for item in progress.get("rejected_candidates") or ()
+                        if isinstance(item, Mapping)
+                    ]
             elif event_type == "discovery_enrichment":
                 progress = event.get("progress") or {}
                 if isinstance(progress, Mapping) and progress.get("candidates"):
@@ -594,6 +685,9 @@ class WebSearchAdapter:
                 )
         scope_rejected = {
             "results": sum(not _within_scope(item, scope_host) for item in results),
+            "raw_candidates": sum(
+                not _within_scope(item, scope_host) for item in raw_candidates
+            ),
             "candidates": sum(
                 not _within_scope(item, scope_host) for item in candidates
             ),
@@ -607,6 +701,9 @@ class WebSearchAdapter:
         }
         if scope_host:
             results = [item for item in results if _within_scope(item, scope_host)]
+            raw_candidates = [
+                item for item in raw_candidates if _within_scope(item, scope_host)
+            ]
             candidates = [
                 item for item in candidates if _within_scope(item, scope_host)
             ]
@@ -620,17 +717,26 @@ class WebSearchAdapter:
                 for item in post_pivot_candidates
                 if _within_scope(item, scope_host)
             ]
+            rejected_candidates = [
+                item
+                for item in rejected_candidates
+                if _within_scope(item, scope_host)
+            ]
         evidence, evidence_stage = _public_evidence(
             results,
             candidates,
-            query=value,
+            query=ranking_query,
             scorer=self.semantic_scorer,
         )
         latency_ms = (time.perf_counter() - started) * 1000.0
         public = {
             "status": "ok" if evidence else "empty",
             "query": value,
+            "original_query": original,
             "effective_query": effective_query,
+            "execution_queries": execution_queries,
+            "original_query_lane": original_query_lane,
+            "query_resolution": query_resolution,
             "compiled_query": compiled.to_dict(),
             "scope_root": scope_root,
             "scope_mode": "strict" if scope_host else "open",
@@ -655,14 +761,20 @@ class WebSearchAdapter:
             "status": public["status"],
             "profile": self.profile,
             "query": value,
+            "original_query": original,
             "effective_query": effective_query,
+            "execution_queries": execution_queries,
+            "original_query_lane": original_query_lane,
+            "query_resolution": query_resolution,
             "compiled_query": compiled.to_dict(),
             "scope_root": scope_root,
             "scope_mode": "strict" if scope_host else "open",
             "scope_rejected": scope_rejected,
+            "raw_candidates": raw_candidates,
             "initial_candidates": initial_candidates,
             "post_pivot_candidates": post_pivot_candidates,
             "candidates": candidates,
+            "rejected_candidates": rejected_candidates,
             "results": [_result(item) for item in results],
             "fetches": fetches,
             "warnings": warnings,
@@ -673,14 +785,24 @@ class WebSearchAdapter:
         }
         return public, trace
 
-    def execute(self, query: str) -> dict[str, Any]:
-        public, trace = self.execute_with_trace(query)
+    def execute(
+        self,
+        query: str,
+        *,
+        original_query: str | None = None,
+    ) -> dict[str, Any]:
+        public, trace = self.execute_with_trace(
+            query,
+            original_query=original_query,
+        )
         if public.get("status") != "invalid" and self.shadow not in (None, False):
             public["retrieval"]["shadow"] = self.shadow.submit(
-                str(query or "").strip(),
+                str(original_query or query or "").strip(),
                 legacy_trace=trace,
                 legacy_evidence=public["evidence"],
             )
+        if self.trace_observer is not None:
+            self.trace_observer(self._trace_case_id, public, trace)
         return public
 
     def close(self) -> None:
@@ -697,11 +819,23 @@ class EnhancedWebShadow:
         *,
         log_path: str = "",
         max_pending: int = 2,
+        sample_rate: float = 1.0,
+        sampler: Callable[[], float] | None = None,
+        log_mode: str = "full",
     ) -> None:
         from concurrent.futures import ThreadPoolExecutor
 
         self.adapter = adapter
         self.log_path = Path(log_path) if log_path else None
+        rate = float(sample_rate)
+        if not math.isfinite(rate) or not 0.0 <= rate <= 1.0:
+            raise ValueError("shadow sample_rate must be between 0 and 1")
+        mode = str(log_mode or "").strip().casefold()
+        if mode not in {"full", "metrics"}:
+            raise ValueError("shadow log_mode must be 'full' or 'metrics'")
+        self.sample_rate = rate
+        self._sampler = sampler or random.SystemRandom().random
+        self.log_mode = mode
         self._executor = ThreadPoolExecutor(
             max_workers=1,
             thread_name_prefix="enhanced-web-shadow",
@@ -787,11 +921,22 @@ class EnhancedWebShadow:
         legacy_trace: Mapping[str, Any],
         legacy_evidence: Sequence[Mapping[str, Any]],
     ) -> dict[str, Any]:
+        if self.sample_rate <= 0.0 or (
+            self.sample_rate < 1.0 and self._sampler() >= self.sample_rate
+        ):
+            return {
+                "enabled": True,
+                "submitted": False,
+                "reason": "sample_not_selected",
+                "sample_rate": self.sample_rate,
+                "visible_strategy": "legacy",
+            }
         if not self._slots.acquire(blocking=False):
             return {
                 "enabled": True,
                 "submitted": False,
                 "reason": "queue_full",
+                "sample_rate": self.sample_rate,
                 "visible_strategy": "legacy",
             }
         try:
@@ -807,21 +952,81 @@ class EnhancedWebShadow:
                 "enabled": True,
                 "submitted": False,
                 "reason": "shadow_closed",
+                "sample_rate": self.sample_rate,
                 "visible_strategy": "legacy",
             }
         future.add_done_callback(lambda _future: self._slots.release())
         return {
             "enabled": True,
             "submitted": True,
+            "sample_rate": self.sample_rate,
             "visible_strategy": "legacy",
+        }
+
+    @staticmethod
+    def _trace_metrics(trace: Mapping[str, Any]) -> dict[str, Any]:
+        fetches = [
+            item
+            for item in trace.get("fetches") or ()
+            if isinstance(item, Mapping)
+        ]
+        return {
+            "status": str(trace.get("status") or ""),
+            "candidate_count": len(trace.get("candidates") or ()),
+            "result_count": len(trace.get("results") or ()),
+            "fetch_count": len(fetches),
+            "fetch_success_count": sum(
+                str(item.get("status") or "").casefold()
+                in {"ok", "success", "succeeded"}
+                for item in fetches
+            ),
+            "warning_count": len(trace.get("warnings") or ()),
+            "latency_ms": float(trace.get("latency_ms") or 0.0),
+            "evidence_stage": str(trace.get("evidence_stage") or ""),
+        }
+
+    @classmethod
+    def _metrics_row(cls, row: Mapping[str, Any]) -> dict[str, Any]:
+        def urls(name: str) -> set[str]:
+            output: set[str] = set()
+            for value in row.get(name) or ():
+                canonical = canonicalize_url(str(value))
+                if canonical:
+                    output.add(canonical)
+            return output
+
+        legacy_urls = urls("legacy_urls")
+        enhanced_urls = urls("enhanced_urls")
+        effective_urls = urls("effective_urls")
+        error = str(row.get("error") or "")
+        return {
+            "schema_version": "agent-web-shadow-metrics.v1",
+            "status": str(row.get("status") or ""),
+            "query_chars": len(str(row.get("query") or "")),
+            "legacy_evidence_count": len(legacy_urls),
+            "enhanced_evidence_count": len(enhanced_urls),
+            "effective_evidence_count": len(effective_urls),
+            "evidence_url_overlap_count": len(legacy_urls & enhanced_urls),
+            "fallback_used": bool(row.get("fallback_used")),
+            "fallback_reason": str(row.get("fallback_reason") or ""),
+            "legacy": cls._trace_metrics(dict(row.get("legacy_trace") or {})),
+            "enhanced": cls._trace_metrics(
+                dict(row.get("enhanced_trace") or {})
+            ),
+            "error_type": error.split(":", 1)[0] if error else "",
+            "elapsed_ms": float(row.get("elapsed_ms") or 0.0),
         }
 
     def _write(self, row: Mapping[str, Any]) -> None:
         if self.log_path is None:
             return
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
+        output = self._metrics_row(row) if self.log_mode == "metrics" else dict(row)
+        if self.log_mode == "metrics":
+            output["recorded_at"] = datetime.now(timezone.utc).isoformat()
+            output["sample_rate"] = self.sample_rate
         value = json.dumps(
-            dict(row),
+            output,
             ensure_ascii=False,
             separators=(",", ":"),
         )
@@ -844,6 +1049,29 @@ def build_web_shadow_from_env(
         "RWKV_AGENT_WEB_SHADOW_LOG",
         "var/web-shadow.jsonl",
     )
+    sample_rate_text = os.getenv(
+        "RWKV_AGENT_WEB_SHADOW_SAMPLE_RATE",
+        "0.10",
+    ).strip()
+    max_pending_text = os.getenv(
+        "RWKV_AGENT_WEB_SHADOW_MAX_PENDING",
+        "2",
+    ).strip()
+    try:
+        sample_rate = float(sample_rate_text)
+        max_pending = int(max_pending_text)
+    except ValueError as exc:
+        raise ValueError("invalid Web Shadow sampling configuration") from exc
+    if max_pending < 1:
+        raise ValueError("Web Shadow max pending must be positive")
+    log_mode = os.getenv(
+        "RWKV_AGENT_WEB_SHADOW_LOG_MODE",
+        "metrics",
+    ).strip().casefold()
+    if not math.isfinite(sample_rate) or not 0.0 <= sample_rate <= 1.0:
+        raise ValueError("Web Shadow sample rate must be between 0 and 1")
+    if log_mode not in {"full", "metrics"}:
+        raise ValueError("Web Shadow log mode must be 'full' or 'metrics'")
     return EnhancedWebShadow(
         WebSearchAdapter(
             config_path,
@@ -851,4 +1079,7 @@ def build_web_shadow_from_env(
             shadow=False,
         ),
         log_path=log_path,
+        max_pending=max_pending,
+        sample_rate=sample_rate,
+        log_mode=log_mode,
     )

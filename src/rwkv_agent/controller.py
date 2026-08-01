@@ -1,87 +1,38 @@
 from __future__ import annotations
 
-import json
 import os
-import re
-import threading
 import time
 from typing import Any
-from urllib.request import Request, urlopen
 
-from rwkv_search.pipeline.search_need import SearchNeedGate
-
+from .chat_prompts import (
+    render_direct_answer_prompt as render_direct_answer_prompt,
+    render_evidence_answer_prompt,
+    render_routing_context,
+    render_session_context,
+    strip_leading_think_blocks,
+)
+from .chat_session import DirectChatSession
+from .chat_state import ChatStateCache
+from .evidence_admission import EntityEvidenceAdmission
 from .memory import MemoryStore
-from .prompts import render_evidence_answer_prompt as render_base_answer_prompt
+from .model_client import ModelClient
 from .session_text import SessionTextBuffer
 from .state_agent import StateNativeSearchAgent
+from .state_answer import coordinate_answer_output
+from .tool_protocol import (
+    TOOLS,
+    TOOL_SCHEMAS as TOOL_SCHEMAS,
+    parse_tool_call,
+    policy_tool_gate as policy_tool_gate,
+    render_tool_prompt,
+)
+from .tool_executor import ToolExecutor
+from .tool_routing import ToolRouter
 from .tools import KnowledgeSearchAdapter, LongTextQAAdapter, WebSearchAdapter
+from rwkv_search.pipeline.answer_policy import AnswerPolicy
 
 
-TOOLS = ("web_search", "knowledge_search", "long_text_qa")
 LONG_TEXT_CAPTURE_CHARS = 4000
-TOOL_SCHEMAS = {
-    "web_search": {
-        "name": "web_search",
-        "description": "Search live or current public Internet information.",
-        "parameters": {
-            "type": "object",
-            "properties": {"query": {"type": "string"}},
-            "required": ["query"],
-            "additionalProperties": False,
-        },
-    },
-    "knowledge_search": {
-        "name": "knowledge_search",
-        "description": "Search local files and the local knowledge index.",
-        "parameters": {
-            "type": "object",
-            "properties": {"query": {"type": "string"}},
-            "required": ["query"],
-            "additionalProperties": False,
-        },
-    },
-    "long_text_qa": {
-        "name": "long_text_qa",
-        "description": (
-            "Answer a question about the long text currently pasted into this "
-            "chat session by parallel chunk analysis."
-        ),
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "question": {
-                    "type": "string",
-                    "description": "Question to answer from the active pasted text.",
-                },
-            },
-            "required": ["question"],
-            "additionalProperties": False,
-        },
-    },
-}
-TOOL_ENVELOPE = re.compile(
-    r"<tool_call>\s*(\{.*\})\s*</tool_call>",
-    re.S,
-)
-LEADING_THINK_BLOCKS = re.compile(
-    r"\A\s*(?:<think>.*?</think>\s*)+",
-    re.S,
-)
-
-
-def strip_leading_think_blocks(raw: str) -> tuple[str, bool]:
-    """Hide complete leading reasoning blocks without relaxing the protocol.
-
-    Only complete ``<think>...</think>`` blocks anchored at the beginning are
-    removed. Other prefixes, suffixes, malformed blocks and commentary remain
-    and therefore still fail strict Tool Call parsing.
-    """
-
-    value = str(raw or "")
-    match = LEADING_THINK_BLOCKS.match(value)
-    if match is None:
-        return value.strip(), False
-    return value[match.end() :].strip(), True
 
 
 def build_semantic_scorer_from_env() -> Any | None:
@@ -103,419 +54,6 @@ def build_semantic_scorer_from_env() -> Any | None:
     )
 
 
-def _bounded_context(
-    entries: list[tuple[str, str]],
-    *,
-    max_chars: int,
-) -> str:
-    selected: list[str] = []
-    used = 0
-    for label, value in reversed(entries):
-        clean = str(value or "").strip()
-        if not clean:
-            continue
-        line = f"{label}: {clean}"
-        separator = 1 if selected else 0
-        remaining = max_chars - used - separator
-        if remaining <= 0:
-            break
-        if len(line) > remaining:
-            line = line[-remaining:]
-        selected.append(line)
-        used += separator + len(line)
-    return "\n".join(reversed(selected))
-
-
-def render_session_context(
-    history: list[Any],
-) -> str:
-    return _bounded_context(
-        [
-            (
-                "User" if item.role == "user" else "Assistant",
-                (
-                    item.content
-                    if item.role == "user"
-                    else strip_leading_think_blocks(item.content)[0]
-                ),
-            )
-            for item in history
-        ],
-        max_chars=8000,
-    )
-
-
-def render_routing_context(history: list[Any]) -> str:
-    """Keep routing context small while preserving recent follow-up referents."""
-
-    return _bounded_context(
-        [
-            (
-                "User" if item.role == "user" else "Assistant",
-                (
-                    item.content
-                    if item.role == "user"
-                    else strip_leading_think_blocks(item.content)[0]
-                ),
-            )
-            for item in history
-        ],
-        max_chars=2000,
-    )
-
-
-def render_tool_prompt(
-    message: str,
-    *,
-    has_pasted_text: bool = False,
-    context: str = "",
-) -> str:
-    prompt = (
-        "System: Call exactly one function and output only "
-        '<tool_call>{"name":...,"arguments":...}</tool_call>.\n'
-        "Functions:\n"
-        "- web_search(query): live public Internet\n"
-        "- knowledge_search(query): local indexed knowledge, no file path\n"
-        "- long_text_qa(question): active pasted session text only\n"
-        f"Active pasted long text: {'yes' if has_pasted_text else 'no'}.\n"
-        "Do not copy source text into arguments. Do not answer. "
-        "Do not emit <think> or any text before the tool call."
-    )
-    prompt += (
-        "\nUser: What is the current stable Python version?\n\nAssistant:"
-        '<tool_call>{"name":"web_search","arguments":{"query":"Python current '
-        'stable version official"}}</tool_call>\n\n'
-        "User: Search the local knowledge base for the RWKV Agent design."
-        "\n\nAssistant:"
-        '<tool_call>{"name":"knowledge_search","arguments":{"query":"RWKV Agent '
-        'design"}}</tool_call>\n'
-        "\nSystem: Active pasted long text: yes.\n"
-        "User: Who founded the Red Coast base?\n\nAssistant:"
-        '<tool_call>{"name":"long_text_qa","arguments":{"question":'
-        '"Who founded the Red Coast base?"}}</tool_call>\n'
-    )
-    if context.strip():
-        prompt += (
-            "\nSystem: Use this recent conversation only to resolve pronouns "
-            "or omitted entities in the next User request:\n"
-            + context.strip()
-            + "\nEnd recent conversation.\n"
-        )
-    return prompt + "\nUser: " + message.strip() + "\n\nAssistant:"
-
-
-def parse_tool_call(raw: str) -> dict[str, Any]:
-    candidate, reasoning_stripped = strip_leading_think_blocks(raw)
-    match = TOOL_ENVELOPE.fullmatch(candidate)
-    if not match:
-        return {
-            "strict": False,
-            "tool": "",
-            "arguments": {},
-            "error": "envelope",
-            "reasoning_stripped": reasoning_stripped,
-        }
-    try:
-        value = json.loads(match.group(1))
-        if not isinstance(value, dict) or set(value) != {"name", "arguments"}:
-            raise ValueError("payload keys")
-        name = value["name"]
-        if name not in TOOLS:
-            raise ValueError("tool name")
-        arguments = value["arguments"]
-        if not isinstance(arguments, dict):
-            raise ValueError("arguments")
-        expected_keys = {"question"} if name == "long_text_qa" else {"query"}
-        if set(arguments) != expected_keys:
-            raise ValueError("argument keys")
-        if name == "long_text_qa":
-            question = arguments["question"]
-            if not isinstance(question, str) or not question.strip():
-                raise ValueError("question")
-            normalized = {"question": question.strip()}
-        else:
-            query = arguments["query"]
-            if not isinstance(query, str) or not query.strip():
-                raise ValueError("query")
-            normalized = {"query": query.strip()}
-        return {
-            "strict": True,
-            "tool": name,
-            "arguments": normalized,
-            "error": "",
-            "reasoning_stripped": reasoning_stripped,
-        }
-    except (ValueError, json.JSONDecodeError, TypeError) as exc:
-        return {
-            "strict": False,
-            "tool": "",
-            "arguments": {},
-            "error": str(exc),
-            "reasoning_stripped": reasoning_stripped,
-        }
-
-
-def policy_tool_gate(
-    message: str,
-    *,
-    search_mode: str = "auto",
-) -> dict[str, Any] | None:
-    """Apply only the explicit UI search switch; semantics belong to G1I."""
-
-    decision = SearchNeedGate().policy(message, mode=search_mode)
-    return decision.to_dict() if decision is not None else None
-
-
-def render_direct_answer_prompt(message: str, *, context: str = "") -> str:
-    prompt = (
-        "System: You are a helpful conversational assistant. Answer the user "
-        "directly in the user's language. Do not claim to have searched, do not "
-        "invent sources or citation IDs, and do not emit a tool call. Use the "
-        "supplied conversation when relevant. The conversation is the only memory "
-        "available; there is no extracted long-term profile. Do not mention memory "
-        "machinery unless the user asks about it. Never output <think> tags or "
-        "hidden reasoning.\n\n"
-    )
-    if context:
-        prompt += context + "\n\n"
-    return prompt + f"User: {message.strip()}\n\nAssistant:"
-
-
-def render_evidence_answer_prompt(
-    message: str,
-    result: dict[str, Any],
-    *,
-    context: str = "",
-) -> str:
-    prompt = render_base_answer_prompt(message, result)
-    if not context:
-        return prompt
-    current_turn = "\n\nUser: " + message.strip()
-    prefix, separator, suffix = prompt.rpartition(current_turn)
-    if not separator:
-        return prompt
-    return prefix + "\n\n" + context + separator + suffix
-
-
-class ModelClient:
-    def __init__(self, urls: list[str]) -> None:
-        if not urls:
-            raise ValueError("at least one G1I sidecar URL is required")
-        self.urls = [value.rstrip("/") for value in urls]
-        self._index = 0
-        self._lock = threading.Lock()
-
-    def _next_url(self) -> str:
-        with self._lock:
-            url = self.urls[self._index % len(self.urls)]
-            self._index += 1
-            return url
-
-    @staticmethod
-    def _get(url: str) -> dict[str, Any]:
-        with urlopen(url, timeout=10) as response:
-            return json.load(response)
-
-    @staticmethod
-    def _post(
-        url: str,
-        payload: dict[str, Any],
-        *,
-        timeout: float = 180.0,
-    ) -> dict[str, Any]:
-        body = json.dumps(payload, ensure_ascii=False).encode()
-        request = Request(
-            url,
-            data=body,
-            headers={"Content-Type": "application/json"},
-        )
-        with urlopen(request, timeout=timeout) as response:
-            value = json.load(response)
-        if not isinstance(value, dict):
-            raise RuntimeError("sidecar returned a non-object response")
-        return value
-
-    def health(self) -> list[dict[str, Any]]:
-        return [self._get(url + "/health") for url in self.urls]
-
-    def state_prefill(
-        self,
-        *,
-        owner_id: str,
-        prompt: str,
-    ) -> dict[str, Any]:
-        home_url = self._next_url()
-        result = self._post(
-            home_url + "/v1/states/prefill",
-            {
-                "owner_id": owner_id,
-                "prompt": prompt,
-                "branch": "root",
-            },
-        )
-        state = dict(result["state"])
-        state["home_url"] = home_url
-        return state
-
-    def state_fork(
-        self,
-        *,
-        home_url: str,
-        owner_id: str,
-        parent_state_id: str,
-        branches: list[str],
-    ) -> list[dict[str, Any]]:
-        result = self._post(
-            home_url.rstrip("/") + f"/v1/states/{parent_state_id}/fork",
-            {"owner_id": owner_id, "branches": branches},
-        )
-        return [dict(value) for value in result["states"]]
-
-    def state_batch_continue(
-        self,
-        *,
-        home_url: str,
-        owner_id: str,
-        items: list[dict[str, str]],
-        stops: list[str],
-        max_tokens: int,
-    ) -> list[dict[str, Any]]:
-        result = self._post(
-            home_url.rstrip("/") + "/v1/states/batch_continue",
-            {
-                "owner_id": owner_id,
-                "items": items,
-                "stop": stops,
-                "max_tokens": max_tokens,
-            },
-        )
-        return [dict(value) for value in result["results"]]
-
-    def state_batch_classify(
-        self,
-        *,
-        home_url: str,
-        owner_id: str,
-        items: list[dict[str, str]],
-        labels: dict[str, str],
-    ) -> list[dict[str, Any]]:
-        result = self._post(
-            home_url.rstrip("/") + "/v1/states/batch_classify",
-            {"owner_id": owner_id, "items": items, "labels": labels},
-        )
-        return [dict(value) for value in result["results"]]
-
-    def state_release(
-        self,
-        *,
-        home_url: str,
-        owner_id: str,
-        state_ids: list[str],
-    ) -> dict[str, Any]:
-        return self._post(
-            home_url.rstrip("/") + "/v1/states/release",
-            {"owner_id": owner_id, "state_ids": state_ids},
-        )
-
-    def complete(
-        self,
-        prompt: str,
-        *,
-        max_tokens: int = 192,
-        stops: list[str] | None = None,
-    ) -> dict[str, Any]:
-        url = self._next_url()
-        stop_values = stops or [
-            "</tool_call>",
-            "</tool_calls>",
-            "</tool_code>",
-            "\nUser:",
-            "\nSystem:",
-            "\n\nUser:",
-            "</s>",
-        ]
-        body = json.dumps(
-            {
-                "prompt": prompt,
-                "stop": stop_values,
-                "max_tokens": max_tokens,
-            },
-            ensure_ascii=False,
-        ).encode()
-        started = time.perf_counter()
-        request = Request(
-            url + "/v1/completions",
-            data=body,
-            headers={"Content-Type": "application/json"},
-        )
-        with urlopen(request, timeout=180) as response:
-            data = json.load(response)
-        g1i = data["g1i"]
-        stop = str(g1i.get("stop_reason") or "")
-        raw = str(g1i.get("text") or "") + (stop if stop.startswith("</tool") else "")
-        return {
-            "raw": raw,
-            "stop": stop,
-            "output_tokens": len(g1i.get("token_ids") or []),
-            "model_elapsed_ms": float(g1i.get("elapsed_ms") or 0.0),
-            "request_elapsed_ms": round((time.perf_counter() - started) * 1000.0, 3),
-            "model": data.get("model"),
-            "url": url,
-        }
-
-    def classify(
-        self,
-        prompt: str,
-        *,
-        labels: dict[str, str],
-    ) -> dict[str, Any]:
-        url = self._next_url()
-        started = time.perf_counter()
-        result = self._post(
-            url + "/v1/classify",
-            {"prompt": prompt, "labels": labels},
-        )
-        result["request_elapsed_ms"] = round(
-            (time.perf_counter() - started) * 1000.0,
-            3,
-        )
-        result["url"] = url
-        return result
-
-    def gate_tool(
-        self,
-        message: str,
-        *,
-        threshold: float = 0.7,
-        context: str = "",
-        has_pasted_text: bool = False,
-    ) -> dict[str, Any]:
-        url = self._next_url()
-        body = json.dumps(
-            {
-                "message": message,
-                "threshold": threshold,
-                "context": context,
-                "has_pasted_text": has_pasted_text,
-            },
-            ensure_ascii=False,
-        ).encode()
-        started = time.perf_counter()
-        request = Request(
-            url + "/v1/gate/tool",
-            data=body,
-            headers={"Content-Type": "application/json"},
-        )
-        with urlopen(request, timeout=180) as response:
-            result = json.load(response)
-        result["request_elapsed_ms"] = round(
-            (time.perf_counter() - started) * 1000.0,
-            3,
-        )
-        result["url"] = url
-        return result
-
-
 class AgentController:
     def __init__(
         self,
@@ -531,6 +69,9 @@ class AgentController:
         session_text_buffer: SessionTextBuffer | None = None,
         tool_gate_threshold: float = 0.7,
         semantic_scorer: Any | None = None,
+        preserve_query_view_evidence: bool = False,
+        chat_state_enabled: bool | None = None,
+        chat_state_capacity: int | None = None,
     ) -> None:
         self.model = ModelClient(model_urls)
         self.memory = MemoryStore(memory_path)
@@ -542,19 +83,46 @@ class AgentController:
         self.knowledge = knowledge_adapter or KnowledgeSearchAdapter(knowledge_endpoint)
         self.long_text = long_text_adapter or LongTextQAAdapter(self.model.complete)
         self.long_text_capture_chars = max(256, int(long_text_capture_chars))
-        self.tool_gate_threshold = float(tool_gate_threshold)
-        self.search_need_gate = SearchNeedGate()
-        if not -20.0 <= self.tool_gate_threshold <= 20.0:
-            raise ValueError("tool_gate_threshold out of range")
+        self.tool_gate_threshold = ToolRouter.validate_threshold(tool_gate_threshold)
+        self.tool_router = ToolRouter(default_threshold=self.tool_gate_threshold)
+        self.answer_policy = AnswerPolicy()
+        self.evidence_admission = EntityEvidenceAdmission()
         max_text_chars = int(getattr(self.long_text, "max_document_chars", 1_000_000))
         self.session_text = session_text_buffer or SessionTextBuffer(
             max_chars=max_text_chars
+        )
+        self.tool_executor = ToolExecutor(
+            web=self.web,
+            knowledge=self.knowledge,
+            long_text=self.long_text,
+            session_text=self.session_text,
+        )
+        if chat_state_enabled is None:
+            chat_state_enabled = (
+                os.getenv("RWKV_AGENT_CHAT_STATE_ENABLED", "1")
+                .strip()
+                .casefold()
+                not in {"0", "false", "no"}
+            )
+        if chat_state_capacity is None:
+            chat_state_capacity = int(
+                os.getenv("RWKV_AGENT_CHAT_STATE_CAPACITY", "3")
+            )
+        self.chat_state_enabled = bool(chat_state_enabled)
+        self.chat_states = ChatStateCache(capacity=int(chat_state_capacity))
+        self.chat_session = DirectChatSession(
+            model_provider=lambda: self.model,
+            enabled_provider=lambda: self.chat_state_enabled,
+            cache=self.chat_states,
         )
         self.state_search = StateNativeSearchAgent(
             state_model=self.model,
             parse_tool_call=parse_tool_call,
             execute_tool=self.execute_tool,
             evidence_scorer=self.semantic_scorer,
+            answer_policy=self.answer_policy,
+            evidence_admission=self.evidence_admission,
+            preserve_query_view_evidence=preserve_query_view_evidence,
         )
 
     def health(self) -> dict[str, Any]:
@@ -563,9 +131,16 @@ class AgentController:
             "tools": list(TOOLS),
             "model": self.model.health(),
             "context": {
-                "mode": "session_transcript",
+                "mode": (
+                    "recurrent_session_state_with_transcript_fallback"
+                    if self.chat_state_enabled
+                    else "session_transcript"
+                ),
                 "history_messages": 12,
                 "long_term_memory": False,
+                "session_state": self.chat_states.health(
+                    enabled=self.chat_state_enabled
+                ),
             },
             "tool_gate": {
                 "mode": "semantic_single_token",
@@ -602,35 +177,14 @@ class AgentController:
         has_pasted_text: bool = False,
         search_mode: str = "auto",
     ) -> dict[str, Any]:
-        clean = str(message or "").strip()
-        if not clean:
-            raise ValueError("message must not be empty")
-        effective_threshold = (
-            self.tool_gate_threshold if threshold is None else float(threshold)
-        )
-        if not -20.0 <= effective_threshold <= 20.0:
-            raise ValueError("threshold out of range")
-        started = time.perf_counter()
-        policy = policy_tool_gate(clean, search_mode=search_mode)
-        if policy is not None:
-            return {
-                **policy,
-                "threshold": effective_threshold,
-                "margin": None,
-                "elapsed_ms": round(
-                    (time.perf_counter() - started) * 1000.0,
-                    3,
-                ),
-            }
-        result = self.model.gate_tool(
-            clean,
-            threshold=effective_threshold,
+        return self.tool_router.decide(
+            self.model,
+            message,
+            threshold=self.tool_gate_threshold if threshold is None else threshold,
             context=context,
             has_pasted_text=has_pasted_text,
+            search_mode=search_mode,
         )
-        result["source"] = "g1i"
-        result["reason"] = "ambiguous request resolved by one-token G1I gate"
-        return result
 
     def execute_tool(
         self,
@@ -638,53 +192,14 @@ class AgentController:
         arguments: dict[str, Any],
         *,
         session_id: str = "default",
+        original_query: str | None = None,
     ) -> dict[str, Any]:
-        if name == "web_search":
-            return self.web.execute(str(arguments.get("query") or ""))
-        if name == "knowledge_search":
-            query = str(arguments.get("query") or "").strip()
-            if not query:
-                return {
-                    "status": "invalid",
-                    "evidence": [],
-                    "message": "knowledge_search requires a non-empty query.",
-                }
-            return self.knowledge.execute(query)
-        if name == "long_text_qa":
-            if set(arguments) != {"question"}:
-                return {
-                    "status": "invalid",
-                    "evidence": [],
-                    "message": ("long_text_qa accepts exactly one argument: question."),
-                }
-            pasted = self.session_text.get(session_id)
-            if pasted is None:
-                return {
-                    "status": "empty",
-                    "evidence": [],
-                    "message": (
-                        "No pasted long text is active in this session. "
-                        "Paste the text first, then ask a question."
-                    ),
-                }
-            return self.long_text.execute(
-                pasted.text,
-                str(arguments.get("question") or ""),
-                document_name=pasted.name,
-            )
-        if name in {"memory", "memory_save"}:
-            return {
-                "status": "disabled",
-                "reason": "context_only_mode",
-                "message": (
-                    "Long-term memory is disabled. Only the current session "
-                    "transcript is used as context."
-                ),
-            }
-        return {
-            "status": "invalid",
-            "message": f"unknown tool: {name}",
-        }
+        return self.tool_executor.execute(
+            name,
+            arguments,
+            session_id=session_id,
+            original_query=original_query,
+        )
 
     def run(
         self,
@@ -693,11 +208,27 @@ class AgentController:
         session_id: str = "default",
         search_mode: str = "auto",
     ) -> dict[str, Any]:
+        clean_session = self.chat_states.normalize_session_id(session_id)
+        with self.chat_states.turn_lock(clean_session):
+            return self._run_locked(
+                message,
+                session_id=clean_session,
+                search_mode=search_mode,
+            )
+
+    def _run_locked(
+        self,
+        message: str,
+        *,
+        session_id: str,
+        search_mode: str,
+    ) -> dict[str, Any]:
         started = time.perf_counter()
         case = {"query": str(message or "").strip()}
         if not case["query"]:
             return {"status": "invalid", "message": "message must not be empty"}
         if len(case["query"]) >= self.long_text_capture_chars:
+            self.chat_session.invalidate(session_id)
             pasted = self.session_text.put(session_id, case["query"])
             is_chinese = any("\u3400" <= char <= "\u9fff" for char in case["query"])
             answer = (
@@ -755,18 +286,33 @@ class AgentController:
             search_mode=search_mode,
         )
         if not bool(gate.get("use_tool")):
-            answer_completion = self.model.complete(
-                render_direct_answer_prompt(case["query"], context=context),
-                max_tokens=256,
+            answer_completion, chat_state, chat_state_trace = (
+                self.chat_session.complete(
+                    case["query"],
+                    session_id=session_id,
+                    history=history,
+                    context=context,
+                )
             )
             answer, reasoning_stripped = strip_leading_think_blocks(
                 answer_completion["raw"]
             )
             answer_completion["reasoning_stripped"] = reasoning_stripped
-            self.memory.append_exchange(
-                session_id=session_id,
-                user=case["query"],
-                assistant=answer,
+            try:
+                _user_record, assistant_record = self.memory.append_exchange(
+                    session_id=session_id,
+                    user=case["query"],
+                    assistant=answer,
+                )
+            except Exception:
+                if chat_state is not None:
+                    self.chat_session.discard(chat_state)
+                raise
+            self.chat_session.store_completed(
+                chat_state,
+                assistant_message_id=assistant_record.id,
+                reasoning_stripped=reasoning_stripped,
+                trace=chat_state_trace,
             )
             return {
                 "status": "ok",
@@ -782,7 +328,12 @@ class AgentController:
                     "gate": gate,
                     "context": {
                         "history_messages": len(history),
-                        "mode": "session_transcript",
+                        "mode": (
+                            "recurrent_session_state"
+                            if chat_state_trace["used"]
+                            else "session_transcript"
+                        ),
+                        "session_state": chat_state_trace,
                     },
                     "routing_completion": None,
                     "answer_completion": answer_completion,
@@ -796,6 +347,11 @@ class AgentController:
                     ),
                 },
             }
+        # A tool turn is generated from a separate evidence prompt. Release the
+        # conversational state now instead of occupying a GPU slot while Web or
+        # knowledge I/O runs. The next direct turn rebuilds once from the
+        # durable transcript and then resumes incremental State continuation.
+        self.chat_session.invalidate(session_id)
         routing = self.model.complete(
             render_tool_prompt(
                 case["query"],
@@ -815,8 +371,22 @@ class AgentController:
             parsed["tool"],
             parsed["arguments"],
             session_id=session_id,
+            original_query=case["query"],
         )
+        if parsed["tool"] == "web_search" and tool_result.get("status") == "ok":
+            admitted, admission_trace = self.evidence_admission.admit(
+                case["query"],
+                list(tool_result.get("evidence") or []),
+            )
+            tool_result = {
+                **tool_result,
+                "status": "ok" if admitted else "empty",
+                "evidence": admitted,
+                "evidence_admission": admission_trace.to_dict(),
+            }
         answer_completion: dict[str, Any] | None = None
+        answer_protocol: dict[str, Any] | None = None
+        response_status = "ok"
         if tool_result.get("status") == "empty":
             answer = (
                 "没有找到可用证据。"
@@ -836,13 +406,31 @@ class AgentController:
                 answer_completion["raw"]
             )
             answer_completion["reasoning_stripped"] = reasoning_stripped
+            if parsed["tool"] == "web_search":
+                answer_protocol = coordinate_answer_output(
+                    answer,
+                    list(tool_result.get("evidence") or []),
+                    scorer=self.semantic_scorer,
+                    question=case["query"],
+                )
+                if answer_protocol.get("valid"):
+                    answer = str(answer_protocol["answer"])
+                    if answer_protocol.get("partial_answer"):
+                        answer += "\n" + self.answer_policy.partial_support_notice(
+                            case["query"]
+                        )
+                else:
+                    response_status = "insufficient_evidence"
+                    answer = self.answer_policy.insufficient_support_answer(
+                        case["query"]
+                    )
         self.memory.append_exchange(
             session_id=session_id,
             user=case["query"],
             assistant=answer,
         )
         return {
-            "status": "ok",
+            "status": response_status,
             "session_id": session_id,
             "message": message,
             "route": {
@@ -861,6 +449,7 @@ class AgentController:
                 },
                 "routing_completion": routing,
                 "answer_completion": answer_completion,
+                "answer_protocol": answer_protocol,
                 "elapsed_ms": round((time.perf_counter() - started) * 1000.0, 3),
             },
         }
@@ -881,20 +470,23 @@ class AgentController:
             raise ValueError("session_id must not be empty")
         if not clean_message:
             raise ValueError("message must not be empty")
-        result = self.state_search.run(
-            clean_message,
-            session_id=clean_session,
-            branch_width=branch_width,
-            max_rounds=max_rounds,
-        )
-        self.memory.append_exchange(
-            session_id=clean_session,
-            user=clean_message,
-            assistant=str(result.get("answer") or ""),
-        )
-        return result
+        with self.chat_states.turn_lock(clean_session):
+            self.chat_session.invalidate(clean_session)
+            result = self.state_search.run(
+                clean_message,
+                session_id=clean_session,
+                branch_width=branch_width,
+                max_rounds=max_rounds,
+            )
+            self.memory.append_exchange(
+                session_id=clean_session,
+                user=clean_message,
+                assistant=str(result.get("answer") or ""),
+            )
+            return result
 
     def close(self) -> None:
+        self.chat_session.close()
         self.session_text.close()
         knowledge_close = getattr(self.knowledge, "close", None)
         if callable(knowledge_close):

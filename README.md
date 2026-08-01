@@ -23,8 +23,13 @@ compatibility name in this Beta.
 
 - ordinary multi-turn RWKV chat;
 - strict greedy `web_search`, `knowledge_search` and `long_text_qa` Tool Calls;
-- Tavily, GitHub, MediaWiki and Crossref discovery, with bounded Bing fallback;
-- low-resource static page extraction and evidence-based answers;
+- self-hosted SearXNG with independent Dogpile and Naver lanes, plus GitHub,
+  MediaWiki and Crossref discovery, with bounded Bing fallback and optional Tavily;
+- confidence-scheduled bounded fetching, low-resource static extraction,
+  structured-API Evidence reuse, strictly gated excerpt fallback and
+  evidence-based answers;
+- deletion-only query guarding that removes model-invented dates or versions
+  while preserving useful entity, translation and source wording;
 - explicit B1-B4, one-to-three-round state-native Web research;
 - session transcript, pasted long-text QA, citations and safe abstention;
 - reproducible retrieval and 200-case Agent regression benchmarks.
@@ -35,7 +40,33 @@ the recommended first-run experience.
 
 ## Five-minute setup
 
-### 1. Install
+There are two installation modes:
+
+- **Client only:** install the small Rust terminal client on macOS or Linux and
+  connect it to an existing Agent Controller over loopback, SSH forwarding or a
+  private network. See the [CLI guide](cli/README.md).
+- **Full self-hosted Beta:** install the Python backend, model runtime and CLI on
+  a Linux CUDA host using the steps below.
+
+The Controller is not a hosted public API. It has no built-in authentication or
+rate limiting, so the supported remote-client pattern is an SSH tunnel or an
+authenticated private gateway rather than exposing port 8120 directly.
+
+### Client-only install
+
+```bash
+git clone https://github.com/123123213weqw/rwkv-search.git
+cd rwkv-search
+./cli/install.sh --client-only
+
+ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent
+```
+
+Tagged Beta releases can also attach prebuilt Apple Silicon macOS and x86-64
+Linux CLI archives with adjacent SHA-256 files.
+
+### 1. Full self-hosted install
 
 Requirements: Linux CUDA host, Python 3.10+, Rust toolchain, `curl`, an RWKV G1I
 checkpoint and a compatible Albatross runtime.
@@ -115,9 +146,21 @@ flowchart LR
 The model produces a small tool request, not a large Planner JSON document.
 Time, source and explicit-site constraints are merged deterministically. The
 retrieval path uses general source/page features rather than topic-specific
-finance, software or policy routers.
+finance, software or policy routers. Cached Evidence does not consume the
+network-fetch budget; live candidates are scheduled by admission confidence,
+and up to four final pages from one source domain may coexist when relevant.
+When an origin is blocked or its fetched shell contains no extractable body, a
+high-confidence, entity-matched search excerpt can be retained as explicitly
+labeled limited evidence without another network request.
 
 ## Verified quality
+
+This remains a Beta. A later time-isolated Fresh-Web-200-v1 blind run had 100%
+request success and 81% Gold-domain recall, but only 16.75% exact-URL recall,
+58.5% citation presence, 11.19% answer Token F1 and 42.33-second P95 latency.
+It therefore failed the current Fresh-Web release gate. The CLI and retrieval
+stack are usable for testing, but the project does not claim production-grade
+open-Web answer quality yet.
 
 The current 13.3B stack was evaluated on 200 fixed cases: 40 each from BFCL,
 WebWalkerQA, FRAMES, LongBench v2 and ALCE.
@@ -148,7 +191,8 @@ Machine-readable summaries:
 
 ```text
 src/rwkv_agent/       Current Agent Controller, tools and Sidecar
-src/rwkv7_scheduler/  Recurrent state pool and continuous batching
+src/rwkv_runtime/     Shared decode, classification and scheduler contracts
+src/rwkv7_scheduler/  Recurrent state pool and unified mixed-row scheduling
 src/rwkv_search/      RWKV Search retrieval subsystem and Legacy Web Preview
 cli/                  Rust terminal client and local service lifecycle
 configs/              Default, production example and benchmark configs

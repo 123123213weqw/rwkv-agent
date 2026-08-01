@@ -86,6 +86,13 @@ class RetrievalMetricsTest(unittest.TestCase):
                 ["/downloads/"],
             )
         )
+        self.assertTrue(
+            target_page_matches(
+                "https://python.org/zh-cn/downloads/release/python-3140/",
+                ["python.org"],
+                ["/downloads/"],
+            )
+        )
 
     def test_organization_parent_is_partial_not_strict_domain_credit(self) -> None:
         self.assertFalse(domain_matches("usgs.gov", "earthquake.usgs.gov"))

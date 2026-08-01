@@ -7,6 +7,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 
 from benchmarks import run_fitgen_benchmark as module
 
@@ -153,8 +154,9 @@ class CoreScoreTest(unittest.TestCase):
                 self.root = ""
 
             @contextmanager
-            def scoped(self, root: str):
+            def scoped(self, root: str, *, original_query: str = ""):
                 self.root = root
+                self.original_query = original_query
                 yield
 
         class FakeController:
@@ -192,6 +194,7 @@ class CoreScoreTest(unittest.TestCase):
         controller = FakeController()
         row = module.score_web(case, controller)
         self.assertEqual(controller.web.root, "https://www.example.org/")
+        self.assertEqual(controller.web.original_query, "Who won the award?")
         self.assertEqual(controller.message, case["prompt"])
         self.assertNotIn("private/gold", controller.message)
         self.assertEqual(row["benchmark"]["search_scope"], "https://www.example.org/")
@@ -201,7 +204,8 @@ class CoreScoreTest(unittest.TestCase):
     def test_web_score_treats_insufficient_evidence_as_safe_abstention(self):
         class FakeWeb:
             @contextmanager
-            def scoped(self, _root: str):
+            def scoped(self, _root: str, *, original_query: str = ""):
+                self.original_query = original_query
                 yield
 
         class FakeController:
@@ -269,6 +273,52 @@ class CoreScoreTest(unittest.TestCase):
             "exact_page_recall",
         )
 
+    def test_web_score_excludes_controller_partial_support_notice_from_claims(self):
+        class FakeWeb:
+            @contextmanager
+            def scoped(self, _root: str, *, original_query: str = ""):
+                yield
+
+        class FakeController:
+            web = FakeWeb()
+
+            def run_stateful_search(self, _message: str, **_kwargs):
+                return {
+                    "status": "ok",
+                    "answer": (
+                        "The verified fact is supported [W1].\n"
+                        "Other requested details were omitted because support "
+                        "was insufficient."
+                    ),
+                    "tool_result": {
+                        "evidence": [
+                            {
+                                "id": "W1",
+                                "title": "Verified fact",
+                                "content": "The verified fact is supported.",
+                                "uri": "https://example.org/fact",
+                            }
+                        ]
+                    },
+                    "trace": {
+                        "rounds": [],
+                        "state_runtime": {"release": {"released": 1}},
+                        "answer_protocol": {"policy_notice": "partial_support"},
+                    },
+                }
+
+        case = {
+            "id": "web-partial",
+            "prompt": "What facts are verified?",
+            "metadata": {"root_url": "https://example.org/"},
+            "limits": {},
+        }
+
+        row = module.score_web(case, FakeController())
+
+        self.assertEqual(len(row["claims"]), 1)
+        self.assertTrue(row["claims"][0]["supported"])
+
     def test_alce_only_treats_unsupported_evidence_as_safe_abstention(self):
         self.assertTrue(
             module._is_insufficient_evidence_validation(
@@ -331,6 +381,58 @@ class CoreScoreTest(unittest.TestCase):
             )
             actual = module.selected_cases("bfcl", None, cases_dir=cases_dir)
         self.assertEqual([row["id"] for row in actual], [row["id"] for row in expected])
+
+    def test_deferred_scoring_requires_gold_free_fresh_cases(self):
+        public = {
+            "split": "fresh_web_once",
+            "gold": {
+                "answerable": True,
+                "requires_citations": True,
+                "should_call_tools": True,
+            },
+        }
+        module.validate_deferred_scoring_cases(
+            "webwalkerqa", [public], smoke=None
+        )
+        exposed = {
+            **public,
+            "gold": {**public["gold"], "answers": ["private answer"]},
+        }
+        with self.assertRaisesRegex(ValueError, "must not expose private Gold"):
+            module.validate_deferred_scoring_cases(
+                "webwalkerqa", [exposed], smoke=None
+            )
+        with self.assertRaisesRegex(ValueError, "full webwalkerqa"):
+            module.validate_deferred_scoring_cases(
+                "frames", [public], smoke=None
+            )
+
+    def test_runtime_receives_explicit_api_provider_policy(self):
+        with tempfile.TemporaryDirectory() as temporary, patch.object(
+            module, "WebSearchAdapter"
+        ) as web_adapter, patch.object(
+            module, "AgentController"
+        ) as controller, patch.object(module, "ModelClient"), patch.object(
+            module, "MODEL_URLS", ("http://model",)
+        ):
+            runtime = module.make_runtime(
+                "webwalkerqa",
+                Path(temporary),
+                web_profile="balanced",
+                web_fallback_engines=("bing",),
+                web_api_providers=("github", "crossref", "mediawiki"),
+                longbench_mode="lexical",
+                alce_max_tokens=32,
+                alce_prompt_profile="full",
+            )
+            web_adapter.assert_called_once_with(
+                str(module.DEFAULT_CONFIG),
+                profile="balanced",
+                shadow=False,
+                fallback_engines=("bing",),
+                api_providers=("github", "crossref", "mediawiki"),
+            )
+            self.assertEqual(runtime.controller_pool.controllers, [controller.return_value])
 
     def test_base_and_error_results_validate(self):
         if not self.bfcl:

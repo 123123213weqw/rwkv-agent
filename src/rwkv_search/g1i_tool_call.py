@@ -6,10 +6,12 @@ from typing import Any, Dict, Tuple
 
 
 P4_SYSTEM_PROMPT = (
-    'Call web_search once. Output only <tool_call>{"name":"web_search","arguments":'
-    '{"query":QUERY_STRING}}</tool_call>, replacing QUERY_STRING with a valid JSON string. '
-    "Preserve entities, versions, time and source constraints."
+    "Call web_search once by continuing the prefilled JSON. Write only one concise "
+    "search query of at most 12 words and 80 characters. Preserve user entities, "
+    "versions, time and source constraints. Never add a year absent from the user "
+    "request. Use at most one site: operator. Do not explain."
 )
+P4_TOOL_CALL_PREFIX = '<tool_call>{"name":"web_search","arguments":{"query":"'
 
 _THINK_RE = re.compile(r"<think>[\s\S]*?</think>", re.I)
 _ANY_TOOL_TAG_RE = re.compile(r"</?(?:tool_call|tool_calls|tool_code|tool_output)>", re.I)
@@ -45,7 +47,8 @@ def render_p4_prompt(user_query: str) -> str:
         + json.dumps(web_search_schema(), ensure_ascii=False, indent=2)
         + "\n</functions>\n\nUser: "
         + user_query.strip()
-        + "\n\nAssistant:"
+        + "\n\nAssistant: "
+        + P4_TOOL_CALL_PREFIX
     )
 
 
@@ -64,6 +67,25 @@ def important_entities(text: str) -> Tuple[str, ...]:
 
 def reconstruct_stopped_output(text: str, stop: str | None) -> str:
     return text + stop if stop and stop.startswith("</tool") else text
+
+
+def reconstruct_prefilled_web_search_tool_call(
+    text: str,
+    stop: str | None,
+) -> str:
+    """Restore the JSON prefix committed in :func:`render_p4_prompt`.
+
+    Prefilling through the opening query quote prevents the model from spending
+    its bounded output budget on a hidden-reasoning preamble. Older traces and
+    test doubles may still return a complete ``<tool_call>`` block, so they are
+    accepted without duplicating the prefix.
+    """
+
+    generated = str(text or "").lstrip()
+    raw = generated if generated.startswith("<tool_call>") else P4_TOOL_CALL_PREFIX + generated
+    if stop == "</tool_call>" and not raw.rstrip().endswith("</tool_call>"):
+        raw += "</tool_call>"
+    return raw
 
 
 def evaluate_web_search_tool_call(raw_output: str) -> Dict[str, Any]:

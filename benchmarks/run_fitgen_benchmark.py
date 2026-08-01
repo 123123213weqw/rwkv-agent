@@ -11,7 +11,7 @@ import argparse
 import ast
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
@@ -42,11 +42,16 @@ from benchmarks.agent_benchmark_schema import (  # noqa: E402
     validate_result,
 )
 from benchmarks.run_agent_benchmark_metrics import build_report  # noqa: E402
+from benchmarks.retrieval_snapshot import (  # noqa: E402
+    RetrievalSnapshotRecorder,
+    freeze_config_snapshot,
+)
 from rwkv_agent.controller import AgentController, ModelClient  # noqa: E402
 from rwkv_agent.claim_verifier import verify_answer_claims  # noqa: E402
 from rwkv_agent.longbench_state import (  # noqa: E402
     run_state_longbench_chunk_ensemble,
 )
+from rwkv_search.pipeline.answer_policy import AnswerPolicy  # noqa: E402
 from rwkv_agent.state_agent import (  # noqa: E402
     ANSWER_STOPS,
     compact_answer_evidence,
@@ -666,7 +671,7 @@ def score_web(
 ) -> dict[str, Any]:
     started = time.perf_counter()
     root_url = str(case.get("metadata", {}).get("root_url") or "")
-    with controller.web.scoped(root_url):
+    with controller.web.scoped(root_url, original_query=str(case["prompt"])):
         native = controller.run_stateful_search(
             str(case["prompt"]),
             session_id="benchmark-" + str(case["id"]),
@@ -696,10 +701,15 @@ def score_web(
     row["abstained"] = (
         native_status == "insufficient_evidence" or not row["evidence"]
     )
+    claim_answer = row["answer"]
+    if protocol.get("policy_notice") == "partial_support":
+        notice = AnswerPolicy.partial_support_notice(str(case["prompt"]))
+        if claim_answer.endswith(notice):
+            claim_answer = claim_answer[: -len(notice)].rstrip()
     row["claims"] = (
         []
         if row["abstained"]
-        else verify_answer_claims(row["answer"], row["evidence"])
+        else verify_answer_claims(claim_answer, row["evidence"])
     )
     row["trace"] = {
         "requests": requests,
@@ -968,18 +978,32 @@ class TrackRuntime:
     longbench_pool: "ControllerLeasePool | None" = None
     alce_max_tokens: int = 32
     alce_prompt_profile: str = "full"
+    retrieval_snapshot_recorder: RetrievalSnapshotRecorder | None = None
 
     def score_web(self, case: Mapping[str, Any]) -> dict[str, Any]:
         if self.controller_pool is None:
             raise RuntimeError("web controller pool is unavailable")
         with self.controller_pool.lease() as controller:
-            return score_web(case, controller)
+            capture = (
+                self.retrieval_snapshot_recorder.capture_case(str(case["id"]))
+                if self.retrieval_snapshot_recorder is not None
+                else nullcontext()
+            )
+            trace_capture = (
+                controller.web.capture_trace_case(str(case["id"]))
+                if self.retrieval_snapshot_recorder is not None
+                else nullcontext()
+            )
+            with capture, trace_capture:
+                return score_web(case, controller)
 
     def close(self) -> None:
         if self.controller_pool is not None:
             self.controller_pool.close()
         if self.longbench_pool is not None:
             self.longbench_pool.close()
+        if self.retrieval_snapshot_recorder is not None:
+            self.retrieval_snapshot_recorder.finalize()
 
     def score_longbench_state(self, case: Mapping[str, Any]) -> dict[str, Any]:
         if self.longbench_pool is None:
@@ -1022,9 +1046,12 @@ def make_runtime(
     *,
     web_profile: str,
     web_fallback_engines: Sequence[str],
+    web_api_providers: Sequence[str],
     longbench_mode: str,
     alce_max_tokens: int,
     alce_prompt_profile: str,
+    capture_retrieval_snapshots: bool = False,
+    preserve_query_view_evidence: bool = False,
 ) -> TrackRuntime:
     model = ModelClient(list(MODEL_URLS))
     if dataset == "longbench_v2" and longbench_mode == "state":
@@ -1043,18 +1070,28 @@ def make_runtime(
             alce_prompt_profile=alce_prompt_profile,
         )
     controllers = []
+    snapshot_recorder = (
+        RetrievalSnapshotRecorder(
+            run_dir / f"{dataset}.retrieval-snapshots.jsonl"
+        )
+        if capture_retrieval_snapshots
+        else None
+    )
     effective_fallback_engines = (
         tuple(dict.fromkeys((*web_fallback_engines, "wikipedia")))
         if dataset == "frames"
         else tuple(web_fallback_engines)
     )
     for index, model_url in enumerate(MODEL_URLS):
-        web = WebSearchAdapter(
-            str(DEFAULT_CONFIG),
-            profile=web_profile,
-            shadow=False,
-            fallback_engines=effective_fallback_engines,
-        )
+        web_kwargs: dict[str, Any] = {
+            "profile": web_profile,
+            "shadow": False,
+            "fallback_engines": effective_fallback_engines,
+            "api_providers": web_api_providers,
+        }
+        if snapshot_recorder is not None:
+            web_kwargs["trace_observer"] = snapshot_recorder.observe
+        web = WebSearchAdapter(str(DEFAULT_CONFIG), **web_kwargs)
         controllers.append(
             AgentController(
                 model_urls=[model_url],
@@ -1063,6 +1100,7 @@ def make_runtime(
                 ),
                 web_config=str(DEFAULT_CONFIG),
                 web_adapter=web,
+                preserve_query_view_evidence=preserve_query_view_evidence,
             )
         )
     return TrackRuntime(
@@ -1070,6 +1108,7 @@ def make_runtime(
         controller_pool=ControllerLeasePool(controllers),
         alce_max_tokens=alce_max_tokens,
         alce_prompt_profile=alce_prompt_profile,
+        retrieval_snapshot_recorder=snapshot_recorder,
     )
 
 
@@ -1279,6 +1318,26 @@ def verify_sidecars_idle() -> list[dict[str, Any]]:
     return health
 
 
+def validate_deferred_scoring_cases(
+    dataset: str,
+    cases: Sequence[Mapping[str, Any]],
+    *,
+    smoke: int | None,
+) -> None:
+    """Ensure a blind execution view cannot contain private Fresh-Web Gold."""
+
+    if dataset != "webwalkerqa" or smoke is not None:
+        raise ValueError("deferred scoring requires a full webwalkerqa run")
+    for case in cases:
+        if str(case.get("split") or "") != "fresh_web_once":
+            raise ValueError("deferred scoring accepts only fresh_web_once cases")
+        gold = dict(case.get("gold") or {})
+        if gold.get("answers") or gold.get("source_uris") or gold.get(
+            "evidence_ids"
+        ):
+            raise ValueError("deferred scoring cases must not expose private Gold")
+
+
 def run_dataset(
     dataset: str,
     *,
@@ -1286,13 +1345,19 @@ def run_dataset(
     cases_dir: Path,
     web_profile: str,
     web_fallback_engines: Sequence[str],
+    web_api_providers: Sequence[str],
     longbench_mode: str,
     alce_max_tokens: int,
     alce_prompt_profile: str,
     smoke: int | None,
     concurrency: int,
+    defer_scoring: bool = False,
+    capture_retrieval_snapshots: bool = False,
+    preserve_query_view_evidence: bool = False,
 ) -> dict[str, Any]:
     cases = selected_cases(dataset, smoke, cases_dir=cases_dir)
+    if defer_scoring:
+        validate_deferred_scoring_cases(dataset, cases, smoke=smoke)
     cases_path = run_dir / f"{dataset}.cases.jsonl"
     results_path = run_dir / f"{dataset}.results.jsonl"
     report_path = run_dir / f"{dataset}.report.json"
@@ -1325,9 +1390,12 @@ def run_dataset(
         run_dir,
         web_profile=web_profile,
         web_fallback_engines=web_fallback_engines,
+        web_api_providers=web_api_providers,
         longbench_mode=longbench_mode,
         alce_max_tokens=alce_max_tokens,
         alce_prompt_profile=alce_prompt_profile,
+        capture_retrieval_snapshots=capture_retrieval_snapshots,
+        preserve_query_view_evidence=preserve_query_view_evidence,
     )
     scorer = track_scorer(
         dataset,
@@ -1368,6 +1436,32 @@ def run_dataset(
 
     ordered = [completed[str(case["id"])] for case in cases]
     jsonl_dump(results_path, ordered)
+    if defer_scoring:
+        execution_summary = {
+            "schema_version": "rwkv-agent-blind-execution-summary.v1",
+            "dataset": dataset,
+            "cases": len(ordered),
+            "status_ok": sum(row.get("status") == "ok" for row in ordered),
+            "scoring_deferred": True,
+            "inputs": {
+                "public_cases_sha256": sha256(cases_path),
+                "normalized_public_source_sha256": sha256(
+                    cases_dir / f"{dataset}.jsonl"
+                ),
+                "results_sha256": sha256(results_path),
+            },
+            "elapsed_seconds_this_invocation": round(
+                time.perf_counter() - started, 3
+            ),
+            "sidecars_after": verify_sidecars_idle(),
+        }
+        json_dump(run_dir / f"{dataset}.execution-summary.json", execution_summary)
+        print(
+            f"TRACK_DONE dataset={dataset} cases={len(cases)} "
+            f"status_ok={execution_summary['status_ok']} scoring=deferred",
+            flush=True,
+        )
+        return execution_summary
     report, evaluations = build_report(cases_path=cases_path, results_path=results_path)
     json_dump(report_path, report)
     jsonl_dump(evaluations_path, evaluations)
@@ -1407,6 +1501,38 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--web-fallback-engines",
         default="bing",
         help="comma-separated isolated HTML discovery engines: bing,baidu,so360",
+    )
+    parser.add_argument(
+        "--web-api-providers",
+        default=os.environ.get("RWKV_AGENT_WEB_API_PROVIDERS", ""),
+        help=(
+            "comma-separated structured discovery providers, frozen into the run "
+            "manifest: github,crossref,mediawiki,tavily"
+        ),
+    )
+    parser.add_argument(
+        "--defer-scoring",
+        action="store_true",
+        help=(
+            "run a full Fresh-Web public case file without Gold and freeze only "
+            "predictions; scoring must happen after a prediction seal"
+        ),
+    )
+    parser.add_argument(
+        "--capture-retrieval-snapshots",
+        action="store_true",
+        help=(
+            "freeze content-light discovery/fetch/evidence traces for deterministic "
+            "offline replay and loss-funnel analysis"
+        ),
+    )
+    parser.add_argument(
+        "--preserve-query-view-evidence",
+        action="store_true",
+        help=(
+            "experimental default-off final Evidence merge: reserve one "
+            "representative per generated search-query view before global MMR"
+        ),
     )
     parser.add_argument(
         "--longbench-mode",
@@ -1451,6 +1577,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         for value in web_fallback_engines
     ):
         parser.error("--web-fallback-engines must contain bing, baidu, or so360")
+    web_api_providers = tuple(
+        dict.fromkeys(
+            value.strip()
+            for value in str(args.web_api_providers).split(",")
+            if value.strip()
+        )
+    )
+    if any(
+        value not in {"github", "crossref", "mediawiki", "tavily"}
+        for value in web_api_providers
+    ):
+        parser.error(
+            "--web-api-providers must contain github, crossref, mediawiki, or tavily"
+        )
+    if args.defer_scoring and (
+        args.dataset != "webwalkerqa" or not args.full
+    ):
+        parser.error("--defer-scoring requires --dataset webwalkerqa --full")
     cases_dir = args.cases_dir.expanduser().resolve()
     checkpoint_manifest = (
         args.checkpoint_manifest.expanduser().resolve()
@@ -1463,6 +1607,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     run_dir.mkdir(parents=True, exist_ok=True)
     datasets = DATASETS if args.dataset == "all" else (args.dataset,)
     manifest_path = run_dir / "run-manifest.json"
+    config_snapshot = (
+        freeze_config_snapshot(
+            DEFAULT_CONFIG,
+            run_dir / "config.snapshot.json",
+        )
+        if args.capture_retrieval_snapshots
+        else None
+    )
+    config_binding = {
+        "path": str(DEFAULT_CONFIG.expanduser().resolve()),
+        "sha256": sha256(DEFAULT_CONFIG.expanduser().resolve()),
+    }
+    if config_snapshot is not None:
+        config_binding["snapshot"] = config_snapshot
     manifest = {
         "schema_version": "rwkv-agent-core-score-run.v1",
         "run_id": args.run_id,
@@ -1472,6 +1630,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "concurrency": args.concurrency,
         "web_profile": args.web_profile,
         "web_fallback_engines": list(web_fallback_engines),
+        "web_api_providers": list(web_api_providers),
         "effective_web_fallback_engines": {
             "webwalkerqa": list(web_fallback_engines),
             "frames": list(dict.fromkeys((*web_fallback_engines, "wikipedia"))),
@@ -1480,6 +1639,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         "alce_max_tokens": args.alce_max_tokens,
         "alce_prompt_profile": args.alce_prompt_profile,
         "cases_dir": str(cases_dir),
+        "config": config_binding,
+        "capture_retrieval_snapshots": bool(
+            args.capture_retrieval_snapshots
+        ),
+        "preserve_query_view_evidence": bool(
+            args.preserve_query_view_evidence
+        ),
+        "defer_scoring": bool(args.defer_scoring),
         "model_urls": list(MODEL_URLS),
         "checkpoint_manifest": (
             {
@@ -1504,11 +1671,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             "cases_dir",
             "web_profile",
             "web_fallback_engines",
+            "web_api_providers",
             "effective_web_fallback_engines",
             "longbench_mode",
             "alce_max_tokens",
             "alce_prompt_profile",
             "checkpoint_manifest",
+            "config",
+            "defer_scoring",
+            "capture_retrieval_snapshots",
+            "preserve_query_view_evidence",
         ):
             if old.get(key) != manifest.get(key):
                 raise RuntimeError(f"run manifest mismatch for {key}")
@@ -1526,11 +1698,19 @@ def main(argv: Sequence[str] | None = None) -> int:
                 cases_dir=cases_dir,
                 web_profile=args.web_profile,
                 web_fallback_engines=web_fallback_engines,
+                web_api_providers=web_api_providers,
                 longbench_mode=args.longbench_mode,
                 alce_max_tokens=args.alce_max_tokens,
                 alce_prompt_profile=args.alce_prompt_profile,
                 smoke=None if args.full else args.smoke,
                 concurrency=args.concurrency,
+                defer_scoring=args.defer_scoring,
+                capture_retrieval_snapshots=(
+                    args.capture_retrieval_snapshots
+                ),
+                preserve_query_view_evidence=(
+                    args.preserve_query_view_evidence
+                ),
             )
         )
     manifest["completed_at"] = utc_now()

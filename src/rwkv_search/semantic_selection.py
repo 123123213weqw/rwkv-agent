@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 import math
 import threading
@@ -175,6 +176,8 @@ def _rank_normalize(values: Sequence[float]) -> list[float]:
 
 def _bm25_matrix(views: Sequence[str], documents: Sequence[str]) -> list[list[float]]:
     token_lists = [search_tokens(document) for document in documents]
+    token_sets = [set(tokens) for tokens in token_lists]
+    token_counts = [Counter(tokens) for tokens in token_lists]
     average_length = sum(len(tokens) for tokens in token_lists) / max(1, len(token_lists))
     matrix: list[list[float]] = []
     for view in views:
@@ -184,14 +187,11 @@ def _bm25_matrix(views: Sequence[str], documents: Sequence[str]) -> list[list[fl
             if term not in _QUERY_STOPWORDS
         ]
         document_frequency = {
-            term: sum(term in set(tokens) for tokens in token_lists)
+            term: sum(term in tokens for tokens in token_sets)
             for term in terms
         }
         raw_scores: list[float] = []
-        for tokens in token_lists:
-            counts: dict[str, int] = {}
-            for token in tokens:
-                counts[token] = counts.get(token, 0) + 1
+        for tokens, counts in zip(token_lists, token_counts):
             length_ratio = len(tokens) / max(1.0, average_length)
             score = 0.0
             for term in terms:
@@ -369,8 +369,19 @@ def select_diverse_items(
         [float(item.get("_preference_score") or 0.0) for item in candidates]
     )
     token_sets = [set(search_tokens(document)) for document in documents]
+    similarities: dict[tuple[int, int], float] = {}
+
+    def similarity(left: int, right: int) -> float:
+        key = (left, right) if left < right else (right, left)
+        value = similarities.get(key)
+        if value is None:
+            value = _token_jaccard(token_sets[left], token_sets[right])
+            similarities[key] = value
+        return value
+
     covered = [0.0] * len(views)
     selected: list[int] = []
+    selected_set: set[int] = set()
     selected_scores: list[float] = []
     domain_counts: dict[str, int] = {}
 
@@ -378,7 +389,7 @@ def select_diverse_items(
         best_index = -1
         best_value = float("-inf")
         for index, item in enumerate(candidates):
-            if index in selected:
+            if index in selected_set:
                 continue
             per_view = [row[index] for row in score_matrix]
             relevance = max(per_view, default=0.0)
@@ -387,7 +398,7 @@ def select_diverse_items(
                 for row, value in enumerate(per_view)
             ) / max(1, len(views))
             redundancy = max(
-                (_token_jaccard(token_sets[index], token_sets[other]) for other in selected),
+                (similarity(index, other) for other in selected),
                 default=0.0,
             )
             host = _host(item)
@@ -408,6 +419,7 @@ def select_diverse_items(
         if best_index < 0:
             break
         selected.append(best_index)
+        selected_set.add(best_index)
         selected_scores.append(best_value)
         for row in range(len(views)):
             covered[row] = max(covered[row], score_matrix[row][best_index])

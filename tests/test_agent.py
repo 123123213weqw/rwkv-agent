@@ -122,6 +122,41 @@ class WebAdapterTests(unittest.TestCase):
             "https://example.invalid/releases",
         )
 
+    def test_original_question_repairs_model_invented_absolute_terms(self) -> None:
+        class CaptureEngine(FakeWebEngine):
+            def __init__(self) -> None:
+                self.primary_query = ""
+                self.execution_queries = []
+
+            def search_events(self, query, queries, **kwargs):
+                self.primary_query = query
+                self.execution_queries = list(queries)
+                yield from super().search_events(query, queries, **kwargs)
+
+        engine = CaptureEngine()
+        adapter = WebSearchAdapter(engine=engine, shadow=False)
+        result = adapter.execute(
+            "Microsoft FY2025 Q3 earnings release official investor relations",
+            original_query="微软最近一个季度的业绩公告，请找官方投资者关系页面。",
+        )
+        self.assertEqual(
+            engine.primary_query,
+            "微软最近一个季度的业绩公告，请找官方投资者关系页面",
+        )
+        self.assertEqual(
+            engine.execution_queries,
+            ["Microsoft earnings release official investor relations"],
+        )
+        self.assertEqual(
+            result["query_resolution"]["constraint_evaluation"][
+                "removed_absolute_terms"
+            ],
+            ["FY2025", "Q3"],
+        )
+        self.assertTrue(
+            result["query_resolution"]["constraint_evaluation"]["repair_applied"]
+        )
+
 
 class FakeModel:
     def __init__(
@@ -190,6 +225,51 @@ class FakeModel:
             "model": "fake",
             "url": "fake://model",
         }
+
+
+class FakeStateChatModel(FakeModel):
+    def __init__(self, *, use_tool: bool = False) -> None:
+        super().__init__(use_tool=use_tool)
+        self.state_prefills: list[dict] = []
+        self.state_continuations: list[dict] = []
+        self.state_releases: list[str] = []
+        self._state_counter = 0
+
+    def state_prefill(self, *, owner_id: str, prompt: str) -> dict:
+        self._state_counter += 1
+        state_id = f"chat-state-{self._state_counter}"
+        self.state_prefills.append(
+            {
+                "owner_id": owner_id,
+                "prompt": prompt,
+                "state_id": state_id,
+            }
+        )
+        return {
+            "state_id": state_id,
+            "home_url": "fake://state-sidecar",
+            "seen_tokens": len(prompt),
+        }
+
+    def state_chat_complete(self, **kwargs) -> dict:
+        call = dict(kwargs)
+        self.state_continuations.append(call)
+        answer = f"state-answer-{len(self.state_continuations)}"
+        return {
+            "raw": answer,
+            "stop": "</s>",
+            "output_tokens": 4,
+            "model_elapsed_ms": 1.0,
+            "request_elapsed_ms": 1.0,
+            "model": "fake-state",
+            "url": kwargs["home_url"],
+            "state_id": kwargs["state_id"],
+            "seen_tokens": 100 + len(self.state_continuations),
+        }
+
+    def state_release(self, *, state_ids, **kwargs) -> dict:
+        self.state_releases.extend(state_ids)
+        return {"released": len(state_ids), "state_ids": list(state_ids)}
 
 
 class FakeKnowledge:
@@ -321,6 +401,99 @@ class ControllerGateTests(unittest.TestCase):
             )
             controller.close()
 
+    def test_controller_passes_original_question_to_web_query_guard(self) -> None:
+        class InventedDateModel(FakeModel):
+            def complete(self, prompt: str, *, max_tokens: int = 192) -> dict:
+                if "Call exactly one function" in prompt:
+                    return {
+                        "raw": (
+                            '<tool_call>{"name":"web_search","arguments":'
+                            '{"query":"Microsoft FY2025 Q3 earnings release '
+                            'official investor relations"}}</tool_call>'
+                        ),
+                        "stop": "</s>",
+                        "output_tokens": 16,
+                        "model_elapsed_ms": 1.0,
+                        "request_elapsed_ms": 1.0,
+                        "model": "fake",
+                        "url": "fake://model",
+                    }
+                return super().complete(prompt, max_tokens=max_tokens)
+
+        with tempfile.TemporaryDirectory() as directory:
+            controller = self.controller(
+                directory,
+                InventedDateModel(use_tool=True),
+            )
+            message = "微软最近一个季度的业绩公告，请找官方投资者关系页面。"
+            result = controller.run(message, session_id="query-guard")
+            resolution = result["tool_result"]["query_resolution"]
+            self.assertEqual(result["tool_result"]["original_query"], message)
+            self.assertEqual(
+                result["tool_result"]["effective_query"],
+                "Microsoft earnings release official investor relations",
+            )
+            self.assertTrue(
+                resolution["constraint_evaluation"]["repair_applied"]
+            )
+            controller.close()
+
+    def test_web_answer_claim_gate_rejects_numeric_hallucination(self) -> None:
+        class HallucinatingWebModel(FakeModel):
+            def complete(self, prompt: str, *, max_tokens: int = 192) -> dict:
+                result = super().complete(prompt, max_tokens=max_tokens)
+                if "final evidence answer stage" in prompt:
+                    result["raw"] = "当前版本是9.9。[W1]"
+                return result
+
+        with tempfile.TemporaryDirectory() as directory:
+            controller = self.controller(
+                directory,
+                HallucinatingWebModel(use_tool=True),
+            )
+            result = controller.run(
+                "搜索 current release",
+                session_id="claim-gate",
+            )
+
+            self.assertEqual(result["status"], "insufficient_evidence")
+            self.assertEqual(
+                result["answer"],
+                "找到了一些相关信息，但现有证据不足以支持可靠结论。",
+            )
+            self.assertFalse(result["trace"]["answer_protocol"]["valid"])
+            reasons = {
+                claim["support_reason"]
+                for claim in result["trace"]["answer_protocol"][
+                    "claim_verification"
+                ]
+            }
+            self.assertIn("number_mismatch", reasons)
+            controller.close()
+
+    def test_web_answer_claim_gate_keeps_grounded_answer(self) -> None:
+        class GroundedWebModel(FakeModel):
+            def complete(self, prompt: str, *, max_tokens: int = 192) -> dict:
+                result = super().complete(prompt, max_tokens=max_tokens)
+                if "final evidence answer stage" in prompt:
+                    result["raw"] = "Version 1.2 is current. [W1]"
+                return result
+
+        with tempfile.TemporaryDirectory() as directory:
+            controller = self.controller(
+                directory,
+                GroundedWebModel(use_tool=True),
+            )
+            result = controller.run(
+                "搜索 current release",
+                session_id="claim-gate-grounded",
+            )
+
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["answer"], "Version 1.2 is current. [W1]")
+            self.assertTrue(result["trace"]["answer_protocol"]["valid"])
+            controller.close()
+
     def test_direct_conversation_receives_prior_session_context(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             model = FakeModel(use_tool=False)
@@ -330,6 +503,181 @@ class ControllerGateTests(unittest.TestCase):
             self.assertEqual(result["trace"]["context"]["history_messages"], 2)
             self.assertIn("User: 我是奶龙", model.prompts[-1])
             self.assertIn("Assistant: 你好！有什么可以帮助你的？", model.prompts[-1])
+            controller.close()
+
+    def test_direct_chat_reuses_recurrent_state_without_history_prefill(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeStateChatModel()
+            controller = self.controller(directory, model)
+
+            first = controller.run("我是奶龙", session_id="state-chat")
+            second = controller.run("我是谁？", session_id="state-chat")
+
+            self.assertEqual(len(model.state_prefills), 1)
+            self.assertEqual(len(model.state_continuations), 2)
+            self.assertEqual(
+                model.state_continuations[0]["state_id"],
+                model.state_continuations[1]["state_id"],
+            )
+            self.assertEqual(
+                model.state_continuations[0]["input_text"],
+                "User: 我是奶龙\n\nAssistant:",
+            )
+            self.assertEqual(
+                model.state_continuations[1]["input_text"],
+                "\n\nUser: 我是谁？\n\nAssistant:",
+            )
+            self.assertEqual(model.prompts, [])
+            self.assertEqual(
+                first["trace"]["context"]["mode"],
+                "recurrent_session_state",
+            )
+            self.assertFalse(
+                first["trace"]["context"]["session_state"]["reused"]
+            )
+            self.assertTrue(
+                second["trace"]["context"]["session_state"]["reused"]
+            )
+            self.assertTrue(
+                second["trace"]["context"]["session_state"]["cached"]
+            )
+            self.assertEqual(
+                second["trace"]["context"]["history_messages"],
+                2,
+            )
+            controller.close()
+
+    def test_tool_turn_releases_chat_state_and_next_chat_rebuilds(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeStateChatModel()
+            controller = self.controller(directory, model)
+            controller.run("你好", session_id="mixed-session")
+            first_state = model.state_prefills[0]["state_id"]
+
+            model.use_tool = True
+            model.routing_tool = "knowledge_search"
+            tool_result = controller.run(
+                "Search the local knowledge base for RWKV.",
+                session_id="mixed-session",
+            )
+            self.assertEqual(tool_result["route"]["tool"], "knowledge_search")
+            self.assertIn(first_state, model.state_releases)
+
+            model.use_tool = False
+            direct_result = controller.run(
+                "继续刚才的话题",
+                session_id="mixed-session",
+            )
+            self.assertEqual(len(model.state_prefills), 2)
+            self.assertIn(
+                "Search the local knowledge base for RWKV.",
+                model.state_prefills[-1]["prompt"],
+            )
+            self.assertFalse(
+                direct_result["trace"]["context"]["session_state"]["reused"]
+            )
+            controller.close()
+
+    def test_expired_chat_state_rebuilds_once_from_transcript(self) -> None:
+        class ExpiringStateModel(FakeStateChatModel):
+            def state_chat_complete(self, **kwargs) -> dict:
+                if (
+                    kwargs["state_id"] == "chat-state-1"
+                    and len(self.state_continuations) == 1
+                ):
+                    self.state_continuations.append(dict(kwargs))
+                    raise KeyError("expired state")
+                return super().state_chat_complete(**kwargs)
+
+        with tempfile.TemporaryDirectory() as directory:
+            model = ExpiringStateModel()
+            controller = self.controller(directory, model)
+            controller.run("第一轮", session_id="expiring-session")
+            result = controller.run("第二轮", session_id="expiring-session")
+
+            self.assertEqual(len(model.state_prefills), 2)
+            self.assertIn("User: 第一轮", model.state_prefills[-1]["prompt"])
+            self.assertIn("Assistant: state-answer-1", model.state_prefills[-1]["prompt"])
+            self.assertTrue(
+                result["trace"]["context"]["session_state"]["rebuilt"]
+            )
+            self.assertEqual(
+                result["trace"]["context"]["session_state"]["fallback_reason"],
+                "",
+            )
+            self.assertEqual(model.prompts, [])
+            controller.close()
+
+    def test_chat_state_continues_after_a_committed_user_stop(self) -> None:
+        class UserStopModel(FakeStateChatModel):
+            def state_chat_complete(self, **kwargs) -> dict:
+                result = super().state_chat_complete(**kwargs)
+                result["stop"] = "\n\nUser:"
+                return result
+
+        with tempfile.TemporaryDirectory() as directory:
+            model = UserStopModel()
+            controller = self.controller(directory, model)
+            controller.run("第一轮", session_id="user-stop")
+            controller.run("第二轮", session_id="user-stop")
+            self.assertEqual(
+                model.state_continuations[-1]["input_text"],
+                " 第二轮\n\nAssistant:",
+            )
+            self.assertEqual(len(model.state_prefills), 1)
+            controller.close()
+
+    def test_hidden_reasoning_state_is_released_instead_of_reused(self) -> None:
+        class HiddenReasoningModel(FakeStateChatModel):
+            def state_chat_complete(self, **kwargs) -> dict:
+                result = super().state_chat_complete(**kwargs)
+                result["raw"] = "<think>private</think>\nvisible"
+                return result
+
+        with tempfile.TemporaryDirectory() as directory:
+            model = HiddenReasoningModel()
+            controller = self.controller(directory, model)
+            first = controller.run("第一轮", session_id="reasoning-state")
+            second = controller.run("第二轮", session_id="reasoning-state")
+            self.assertEqual(first["answer"], "visible")
+            self.assertEqual(second["answer"], "visible")
+            self.assertEqual(len(model.state_prefills), 2)
+            self.assertEqual(len(model.state_releases), 2)
+            self.assertEqual(
+                first["trace"]["context"]["session_state"][
+                    "cache_reject_reason"
+                ],
+                "hidden_reasoning_was_generated",
+            )
+            controller.close()
+
+    def test_recurrent_chat_states_are_session_scoped(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            model = FakeStateChatModel()
+            controller = self.controller(directory, model)
+            controller.run("alpha-1", session_id="alpha")
+            controller.run("beta-1", session_id="beta")
+            controller.run("alpha-2", session_id="alpha")
+            self.assertEqual(len(model.state_prefills), 2)
+            alpha_state = model.state_prefills[0]["state_id"]
+            beta_state = model.state_prefills[1]["state_id"]
+            self.assertNotEqual(alpha_state, beta_state)
+            self.assertEqual(
+                model.state_continuations[0]["state_id"],
+                alpha_state,
+            )
+            self.assertEqual(
+                model.state_continuations[1]["state_id"],
+                beta_state,
+            )
+            self.assertEqual(
+                model.state_continuations[2]["state_id"],
+                alpha_state,
+            )
             controller.close()
 
     def test_tool_gate_continues_to_two_tool_router(self) -> None:

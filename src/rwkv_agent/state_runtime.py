@@ -8,22 +8,16 @@ a group when the turn finishes.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-import math
 import threading
 import time
 from typing import Any, Callable, Sequence
-import uuid
 
+from rwkv_runtime.classification import finite_label_scores
+from rwkv_runtime.decode import append_greedy_token, decode_text_stops
+from rwkv_runtime.protocols import SchedulerProtocol, TokenizerProtocol
 
-@dataclass(slots=True)
-class PersistentState:
-    state_id: str
-    owner_id: str
-    parent_state_id: str | None
-    branch: str
-    created_at: float
-    last_used_at: float
+from .persistent_state import PersistentState, PersistentStateRegistry
+from .state_batching import StateContinuationItem
 
 
 class PersistentStateRuntime:
@@ -32,13 +26,14 @@ class PersistentStateRuntime:
     def __init__(
         self,
         *,
-        tokenizer: Any,
-        scheduler: Any,
+        tokenizer: TokenizerProtocol,
+        scheduler: SchedulerProtocol,
         context_limit: int,
         eos_token_id: int = 0,
         capacity: int = 8,
         ttl_seconds: float = 120.0,
         clock: Callable[[], float] = time.monotonic,
+        decode_engine: Any | None = None,
     ) -> None:
         if context_limit < 1:
             raise ValueError("context_limit must be positive")
@@ -53,8 +48,15 @@ class PersistentStateRuntime:
         self.capacity = int(capacity)
         self.ttl_seconds = float(ttl_seconds)
         self._clock = clock
-        self._records: dict[str, PersistentState] = {}
+        self.decode_engine = decode_engine
+        self.registry = PersistentStateRegistry(
+            scheduler=scheduler,
+            capacity=self.capacity,
+            ttl_seconds=self.ttl_seconds,
+            clock=clock,
+        )
         self._lock = threading.RLock()
+        self._busy: set[str] = set()
         self._metrics = {
             "created": 0,
             "forked": 0,
@@ -74,7 +76,7 @@ class PersistentStateRuntime:
     ) -> list[dict[str, Any]]:
         """Append inputs to persistent leaves and return exact next-token logits."""
 
-        owner = self._clean_owner(owner_id)
+        owner = self.registry.clean_owner(owner_id)
         normalized_labels = {str(name): int(token) for name, token in labels.items()}
         if not items:
             raise ValueError("items must not be empty")
@@ -89,7 +91,10 @@ class PersistentStateRuntime:
             for item in items:
                 if not isinstance(item, dict):
                     raise ValueError("state classification item must be an object")
-                record = self._require(str(item.get("state_id") or ""), owner)
+                record = self.registry.require(
+                    str(item.get("state_id") or ""),
+                    owner,
+                )
                 tokens = self._encode(str(item.get("input") or ""))
                 request = self.scheduler.request(record.state_id)
                 if request.seen_tokens + len(tokens) > self.context_limit:
@@ -102,6 +107,7 @@ class PersistentStateRuntime:
             state_ids = [record.state_id for record in records]
             if len(set(state_ids)) != len(state_ids):
                 raise ValueError("duplicate state_id in batch")
+            self._ensure_available(records)
             try:
                 self.scheduler.continue_many(continuations)
                 output: list[dict[str, Any]] = []
@@ -109,15 +115,14 @@ class PersistentStateRuntime:
                     request = self.scheduler.request(record.state_id)
                     if request.logits is None:
                         raise RuntimeError("persistent state has no next-token logits")
-                    scores = {
-                        name: float(request.logits[token].item())
-                        for name, token in normalized_labels.items()
-                    }
-                    if not all(math.isfinite(score) for score in scores.values()):
-                        raise RuntimeError(
+                    scores = finite_label_scores(
+                        request.logits,
+                        normalized_labels,
+                        error_message=(
                             "persistent state produced non-finite "
                             "classification logits"
-                        )
+                        ),
+                    )
                     output.append(
                         {
                             "state_id": record.state_id,
@@ -135,19 +140,6 @@ class PersistentStateRuntime:
             self._metrics["classified"] += len(records)
             return output
 
-    @staticmethod
-    def _clean_owner(owner_id: str) -> str:
-        value = str(owner_id or "").strip()
-        if not value:
-            raise ValueError("owner_id must not be empty")
-        if len(value) > 128:
-            raise ValueError("owner_id is too long")
-        return value
-
-    @staticmethod
-    def _new_state_id() -> str:
-        return "state-" + uuid.uuid4().hex
-
     def _encode(self, text: str) -> tuple[int, ...]:
         value = str(text or "")
         if not value:
@@ -162,42 +154,12 @@ class PersistentStateRuntime:
             )
         return tokens
 
-    def _require(self, state_id: str, owner_id: str) -> PersistentState:
-        clean_id = str(state_id or "").strip()
-        try:
-            record = self._records[clean_id]
-        except KeyError as exc:
-            raise KeyError(f"unknown state_id: {clean_id}") from exc
-        if record.owner_id != owner_id:
-            raise PermissionError("state owner mismatch")
-        return record
-
     def _cleanup_expired_locked(self) -> list[str]:
-        now = self._clock()
-        expired = [
-            state_id
-            for state_id, record in self._records.items()
-            if now - record.last_used_at >= self.ttl_seconds
-        ]
-        for state_id in expired:
-            self._records.pop(state_id, None)
-            try:
-                self.scheduler.release(state_id)
-            except KeyError:
-                pass
+        expired = self.registry.cleanup_expired(exclude=self._busy)
         if expired:
             self._metrics["expired"] += len(expired)
             self._metrics["released"] += len(expired)
         return expired
-
-    def _ensure_capacity_locked(self, additional: int) -> None:
-        if additional < 1:
-            return
-        if len(self._records) + additional > self.capacity:
-            raise RuntimeError(
-                f"persistent state capacity exceeded: "
-                f"{len(self._records)}+{additional}>{self.capacity}"
-            )
 
     @staticmethod
     def _describe(record: PersistentState, seen_tokens: int) -> dict[str, Any]:
@@ -209,6 +171,15 @@ class PersistentStateRuntime:
             "seen_tokens": int(seen_tokens),
         }
 
+    def _ensure_available(self, records: Sequence[PersistentState]) -> None:
+        busy = [
+            record.state_id
+            for record in records
+            if record.state_id in self._busy
+        ]
+        if busy:
+            raise RuntimeError(f"persistent states are busy: {','.join(busy)}")
+
     def prefill(
         self,
         *,
@@ -216,12 +187,12 @@ class PersistentStateRuntime:
         prompt: str,
         branch: str = "root",
     ) -> dict[str, Any]:
-        owner = self._clean_owner(owner_id)
+        owner = self.registry.clean_owner(owner_id)
         tokens = self._encode(prompt)
         with self._lock:
             self._cleanup_expired_locked()
-            self._ensure_capacity_locked(1)
-            state_id = self._new_state_id()
+            self.registry.ensure_capacity(1)
+            state_id = self.registry.new_state_id()
             now = self._clock()
             try:
                 self.scheduler.admit(state_id, tokens)
@@ -241,7 +212,7 @@ class PersistentStateRuntime:
                 created_at=now,
                 last_used_at=now,
             )
-            self._records[state_id] = record
+            self.registry.add(record)
             self._metrics["created"] += 1
             request = self.scheduler.request(state_id)
             return self._describe(record, request.seen_tokens)
@@ -253,7 +224,7 @@ class PersistentStateRuntime:
         parent_state_id: str,
         branches: Sequence[str],
     ) -> list[dict[str, Any]]:
-        owner = self._clean_owner(owner_id)
+        owner = self.registry.clean_owner(owner_id)
         labels = [str(value or "").strip() for value in branches]
         if not labels or any(not value for value in labels):
             raise ValueError("branches must contain non-empty labels")
@@ -261,9 +232,13 @@ class PersistentStateRuntime:
             raise ValueError("branch labels must be unique")
         with self._lock:
             self._cleanup_expired_locked()
-            parent = self._require(parent_state_id, owner)
-            self._ensure_capacity_locked(len(labels))
-            state_ids = [self._new_state_id() for _label in labels]
+            parent = self.registry.require(parent_state_id, owner)
+            self._ensure_available([parent])
+            self.registry.ensure_capacity(len(labels))
+            state_ids = [
+                self.registry.new_state_id()
+                for _label in labels
+            ]
             try:
                 children = self.scheduler.fork(parent.state_id, state_ids)
             except Exception:
@@ -280,7 +255,7 @@ class PersistentStateRuntime:
                     created_at=now,
                     last_used_at=now,
                 )
-                self._records[record.state_id] = record
+                self.registry.add(record)
                 output.append(self._describe(record, child.seen_tokens))
             parent.last_used_at = now
             self._metrics["forked"] += len(output)
@@ -294,7 +269,7 @@ class PersistentStateRuntime:
         stops: Sequence[str],
         max_tokens: int,
     ) -> list[dict[str, Any]]:
-        owner = self._clean_owner(owner_id)
+        owner = self.registry.clean_owner(owner_id)
         if not items:
             raise ValueError("items must not be empty")
         if max_tokens < 1 or max_tokens > 1024:
@@ -307,7 +282,10 @@ class PersistentStateRuntime:
             for item in items:
                 if not isinstance(item, dict):
                     raise ValueError("state continuation item must be an object")
-                record = self._require(str(item.get("state_id") or ""), owner)
+                record = self.registry.require(
+                    str(item.get("state_id") or ""),
+                    owner,
+                )
                 tokens = self._encode(str(item.get("input") or ""))
                 request = self.scheduler.request(record.state_id)
                 if request.seen_tokens + len(tokens) + max_tokens > self.context_limit:
@@ -320,22 +298,49 @@ class PersistentStateRuntime:
             state_ids = [record.state_id for record in records]
             if len(set(state_ids)) != len(state_ids):
                 raise ValueError("duplicate state_id in batch")
+            self._ensure_available(records)
+            self._busy.update(state_ids)
 
-            try:
+        succeeded = False
+        try:
+            if self.decode_engine is not None:
+                results = self.decode_engine.continue_many(
+                    [
+                        StateContinuationItem(
+                            state_id=record.state_id,
+                            branch=record.branch,
+                            token_ids=tokens,
+                        )
+                        for record, (_state_id, tokens) in zip(
+                            records,
+                            continuations,
+                            strict=True,
+                        )
+                    ],
+                    stops=stop_values,
+                    max_tokens=max_tokens,
+                )
+            else:
                 self.scheduler.continue_many(continuations)
                 results = self._decode_locked(
                     records,
                     stops=stop_values,
                     max_tokens=max_tokens,
                 )
-            except Exception:
-                self._metrics["failed"] += 1
-                raise
-            now = self._clock()
-            for record in records:
-                record.last_used_at = now
-            self._metrics["continued"] += len(records)
+            succeeded = True
             return results
+        except Exception:
+            with self._lock:
+                self._metrics["failed"] += 1
+            raise
+        finally:
+            with self._lock:
+                self._busy.difference_update(state_ids)
+                if succeeded:
+                    now = self._clock()
+                    for record in records:
+                        record.last_used_at = now
+                    self._metrics["continued"] += len(records)
 
     def _decode_locked(
         self,
@@ -355,36 +360,37 @@ class PersistentStateRuntime:
             advance: dict[str, int] = {}
             finished: set[str] = set()
             for state_id in active:
-                token = int(sampled[state_id])
-                if token == self.eos_token_id:
+                token_status = append_greedy_token(
+                    output_ids[state_id],
+                    sampled[state_id],
+                    eos_token_id=self.eos_token_id,
+                    max_tokens=max_tokens,
+                )
+                if token_status.eos:
                     stop_reason[state_id] = "</s>"
                     finished.add(state_id)
                     continue
-                output_ids[state_id].append(token)
                 # Commit every non-EOS token, including the token which
                 # completes a stop string.  A later tool observation must
                 # resume after the exact text the branch generated.
-                advance[state_id] = token
+                advance[state_id] = token_status.token
             if advance:
                 self.scheduler.advance_tokens(advance)
 
             for state_id in active:
                 if state_id in finished:
                     continue
-                decoded = self.tokenizer.decode(output_ids[state_id])
-                if "\ufffd" not in decoded:
-                    output_text[state_id] = decoded
-                    hits = [
-                        (decoded.find(stop), stop)
-                        for stop in stops
-                        if stop in decoded
-                    ]
-                    if hits:
-                        index, reason = min(hits)
-                        output_text[state_id] = decoded[:index]
-                        stop_reason[state_id] = reason
-                        finished.add(state_id)
-                        continue
+                decoded = decode_text_stops(
+                    self.tokenizer,
+                    output_ids[state_id],
+                    previous_text=output_text[state_id],
+                    stops=stops,
+                )
+                output_text[state_id] = decoded.text
+                if decoded.stop_reason:
+                    stop_reason[state_id] = decoded.stop_reason
+                    finished.add(state_id)
+                    continue
                 if len(output_ids[state_id]) >= max_tokens:
                     stop_reason[state_id] = "max_tokens"
                     finished.add(state_id)
@@ -411,7 +417,7 @@ class PersistentStateRuntime:
         owner_id: str,
         state_ids: Sequence[str],
     ) -> dict[str, Any]:
-        owner = self._clean_owner(owner_id)
+        owner = self.registry.clean_owner(owner_id)
         ids = [str(value or "").strip() for value in state_ids]
         if not ids or any(not value for value in ids):
             raise ValueError("state_ids must contain non-empty values")
@@ -419,39 +425,44 @@ class PersistentStateRuntime:
             raise ValueError("state_ids must be unique")
         with self._lock:
             self._cleanup_expired_locked()
-            records = [self._require(state_id, owner) for state_id in ids]
-            for record in records:
-                self.scheduler.release(record.state_id)
-                self._records.pop(record.state_id, None)
+            records = [
+                self.registry.require(state_id, owner)
+                for state_id in ids
+            ]
+            self._ensure_available(records)
+            self.registry.release_records(records)
             self._metrics["released"] += len(records)
             return {"released": len(records), "state_ids": ids}
 
     def health(self) -> dict[str, Any]:
         with self._lock:
             expired = self._cleanup_expired_locked()
-            now = self._clock()
             return {
                 "enabled": True,
                 "capacity": self.capacity,
-                "allocated": len(self._records),
-                "free": self.capacity - len(self._records),
+                "allocated": self.registry.allocated,
+                "free": self.registry.free,
                 "ttl_seconds": self.ttl_seconds,
                 "expired_on_health": len(expired),
                 "oldest_idle_seconds": round(
-                    max(
-                        (now - record.last_used_at for record in self._records.values()),
-                        default=0.0,
-                    ),
+                    self.registry.oldest_idle_seconds(),
                     3,
+                ),
+                "busy": len(self._busy),
+                "batching": (
+                    (
+                        self.decode_engine.state_health()
+                        if hasattr(self.decode_engine, "state_health")
+                        else self.decode_engine.health()
+                    )
+                    if self.decode_engine is not None
+                    else {"enabled": False}
                 ),
                 "metrics": dict(self._metrics),
             }
 
     def close(self) -> None:
         with self._lock:
-            for state_id in list(self._records):
-                try:
-                    self.scheduler.release(state_id)
-                except KeyError:
-                    pass
-                self._records.pop(state_id, None)
+            if self._busy:
+                raise RuntimeError("cannot close persistent states while busy")
+            self.registry.clear()

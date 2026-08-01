@@ -4,6 +4,7 @@ import copy
 import re
 from typing import Iterable, List, Sequence, Tuple
 
+from ..analysis.query import QueryAnalyzer
 from ..pipeline.discovery import DiscoveryLayer
 from ..pipeline.source_selector import SourceCapability, SourceSelector
 from ..semantic_selection import PairScorer
@@ -21,6 +22,7 @@ _ENGLISH_TOKEN = re.compile(
     r"(?:[A-Za-z0-9][A-Za-z0-9_+#'-]*\.)+[A-Za-z]{2,}|"
     r"[A-Za-z][A-Za-z0-9_+#'.-]*|\d+(?:\.\d+)+"
 )
+_ANCHOR_NUMBER = re.compile(r"^(?:19|20)\d{2}$|^\d+(?:[./-]\d+)+$")
 _QUERY_FUNCTION_WORDS = frozenset(
     {
         "a", "according", "an", "and", "are", "at", "find", "for", "from",
@@ -84,6 +86,151 @@ def compact_general_query(query: str) -> str:
         is_named = token.isupper() or token[:1].isupper()
         (priority if is_domain or is_named else content).append(token)
     return " ".join([*priority, *content][:14]) or stripped or value
+
+
+def build_original_query_lane(
+    original_query: str,
+    model_query: str,
+    *,
+    site: str = "",
+    analyzer: QueryAnalyzer | None = None,
+) -> str:
+    """Build one deterministic complementary lane from the user query.
+
+    The original wording is trusted input, unlike facts introduced by a model
+    rewrite.  QueryAnalyzer removes conversational surface syntax and, for a
+    long question, retains high-value exact terms, names and numbers.  A
+    caller-supplied site remains a hard constraint.  Returning an empty string
+    means that the lane would duplicate the already compiled model query.
+    """
+
+    original = " ".join(str(original_query or "").split()).strip()
+    if not original:
+        return ""
+    analysis = (analyzer or QueryAnalyzer(max_queries=1)).analyze(original)
+    values = tuple(analysis.search_queries) or (analysis.resolved_query,)
+    lane = " ".join(str(values[0] or "").split()).strip()
+    if not lane:
+        return ""
+    lane = re.sub(r"(?:^|\s)site:[^\s]+", " ", lane, flags=re.I)
+    lane = " ".join(lane.split()).strip()
+    site_value = normalized_host(site)
+    if site_value:
+        lane = f"{lane} site:{site_value}"
+    def normalize(value: str) -> str:
+        return " ".join(str(value or "").casefold().split())
+
+    if normalize(lane) == normalize(model_query):
+        return ""
+    return lane
+
+
+def build_host_token_query_lane(
+    original_query: str,
+    model_query: str,
+    *,
+    site: str,
+    analyzer: QueryAnalyzer | None = None,
+) -> str:
+    """Build a scoped discovery view that does not depend on ``site:``.
+
+    Search backends implement the ``site:`` operator inconsistently.  This
+    lane uses the trusted original wording plus the caller-provided host as an
+    ordinary token.  The caller must still enforce that host as a hard result
+    boundary, so relaxing query syntax never relaxes scope.
+    """
+
+    host = normalized_host(site)
+    if not host:
+        return ""
+    base = build_original_query_lane(
+        original_query,
+        model_query,
+        analyzer=analyzer,
+    )
+    if not base:
+        original = " ".join(str(original_query or "").split()).strip()
+        base = re.sub(r"(?:^|\s)site:[^\s]+", " ", original, flags=re.I)
+        base = " ".join(base.split()).strip()
+    if not base:
+        return ""
+    lane = f"{base} {host}"
+
+    def normalize(value: str) -> str:
+        return " ".join(str(value or "").casefold().split())
+
+    if normalize(lane) == normalize(model_query):
+        return ""
+    return lane
+
+
+def build_anchor_phrase_query_lane(
+    original_query: str,
+    model_query: str,
+    *,
+    site: str,
+    analyzer: QueryAnalyzer | None = None,
+) -> str:
+    """Compile a short exact-anchor query from user-authored text.
+
+    This is the lexical complement to a natural-language model rewrite.  It
+    prioritizes explicitly quoted/structured spans, dates, and a small number
+    of long content tokens while preserving their original order.  No target
+    URL, topic vocabulary, answer, or site-specific path rule is used.
+    """
+
+    host = normalized_host(site)
+    original = " ".join(str(original_query or "").split()).strip()
+    if not host or not original:
+        return ""
+    analysis = (analyzer or QueryAnalyzer(max_queries=1)).analyze(original)
+    anchors: List[str] = []
+    seen: set[str] = set()
+
+    def add(value: str, *, quoted: bool = False) -> None:
+        clean = " ".join(str(value or "").split()).strip(' "“”‘’\'')
+        folded = clean.casefold()
+        if not clean or folded in seen:
+            return
+        seen.add(folded)
+        anchors.append(f'"{clean}"' if quoted else clean)
+
+    for value in analysis.exact_terms[:2]:
+        add(value, quoted=True)
+
+    numeric = [
+        token
+        for token in analysis.tokens
+        if token.kind in {"number", "exact"}
+        and _ANCHOR_NUMBER.fullmatch(token.normalized)
+    ]
+    for token in numeric[:3]:
+        add(token.surface)
+
+    content = [
+        token
+        for token in analysis.tokens
+        if token.kind == "word"
+        and token.weight >= 0.5
+        and (
+            (token.script == "han" and len(token.normalized) >= 3)
+            or (token.script != "han" and len(token.normalized) >= 4)
+        )
+    ]
+    content.sort(key=lambda token: (-len(token.normalized), token.start))
+    for token in content[: 2 if analysis.exact_terms else 5]:
+        add(token.surface)
+
+    if not anchors:
+        return ""
+    lane = " ".join([*anchors[:8], f"site:{host}"])
+
+    def normalize(value: str) -> str:
+        return " ".join(str(value or "").casefold().split())
+
+    if normalize(lane) == normalize(model_query):
+        return ""
+    return lane
 
 
 def select_source_channels(
@@ -219,6 +366,9 @@ def merge_candidate_groups(
                 existing.snippet = item.snippet
             if len(item.title) > len(existing.title):
                 existing.title = item.title
+            if len(item.cached_text) > len(existing.cached_text):
+                existing.cached_text = item.cached_text
+                existing.cached_text_mode = item.cached_text_mode
     ordered = list(merged.values())
     ordered.sort(key=lambda item: (item.rrf_score, -int(item.rank or 10**6)), reverse=True)
     return ordered[: max(0, max_candidates)]
@@ -271,6 +421,9 @@ def merge_query_candidate_groups(
                 existing.title = item.title
             if len(item.snippet) > len(existing.snippet):
                 existing.snippet = item.snippet
+            if len(item.cached_text) > len(existing.cached_text):
+                existing.cached_text = item.cached_text
+                existing.cached_text_mode = item.cached_text_mode
     ordered = sorted(
         merged.values(),
         key=lambda item: (item.rrf_score, -int(item.rank or 10**6), item.url),

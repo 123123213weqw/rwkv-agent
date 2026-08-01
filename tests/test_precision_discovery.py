@@ -3,9 +3,13 @@ from __future__ import annotations
 import unittest
 
 from rwkv_search.realtime.precision_discovery import (
+    build_anchor_phrase_query_lane,
+    build_host_token_query_lane,
+    build_original_query_lane,
     build_pivot_queries,
     discover_one_hop_links,
     merge_candidate_groups,
+    merge_query_candidate_groups,
     organization_domain,
     select_pivot_domains,
     source_channel_query,
@@ -15,6 +19,79 @@ from rwkv_search.realtime.types import DiscoveredURL, RealtimeDocument
 
 
 class PrecisionDiscoveryTest(unittest.TestCase):
+    def test_anchor_phrase_lane_prioritizes_quoted_text_and_date(self) -> None:
+        lane = build_anchor_phrase_query_lane(
+            "2024年11月9日学院举办的“全民禁毒宣传教育”主题班会是谁主持的？",
+            "学院 全民禁毒宣传教育 主持人 site:cs.example.edu.cn",
+            site="https://cs.example.edu.cn/news/",
+        )
+        self.assertIn('"全民禁毒宣传教育"', lane)
+        self.assertIn("2024", lane)
+        self.assertTrue(lane.endswith("site:cs.example.edu.cn"))
+        self.assertNotIn("主持", lane)
+
+    def test_anchor_phrase_lane_uses_long_content_when_unquoted(self) -> None:
+        lane = build_anchor_phrase_query_lane(
+            "浙江师范大学计算机科学与技术学院举行退休教职工重阳节活动",
+            "退休教职工 重阳节 活动 site:cs.zjnu.edu.cn",
+            site="cs.zjnu.edu.cn",
+        )
+        self.assertIn("浙江师范大学", lane)
+        self.assertTrue(lane.endswith("site:cs.zjnu.edu.cn"))
+
+    def test_host_token_lane_keeps_scope_without_site_operator(self) -> None:
+        lane = build_host_token_query_lane(
+            "2024年全民禁毒宣传教育主题班会是谁主持的？",
+            "全民禁毒宣传教育 主持人 site:cs.example.edu.cn",
+            site="https://cs.example.edu.cn/news/",
+        )
+        self.assertTrue(lane)
+        self.assertNotIn("site:", lane.casefold())
+        self.assertTrue(lane.endswith("cs.example.edu.cn"))
+
+    def test_host_token_lane_rejects_missing_scope(self) -> None:
+        self.assertEqual(
+            build_host_token_query_lane(
+                "RWKV latest release",
+                "RWKV release",
+                site="",
+            ),
+            "",
+        )
+
+    def test_original_query_lane_is_scoped_and_deterministic(self) -> None:
+        original = (
+            "Which game by Duoyi Network won the 'Outstanding Mobile Game' "
+            "award at the 2024 Golden Finger Awards, and when did the test "
+            "for 'Wan Xian Zhu Lu' start?"
+        )
+        lane = build_original_query_lane(
+            original,
+            "Duoyi award site:duoyi.com",
+            site="https://www.duoyi.com/",
+        )
+        self.assertIn("outstanding mobile game", lane.casefold())
+        self.assertIn("2024", lane)
+        self.assertTrue(lane.endswith("site:duoyi.com"))
+        self.assertEqual(
+            lane,
+            build_original_query_lane(
+                original,
+                "Duoyi award site:duoyi.com",
+                site="duoyi.com",
+            ),
+        )
+
+    def test_original_query_lane_omits_exact_duplicate(self) -> None:
+        self.assertEqual(
+            build_original_query_lane(
+                "Python release",
+                "Python release site:python.org",
+                site="python.org",
+            ),
+            "",
+        )
+
     def test_source_channels_only_add_an_explicit_source_shape(self) -> None:
         self.assertEqual(
             select_source_channels("Python latest stable release"), ("general",)
@@ -200,6 +277,33 @@ class PrecisionDiscoveryTest(unittest.TestCase):
         self.assertEqual(merged[0].discovery_stages, ["initial", "domain_pivot"])
         self.assertEqual(merged[0].engines, ["mwmbl", "bing"])
         self.assertEqual(len(merged[0].matched_queries), 2)
+
+    def test_merge_preserves_cached_text_mode_with_winning_text(self) -> None:
+        initial = DiscoveredURL(
+            url="https://github.com/example/project/releases",
+            cached_text="short local text",
+            cached_text_mode="local_index",
+        )
+        structured = DiscoveredURL(
+            url="https://github.com/example/project/releases/",
+            cached_text="longer authoritative structured API release evidence",
+            cached_text_mode="structured_api",
+        )
+
+        stage_merged = merge_candidate_groups(
+            [initial], [structured], max_candidates=10
+        )
+        query_merged = merge_query_candidate_groups(
+            [("project", [initial]), ("project latest release", [structured])],
+            max_candidates=10,
+        )
+
+        for merged in (stage_merged, query_merged):
+            self.assertEqual(
+                merged[0].cached_text,
+                "longer authoritative structured API release evidence",
+            )
+            self.assertEqual(merged[0].cached_text_mode, "structured_api")
 
     def test_one_hop_links_are_same_organization_scored_and_bounded(self) -> None:
         document = RealtimeDocument(

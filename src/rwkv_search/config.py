@@ -25,7 +25,7 @@ class CrawlConfig:
 class SearchConfig:
     candidate_limit: int = 100
     result_limit: int = 10
-    per_domain_limit: int = 2
+    per_domain_limit: int = 4
     evidence_limit: int = 8
     evidence_character_budget: int = 18000
     passage_selection_enabled: bool = True
@@ -66,8 +66,12 @@ class RealtimeSearchConfig:
     enabled: bool = False
     searxng_url: str = "http://127.0.0.1:8888"
     searxng_engines: List[str] = field(
-        default_factory=lambda: ["bing", "duckduckgo"]
+        default_factory=lambda: ["dogpile", "naver"]
     )
+    # Optional additive lanes selected from the query script. This keeps the
+    # stable metasearch core small while adding a regional engine only where
+    # it is useful. Supported keys: zh, ja, ko, and default.
+    searxng_language_engines: Dict[str, List[str]] = field(default_factory=dict)
     fallback_engines: List[str] = field(default_factory=lambda: ["bing"])
     # Optional structured discovery providers. They remain disabled by default
     # and preserve the single model-facing ``web_search(query)`` contract.
@@ -77,6 +81,33 @@ class RealtimeSearchConfig:
     tavily_api_key_env: str = "TAVILY_API_KEY"
     github_token_env: str = "GITHUB_TOKEN"
     crossref_mailto: str = ""
+    # Optional read-only local discovery source.  This is deliberately
+    # separate from the persistent knowledge tool: when enabled, indexed
+    # public pages participate in URL discovery and are fused with live web
+    # candidates, but query-time web fetches are still never written back.
+    local_discovery_enabled: bool = False
+    local_discovery_endpoint: str = "http://127.0.0.1:19220"
+    local_discovery_indexes: Dict[str, str] = field(
+        default_factory=lambda: {
+            "zh": "rwkv-finewiki-zh-full-v1",
+            "en": "rwkv-finewiki-en-full-v1",
+        }
+    )
+    local_discovery_timeout_seconds: float = 3.5
+    local_discovery_limit: int = 20
+    local_discovery_channel_size: int = 50
+    local_discovery_evidence_limit: int = 3
+    local_discovery_evidence_min_score: float = 0.22
+    local_discovery_evidence_min_entity_coverage: float = 0.5
+    # Calendar years are often "as of" scaffolding in stable knowledge
+    # questions. The candidate index otherwise treats them as high-weight
+    # exact terms and can rank generic year pages above named entities.
+    # Frozen FRAMES A/B accepted this as the local-discovery default. It has
+    # no effect while local discovery itself remains disabled.
+    local_discovery_strip_calendar_years: bool = True
+    # Monthly/offline corpora must not be mistaken for a source of changing
+    # facts. Stable-only also avoids unnecessary index I/O on live queries.
+    local_discovery_stable_only: bool = True
     bing_base_url: str = "https://www.bing.com"
     user_agent: str = (
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
@@ -89,6 +120,7 @@ class RealtimeSearchConfig:
     page_timeout_seconds: float = 5.0
     discovery_timeout_seconds: float = 3.5
     max_redirects: int = 5
+    response_header_max_bytes: int = 32 * 1024
     max_compressed_bytes: int = 2 * 1024 * 1024
     max_decompressed_bytes: int = 4 * 1024 * 1024
     fast_max_queries: int = 2
@@ -103,6 +135,12 @@ class RealtimeSearchConfig:
     candidate_pool_multiplier: int = 2
     candidate_per_domain_limit: int = 3
     query_compaction_enabled: bool = False
+    # Experimental scoped-search lane.  When enabled, the first web call in
+    # one scoped Agent request executes one additional deterministic query
+    # derived from the user's original wording.  It complements rather than
+    # replaces the model Tool query and is disabled by default until the
+    # frozen discovery benchmark accepts it.
+    original_query_lane_enabled: bool = False
     source_channels_enabled: bool = False
     domain_pivot_enabled: bool = False
     domain_pivot_max_domains: int = 2
@@ -110,6 +148,23 @@ class RealtimeSearchConfig:
     domain_pivot_timeout_seconds: float = 3.5
     one_hop_link_expansion_enabled: bool = False
     one_hop_max_links: int = 8
+    # A search-result snippet is weaker than fetched page text, but is still
+    # useful when the origin blocks or times out.  Keep this fallback explicit
+    # and conservative so answer generation can distinguish it from full-page
+    # evidence.
+    snippet_fallback_enabled: bool = False
+    snippet_fallback_min_chars: int = 96
+    snippet_fallback_min_cjk_chars: int = 48
+    snippet_fallback_min_candidate_score: float = 0.18
+    snippet_fallback_min_entity_coverage: float = 0.5
+    # Disabled above 1.0 by default. Experiments may let a strong composite
+    # admission score substitute for brittle lexical entity overlap.
+    snippet_fallback_entity_bypass_score: float = 1.1
+    # Experimental gate: a successful HTTP response can still be unusable
+    # when a shell/JS page yields no extractable正文.  Reusing the already
+    # validated SERP excerpt costs no extra request, but remains separately
+    # switchable until its retrieval A/B is accepted.
+    snippet_fallback_on_extraction_error: bool = False
     search_cache_ttl_seconds: int = 120
     page_cache_ttl_seconds: int = 300
     cache_max_bytes: int = 64 * 1024 * 1024

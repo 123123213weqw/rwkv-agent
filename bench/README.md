@@ -7,6 +7,8 @@
 | 路径 | 作用 |
 |---|---|
 | `realtime_web_retrieval.jsonl` | 冻结的50条中英文历史回归集，不再修改 |
+| `realtime_web_retrieval_audited_v2.jsonl` | 对冻结50条做官方域名/路径迁移复核后的当前Gold；问题不变 |
+| `realtime_web_retrieval_audited_v2_manifest.json` | 8条Gold修订的旧值、新值、理由、核验URL与双版本哈希 |
 | `realtime_web_retrieval_dev_v2.jsonl` | 新增100条、50个中英文配对主题的真实风格开发集 |
 | `realtime_web_retrieval_dev_v2_manifest.json` | v2数量、分布、SHA-256和数据来源声明 |
 | `build_retrieval_dev_v2.py` | 从人工审核主题表确定性重建v2 JSONL与Manifest |
@@ -40,6 +42,13 @@
 | `baselines/long_knowledge/` | FineWiki中英文MIRACL、兼容集、Hybrid及Agent Shadow冻结摘要 |
 | `baselines/` | 小型冻结摘要，不含网页正文 |
 
+Agent端到端Benchmark另有两项只用于私有Run的可重放工具：
+
+| 路径 | 作用 |
+|---|---|
+| `../benchmarks/retrieval_snapshot.py` | 脱敏配置、Raw/Admission/Fetch/Evidence候选快照Schema与原子写入 |
+| `../benchmarks/analyze_retrieval_funnel.py` | 不联网重放快照，定位域名、精确页、抓取、Evidence、回答和引用损失 |
+
 ## 快速运行
 
 ```bash
@@ -54,10 +63,44 @@ PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
   --case-id retrieval-en-006
 ```
 
+### Agent候选快照与失败漏斗
+
+新建Run时显式开启快照；默认关闭，因此不会增加普通聊天或既有Benchmark的输出体积：
+
+```bash
+PYTHONPATH=.:src python benchmarks/run_fitgen_benchmark.py \
+  --dataset webwalkerqa --run-id web-dev-snapshot-v1 \
+  --cases-dir /path/to/fitgen/dev --full --concurrency 1 \
+  --web-profile enhanced --web-fallback-engines bing \
+  --web-api-providers github,crossref,mediawiki \
+  --capture-retrieval-snapshots
+```
+
+Run会额外生成`config.snapshot.json`和
+`webwalkerqa.retrieval-snapshots.jsonl`。快照保留URL、标题、摘要、排名、引擎、抓取结果和Evidence URI，
+不保存网页正文或凭据。随后完全离线生成失败漏斗：
+
+```bash
+RUN=/path/to/run
+PYTHONPATH=.:src python benchmarks/analyze_retrieval_funnel.py \
+  --cases "$RUN/webwalkerqa.cases.jsonl" \
+  --results "$RUN/webwalkerqa.results.jsonl" \
+  --evaluations "$RUN/webwalkerqa.evaluations.jsonl" \
+  --snapshots "$RUN/webwalkerqa.retrieval-snapshots.jsonl" \
+  --output "$RUN/webwalkerqa.retrieval-funnel.json" \
+  --rows-output "$RUN/webwalkerqa.retrieval-funnel.rows.jsonl"
+```
+
+Gold只在Run结束后的离线漏斗评分中读取，不进入模型提示词、查询、候选排序或抓取。
+
 `realtime_web_retrieval_dev_v2.jsonl`是人工策划的真实搜索风格开发集，不是用户日志，也不是私有盲测集。
 它包含口语、短查询、少量噪声输入、安全公告、标准规范、公共实时信息、公司原始文件、技术文档和社区讨论。
 中英文按同一50个检索目标成对构建，可直接比较跨语言召回差异。`query_style`、`task_family`、
 `gold_ttl_days`、期望域和路径都只能用于运行结束后的分组和评分，禁止进入模型或搜索查询。
+
+50条历史集的v1文件保持冻结，用于连续性对比；动态官网迁移后的当前有效评分使用
+`realtime_web_retrieval_audited_v2.jsonl`。审计版只更改8条已经由一手来源复核的期望域名或路径，
+不得把系统当前检索到的普通页面直接写成Gold。运行报告应同时保留v1和审计v2，不能用新标注覆盖历史结果。
 
 运行v2开发集：
 
@@ -71,7 +114,14 @@ PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
 
 ### SearXNG逐引擎稳定性
 
-Runner从运行中实例的`/config`读取已启用引擎，只用冻结P4查询请求单个引擎。期望域名和URL模式仅在结果返回后用于打分，不加入搜索词。稳定性运行应顺序限速，避免把并发限流误判为引擎质量：
+Runner从运行中实例的`/config`读取已启用引擎，只用冻结P4计划的**有效执行查询**请求单个引擎。
+新版计划优先读取`effective_query`；旧计划会重新执行当前运行时的年份、`site:`数量和长度约束，违规时
+回退原问题，禁止直接执行历史`model_query`。期望域名和URL模式仅在结果返回后用于打分，不加入搜索词。
+稳定性运行应顺序限速，避免把并发限流误判为引擎质量：
+
+当生产配置启用多个通用引擎时，Agent对每个引擎发起独立有界请求，再在本地用RRF去重融合。
+不允许一个慢引擎阻塞健康引擎；稳定性Benchmark仍须按引擎单独运行，再使用同一冻结集
+进行引擎池端到端对比。当前接受池为`dogpile + naver`，Bing HTML只是受限后备。
 
 ```bash
 PYTHONPATH=src python bench/run_searxng_engine_bench.py \
@@ -157,6 +207,47 @@ PYTHONPATH=src python bench/run_web_extraction_bench.py \
 公开文件不包含网页正文、响应头或完整运行日志。
 
 完整方法见 [`docs/BENCHMARK.md`](../docs/BENCHMARK.md)。
+
+## 原问题互补车道Discovery A/B
+
+该实验只比较URL发现，不抓取页面、不调用答案模型。Control使用冻结快照中第一次模型搜索词；
+Candidate把用户原问题经通用`QueryAnalyzer`压缩并保留同一个`site:`硬约束；Union用RRF合并两路。
+两个搜索臂都返回后才读取Gold URL评分，禁止把目标页或期望域名写入查询。
+
+```bash
+PYTHONPATH=.:src python benchmarks/run_query_lane_discovery_ab.py \
+  --cases /private/normalized/webwalkerqa.jsonl \
+  --snapshots /private/run/webwalkerqa.retrieval-snapshots.jsonl \
+  --endpoint http://127.0.0.1:8888 \
+  --output /private/run/query-lane.rows.jsonl \
+  --summary /private/run/query-lane.summary.json
+```
+
+Dev80配对Live结果（76条实际调用搜索）：Target Page Hit@20从31.58%升到40.79%，
+Macro Recall@20从24.34%升到32.89%，7胜/0负。随后7条增益样本的13.3B端到端诊断没有复现
+Exact Page Recall收益（85.71%降至71.43%）；这是顺序Live诊断，不是冻结Provider的严格A/B，说明
+新增Raw Candidate仍可能在后续Evidence合并中被淘汰。因此该开关默认关闭，不允许据此切换生产。
+
+## 冻结Evidence保留式融合A/B
+
+该实验完全离线重放已经冻结的逐次Web Evidence。Control保持现有全局Query-view MMR Top-8；
+Candidate不替换Control的任何页面，只追加最多4条“至少被两个独立搜索Query观察到”的Query头部页面。
+两种选择都完成后才读取Gold URL，因此不会用目标页调选择器。
+
+```bash
+PYTHONPATH=.:src python benchmarks/replay_evidence_merge_ab.py \
+  --cases /private/run/webwalkerqa.cases.jsonl \
+  --snapshots /private/run/webwalkerqa.retrieval-snapshots.jsonl \
+  --results /private/run/webwalkerqa.results.jsonl \
+  --output-dir /private/run/evidence-merge-ab
+```
+
+冻结Dev80重放中，Exact Page Recall从29.375%升至32.50%，3胜/0负；逐次Evidence URI平均保留率
+从49.18%升至53.03%。快照为保护网页正文不落盘，只保存URL、标题和轻量元数据，因此重放Control与当时
+内容感知Final Evidence的平均URI Jaccard只有40.20%；该实验只证明“非破坏追加”的选择性质，不等价于
+冻结答案生成。13.3B的7条顺序Live复验受Provider结果和第二轮Query联动波动影响，三次Candidate结果未
+稳定复现，最终一次相对Control的Exact Recall持平、Citation Exact Recall下降7.14个百分点。因此
+`--preserve-query-view-evidence`仍默认关闭，不接入生产。
 
 ## 长期知识Hybrid Retrieval
 

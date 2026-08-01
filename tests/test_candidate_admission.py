@@ -86,6 +86,15 @@ class CandidateAdmissionTests(unittest.TestCase):
             1,
         )
         self.assertIn("dictionary", candidate_rejection_reasons("Linux latest release", iciba))
+        cidian = candidate(
+            "https://www.hanyuguoxue.com/cidian/ci-ad929b3e0",
+            "最近的意思_最近的解释",
+            1,
+        )
+        self.assertIn(
+            "dictionary",
+            candidate_rejection_reasons("最近新能源汽车政策", cidian),
+        )
 
     def test_article_discussing_a_login_problem_is_not_rejected_by_snippet(self) -> None:
         value = candidate("https://example.com/help", "Account troubleshooting", 1)

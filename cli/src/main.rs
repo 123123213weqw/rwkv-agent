@@ -10,6 +10,12 @@ use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
 use serde_json::{Value, json};
 
+mod ui;
+
+#[cfg(test)]
+use ui::shorten;
+use ui::{Ui, compact_json, status_of};
+
 const PASTED_TEXT_CAPTURE_CHARS: usize = 4_000;
 
 #[derive(Debug, Parser)]
@@ -236,121 +242,8 @@ fn joined(values: &[String], label: &str) -> Result<String, String> {
     Ok(value)
 }
 
-fn compact_json(value: &Value) -> String {
-    serde_json::to_string(value).unwrap_or_else(|_| "<invalid JSON>".to_string())
-}
-
-fn evidence_count(value: &Value) -> usize {
-    value
-        .get("evidence")
-        .and_then(Value::as_array)
-        .map_or(0, Vec::len)
-}
-
-fn status_of(value: &Value) -> &str {
-    value
-        .get("status")
-        .and_then(Value::as_str)
-        .unwrap_or("unknown")
-}
-
 fn render(value: &Value, raw_json: bool) {
-    if raw_json {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(value).unwrap_or_else(|_| compact_json(value))
-        );
-        return;
-    }
-
-    if let Some(answer) = value.get("answer").and_then(Value::as_str) {
-        if let Some(tool) = value.pointer("/route/tool").and_then(Value::as_str) {
-            let state_research = value.pointer("/route/mode").and_then(Value::as_str)
-                == Some("state_parallel_search");
-            if state_research {
-                let branches = value
-                    .pointer("/route/branch_width")
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0);
-                let rounds = value
-                    .pointer("/route/rounds")
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0);
-                println!("╭─ Parallel state research");
-                println!("│ {tool} · B{branches} · {rounds} rounds");
-            } else {
-                println!("╭─ Tool call");
-                println!("│ {tool}");
-            }
-            if let Some(arguments) = value.pointer("/route/arguments") {
-                println!("│ {}", compact_json(arguments));
-            }
-            if let Some(result) = value.get("tool_result") {
-                println!(
-                    "│ {} · {} evidence",
-                    status_of(result),
-                    evidence_count(result)
-                );
-                if let Some(workers) = result.get("workers") {
-                    let completed = workers
-                        .get("completed")
-                        .and_then(Value::as_u64)
-                        .unwrap_or(0);
-                    let concurrency = workers
-                        .get("concurrency")
-                        .and_then(Value::as_u64)
-                        .unwrap_or(0);
-                    let candidates = workers
-                        .get("candidates")
-                        .and_then(Value::as_u64)
-                        .unwrap_or(0);
-                    println!(
-                        "│ {completed} chunks · concurrency {concurrency} · {candidates} candidates"
-                    );
-                }
-            }
-            println!("╰─");
-        }
-        println!();
-        println!("{answer}");
-        return;
-    }
-
-    println!("status: {}", status_of(value));
-
-    if let Some(tools) = value.get("tools").and_then(Value::as_array) {
-        let names: Vec<&str> = tools.iter().filter_map(Value::as_str).collect();
-        if !names.is_empty() {
-            println!("tools: {}", names.join(", "));
-        }
-    }
-
-    if let Some(memory_id) = value.get("memory_id").and_then(Value::as_str) {
-        println!("memory: {memory_id}");
-    }
-    if let Some(message) = value.get("message").and_then(Value::as_str) {
-        println!("{message}");
-    }
-
-    if let Some(evidence) = value.get("evidence").and_then(Value::as_array) {
-        println!("evidence: {}", evidence.len());
-        for item in evidence {
-            let id = item.get("id").and_then(Value::as_str).unwrap_or("?");
-            let title = item
-                .get("title")
-                .and_then(Value::as_str)
-                .unwrap_or("Untitled");
-            println!("  [{id}] {title}");
-            if let Some(content) = item.get("content").and_then(Value::as_str) {
-                println!("      {}", shorten(content, 180));
-            }
-            if let Some(uri) = item.get("uri").and_then(Value::as_str) {
-                println!("      {uri}");
-            }
-        }
-    } else if let Some(tool_result) = value.get("tool_result") {
-        println!("evidence: {}", evidence_count(tool_result));
-    }
+    println!("{}", Ui::for_stdout().response(value, raw_json));
 }
 
 fn doctor_checks(health: &Value) -> Vec<(&'static str, bool, String)> {
@@ -417,29 +310,13 @@ fn doctor(client: &AgentClient, raw_json: bool) -> Result<(), String> {
             serde_json::to_string_pretty(&payload).unwrap_or_else(|_| compact_json(&payload))
         );
     } else {
-        println!("RWKV Agent doctor");
-        println!("endpoint: {}", client.endpoint);
-        for (name, passed, detail) in &checks {
-            println!("[{}] {name}: {detail}", if *passed { "ok" } else { "fail" });
-        }
+        println!("{}", Ui::for_stdout().doctor(&client.endpoint, &checks));
     }
     if ready {
         Ok(())
     } else {
         Err("doctor found an incomplete Agent deployment".to_string())
     }
-}
-
-fn shorten(value: &str, limit: usize) -> String {
-    let normalized = value.split_whitespace().collect::<Vec<_>>().join(" ");
-    if normalized.chars().count() <= limit {
-        return normalized;
-    }
-    normalized
-        .chars()
-        .take(limit.saturating_sub(1))
-        .collect::<String>()
-        + "…"
 }
 
 fn with_spinner<F>(label: &str, operation: F) -> Result<Value, String>
@@ -451,7 +328,7 @@ where
     }
     let spinner = ProgressBar::new_spinner();
     spinner.set_style(
-        ProgressStyle::with_template("{spinner:.cyan} {msg}")
+        ProgressStyle::with_template("{spinner:.magenta} {msg}")
             .unwrap_or_else(|_| ProgressStyle::default_spinner())
             .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]),
     );
@@ -512,44 +389,18 @@ fn execute(cli: &Cli, client: &mut AgentClient) -> Result<(), String> {
 }
 
 fn banner(client: &AgentClient) {
-    println!("╭──────────────────────────────────────────────╮");
-    println!("│  RWKV Agent                                  │");
-    println!("│  tools + parallel research + knowledge       │");
-    println!("╰──────────────────────────────────────────────╯");
-    println!("  session: {}", client.session);
-    println!("  endpoint: {}", client.endpoint);
-    println!("  /help for commands · Ctrl-D to exit");
-    println!();
-}
-
-fn print_help() {
     println!(
-        "\
-Commands
-  /help                 Show this help
-  /status               Check backend and model health
-  /tools                List available function calls
-  /session [name]       Show or switch conversation session
-  /knowledge <query>    Search local indexed knowledge
-  /web <query>          Search the live web
-  /research <question>  Search with four forked states for two rounds
-  /longtext <question>  Ask the long text pasted earlier in this session
-  /json on|off          Toggle complete JSON responses
-  /clear                Clear the terminal
-  /exit, /quit          Leave the Agent
-
-Input ending in \\ continues on the next line."
+        "{}\n",
+        Ui::for_stdout().banner(&client.session, &client.endpoint)
     );
 }
 
+fn print_help() {
+    println!("{}", Ui::for_stdout().help());
+}
+
 fn show_tools() {
-    println!("Available function calls:");
-    println!("  web_search(query)         live discovery + extraction");
-    println!("  knowledge_search(query)   local indexed knowledge");
-    println!("  long_text_qa(question)    parallel QA over pasted session text");
-    println!("  /research <question>      B4 × 2-round state-native Web research");
-    println!();
-    println!("Paste a long text directly, wait for acceptance, then ask questions.");
+    println!("{}", Ui::for_stdout().tools());
 }
 
 fn slash_argument<'a>(line: &'a str, command: &str) -> Result<&'a str, String> {
@@ -665,7 +516,8 @@ fn chat_tty(client: &mut AgentClient, raw_json: &mut bool) -> Result<(), String>
     }
 
     loop {
-        let mut message = match editor.readline("❯ ") {
+        let ui = Ui::for_stdout();
+        let mut message = match editor.readline(&ui.prompt()) {
             Ok(line) => line,
             Err(ReadlineError::Interrupted) => {
                 println!("^C");
@@ -680,7 +532,7 @@ fn chat_tty(client: &mut AgentClient, raw_json: &mut bool) -> Result<(), String>
 
         while message.trim_end().ends_with('\\') {
             message.truncate(message.trim_end().len().saturating_sub(1));
-            match editor.readline("… ") {
+            match editor.readline(&ui.continuation_prompt()) {
                 Ok(next) => {
                     message.push('\n');
                     message.push_str(&next);
@@ -705,7 +557,7 @@ fn chat_tty(client: &mut AgentClient, raw_json: &mut bool) -> Result<(), String>
         match process_chat_line(&message, client, raw_json) {
             Ok(true) => {}
             Ok(false) => break,
-            Err(error) => eprintln!("error: {error}"),
+            Err(error) => eprintln!("{}", Ui::for_stderr().error(&error)),
         }
     }
 
@@ -728,7 +580,7 @@ fn chat_piped(client: &mut AgentClient, raw_json: &mut bool) -> Result<(), Strin
         match process_chat_line(&line, client, raw_json) {
             Ok(true) => {}
             Ok(false) => break,
-            Err(error) => eprintln!("error: {error}"),
+            Err(error) => eprintln!("{}", Ui::for_stderr().error(&error)),
         }
     }
     Ok(())
@@ -749,7 +601,7 @@ fn main() {
     let result = AgentClient::new(&cli.endpoint, cli.session.as_deref(), cli.timeout)
         .and_then(|mut client| execute(&cli, &mut client));
     if let Err(error) = result {
-        eprintln!("rwkv-agent: {error}");
+        eprintln!("{}", Ui::for_stderr().error(&error));
         std::process::exit(1);
     }
 }
@@ -875,7 +727,7 @@ mod tests {
 
     #[test]
     fn shortens_utf8_safely() {
-        assert_eq!(shorten("这是一个很长的中文句子", 6), "这是一个很…");
+        assert_eq!(shorten("这是一个很长的中文句子", 6), "这是…");
         assert_eq!(shorten("short text", 20), "short text");
     }
 

@@ -21,6 +21,14 @@ outgoing:
   pool_maxsize: 10
 
 engines:
+  - name: dogpile
+    disabled: false
+  - name: naver
+    disabled: false
+  - name: baidu
+    disabled: false
+  - name: yandex
+    disabled: false
   - name: github
     disabled: false
   - name: arxiv

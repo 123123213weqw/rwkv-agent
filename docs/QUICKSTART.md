@@ -16,7 +16,28 @@ creates SSH tunnels or contacts a private server.
 The verified Preview4922 13.3B setup fits one 32 GB V100. Other cards and
 quantized runtimes require separate validation.
 
-## Install
+## Client-only setup
+
+The Rust client does not need CUDA or model weights. Install it on a laptop and
+connect to an already configured Controller:
+
+```bash
+git clone https://github.com/123123213weqw/rwkv-search.git
+cd rwkv-search
+./cli/install.sh --client-only
+
+ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent doctor
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent
+```
+
+Prebuilt CLI archives, when attached to a tagged Beta release, contain the
+binary, CLI guide, license and an adjacent SHA-256 file. See
+[`cli/README.md`](../cli/README.md) for installation and supported targets.
+
+The remaining sections install the complete backend on a Linux CUDA host.
+
+## Full backend install
 
 ```bash
 git clone https://github.com/123123213weqw/rwkv-search.git
@@ -108,8 +129,8 @@ Run the installation and service on the GPU host, then forward the Controller:
 
 ```bash
 ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv doctor
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent doctor
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent
 ```
 
 Do not bind the Beta Controller to a public interface without adding your own

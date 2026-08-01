@@ -10,6 +10,7 @@ from typing import Any
 
 import torch
 
+from rwkv_runtime.decode import append_greedy_token
 from .state_pool import AlbatrossStatePool, StateHandle
 
 
@@ -201,38 +202,10 @@ class AlbatrossChunkScheduler:
             requests = self._selected(request_ids)
             if not requests:
                 return {}
-            while True:
-                active = [
-                    request
-                    for request in requests
-                    if not request.cancelled and request.remaining > 0
-                ]
-                if not active:
-                    break
-
-                # Preserve absolute quantum boundaries across persistent-state
-                # continuations.  A continuation can begin after a short tail;
-                # feeding a fresh full quantum from that unaligned recurrent
-                # position is not numerically equivalent for the Native vector
-                # prefill cache.  First finish the current absolute quantum,
-                # then resume ordinary full chunks.  Different lengths are
-                # still never padded together.
-                groups: dict[int, list[RequestState]] = defaultdict(list)
-                for request in active:
-                    groups[self._next_prefill_length(request)].append(request)
-                for length in sorted(groups, reverse=True):
-                    for batch in self._batches(groups[length]):
-                        self._run_exact_chunk(batch, length)
-
-            now = time.monotonic()
-            for request in requests:
-                if request.remaining == 0 and request.completed_at is None:
-                    request.completed_at = now
-            return {
-                request.request_id: request.logits
-                for request in requests
-                if request.logits is not None
-            }
+            while active := self._active_prefill(requests):
+                self._run_prefill_wave(active)
+            self._mark_prefill_complete(requests)
+            return self._available_logits(requests)
 
     @torch.inference_mode()
     def prefill_round(
@@ -249,35 +222,14 @@ class AlbatrossChunkScheduler:
 
         with self._model_lock:
             requests = self._selected(request_ids)
-            active = [
-                request
-                for request in requests
-                if not request.cancelled and request.remaining > 0
-            ]
+            active = self._active_prefill(requests)
             if not active:
-                return {
-                    request.request_id: request.logits
-                    for request in requests
-                    if request.logits is not None
-                }
+                return self._available_logits(requests)
 
-            groups: dict[int, list[RequestState]] = defaultdict(list)
-            for request in active:
-                groups[self._next_prefill_length(request)].append(request)
-            for length in sorted(groups, reverse=True):
-                for batch in self._batches(groups[length]):
-                    self._run_exact_chunk(batch, length)
-
-            now = time.monotonic()
-            for request in requests:
-                if request.remaining == 0 and request.completed_at is None:
-                    request.completed_at = now
+            self._run_prefill_wave(active)
+            self._mark_prefill_complete(requests)
             self._metrics["prefill_rounds"] += 1
-            return {
-                request.request_id: request.logits
-                for request in requests
-                if request.logits is not None
-            }
+            return self._available_logits(requests)
 
     @torch.inference_mode()
     def continue_tokens(
@@ -322,12 +274,30 @@ class AlbatrossChunkScheduler:
         observations without rebuilding their common prefix.
         """
 
+        requests = self.install_continuations(rows)
+        if not requests:
+            return {}
+        request_ids = [request.request_id for request in requests]
+        return self.prefill(request_ids)
+
+    def install_continuations(
+        self,
+        rows: Sequence[tuple[str, Sequence[int]]],
+    ) -> list[RequestState]:
+        """Atomically install continuation tokens without running a forward.
+
+        The unified serving worker uses this primitive to put persistent-State
+        rows into the same exact-length prefill rounds as newly admitted
+        completion and classification rows. ``continue_many`` remains the
+        synchronous convenience API and delegates to this method.
+        """
+
         normalized = [
             (str(request_id or "").strip(), tuple(int(token) for token in tokens))
             for request_id, tokens in rows
         ]
         if not normalized:
-            return {}
+            return []
         request_ids = [request_id for request_id, _tokens in normalized]
         if any(not request_id for request_id in request_ids):
             raise ValueError("request_id must not be empty")
@@ -365,10 +335,9 @@ class AlbatrossChunkScheduler:
                 request.token_ids = by_id[request.request_id]
                 request.offset = 0
                 request.completed_at = None
-            result = self.prefill(request_ids)
             self._metrics["continuation_batches"] += 1
             self._metrics["continuations"] += len(requests)
-            return result
+            return requests
 
     @torch.inference_mode()
     def greedy_decode(
@@ -401,26 +370,26 @@ class AlbatrossChunkScheduler:
 
             active = list(requests)
             while active:
-                logits = torch.stack([request.logits for request in active])
-                sampled = torch.argmax(logits, dim=-1)
-                sampled_cpu = sampled.tolist()
-                forward_rows: list[RequestState] = []
-                forward_tokens: list[int] = []
+                active_ids = [request.request_id for request in active]
+                sampled = self.sample_next(active_ids)
+                advance: dict[str, int] = {}
                 next_active: list[RequestState] = []
-                for request, token in zip(active, sampled_cpu, strict=True):
-                    token = int(token)
-                    is_eos = token == self.config.eos_token_id
-                    if not is_eos:
-                        request.output_ids.append(token)
-                    budget_done = len(request.output_ids) >= budgets[request.request_id]
-                    if not is_eos and (commit_last_token or not budget_done):
-                        forward_rows.append(request)
-                        forward_tokens.append(token)
-                    if not is_eos and not budget_done:
+                for request in active:
+                    status = append_greedy_token(
+                        request.output_ids,
+                        sampled[request.request_id],
+                        eos_token_id=self.config.eos_token_id,
+                        max_tokens=budgets[request.request_id],
+                    )
+                    if not status.eos and (
+                        commit_last_token or not status.budget_reached
+                    ):
+                        advance[request.request_id] = status.token
+                    if not status.finished:
                         next_active.append(request)
 
-                if forward_rows:
-                    self._run_token_batch(forward_rows, forward_tokens)
+                if advance:
+                    self.advance_tokens(advance)
                 active = next_active
 
             self._metrics["decoded_requests"] += len(requests)
@@ -518,6 +487,45 @@ class AlbatrossChunkScheduler:
         limit = self.config.max_batch_size
         for start in range(0, len(requests), limit):
             yield requests[start : start + limit]
+
+    @staticmethod
+    def _active_prefill(
+        requests: list[RequestState],
+    ) -> list[RequestState]:
+        return [
+            request
+            for request in requests
+            if not request.cancelled and request.remaining > 0
+        ]
+
+    def _run_prefill_wave(self, requests: list[RequestState]) -> None:
+        # Preserve absolute quantum boundaries across persistent-state
+        # continuations. A continuation can begin after a short tail; feeding a
+        # fresh full quantum from that unaligned recurrent position is not
+        # numerically equivalent for the Native vector prefill cache.
+        groups: dict[int, list[RequestState]] = defaultdict(list)
+        for request in requests:
+            groups[self._next_prefill_length(request)].append(request)
+        for length in sorted(groups, reverse=True):
+            for batch in self._batches(groups[length]):
+                self._run_exact_chunk(batch, length)
+
+    @staticmethod
+    def _mark_prefill_complete(requests: list[RequestState]) -> None:
+        now = time.monotonic()
+        for request in requests:
+            if request.remaining == 0 and request.completed_at is None:
+                request.completed_at = now
+
+    @staticmethod
+    def _available_logits(
+        requests: list[RequestState],
+    ) -> dict[str, torch.Tensor]:
+        return {
+            request.request_id: request.logits
+            for request in requests
+            if request.logits is not None
+        }
 
     def _next_prefill_length(self, request: RequestState) -> int:
         if request.remaining <= 0:

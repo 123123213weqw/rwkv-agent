@@ -49,11 +49,14 @@ jobs:
       - run: cargo build --release --locked
       - name: CLI mock smoke
         run: bash tests/cli_smoke.sh
+      - name: CLI install smoke
+        run: bash tests/install_smoke.sh
 
   shell:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: >-
-          bash -n cli/install.sh cli/scripts/rwkv cli/scripts/rwkv-agent-service
+          bash -n cli/install.sh cli/package-release.sh cli/tests/install_smoke.sh
+          cli/scripts/rwkv cli/scripts/rwkv-agent-service
           deploy/agent/start_g1i_sidecars.sh deploy/agent/stop_g1i_sidecars.sh
