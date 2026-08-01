@@ -16,7 +16,7 @@ from typing import Any, Mapping, Sequence
 from .citations import extract_citation_ids, strip_citations
 
 
-VERIFIER_VERSION = "fitgen-claim-lexical-v1"
+VERIFIER_VERSION = "fitgen-claim-lexical-v2"
 _CITATION_AT = re.compile(r"\[[A-Za-z][A-Za-z0-9_.:-]*\]")
 _WORD = re.compile(r"[a-z0-9]+(?:[_.+-][a-z0-9]+)*", re.I)
 _NUMBER = re.compile(r"(?<![A-Za-z0-9])[+-]?\d+(?:[.,]\d+)*(?:%|‰)?", re.I)
@@ -153,6 +153,29 @@ def _features(value: str) -> list[str]:
     return features
 
 
+def claim_question_relevance(question: str, claim: str) -> float:
+    """Measure how much of a claim directly addresses the user's request.
+
+    Proper names, identifiers and numeric values are normally absent from the
+    question and are therefore treated as answer values rather than relevance
+    noise.  The remaining relation/topic words must overlap the question.  The
+    score is intentionally lexical and language-agnostic; it does not encode
+    project, company or website-specific routes.
+    """
+
+    question_features = set(_features(question))
+    eligible = [
+        feature
+        for feature in _features(claim)
+        if not any(character.isdigit() for character in feature)
+        and not (feature.isascii() and feature not in question_features)
+    ]
+    if not question_features or not eligible:
+        return 0.0
+    matched = sum(feature in question_features for feature in eligible)
+    return round(matched / len(eligible), 6)
+
+
 def _support(claim: str, evidence_text: str) -> tuple[bool, float, str]:
     clean = _normalize(strip_citations(claim)).strip(" -*•:：")
     source = _normalize(evidence_text)
@@ -189,13 +212,6 @@ def _support(claim: str, evidence_text: str) -> tuple[bool, float, str]:
         and len(value) >= 3
     }
     source_identifiers = set(_WORD.findall(source))
-    if (
-        claim_numbers
-        and claim_identifiers
-        and claim_identifiers <= source_identifiers
-    ):
-        return True, 1.0, "structured_exact"
-
     wanted = Counter(_features(clean))
     available = Counter(_features(source))
     if not wanted:
@@ -204,10 +220,28 @@ def _support(claim: str, evidence_text: str) -> tuple[bool, float, str]:
     recall = overlap / sum(wanted.values())
     unique_recall = len(set(wanted) & set(available)) / len(set(wanted))
     score = round(min(recall, unique_recall), 6)
+    if (
+        claim_numbers
+        and claim_identifiers
+        and claim_identifiers <= source_identifiers
+    ):
+        # Structured API records often use English labels while the answer is
+        # Chinese.  Permit only a small bounded translation residue after all
+        # numbers and ASCII identifiers agree.  The former v1 shortcut ignored
+        # every remaining word, so a claim could append an invented relation
+        # (for example an acquisition) and still pass with score 1.0.
+        unmatched = wanted - available
+        unmatched_non_ascii = sum(
+            count
+            for feature, count in unmatched.items()
+            if not feature.isascii()
+        )
+        if unmatched_non_ascii <= 8:
+            return True, 1.0, "bounded_structured_exact"
     # Short assertions must be fully present. Longer paraphrases may contain
     # grammar words absent from a passage, so require all numbers plus a clear
     # majority of the non-stopword lexical features.
-    threshold = 1.0 if len(wanted) <= 3 else 0.55
+    threshold = 1.0 if len(wanted) <= 3 else 0.72
     if score >= threshold:
         return True, score, "lexical_recall"
     return False, score, "insufficient_lexical_support"
@@ -234,18 +268,25 @@ def verify_answer_claims(
             for evidence_id in extract_citation_ids(unit)
             if evidence_id in evidence_by_id
         ]
-        source = "\n".join(
-            " ".join(
+        source_checks = []
+        for evidence_id in citations:
+            item = evidence_by_id[evidence_id]
+            source = " ".join(
                 (
-                    str(evidence_by_id[evidence_id].get("title") or ""),
-                    str(evidence_by_id[evidence_id].get("content") or ""),
-                    str(evidence_by_id[evidence_id].get("uri") or ""),
-                    str(evidence_by_id[evidence_id].get("published_at") or ""),
+                    str(item.get("title") or ""),
+                    str(item.get("content") or ""),
+                    str(item.get("uri") or ""),
+                    str(item.get("published_at") or ""),
                 )
             )
-            for evidence_id in citations
+            supported, score, reason = _support(text, source)
+            source_checks.append((supported, score, reason, evidence_id))
+        best = max(
+            source_checks,
+            key=lambda value: (bool(value[0]), float(value[1])),
+            default=(False, 0.0, "missing_valid_citation", ""),
         )
-        supported, score, reason = _support(text, source)
+        supported, score, reason, support_evidence_id = best
         claims.append(
             {
                 "text": text,
@@ -267,6 +308,9 @@ def verify_answer_claims(
                 "verifier": VERIFIER_VERSION,
                 "support_score": score if citations else 0.0,
                 "support_reason": reason if citations else "missing_valid_citation",
+                "support_evidence_id": (
+                    support_evidence_id if citations and supported else ""
+                ),
             }
         )
     return claims

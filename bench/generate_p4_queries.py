@@ -13,6 +13,7 @@ if __package__:
 else:
     from retrieval_schema import load_cases
 from rwkv_search.g1i_native import FastRWKV7Completion
+from rwkv_search.pipeline.query_compiler import QueryHints, normalize_source_preference
 from rwkv_search.p4_search import P4SearchPlanner
 
 
@@ -31,7 +32,7 @@ def main() -> None:
     parser.add_argument("--bench", default="bench/realtime_web_retrieval.jsonl")
     parser.add_argument("--case-id", action="append", default=[])
     parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--max-tokens", type=int, default=192)
+    parser.add_argument("--max-tokens", type=int, default=96)
     parser.add_argument("--output", default="bench/runs/query_formation_p4_queries_v1.jsonl")
     parser.add_argument("--summary", default="bench/runs/query_formation_p4_queries_v1_summary.json")
     args = parser.parse_args()
@@ -55,7 +56,16 @@ def main() -> None:
     records: List[Dict[str, Any]] = []
     with output.open("w", encoding="utf-8") as handle:
         for case in cases:
-            plan = planner.plan(str(case["query"]))
+            plan = planner.plan(
+                str(case["query"]),
+                hints=QueryHints(
+                    freshness=str(case.get("freshness") or "stable"),
+                    source_preference=normalize_source_preference(
+                        case.get("source_policy")
+                    ),
+                    depth=str(case.get("depth") or "single"),
+                ),
+            )
             evaluation = plan.format_evaluation
             record = {
                 "schema_version": "query-formation-p4-plan.v1",
@@ -63,6 +73,11 @@ def main() -> None:
                 "user_query": case["query"],
                 "strict_success": bool(evaluation.get("strict_success")),
                 "model_query": str(evaluation.get("query") or ""),
+                "effective_query": plan.search_request.execution_queries[0],
+                "execution_queries": list(plan.search_request.execution_queries),
+                "fallback_to_raw": plan.fallback_to_raw,
+                "fallback_reason": plan.fallback_reason,
+                "constraint_evaluation": plan.constraint_evaluation,
                 "plan": plan.to_dict(),
             }
             records.append(record)
@@ -70,7 +85,8 @@ def main() -> None:
             handle.flush()
             print(
                 f"{case['id']} strict={int(record['strict_success'])} "
-                f"tokens={len(plan.token_ids)} query={record['model_query']!r}",
+                f"fallback={int(plan.fallback_to_raw)} tokens={len(plan.token_ids)} "
+                f"query={record['effective_query']!r}",
                 flush=True,
             )
 
@@ -85,6 +101,7 @@ def main() -> None:
         "total": len(records),
         "strict_success": strict,
         "strict_success_rate": round(strict / max(1, len(records)), 4),
+        "fallback_to_raw": sum(bool(row["fallback_to_raw"]) for row in records),
         "average_elapsed_ms": round(
             sum(float(row["plan"].get("elapsed_ms", 0.0)) for row in records)
             / max(1, len(records)),

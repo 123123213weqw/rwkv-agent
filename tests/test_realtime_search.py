@@ -10,7 +10,7 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from rwkv_search.config import RealtimeSearchConfig
+from rwkv_search.config import RealtimeSearchConfig, SearchConfig
 from rwkv_search.db import SearchDatabase
 from rwkv_search.g1i_types import G1ICompletion
 from rwkv_search.realtime.cache import TTLByteCache
@@ -20,6 +20,7 @@ from rwkv_search.realtime.discovery import (
     bing_search_params,
     parse_search_html,
     parse_searxng_results,
+    searxng_engines_for_query,
     searxng_search_params,
 )
 from rwkv_search.realtime.engine import RealtimeSearchEngine
@@ -464,6 +465,7 @@ class RealtimeSearchTests(unittest.TestCase):
             config = RealtimeSearchConfig(
                 enabled=True,
                 searxng_url="http://127.0.0.1:8888",
+                searxng_engines=["dogpile"],
                 fallback_engines=[],
             )
             diagnostics = []
@@ -479,6 +481,282 @@ class RealtimeSearchTests(unittest.TestCase):
         self.assertEqual(results, [])
         self.assertEqual(diagnostics[0]["engine"], "searxng")
         self.assertEqual(diagnostics[0]["error_type"], "OSError")
+
+    def test_multiple_searxng_engines_fan_out_and_rrf_merge(self) -> None:
+        async def run():
+            config = RealtimeSearchConfig(
+                enabled=True,
+                searxng_url="http://127.0.0.1:8888",
+                searxng_engines=["dogpile", "naver"],
+                fallback_engines=[],
+            )
+            discovery = URLDiscovery(config, object())
+            calls = []
+
+            async def request(
+                query,
+                freshness,
+                diagnostics,
+                source_channels,
+                *,
+                engines,
+                diagnostic_engine,
+            ):
+                calls.append((tuple(engines), diagnostic_engine))
+                engine = engines[0]
+                if engine == "dogpile":
+                    return [
+                        DiscoveredURL(
+                            url="https://python.org/downloads/",
+                            title="Python downloads",
+                            engine=engine,
+                        ),
+                        DiscoveredURL(
+                            url="https://example.com/python",
+                            title="Python article",
+                            engine=engine,
+                        ),
+                    ]
+                return [
+                    DiscoveredURL(
+                        url="https://python.org/downloads",
+                        title="Download the latest Python release",
+                        snippet="Official stable releases",
+                        engine=engine,
+                    )
+                ]
+
+            discovery._searxng_request = request
+            results = await discovery._searxng(
+                "Python latest release", "latest"
+            )
+            return calls, results
+
+        calls, results = asyncio.run(run())
+        self.assertEqual(
+            calls,
+            [
+                (("dogpile",), "searxng:dogpile"),
+                (("naver",), "searxng:naver"),
+            ],
+        )
+        self.assertEqual(results[0].url, "https://python.org/downloads")
+        self.assertEqual(results[0].engines, ["dogpile", "naver"])
+        self.assertGreater(results[0].rrf_score, results[1].rrf_score)
+
+    def test_searxng_language_lanes_are_additive_and_deduplicated(self) -> None:
+        config = RealtimeSearchConfig(
+            searxng_engines=["dogpile", "naver"],
+            searxng_language_engines={
+                "zh": ["baidu", "dogpile"],
+                "default": ["yandex"],
+            },
+        )
+
+        self.assertEqual(
+            searxng_engines_for_query(config, "Python latest release"),
+            ("dogpile", "naver", "yandex"),
+        )
+        self.assertEqual(
+            searxng_engines_for_query(config, "Python 最新版本"),
+            ("dogpile", "naver", "baidu"),
+        )
+        self.assertEqual(
+            searxng_engines_for_query(config, "Python 最新リリース"),
+            ("dogpile", "naver", "yandex"),
+        )
+
+    def test_searxng_language_lane_participates_in_fanout(self) -> None:
+        async def run():
+            config = RealtimeSearchConfig(
+                enabled=True,
+                searxng_url="http://127.0.0.1:8888",
+                searxng_engines=["dogpile", "naver"],
+                searxng_language_engines={"zh": ["baidu"]},
+                fallback_engines=[],
+            )
+            discovery = URLDiscovery(config, object())
+            calls = []
+
+            async def request(
+                query,
+                freshness,
+                diagnostics,
+                source_channels,
+                *,
+                engines,
+                diagnostic_engine,
+            ):
+                calls.append((tuple(engines), diagnostic_engine))
+                return []
+
+            discovery._searxng_request = request
+            await discovery._searxng("Python 最新版本", "latest")
+            return calls
+
+        self.assertEqual(
+            asyncio.run(run()),
+            [
+                (("dogpile",), "searxng:dogpile"),
+                (("naver",), "searxng:naver"),
+                (("baidu",), "searxng:baidu"),
+            ],
+        )
+
+    def test_searxng_fanout_keeps_healthy_engine_when_peer_fails(self) -> None:
+        async def run():
+            config = RealtimeSearchConfig(
+                enabled=True,
+                searxng_url="http://127.0.0.1:8888",
+                searxng_engines=["dogpile", "naver"],
+                fallback_engines=[],
+            )
+            discovery = URLDiscovery(config, object())
+
+            async def request(
+                query,
+                freshness,
+                diagnostics,
+                source_channels,
+                *,
+                engines,
+                diagnostic_engine,
+            ):
+                if engines == ("naver",):
+                    raise TimeoutError("fixture timeout")
+                return [
+                    DiscoveredURL(
+                        url="https://python.org/downloads/",
+                        title="Python downloads",
+                        engine=engines[0],
+                    )
+                ]
+
+            discovery._searxng_request = request
+            return await discovery._searxng("Python latest release", "latest")
+
+        results = asyncio.run(run())
+        self.assertEqual([item.url for item in results], ["https://python.org/downloads"])
+        self.assertEqual(results[0].engines, ["dogpile"])
+
+    def test_searxng_engine_lane_cache_is_reused_across_pool_configs(self) -> None:
+        class Stream:
+            async def iter_chunked(self, _size):
+                yield (
+                    b'{"results":[{"url":"https://python.org/downloads/",'
+                    b'"title":"Python downloads","engine":"dogpile"}]}'
+                )
+
+        class Response:
+            status = 200
+            headers = {}
+            content = Stream()
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_args):
+                return None
+
+        class Session:
+            def __init__(self):
+                self.calls = 0
+
+            async def get(self, *_args, **_kwargs):
+                self.calls += 1
+                return Response()
+
+        async def run():
+            cache = TTLByteCache(1024 * 1024)
+            session = Session()
+            first = URLDiscovery(
+                RealtimeSearchConfig(
+                    enabled=True,
+                    searxng_engines=["dogpile"],
+                ),
+                session,
+                cache=cache,
+            )
+            second = URLDiscovery(
+                RealtimeSearchConfig(
+                    enabled=True,
+                    searxng_engines=["dogpile", "naver"],
+                ),
+                session,
+                cache=cache,
+            )
+            left = await first._searxng_request(
+                "Python latest release",
+                "latest",
+                [],
+                (),
+                engines=("dogpile",),
+                diagnostic_engine="searxng",
+            )
+            right = await second._searxng_request(
+                "Python latest release",
+                "latest",
+                [],
+                (),
+                engines=("dogpile",),
+                diagnostic_engine="searxng:dogpile",
+            )
+            return session.calls, left, right
+
+        calls, left, right = asyncio.run(run())
+        self.assertEqual(calls, 1)
+        self.assertEqual(left[0].url, right[0].url)
+
+    def test_searxng_lane_retries_one_transient_read_failure(self) -> None:
+        class Stream:
+            async def iter_chunked(self, _size):
+                yield (
+                    b'{"results":[{"url":"https://python.org/downloads/",'
+                    b'"title":"Python downloads","engine":"dogpile"}]}'
+                )
+
+        class Response:
+            status = 200
+            headers = {}
+            content = Stream()
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *_args):
+                return None
+
+        class FlakySession:
+            def __init__(self):
+                self.calls = 0
+
+            async def get(self, *_args, **_kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    raise TimeoutError("transient local SearXNG timeout")
+                return Response()
+
+        async def run():
+            session = FlakySession()
+            discovery = URLDiscovery(
+                RealtimeSearchConfig(enabled=True, searxng_engines=["dogpile"]),
+                session,
+            )
+            diagnostics = []
+            results = await discovery._searxng_request(
+                "Python latest release",
+                "latest",
+                diagnostics,
+                (),
+                engines=("dogpile",),
+                diagnostic_engine="searxng",
+            )
+            return session.calls, diagnostics, results
+
+        calls, diagnostics, results = asyncio.run(run())
+        self.assertEqual(calls, 2)
+        self.assertEqual(diagnostics, [])
+        self.assertEqual(results[0].url, "https://python.org/downloads")
 
     def test_force_ipv4_configures_the_shared_aiohttp_connector(self) -> None:
         async def run() -> None:
@@ -1217,6 +1495,55 @@ class RealtimeSearchTests(unittest.TestCase):
 
         asyncio.run(run())
 
+    def test_fetcher_cancellation_retrieves_the_inner_task(self) -> None:
+        async def run() -> None:
+            started = asyncio.Event()
+            finished = asyncio.Event()
+
+            class BlockingFetcher(AsyncPageFetcher):
+                async def _fetch_redirects(self, requested_url: str) -> FetchedPage:
+                    started.set()
+                    try:
+                        await asyncio.Event().wait()
+                    finally:
+                        finished.set()
+                    raise AssertionError("unreachable")
+
+            fetcher = BlockingFetcher(
+                RealtimeSearchConfig(page_timeout_seconds=5.0),
+                object(),
+            )
+            task = asyncio.create_task(fetcher.fetch("https://example.com/page"))
+            await started.wait()
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            self.assertTrue(finished.is_set())
+
+        asyncio.run(run())
+
+    def test_fetcher_timeout_retrieves_the_inner_task(self) -> None:
+        async def run() -> None:
+            finished = asyncio.Event()
+
+            class BlockingFetcher(AsyncPageFetcher):
+                async def _fetch_redirects(self, requested_url: str) -> FetchedPage:
+                    try:
+                        await asyncio.Event().wait()
+                    finally:
+                        finished.set()
+                    raise AssertionError("unreachable")
+
+            fetcher = BlockingFetcher(
+                RealtimeSearchConfig(page_timeout_seconds=0.01),
+                object(),
+            )
+            with self.assertRaises(asyncio.TimeoutError):
+                await fetcher.fetch("https://example.com/page")
+            self.assertTrue(finished.is_set())
+
+        asyncio.run(run())
+
     def test_extraction_ranking_and_service_event_bridge(self) -> None:
         page = FetchedPage(
             requested_url="https://docs.example/article",
@@ -1369,6 +1696,243 @@ class RealtimeSearchTests(unittest.TestCase):
             )(),
         )
         self.assertEqual([item.url for item in ranked], [filing.url])
+
+    def test_snippet_fallback_keeps_blocked_candidate_as_labeled_evidence(self) -> None:
+        class BlockedFetcher:
+            async def fetch(self, url):
+                raise FetchError("HTTP 403")
+
+        engine = RealtimeSearchEngine(
+            RealtimeSearchConfig(
+                snippet_fallback_enabled=True,
+                snippet_fallback_min_chars=40,
+            )
+        )
+        engine._fetcher = BlockedFetcher()
+        candidate = DiscoveredURL(
+            url="https://docs.example/releases/current",
+            title="Official current release notes",
+            snippet=(
+                "The current stable release includes documented compatibility, "
+                "security, and migration changes from the official project."
+            ),
+            engine="dogpile",
+            rank=1,
+            rrf_score=0.2,
+            candidate_score=0.7,
+            score_components={"entity_coverage": 1.0},
+        )
+
+        outcome = asyncio.run(engine._fetch_extract_outcome(candidate))
+
+        self.assertIsNotNone(outcome.document)
+        self.assertEqual(outcome.retrieval_mode, "search_snippet_fallback")
+        self.assertEqual(outcome.to_debug_dict()["status"], "fallback")
+        assert outcome.document is not None
+        self.assertEqual(outcome.document.retrieval_mode, "search_snippet_fallback")
+        result = to_search_results(
+            "current release", [outcome.document]
+        )[0]
+        self.assertEqual(result.score_components["snippet_fallback"], 1.0)
+
+    def test_snippet_fallback_does_not_preserve_not_found_url(self) -> None:
+        class MissingFetcher:
+            async def fetch(self, url):
+                raise FetchError("HTTP 404")
+
+        engine = RealtimeSearchEngine(
+            RealtimeSearchConfig(snippet_fallback_enabled=True)
+        )
+        engine._fetcher = MissingFetcher()
+        candidate = DiscoveredURL(
+            url="https://docs.example/releases/missing",
+            title="Missing release notes",
+            snippet="A sufficiently long search result snippet that should not rescue a missing URL. "
+            * 2,
+            candidate_score=0.8,
+            score_components={"entity_coverage": 1.0},
+        )
+
+        outcome = asyncio.run(engine._fetch_extract_outcome(candidate))
+
+        self.assertIsNone(outcome.document)
+        self.assertEqual(outcome.to_debug_dict()["status"], "failed")
+
+    def test_snippet_fallback_can_recover_extraction_failure_without_new_get(
+        self,
+    ) -> None:
+        class EmptyDocumentEngine(RealtimeSearchEngine):
+            async def _fetch_extract(self, candidate):
+                return None
+
+        candidate = DiscoveredURL(
+            url="https://docs.example/releases/current",
+            title="Official current release notes",
+            snippet=(
+                "The current stable release includes documented compatibility, "
+                "security, and migration changes from the official project."
+            ),
+            engine="dogpile",
+            rank=1,
+            rrf_score=0.2,
+            candidate_score=0.7,
+            score_components={"entity_coverage": 1.0},
+        )
+        control = EmptyDocumentEngine(
+            RealtimeSearchConfig(
+                snippet_fallback_enabled=True,
+                snippet_fallback_on_extraction_error=False,
+                snippet_fallback_min_chars=40,
+            )
+        )
+        experiment = EmptyDocumentEngine(
+            RealtimeSearchConfig(
+                snippet_fallback_enabled=True,
+                snippet_fallback_on_extraction_error=True,
+                snippet_fallback_min_chars=40,
+            )
+        )
+
+        control_outcome = asyncio.run(control._fetch_extract_outcome(candidate))
+        experiment_outcome = asyncio.run(
+            experiment._fetch_extract_outcome(candidate)
+        )
+
+        self.assertIsNone(control_outcome.document)
+        self.assertEqual(control_outcome.error_type, "ExtractionError")
+        self.assertIsNotNone(experiment_outcome.document)
+        self.assertEqual(experiment_outcome.error_type, "ExtractionError")
+        self.assertEqual(
+            experiment_outcome.retrieval_mode, "search_snippet_fallback"
+        )
+        self.assertEqual(experiment_outcome.to_debug_dict()["status"], "fallback")
+
+    def test_snippet_fallback_composite_confidence_can_replace_lexical_overlap(
+        self,
+    ) -> None:
+        class BlockedFetcher:
+            async def fetch(self, url):
+                raise FetchError("HTTP 403")
+
+        candidate = DiscoveredURL(
+            url="https://docs.example/releases/current",
+            title="Official current release notes",
+            snippet=(
+                "The current stable release includes documented compatibility, "
+                "security, and migration changes from the official project."
+            ),
+            engine="dogpile",
+            rank=1,
+            rrf_score=0.2,
+            candidate_score=0.45,
+            score_components={"entity_coverage": 0.333333},
+        )
+        control = RealtimeSearchEngine(
+            RealtimeSearchConfig(
+                snippet_fallback_enabled=True,
+                snippet_fallback_min_chars=40,
+                snippet_fallback_entity_bypass_score=1.1,
+            )
+        )
+        experiment = RealtimeSearchEngine(
+            RealtimeSearchConfig(
+                snippet_fallback_enabled=True,
+                snippet_fallback_min_chars=40,
+                snippet_fallback_entity_bypass_score=0.42,
+            )
+        )
+        control._fetcher = BlockedFetcher()
+        experiment._fetcher = BlockedFetcher()
+
+        control_outcome = asyncio.run(control._fetch_extract_outcome(candidate))
+        experiment_outcome = asyncio.run(
+            experiment._fetch_extract_outcome(candidate)
+        )
+
+        self.assertIsNone(control_outcome.document)
+        self.assertIsNotNone(experiment_outcome.document)
+        self.assertEqual(
+            experiment_outcome.retrieval_mode, "search_snippet_fallback"
+        )
+
+    def test_snippet_fallback_uses_cjk_density_threshold(self) -> None:
+        class BlockedFetcher:
+            async def fetch(self, url):
+                raise FetchError("HTTP 403")
+
+        engine = RealtimeSearchEngine(
+            RealtimeSearchConfig(
+                snippet_fallback_enabled=True,
+                snippet_fallback_min_chars=96,
+                snippet_fallback_min_cjk_chars=32,
+            )
+        )
+        engine._fetcher = BlockedFetcher()
+        candidate = DiscoveredURL(
+            url="https://docs.example/zh/release",
+            title="官方版本说明",
+            snippet="这是官方发布页面的搜索结果摘要，包含当前稳定版本、发布日期、兼容性变化以及升级说明。",
+            candidate_score=0.8,
+            score_components={"entity_coverage": 1.0},
+        )
+
+        outcome = asyncio.run(engine._fetch_extract_outcome(candidate))
+
+        self.assertIsNotNone(outcome.document)
+        self.assertEqual(outcome.retrieval_mode, "search_snippet_fallback")
+
+    def test_document_ranking_keeps_precise_candidate_signal(self) -> None:
+        now = time.time()
+        generic = RealtimeDocument(
+            url="https://example.com/investor/",
+            title="Investor relations",
+            text="Quarterly investor information and general company materials. " * 4,
+            published_at=None,
+            fetched_at=now,
+            source_type="web",
+            authority=0.7,
+            extraction_quality=0.8,
+            rrf_score=0.03,
+            candidate_score=0.2,
+            simhash="0000000000000001",
+        )
+        precise = RealtimeDocument(
+            url="https://example.com/investor/earnings/q3/",
+            title="Q3 quarterly earnings press release",
+            text="The latest Q3 quarterly earnings press release and webcast materials. "
+            * 3,
+            published_at=None,
+            fetched_at=now,
+            source_type="web",
+            authority=0.7,
+            extraction_quality=0.8,
+            rrf_score=0.03,
+            candidate_score=0.8,
+            simhash="1000000000000000",
+        )
+
+        ranked = rank_documents(
+            "latest quarterly earnings materials",
+            [generic, precise],
+            freshness_mode="latest",
+            limit=2,
+            per_domain_limit=1,
+        )
+
+        self.assertEqual([item.url for item in ranked], [precise.url])
+
+    def test_default_final_domain_limit_matches_accepted_benchmark(self) -> None:
+        self.assertEqual(SearchConfig().per_domain_limit, 4)
+
+    def test_default_searxng_pool_matches_accepted_benchmark(self) -> None:
+        self.assertEqual(
+            RealtimeSearchConfig().searxng_engines,
+            ["dogpile", "naver"],
+        )
+
+    def test_fetcher_accepts_markdown_response_types(self) -> None:
+        self.assertIn("text/markdown", AsyncPageFetcher.ALLOWED_TYPES)
+        self.assertIn("text/x-markdown", AsyncPageFetcher.ALLOWED_TYPES)
 
 
 if __name__ == "__main__":

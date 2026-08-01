@@ -33,6 +33,7 @@ SOURCE_POLICIES = {
 }
 QUERY_STYLES = {"canonical", "conversational", "noisy", "terse"}
 ANNOTATION_STATUSES = {"source_policy_reviewed"}
+GOLD_ANNOTATION_STATUSES = {"primary_source_reverified"}
 ORIGINS = {"manually_curated_realistic"}
 FORBIDDEN_RESULT_TYPES = {
     "dictionary",
@@ -149,6 +150,23 @@ def validate_case(value: Mapping[str, Any], *, location: str = "case") -> Dict[s
             raise RetrievalCaseError(f"{location}: invalid annotation_status")
         if value.get("origin") not in ORIGINS:
             raise RetrievalCaseError(f"{location}: invalid origin")
+    gold_audit_optional = set(value).intersection(
+        {"gold_revision", "gold_annotation_status"}
+    )
+    if gold_audit_optional and gold_audit_optional != {
+        "gold_revision",
+        "gold_annotation_status",
+    }:
+        raise RetrievalCaseError(
+            f"{location}: gold audit metadata must include gold_revision and "
+            "gold_annotation_status"
+        )
+    if gold_audit_optional:
+        revision = str(value.get("gold_revision") or "").strip()
+        if not re.fullmatch(r"[a-z0-9][a-z0-9._-]{2,63}", revision):
+            raise RetrievalCaseError(f"{location}: invalid gold_revision")
+        if value.get("gold_annotation_status") not in GOLD_ANNOTATION_STATUSES:
+            raise RetrievalCaseError(f"{location}: invalid gold_annotation_status")
     return dict(value)
 
 

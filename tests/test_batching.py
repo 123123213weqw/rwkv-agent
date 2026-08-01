@@ -3,9 +3,11 @@ from __future__ import annotations
 import threading
 import unittest
 from dataclasses import dataclass
+import time
 from typing import Any
 
 from rwkv_agent.batching import ContinuousBatchEngine
+from rwkv_agent.state_batching import StateContinuationItem
 
 
 class Scalar:
@@ -33,6 +35,7 @@ class FakeRequest:
     output: list[int]
     cursor: int = 0
     logits: Any = None
+    seen_tokens: int = 0
 
 
 class FakePool:
@@ -84,7 +87,15 @@ class FakeScheduler:
         self.prefill_batches.append(list(request_ids))
         for request_id in request_ids:
             request = self.requests[request_id]
-            request.remaining = max(0, request.remaining - self.quantum)
+            consumed = min(request.remaining, self.quantum)
+            request.remaining -= consumed
+            request.seen_tokens += consumed
+
+    def install_continuations(self, rows) -> None:
+        for request_id, token_ids in rows:
+            request = self.requests[request_id]
+            request.token_ids = list(token_ids)
+            request.remaining = len(token_ids)
 
     def request(self, request_id: str) -> FakeRequest:
         return self.requests[request_id]
@@ -105,6 +116,18 @@ class FakeScheduler:
 
     def metrics(self) -> dict[str, Any]:
         return {"allocated": len(self.requests)}
+
+
+class BlockingScheduler(FakeScheduler):
+    def __init__(self) -> None:
+        super().__init__()
+        self.prefill_started = threading.Event()
+        self.prefill_continue = threading.Event()
+
+    def prefill_round(self, request_ids: list[str]) -> None:
+        self.prefill_started.set()
+        self.prefill_continue.wait(timeout=2)
+        super().prefill_round(request_ids)
 
 
 class ContinuousBatchEngineTests(unittest.TestCase):
@@ -153,9 +176,163 @@ class ContinuousBatchEngineTests(unittest.TestCase):
         self.assertTrue(any(len(batch) == 4 for batch in scheduler.prefill_batches))
         self.assertTrue(any(len(batch) == 4 for batch in scheduler.advance_batches))
         self.assertTrue(
-            all(value["batch_mode"] == "continuous" for value in outputs.values())
+            all(value["batch_mode"] == "unified" for value in outputs.values())
         )
         self.assertEqual(scheduler.pool.free, scheduler.pool.capacity)
+
+    def test_completion_and_persistent_state_share_one_ready_queue(self) -> None:
+        scheduler, engine = self.make_engine()
+        scheduler.requests["state-a"] = FakeRequest(
+            token_ids=[],
+            remaining=0,
+            output=list(FakeTokenizer.scripts[11]),
+        )
+        barrier = threading.Barrier(2)
+        outputs: dict[str, Any] = {}
+
+        def complete() -> None:
+            barrier.wait()
+            outputs["completion"] = engine.complete(
+                "10:prompt",
+                stops=[],
+                max_tokens=2,
+            )
+
+        def state() -> None:
+            barrier.wait()
+            outputs["state"] = engine.continue_many(
+                [
+                    StateContinuationItem(
+                        state_id="state-a",
+                        branch="chat",
+                        token_ids=(40, 41, 42, 43, 44),
+                    )
+                ],
+                stops=[],
+                max_tokens=2,
+            )[0]
+
+        threads = [
+            threading.Thread(target=complete),
+            threading.Thread(target=state),
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        self.assertEqual(outputs["completion"]["text"], "OK")
+        self.assertEqual(outputs["state"]["text"], "A1")
+        self.assertTrue(
+            any(
+                len(batch) == 2 and "state-a" in batch
+                for batch in scheduler.prefill_batches
+            )
+        )
+        self.assertTrue(
+            any(len(batch) == 2 for batch in scheduler.advance_batches)
+        )
+        health = engine.health()
+        self.assertEqual(health["mode"], "unified_ready_queue")
+        self.assertEqual(
+            health["metrics"]["completed_state_continuation"],
+            1,
+        )
+        del scheduler.requests["state-a"]
+
+    def test_persistent_terminal_stop_token_is_committed(self) -> None:
+        scheduler, engine = self.make_engine(batch_window_ms=0)
+        scheduler.requests["state-stop"] = FakeRequest(
+            token_ids=[],
+            remaining=0,
+            output=list(FakeTokenizer.scripts[20]),
+        )
+        result = engine.continue_many(
+            [
+                StateContinuationItem(
+                    state_id="state-stop",
+                    branch="chat",
+                    token_ids=(40,),
+                )
+            ],
+            stops=["!"],
+            max_tokens=8,
+        )[0]
+        self.assertEqual(result["text"], "a")
+        self.assertEqual(result["stop_reason"], "!")
+        self.assertEqual(
+            scheduler.advance_batches[-2:],
+            [{"state-stop": ord("a")}, {"state-stop": ord("!")}],
+        )
+        del scheduler.requests["state-stop"]
+
+    def test_timed_out_ephemeral_job_is_cancelled_and_released(self) -> None:
+        scheduler = BlockingScheduler()
+        engine = ContinuousBatchEngine(
+            tokenizer=FakeTokenizer(),
+            scheduler=scheduler,
+            context_limit=32,
+            batch_window_ms=0,
+            request_timeout_seconds=0.05,
+        )
+        try:
+            with self.assertRaisesRegex(TimeoutError, "exceeded"):
+                engine.complete("10:prompt", stops=[], max_tokens=2)
+            scheduler.prefill_continue.set()
+            deadline = time.monotonic() + 1
+            while scheduler.pool.free != scheduler.pool.capacity:
+                if time.monotonic() >= deadline:
+                    self.fail("cancelled request did not release its state")
+                time.sleep(0.005)
+            self.assertEqual(engine.health()["metrics"]["request_timeouts"], 1)
+        finally:
+            scheduler.prefill_continue.set()
+            engine.close()
+
+    def test_shared_queue_applies_one_backpressure_budget(self) -> None:
+        scheduler = BlockingScheduler()
+        engine = ContinuousBatchEngine(
+            tokenizer=FakeTokenizer(),
+            scheduler=scheduler,
+            context_limit=32,
+            batch_window_ms=0,
+            max_waiting_jobs=1,
+            request_timeout_seconds=2,
+        )
+        outputs: list[dict[str, Any]] = []
+
+        def submit(marker: int) -> None:
+            outputs.append(
+                engine.complete(
+                    f"{marker}:prompt",
+                    stops=[],
+                    max_tokens=1,
+                )
+            )
+
+        first = threading.Thread(target=submit, args=(10,))
+        second = threading.Thread(target=submit, args=(11,))
+        try:
+            first.start()
+            self.assertTrue(scheduler.prefill_started.wait(timeout=1))
+            second.start()
+            deadline = time.monotonic() + 1
+            while engine._queue.qsize() != 1:  # noqa: SLF001
+                if time.monotonic() >= deadline:
+                    self.fail("second request did not enter the bounded queue")
+                time.sleep(0.005)
+            with self.assertRaisesRegex(RuntimeError, "queue is full"):
+                engine.complete("12:prompt", stops=[], max_tokens=1)
+            self.assertEqual(
+                engine.health()["metrics"]["rejected_queue_full"],
+                1,
+            )
+        finally:
+            scheduler.prefill_continue.set()
+            first.join(timeout=2)
+            second.join(timeout=2)
+            engine.close()
+        self.assertEqual(len(outputs), 2)
 
     def test_stop_string_is_trimmed_and_state_is_released(self) -> None:
         scheduler, engine = self.make_engine(batch_window_ms=0)
@@ -195,7 +372,7 @@ class ContinuousBatchEngineTests(unittest.TestCase):
     def test_health_reports_bounded_continuous_mode(self) -> None:
         _, engine = self.make_engine(batch_window_ms=3)
         health = engine.health()
-        self.assertEqual(health["mode"], "continuous_batch")
+        self.assertEqual(health["mode"], "unified_ready_queue")
         self.assertTrue(health["worker_alive"])
         self.assertEqual(health["batch_window_ms"], 3)
 

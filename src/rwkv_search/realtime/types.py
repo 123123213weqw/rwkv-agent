@@ -25,6 +25,11 @@ class DiscoveredURL:
     parent_url: str = ""
     score_components: Dict[str, float] = field(default_factory=dict)
     rejection_reasons: List[str] = field(default_factory=list)
+    # Trusted text already returned by a read-only local index or structured
+    # source adapter. It avoids a redundant page GET; the mode remains visible
+    # without exposing the text in candidate debug traces.
+    cached_text: str = ""
+    cached_text_mode: str = ""
 
 
 @dataclass
@@ -53,5 +58,7 @@ class RealtimeDocument:
     freshness: float = 0.0
     score: float = 0.0
     rrf_score: float = 0.0
+    candidate_score: float = 0.0
     simhash: str = ""
     links: List[str] = field(default_factory=list)
+    retrieval_mode: str = "web_fetch"

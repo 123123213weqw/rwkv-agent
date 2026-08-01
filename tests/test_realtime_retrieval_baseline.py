@@ -23,6 +23,9 @@ V100_DIRECT = (
 RERANK_BASELINE = (
     ROOT / "bench/baselines/realtime_retrieval/candidate-rerank-bge-m3-v1"
 )
+NO_TAVILY_BASELINE = (
+    ROOT / "bench/baselines/realtime_retrieval/no-tavily-dogpile-v1"
+)
 
 
 def sha256(path: Path) -> str:
@@ -262,6 +265,86 @@ class RealtimeRetrievalBaselineTest(unittest.TestCase):
         self.assertTrue(comparison["decision"]["quality_gates_passed"])
         self.assertFalse(comparison["decision"]["semantic_only_selected"])
         self.assertFalse(comparison["decision"]["production_changed"])
+
+    def test_no_tavily_stack_keeps_four_same_domain_pages(self) -> None:
+        comparison = json.loads(
+            (NO_TAVILY_BASELINE / "comparison.json").read_text(encoding="utf-8")
+        )
+        trial = comparison["final_same_domain_limit_3_4_ab"]
+        self.assertEqual(trial["candidate_lists_identical"], 50)
+        self.assertEqual(trial["control"]["result_target_page_recall_at_20"], 0.72)
+        self.assertEqual(trial["candidate"]["result_target_page_recall_at_20"], 0.76)
+        self.assertEqual(trial["paired_target_at_20"]["candidate_wins"], 2)
+        self.assertEqual(trial["paired_target_at_20"]["control_wins"], 0)
+        self.assertEqual(trial["candidate"]["garbage_result_rate"], 0.0)
+        self.assertEqual(comparison["decision"]["per_domain_limit"], 4)
+        self.assertFalse(comparison["decision"]["tavily_required"])
+        self.assertFalse(comparison["decision"]["production_service_changed"])
+
+        rejected = comparison["rejected_url_specificity_prior_ab"]
+        self.assertEqual(rejected["target_wins"], 0)
+        self.assertEqual(rejected["target_losses"], 0)
+        self.assertEqual(rejected["decision"], "rejected_and_code_reverted")
+        self.assertFalse(any(NO_TAVILY_BASELINE.glob("*.jsonl")))
+
+    def test_no_tavily_query_guard_repairs_only_introduced_absolute_facts(
+        self,
+    ) -> None:
+        comparison = json.loads(
+            (NO_TAVILY_BASELINE / "comparison.json").read_text(encoding="utf-8")
+        )
+        trial = comparison["p4_absolute_fact_repair_ab"]
+        self.assertEqual(trial["changed_queries"], 20)
+        self.assertEqual(
+            trial["control"]["result_target_page_recall_at_20"],
+            0.72,
+        )
+        self.assertEqual(
+            trial["candidate"]["result_target_page_recall_at_20"],
+            0.82,
+        )
+        self.assertEqual(trial["paired_target_at_20"]["candidate_wins"], 5)
+        self.assertEqual(trial["paired_target_at_20"]["control_wins"], 0)
+        self.assertEqual(trial["candidate"]["garbage_result_rate"], 0.0)
+        self.assertTrue(
+            trial["agent_integration"][
+                "original_user_question_reaches_web_query_guard"
+            ]
+        )
+        self.assertFalse(trial["production_changed"])
+
+    def test_no_tavily_independent_engine_pool_reaches_current_gold(self) -> None:
+        comparison = json.loads(
+            (NO_TAVILY_BASELINE / "comparison.json").read_text(encoding="utf-8")
+        )
+        fanout = comparison["engine_pool_fanout_paired_ab"]
+        self.assertEqual(
+            fanout["candidate"]["candidate_target_page_recall_at_20"],
+            1.0,
+        )
+        self.assertEqual(fanout["paired_candidate_target_at_20"]["candidate_wins"], 4)
+        self.assertEqual(fanout["paired_candidate_target_at_20"]["control_wins"], 0)
+        self.assertTrue(fanout["combined_single_searxng_request_rejected"])
+
+        current = comparison["accepted_stack_current"]
+        self.assertEqual(current["case_count"], 50)
+        self.assertEqual(current["candidate_target_page_recall_at_20"], 1.0)
+        self.assertEqual(current["result_target_page_recall_at_20"], 1.0)
+        self.assertEqual(current["garbage_result_rate"], 0.0)
+        self.assertEqual(current["structured_reused"], 14)
+        self.assertFalse(current["production_changed"])
+        self.assertEqual(
+            comparison["decision"]["default_searxng_engine_pool"],
+            ["dogpile", "naver"],
+        )
+        self.assertFalse(comparison["decision"]["tavily_required"])
+
+        audit = comparison["gold_audit_v2"]
+        self.assertEqual(audit["changed_gold_cases"], 9)
+        self.assertEqual(
+            audit["audited_dataset_sha256"],
+            sha256(ROOT / audit["audited_dataset"]),
+        )
 
 
 if __name__ == "__main__":

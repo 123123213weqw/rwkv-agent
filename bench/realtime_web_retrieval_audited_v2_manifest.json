@@ -1,0 +1,293 @@
+{
+  "schema_version": "realtime-retrieval-gold-audit.v1",
+  "name": "realtime-web-retrieval-audited-v2",
+  "status": "audited_successor_keeps_v1_immutable",
+  "audited_at": "2026-07-30",
+  "base": {
+    "path": "bench/realtime_web_retrieval.jsonl",
+    "sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc",
+    "case_count": 50
+  },
+  "audited_dataset": {
+    "path": "bench/realtime_web_retrieval_audited_v2.jsonl",
+    "sha256": "1d9b22592e610e86222951e9840ca8b057472525824c76232eb3aed32adfee7d",
+    "case_count": 50
+  },
+  "changed_case_count": 9,
+  "changed_case_ids": [
+    "retrieval-en-010",
+    "retrieval-en-018",
+    "retrieval-en-024",
+    "retrieval-en-025",
+    "retrieval-zh-006",
+    "retrieval-zh-013",
+    "retrieval-zh-016",
+    "retrieval-zh-017",
+    "retrieval-zh-020"
+  ],
+  "unchanged_fields": [
+    "id",
+    "query",
+    "language",
+    "category",
+    "freshness",
+    "source_policy",
+    "forbidden_result_types"
+  ],
+  "changes": [
+    {
+      "id": "retrieval-en-010",
+      "old": {
+        "expected_domains_any": [
+          "github.com"
+        ],
+        "target_url_patterns_any": [
+          "/ggerganov/llama.cpp/commits",
+          "/ggerganov/llama.cpp/releases"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "github.com"
+        ],
+        "target_url_patterns_any": [
+          "/ggml-org/llama.cpp/commits",
+          "/ggml-org/llama.cpp/releases",
+          "/ggml-org/llama.cpp/commit/"
+        ]
+      },
+      "reason": "The official llama.cpp repository owner is now ggml-org; the frozen v1 owner path is obsolete; individual official commit pages are valid update records.",
+      "verification_urls": [
+        "https://github.com/ggml-org/llama.cpp/releases"
+      ]
+    },
+    {
+      "id": "retrieval-en-018",
+      "old": {
+        "expected_domains_any": [
+          "ir.tesla.com"
+        ],
+        "target_url_patterns_any": [
+          "/press-release/",
+          "/financial-information/"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "ir.tesla.com",
+          "assets-ir.tesla.com"
+        ],
+        "target_url_patterns_any": [
+          "/press",
+          "/press-release/",
+          "/tesla-contents/IR/"
+        ]
+      },
+      "reason": "Tesla now exposes quarterly disclosures from the IR root, press index and assets-ir document host; the frozen financial-information route is obsolete.",
+      "verification_urls": [
+        "https://ir.tesla.com/",
+        "https://ir.tesla.com/press"
+      ]
+    },
+    {
+      "id": "retrieval-en-024",
+      "old": {
+        "expected_domains_any": [
+          "nhc.noaa.gov"
+        ],
+        "target_url_patterns_any": [
+          "/text/",
+          "/graphics_"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "nhc.noaa.gov"
+        ],
+        "target_url_patterns_any": [
+          "/gtwo.php",
+          "/text/",
+          "/graphics_"
+        ]
+      },
+      "reason": "When no Atlantic cyclone advisory exists, the official current Atlantic outlook is served from gtwo.php and is the correct live answer surface.",
+      "verification_urls": [
+        "https://www.nhc.noaa.gov/gtwo.php",
+        "https://www.nhc.noaa.gov/"
+      ]
+    },
+    {
+      "id": "retrieval-en-025",
+      "old": {
+        "expected_domains_any": [
+          "earthquake.usgs.gov"
+        ],
+        "target_url_patterns_any": [
+          "/earthquakes/eventpage/",
+          "/earthquakes/map/"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "earthquake.usgs.gov"
+        ],
+        "target_url_patterns_any": [
+          "/earthquakes/eventpage/",
+          "/earthquakes/map/",
+          "/earthquakes/browse/significant.php"
+        ]
+      },
+      "reason": "The official USGS Significant Earthquakes page is a direct current answer surface for a request asking for the latest significant earthquake; the frozen map/event patterns were incomplete.",
+      "verification_urls": [
+        "https://earthquake.usgs.gov/earthquakes/browse/significant.php",
+        "https://earthquake.usgs.gov/earthquakes/map/?magnitude=significant&range=month"
+      ]
+    },
+    {
+      "id": "retrieval-zh-006",
+      "old": {
+        "expected_domains_any": [
+          "github.com"
+        ],
+        "target_url_patterns_any": [
+          "/ggerganov/llama.cpp/releases",
+          "/ggerganov/llama.cpp/commits"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "github.com"
+        ],
+        "target_url_patterns_any": [
+          "/ggml-org/llama.cpp/releases",
+          "/ggml-org/llama.cpp/commits",
+          "/ggml-org/llama.cpp/commit/"
+        ]
+      },
+      "reason": "The official llama.cpp repository owner is now ggml-org; the frozen v1 owner path is obsolete; individual official commit pages are valid update records.",
+      "verification_urls": [
+        "https://github.com/ggml-org/llama.cpp/releases"
+      ]
+    },
+    {
+      "id": "retrieval-zh-013",
+      "old": {
+        "expected_domains_any": [
+          "pbc.gov.cn",
+          "chinamoney.com.cn"
+        ],
+        "target_url_patterns_any": [
+          "/goutongjiaoliu/",
+          "/chinese/bkccpr/"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "pbc.gov.cn",
+          "chinamoney.com.cn"
+        ],
+        "target_url_patterns_any": [
+          "/zhengcehuobisi/",
+          "/chinese/bklpr",
+          "/chinese/rdgz/"
+        ]
+      },
+      "reason": "Current official LPR index and announcements use bklpr and rdgz routes rather than the frozen bkccpr route.",
+      "verification_urls": [
+        "https://www.chinamoney.com.cn/chinese/rdgz/20260622/3361525.html",
+        "https://www.chinamoney.com.cn/chinese/bklpr"
+      ]
+    },
+    {
+      "id": "retrieval-zh-016",
+      "old": {
+        "expected_domains_any": [
+          "nhc.gov.cn"
+        ],
+        "target_url_patterns_any": [
+          "/jkj/s3578/",
+          "/jkj/"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "nhc.gov.cn",
+          "chinacdc.cn"
+        ],
+        "target_url_patterns_any": [
+          "/jkj/s3578/",
+          "/jkj/",
+          "/jksj/"
+        ]
+      },
+      "reason": "Current national statutory infectious-disease summaries are published through China CDC; NHC remains an accepted archive source.",
+      "verification_urls": [
+        "https://www.chinacdc.cn/",
+        "https://www.chinacdc.cn/jksj/"
+      ]
+    },
+    {
+      "id": "retrieval-zh-017",
+      "old": {
+        "expected_domains_any": [
+          "cma.gov.cn",
+          "nmc.cn"
+        ],
+        "target_url_patterns_any": [
+          "/qxxw/",
+          "/publish/typhoon/",
+          "/f/"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "cma.gov.cn",
+          "nmc.cn"
+        ],
+        "target_url_patterns_any": [
+          "/qxxw/",
+          "/publish/typhoon/",
+          "/web/channel-376.html",
+          "/web.html"
+        ]
+      },
+      "reason": "The current official live typhoon interfaces are the NMC tracker and CMA warning channel; the frozen routes are incomplete.",
+      "verification_urls": [
+        "https://typhoon.nmc.cn/web.html",
+        "http://weather.cma.cn/web/channel-376.html"
+      ]
+    },
+    {
+      "id": "retrieval-zh-020",
+      "old": {
+        "expected_domains_any": [
+          "cninfo.com.cn",
+          "sse.com.cn"
+        ],
+        "target_url_patterns_any": [
+          "/new/disclosure/",
+          "/disclosure/listedinfo/"
+        ]
+      },
+      "new": {
+        "expected_domains_any": [
+          "cninfo.com.cn",
+          "sse.com.cn",
+          "moutaichina.com"
+        ],
+        "target_url_patterns_any": [
+          "/new/disclosure/",
+          "/disclosure/listedinfo/",
+          "/mtgf/articleFileDir/",
+          "/mtgf/tzzgx/cwbg/"
+        ]
+      },
+      "reason": "The issuer investor-relations site is a primary source and publishes the current annual-report PDF directly.",
+      "verification_urls": [
+        "https://www.moutaichina.com/mtgf/articleFileDir/2026-04/17/07cf01cc11a14ea18cfadf9ebe2a4eb3.pdf",
+        "https://www.moutaichina.com/mtgf/tzzgx/cwbg/index.html"
+      ]
+    }
+  ],
+  "policy": "Only primary-source domain/path migrations and event-conditional official answer surfaces are corrected. Queries and retrieval outputs are not changed."
+}

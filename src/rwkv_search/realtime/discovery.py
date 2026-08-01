@@ -17,6 +17,7 @@ from urllib.parse import parse_qs, quote, urlsplit
 from ..config import RealtimeSearchConfig
 from ..text import canonicalize_url
 from .cache import TTLByteCache
+from .local_discovery import LocalIndexDiscovery
 from .precision_discovery import source_channel_query
 from .source_api import SourceAPIDiscovery
 from ..semantic_selection import PairScorer
@@ -38,6 +39,12 @@ _WIKIPEDIA_STOP = frozenset(
         "website", "were", "what", "when", "where", "which", "who", "why", "with",
     }
 )
+
+
+def _local_only_candidate(item: DiscoveredURL) -> bool:
+    engines = {item.engine, *item.engines}
+    engines.discard("")
+    return engines == {"local_index"}
 
 
 def searxng_search_params(
@@ -79,6 +86,32 @@ def searxng_search_params(
     if selected_engines:
         params["engines"] = ",".join(selected_engines)
     return params
+
+
+def searxng_engines_for_query(
+    config: RealtimeSearchConfig,
+    query: str,
+) -> tuple[str, ...]:
+    """Select base lanes plus a bounded writing-system-specific lane set."""
+
+    if _JAPANESE_RE.search(query):
+        language = "ja"
+    elif _KOREAN_RE.search(query):
+        language = "ko"
+    elif _CJK_RE.search(query):
+        language = "zh"
+    else:
+        language = "default"
+    additions = config.searxng_language_engines.get(language, ())
+    if not additions and language != "default":
+        additions = config.searxng_language_engines.get("default", ())
+    return tuple(
+        dict.fromkeys(
+            value.strip()
+            for value in (*config.searxng_engines, *additions)
+            if value.strip()
+        )
+    )
 
 
 def bing_search_params(query: str) -> Dict[str, str]:
@@ -448,6 +481,7 @@ class URLDiscovery:
         session: object,
         cache: Optional[TTLByteCache[List[DiscoveredURL]]] = None,
         semantic_scorer: PairScorer | None = None,
+        local_discovery: LocalIndexDiscovery | None = None,
     ) -> None:
         self.config = config
         self.session = session
@@ -463,6 +497,7 @@ class URLDiscovery:
             session,
             semantic_scorer=semantic_scorer,
         )
+        self.local_discovery = local_discovery or LocalIndexDiscovery(config)
 
     async def discover(
         self,
@@ -494,7 +529,15 @@ class URLDiscovery:
                 bonus = 1.0 / (60.0 + rank) + 0.002 / (query_index + 1) + item.rrf_score
                 existing = merged.get(url)
                 if existing:
-                    existing.rrf_score += bonus
+                    # Raw and rewritten query lanes are correlated views of
+                    # one local index. Repeated local hits are not independent
+                    # votes; summing them creates false consensus for generic
+                    # pages such as years and numbers. Live engines retain the
+                    # original multi-query RRF behaviour.
+                    if _local_only_candidate(existing) and _local_only_candidate(item):
+                        existing.rrf_score = max(existing.rrf_score, bonus)
+                    else:
+                        existing.rrf_score += bonus
                     existing.rank = min(existing.rank or rank, rank)
                     existing.engine_score = max(
                         existing.engine_score, item.engine_score
@@ -526,6 +569,9 @@ class URLDiscovery:
                     )
                     if len(item.snippet) > len(existing.snippet):
                         existing.snippet = item.snippet
+                    if len(item.cached_text) > len(existing.cached_text):
+                        existing.cached_text = item.cached_text
+                        existing.cached_text_mode = item.cached_text_mode
                 else:
                     item.url = url
                     item.rank = rank
@@ -563,12 +609,17 @@ class URLDiscovery:
         channel_key = ",".join(
             value for value in source_channels if value and value != "general"
         )
-        engine_key = ",".join(self.config.searxng_engines)
+        engine_key = ",".join(searxng_engines_for_query(self.config, query))
         fallback_key = ",".join(self.config.fallback_engines)
         provider_key = ",".join(self.config.api_discovery_providers)
+        local_key = (
+            f"{int(self.config.local_discovery_enabled)}:"
+            f"{self.config.local_discovery_endpoint}:"
+            f"{','.join(f'{name}={index}' for name, index in sorted(self.config.local_discovery_indexes.items()))}"
+        )
         key = (
             f"{self.config.searxng_url.rstrip('/')}\0{engine_key}\0"
-            f"{fallback_key}\0{provider_key}\0"
+            f"{fallback_key}\0{provider_key}\0{local_key}\0"
             f"{self.config.bing_base_url.rstrip('/')}\0"
             f"{freshness}\0{channel_key}\0{query.casefold()}"
         )
@@ -578,6 +629,13 @@ class URLDiscovery:
 
         api_task = asyncio.create_task(
             self.api_sources.discover(query, diagnostics=diagnostics)
+        )
+        local_task = asyncio.create_task(
+            self.local_discovery.discover(
+                query,
+                freshness=freshness,
+                diagnostics=diagnostics,
+            )
         )
         results: List[DiscoveredURL] = []
         if self.config.searxng_url.rstrip("/") and len(source_channels) > 1:
@@ -624,6 +682,19 @@ class URLDiscovery:
                                 ]
                             )
                         )
+                        item.discovery_stages = list(
+                            dict.fromkeys(
+                                [
+                                    *existing.discovery_stages,
+                                    existing.discovery_stage,
+                                    *item.discovery_stages,
+                                    item.discovery_stage,
+                                ]
+                            )
+                        )
+                        if len(existing.cached_text) > len(item.cached_text):
+                            item.cached_text = existing.cached_text
+                            item.cached_text_mode = existing.cached_text_mode
                         merged_channels[item.url] = item
                     else:
                         existing.source_channels = list(
@@ -636,6 +707,19 @@ class URLDiscovery:
                                 [*existing.engines, *item.engines, item.engine]
                             )
                         )
+                        existing.discovery_stages = list(
+                            dict.fromkeys(
+                                [
+                                    *existing.discovery_stages,
+                                    existing.discovery_stage,
+                                    *item.discovery_stages,
+                                    item.discovery_stage,
+                                ]
+                            )
+                        )
+                        if len(item.cached_text) > len(existing.cached_text):
+                            existing.cached_text = item.cached_text
+                            existing.cached_text_mode = item.cached_text_mode
             results = sorted(
                 merged_channels.values(),
                 key=lambda item: item.rrf_score,
@@ -685,15 +769,18 @@ class URLDiscovery:
                         )
                         if len(item.snippet) > len(existing.snippet):
                             existing.snippet = item.snippet
+                        if len(item.cached_text) > len(existing.cached_text):
+                            existing.cached_text = item.cached_text
+                            existing.cached_text_mode = item.cached_text_mode
             results = sorted(
                 merged_fallbacks.values(),
                 key=lambda item: item.rrf_score,
                 reverse=True,
             )
-        api_results = await api_task
-        if api_results:
+        api_results, local_results = await asyncio.gather(api_task, local_task)
+        if api_results or local_results:
             merged_sources: Dict[str, DiscoveredURL] = {}
-            for group in (results, api_results):
+            for group in (results, api_results, local_results):
                 for rank, item in enumerate(group, start=1):
                     url = canonicalize_url(item.url)
                     if not url:
@@ -715,8 +802,21 @@ class URLDiscovery:
                     existing.engines = list(
                         dict.fromkeys([*existing.engines, *item.engines])
                     )
+                    existing.discovery_stages = list(
+                        dict.fromkeys(
+                            [
+                                *existing.discovery_stages,
+                                existing.discovery_stage,
+                                *item.discovery_stages,
+                                item.discovery_stage,
+                            ]
+                        )
+                    )
                     if len(item.snippet) > len(existing.snippet):
                         existing.snippet = item.snippet
+                    if len(item.cached_text) > len(existing.cached_text):
+                        existing.cached_text = item.cached_text
+                        existing.cached_text_mode = item.cached_text_mode
                     if not existing.published_hint and item.published_hint:
                         existing.published_hint = item.published_hint
             results = sorted(
@@ -755,14 +855,99 @@ class URLDiscovery:
         diagnostics: Optional[List[Dict[str, str]]] = None,
         source_channels: Sequence[str] = (),
     ) -> List[DiscoveredURL]:
+        engines = searxng_engines_for_query(self.config, query)
+        if len(engines) <= 1:
+            return await self._searxng_request(
+                query,
+                freshness,
+                diagnostics,
+                source_channels,
+                engines=engines,
+                diagnostic_engine="searxng",
+            )
+
+        # Fan out one bounded request per engine and fuse locally.  A combined
+        # SearXNG request can lose every engine when one slow backend stalls
+        # the response; independent lanes preserve the healthy engines and
+        # also protect each engine's first page before RRF fusion.
+        groups = await asyncio.gather(
+            *(
+                self._searxng_request(
+                    query,
+                    freshness,
+                    diagnostics,
+                    source_channels,
+                    engines=(engine,),
+                    diagnostic_engine=f"searxng:{engine}",
+                )
+                for engine in engines
+            ),
+            return_exceptions=True,
+        )
+        merged: Dict[str, DiscoveredURL] = {}
+        for group in groups:
+            if isinstance(group, Exception):
+                continue
+            for rank, item in enumerate(group, 1):
+                url = canonicalize_url(item.url)
+                if not url:
+                    continue
+                item.url = url
+                item.rrf_score += 1.0 / (60.0 + rank)
+                item.positions = list(dict.fromkeys([*item.positions, rank]))
+                item.engines = list(
+                    dict.fromkeys([*item.engines, item.engine])
+                )
+                existing = merged.get(item.url)
+                if existing is None:
+                    merged[item.url] = item
+                    continue
+                existing.rrf_score += item.rrf_score
+                existing.engine_score = max(
+                    existing.engine_score, item.engine_score
+                )
+                existing.engines = list(
+                    dict.fromkeys([*existing.engines, *item.engines, item.engine])
+                )
+                existing.positions = list(
+                    dict.fromkeys([*existing.positions, *item.positions])
+                )
+                if len(item.title) > len(existing.title):
+                    existing.title = item.title
+                if len(item.snippet) > len(existing.snippet):
+                    existing.snippet = item.snippet
+        return sorted(
+            merged.values(),
+            key=lambda item: (item.rrf_score, item.engine_score, item.url),
+            reverse=True,
+        )[:50]
+
+    async def _searxng_request(
+        self,
+        query: str,
+        freshness: str,
+        diagnostics: Optional[List[Dict[str, str]]],
+        source_channels: Sequence[str],
+        *,
+        engines: Sequence[str],
+        diagnostic_engine: str,
+    ) -> List[DiscoveredURL]:
         base = self.config.searxng_url.rstrip("/")
         if not base:
             return []
+        lane_key = (
+            "searxng_lane\0"
+            f"{base}\0{','.join(engines)}\0{freshness}\0"
+            f"{','.join(source_channels)}\0{query.casefold()}"
+        )
+        cached = self.cache.get(lane_key)
+        if cached is not None:
+            return copy.deepcopy(cached)
         params = searxng_search_params(
             query,
             freshness,
             source_channels,
-            self.config.searxng_engines,
+            engines,
         )
         headers = {}
         if (urlsplit(base).hostname or "").casefold() in {
@@ -771,47 +956,68 @@ class URLDiscovery:
             "::1",
         }:
             headers["X-Real-IP"] = "127.0.0.1"
-        try:
-            response = await asyncio.wait_for(
-                self.session.get(  # type: ignore[attr-defined]
-                    f"{base}/search",
-                    params=params,
-                    headers=headers,
-                    allow_redirects=True,
-                ),
-                timeout=self.config.discovery_timeout_seconds,
-            )
-            async with response:
-                if response.status != 200:
-                    if diagnostics is not None:
-                        diagnostics.append(
-                            {
-                                "query": query,
-                                "engine": "searxng",
-                                "source_channels": ",".join(source_channels),
-                                "error_type": "HTTPStatusError",
-                                "message": f"HTTP {response.status}",
-                            }
-                        )
-                    return []
-                raw = await _read_limited(response.content, 2 * 1024 * 1024)
-                raw = _decode_http_body(
-                    raw, response.headers.get("Content-Encoding", "")
+        data: Mapping[str, Any] | None = None
+        final_error: Exception | None = None
+        for attempt in range(2):
+            try:
+                response = await asyncio.wait_for(
+                    self.session.get(  # type: ignore[attr-defined]
+                        f"{base}/search",
+                        params=params,
+                        headers=headers,
+                        allow_redirects=True,
+                    ),
+                    timeout=self.config.discovery_timeout_seconds,
                 )
-            data = json.loads(raw.decode("utf-8", "replace"))
-        except Exception as exc:
-            if diagnostics is not None:
+                async with response:
+                    if response.status != 200:
+                        raise RuntimeError(f"HTTP {response.status}")
+                    raw = await _read_limited(response.content, 2 * 1024 * 1024)
+                    raw = _decode_http_body(
+                        raw, response.headers.get("Content-Encoding", "")
+                    )
+                data = json.loads(raw.decode("utf-8", "replace"))
+                break
+            except Exception as exc:
+                final_error = exc
+                if attempt == 0:
+                    # This is a retry against the local metasearch process,
+                    # not an unbounded retry loop in the crawler.  It repairs
+                    # transient keep-alive/read failures while keeping each
+                    # engine lane capped at two requests.
+                    await asyncio.sleep(0.05)
+                    continue
+        if data is None:
+            if diagnostics is not None and final_error is not None:
+                error_type = type(final_error).__name__
+                message = str(final_error)[:300]
+                if isinstance(final_error, RuntimeError) and message.startswith(
+                    "HTTP "
+                ):
+                    error_type = "HTTPStatusError"
                 diagnostics.append(
                     {
                         "query": query,
-                        "engine": "searxng",
+                        "engine": diagnostic_engine,
                         "source_channels": ",".join(source_channels),
-                        "error_type": type(exc).__name__,
-                        "message": str(exc)[:300],
+                        "error_type": error_type,
+                        "message": message,
+                        "attempts": "2",
                     }
                 )
             return []
-        return parse_searxng_results(data)
+        results = parse_searxng_results(data)
+        if results:
+            self.cache.put(
+                lane_key,
+                copy.deepcopy(results),
+                self.config.search_cache_ttl_seconds,
+                size=sum(
+                    len(item.url) + len(item.title) + len(item.snippet)
+                    for item in results
+                ),
+            )
+        return results
 
     async def _html_engine(self, query: str, engine: str) -> List[DiscoveredURL]:
         if engine == "wikipedia":

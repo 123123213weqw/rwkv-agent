@@ -92,12 +92,15 @@ def target_page_matches(
     for pattern in patterns:
         wanted = unquote(str(pattern)).casefold()
         if wanted.endswith("/"):
-            base = wanted.rstrip("/") or "/"
-            if (
-                folded == base
-                or folded.startswith(base + "/")
-                or folded.startswith(base + "?")
-            ):
+            # Dataset path patterns describe a complete path segment sequence,
+            # not necessarily a root prefix.  Official sites commonly insert a
+            # locale prefix (``/zh-cn/blog/...`` or ``/cn/newsroom/...``).
+            # Padding both sides with '/' keeps that valid while still rejecting
+            # lookalikes such as ``/downloads-malware``.
+            marker = "/" + wanted.strip("/") + "/"
+            path_only = folded.split("?", 1)[0]
+            padded_path = "/" + path_only.strip("/") + "/"
+            if marker in padded_path:
                 return True
         elif wanted in folded:
             return True
@@ -225,7 +228,13 @@ def evaluate_case(
     )
     garbage_count = sum(is_garbage_result(item, case) for item in results)
     attempted = int(stats.get("attempted", 0) or 0)
-    succeeded = int(stats.get("fetched", stats.get("succeeded", 0)) or 0)
+    succeeded = int(
+        stats.get(
+            "origin_fetch_succeeded",
+            stats.get("fetched", stats.get("succeeded", 0)),
+        )
+        or 0
+    )
     failed = int(stats.get("failed", 0) or 0)
     cancelled = int(stats.get("cancelled", 0) or 0)
     return {

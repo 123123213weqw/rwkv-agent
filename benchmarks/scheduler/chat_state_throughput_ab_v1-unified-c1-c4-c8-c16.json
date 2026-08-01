@@ -1,0 +1,3703 @@
+{
+  "schema": "rwkv_agent_chat_state_throughput_ab.v1",
+  "run_id": "chat-state-ab-e9961f4935d646338eeef2420a124a2c",
+  "endpoint": "http://127.0.0.1:8417",
+  "protocol": {
+    "concurrency": [
+      1,
+      4,
+      8,
+      16
+    ],
+    "turns": 3,
+    "max_tokens": 8,
+    "greedy": true,
+    "chat_stops": [
+      "\n\nUser:",
+      "\nUser:",
+      "\nSystem:",
+      "</s>"
+    ],
+    "order": "alternating",
+    "prompt_set_sha256": "a128dc2dd1bd9128cf2b06898c7d2ab738eabbff4dda9f00d59dc3398961b280"
+  },
+  "model": "rwkv7-g1i-preview4922-13.3b",
+  "context": 12288,
+  "persistent_capacity": 16,
+  "profiles": [
+    {
+      "concurrency": 1,
+      "turns": 3,
+      "max_tokens": 8,
+      "order": [
+        "transcript",
+        "state"
+      ],
+      "transcript": {
+        "mode": "transcript_reprefill",
+        "requests": 3,
+        "output_tokens": 24,
+        "wall_seconds": 2.676302,
+        "setup_seconds": 0.0,
+        "release_seconds": 0.0,
+        "output_tokens_per_second": 8.9676,
+        "latency_ms": {
+          "mean": 891.514,
+          "p50": 883.602,
+          "p95": 911.192,
+          "max": 911.192
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 911.1924839671701,
+            "queue_ms": 7.703
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 879.7469790442847,
+            "queue_ms": 5.276
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 883.6024399497546,
+            "queue_ms": 5.493
+          }
+        ],
+        "scheduler": {
+          "shape_counts": {
+            "B1T1": 21,
+            "B1T12": 1,
+            "B1T37": 1,
+            "B1T59": 1,
+            "B1T64": 24
+          },
+          "decode_average_batch_fill": 1.0,
+          "prefill_average_batch_fill": 1.0,
+          "model_forward_calls": 48
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "state": {
+        "mode": "recurrent_session_state",
+        "requests": 3,
+        "output_tokens": 24,
+        "wall_seconds": 1.582318,
+        "setup_seconds": 0.145567,
+        "release_seconds": 0.003735,
+        "output_tokens_per_second": 15.1676,
+        "latency_ms": {
+          "mean": 477.039,
+          "p50": 299.35,
+          "p95": 833.667,
+          "max": 833.667
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 833.6673909798265,
+            "queue_ms": 4.208,
+            "seen_tokens": 532
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 299.3496779818088,
+            "queue_ms": 4.195,
+            "seen_tokens": 557
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 298.1012109667063,
+            "queue_ms": 4.226,
+            "seen_tokens": 579
+          }
+        ],
+        "released_states": 1,
+        "scheduler": {
+          "shape_counts": {
+            "B1T1": 24,
+            "B1T12": 1,
+            "B1T14": 1,
+            "B1T17": 1,
+            "B1T26": 1,
+            "B1T38": 1,
+            "B1T64": 7
+          },
+          "decode_average_batch_fill": 1.0,
+          "prefill_average_batch_fill": 1.0,
+          "model_forward_calls": 36
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "comparison": {
+        "compared_turns": 3,
+        "exact_turns": 3,
+        "all_exact": true,
+        "mismatches": []
+      },
+      "state_speedup": 1.6914,
+      "state_leak_count": 0,
+      "errors": []
+    },
+    {
+      "concurrency": 4,
+      "turns": 3,
+      "max_tokens": 8,
+      "order": [
+        "state",
+        "transcript"
+      ],
+      "transcript": {
+        "mode": "transcript_reprefill",
+        "requests": 12,
+        "output_tokens": 96,
+        "wall_seconds": 5.363809,
+        "setup_seconds": 0.0,
+        "release_seconds": 0.0,
+        "output_tokens_per_second": 17.8977,
+        "latency_ms": {
+          "mean": 1785.518,
+          "p50": 1778.159,
+          "p95": 1864.796,
+          "max": 1864.796
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1714.7685490199365,
+            "queue_ms": 7.243
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1712.7905559609644,
+            "queue_ms": 8.099
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1714.0650930232368,
+            "queue_ms": 6.529
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1713.554643036332,
+            "queue_ms": 5.706
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1779.3742929934524,
+            "queue_ms": 5.623
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1779.9383720266633,
+            "queue_ms": 7.969
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1777.9770650085993,
+            "queue_ms": 6.875
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1778.1589190126397,
+            "queue_ms": 5.806
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1864.793793996796,
+            "queue_ms": 5.925
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1864.7955050109886,
+            "queue_ms": 8.145
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1863.365839002654,
+            "queue_ms": 6.034
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1862.6345000229776,
+            "queue_ms": 7.094
+          }
+        ],
+        "scheduler": {
+          "shape_counts": {
+            "B1T12": 1,
+            "B1T2": 1,
+            "B1T27": 1,
+            "B1T37": 1,
+            "B1T49": 1,
+            "B1T59": 1,
+            "B2T1": 2,
+            "B2T22": 1,
+            "B2T47": 1,
+            "B2T5": 1,
+            "B2T64": 1,
+            "B4T1": 20,
+            "B4T64": 24
+          },
+          "decode_average_batch_fill": 3.8182,
+          "prefill_average_batch_fill": 3.2353,
+          "model_forward_calls": 56
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "state": {
+        "mode": "recurrent_session_state",
+        "requests": 12,
+        "output_tokens": 96,
+        "wall_seconds": 3.445329,
+        "setup_seconds": 0.578485,
+        "release_seconds": 0.010004,
+        "output_tokens_per_second": 27.8638,
+        "latency_ms": {
+          "mean": 937.297,
+          "p50": 605.091,
+          "p95": 1709.635,
+          "max": 1709.635
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1682.4664539890364,
+            "queue_ms": 4.457,
+            "seen_tokens": 532
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1680.0925770075992,
+            "queue_ms": 0.295,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1709.6348960185423,
+            "queue_ms": 103.267,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1680.0962340203114,
+            "queue_ms": 1.249,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 503.64195299334824,
+            "queue_ms": 4.844,
+            "seen_tokens": 557
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 502.82218999927863,
+            "queue_ms": 4.654,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 502.2821750026196,
+            "queue_ms": 5.13,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 501.63182098185644,
+            "queue_ms": 4.431,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 605.0913960207254,
+            "queue_ms": 5.149,
+            "seen_tokens": 579
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 638.9063920360059,
+            "queue_ms": 4.558,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 603.1765730003826,
+            "queue_ms": 4.853,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 637.7175790257752,
+            "queue_ms": 5.438,
+            "seen_tokens": 589
+          }
+        ],
+        "released_states": 4,
+        "scheduler": {
+          "shape_counts": {
+            "B1T1": 1,
+            "B1T12": 1,
+            "B1T2": 1,
+            "B1T26": 4,
+            "B1T38": 1,
+            "B1T64": 5,
+            "B2T1": 2,
+            "B2T14": 1,
+            "B2T22": 1,
+            "B2T5": 1,
+            "B2T9": 1,
+            "B3T1": 1,
+            "B3T38": 1,
+            "B3T64": 1,
+            "B4T1": 22,
+            "B4T17": 1,
+            "B4T64": 5
+          },
+          "decode_average_batch_fill": 3.6923,
+          "prefill_average_batch_fill": 2.0833,
+          "model_forward_calls": 50
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "comparison": {
+        "compared_turns": 12,
+        "exact_turns": 12,
+        "all_exact": true,
+        "mismatches": []
+      },
+      "state_speedup": 1.5568,
+      "state_leak_count": 0,
+      "errors": []
+    },
+    {
+      "concurrency": 8,
+      "turns": 3,
+      "max_tokens": 8,
+      "order": [
+        "transcript",
+        "state"
+      ],
+      "transcript": {
+        "mode": "transcript_reprefill",
+        "requests": 24,
+        "output_tokens": 192,
+        "wall_seconds": 7.904448,
+        "setup_seconds": 0.0,
+        "release_seconds": 0.0,
+        "output_tokens_per_second": 24.2901,
+        "latency_ms": {
+          "mean": 2627.568,
+          "p50": 2627.356,
+          "p95": 2765.878,
+          "max": 2766.56
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2628.9386069984175,
+            "queue_ms": 6.39
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2628.7314670043997,
+            "queue_ms": 7.529
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2628.198338963557,
+            "queue_ms": 8.034
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2625.536572013516,
+            "queue_ms": 9.167
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2623.7563260365278,
+            "queue_ms": 8.949
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2627.3557679960504,
+            "queue_ms": 199.33
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2627.9648760100827,
+            "queue_ms": 197.964
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2626.664321986027,
+            "queue_ms": 197.281
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2501.1042520054616,
+            "queue_ms": 7.309
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2501.3991890009493,
+            "queue_ms": 9.076
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2500.5252360133454,
+            "queue_ms": 10.224
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2500.2427470171824,
+            "queue_ms": 8.95
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2498.6162569839507,
+            "queue_ms": 11.027
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2498.9087040303275,
+            "queue_ms": 11.727
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2498.1156259891577,
+            "queue_ms": 13.431
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2496.4407160296105,
+            "queue_ms": 15.086
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2708.7744289892726,
+            "queue_ms": 7.023
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2766.5596699807793,
+            "queue_ms": 78.421
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2762.3222750262357,
+            "queue_ms": 77.884
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2765.878428996075,
+            "queue_ms": 78.23
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2760.913980018813,
+            "queue_ms": 78.112
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2764.254685025662,
+            "queue_ms": 78.426
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2761.800399981439,
+            "queue_ms": 79.129
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2758.6175440228544,
+            "queue_ms": 77.788
+          }
+        ],
+        "scheduler": {
+          "shape_counts": {
+            "B1T1": 1,
+            "B1T12": 1,
+            "B1T2": 1,
+            "B1T37": 1,
+            "B1T59": 1,
+            "B1T64": 1,
+            "B2T2": 1,
+            "B2T22": 2,
+            "B3T1": 1,
+            "B3T27": 1,
+            "B3T49": 1,
+            "B3T64": 1,
+            "B4T1": 2,
+            "B4T47": 1,
+            "B4T5": 1,
+            "B4T64": 1,
+            "B5T1": 1,
+            "B5T64": 1,
+            "B7T1": 1,
+            "B7T64": 1,
+            "B8T1": 18,
+            "B8T64": 22
+          },
+          "decode_average_batch_fill": 7.0,
+          "prefill_average_batch_fill": 5.7895,
+          "model_forward_calls": 62
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "state": {
+        "mode": "recurrent_session_state",
+        "requests": 24,
+        "output_tokens": 192,
+        "wall_seconds": 5.426856,
+        "setup_seconds": 1.30311,
+        "release_seconds": 0.018664,
+        "output_tokens_per_second": 35.3796,
+        "latency_ms": {
+          "mean": 1343.428,
+          "p50": 942.528,
+          "p95": 2463.057,
+          "max": 2463.858
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2405.055810988415,
+            "queue_ms": 4.141,
+            "seen_tokens": 532
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2403.065615973901,
+            "queue_ms": 0.36,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2463.85773899965,
+            "queue_ms": 110.096,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2404.026005009655,
+            "queue_ms": 2.146,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2463.05671002483,
+            "queue_ms": 108.017,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2463.0122469970956,
+            "queue_ms": 105.899,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2462.492963008117,
+            "queue_ms": 104.002,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 2461.758860037662,
+            "queue_ms": 102.745,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 642.0114950160496,
+            "queue_ms": 5.44,
+            "seen_tokens": 557
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 640.2560250135139,
+            "queue_ms": 5.287,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 639.3067840253934,
+            "queue_ms": 5.651,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 638.5677449870855,
+            "queue_ms": 3.447,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 639.3196660210378,
+            "queue_ms": 2.141,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 637.154249008745,
+            "queue_ms": 0.989,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 632.9799219965935,
+            "queue_ms": 0.225,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 636.7403829935938,
+            "queue_ms": 0.449,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 873.7264960072935,
+            "queue_ms": 4.957,
+            "seen_tokens": 579
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 943.2503370335326,
+            "queue_ms": 1.776,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 942.5280400319025,
+            "queue_ms": 167.75,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 991.821276023984,
+            "queue_ms": 167.96,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 940.8718890044838,
+            "queue_ms": 166.567,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 990.2526499936357,
+            "queue_ms": 165.31,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 988.3403219864704,
+            "queue_ms": 164.403,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 938.830160012003,
+            "queue_ms": 164.608,
+            "seen_tokens": 569
+          }
+        ],
+        "released_states": 8,
+        "scheduler": {
+          "shape_counts": {
+            "B1T1": 1,
+            "B1T12": 1,
+            "B1T14": 1,
+            "B1T26": 8,
+            "B1T5": 1,
+            "B1T64": 8,
+            "B1T9": 1,
+            "B2T22": 2,
+            "B3T1": 2,
+            "B3T14": 1,
+            "B3T2": 1,
+            "B3T38": 1,
+            "B3T5": 1,
+            "B3T64": 1,
+            "B3T9": 1,
+            "B5T1": 2,
+            "B5T38": 1,
+            "B5T64": 1,
+            "B7T1": 1,
+            "B8T1": 21,
+            "B8T17": 1,
+            "B8T64": 5
+          },
+          "decode_average_batch_fill": 7.1111,
+          "prefill_average_batch_fill": 2.7778,
+          "model_forward_calls": 63
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "comparison": {
+        "compared_turns": 24,
+        "exact_turns": 24,
+        "all_exact": true,
+        "mismatches": []
+      },
+      "state_speedup": 1.4565,
+      "state_leak_count": 0,
+      "errors": []
+    },
+    {
+      "concurrency": 16,
+      "turns": 3,
+      "max_tokens": 8,
+      "order": [
+        "state",
+        "transcript"
+      ],
+      "transcript": {
+        "mode": "transcript_reprefill",
+        "requests": 48,
+        "output_tokens": 384,
+        "wall_seconds": 15.399631,
+        "setup_seconds": 0.0,
+        "release_seconds": 0.0,
+        "output_tokens_per_second": 24.9357,
+        "latency_ms": {
+          "mean": 5123.675,
+          "p50": 5157.756,
+          "p95": 5375.728,
+          "max": 5377.229
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4845.673609001096,
+            "queue_ms": 12.849
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4845.067901012953,
+            "queue_ms": 17.224
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4837.144712975714,
+            "queue_ms": 9.418
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4845.379069971386,
+            "queue_ms": 16.162
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4844.759268045891,
+            "queue_ms": 17.149
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4844.517896999605,
+            "queue_ms": 17.178
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4842.76922501158,
+            "queue_ms": 17.199
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4846.24658402754,
+            "queue_ms": 238.964
+          },
+          {
+            "session": "chat-state-ab-09",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4845.949218026362,
+            "queue_ms": 239.355
+          },
+          {
+            "session": "chat-state-ab-10",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4845.541752001736,
+            "queue_ms": 235.873
+          },
+          {
+            "session": "chat-state-ab-11",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4842.238034005277,
+            "queue_ms": 237.416
+          },
+          {
+            "session": "chat-state-ab-12",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4844.456339022145,
+            "queue_ms": 237.186
+          },
+          {
+            "session": "chat-state-ab-13",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4844.464326975867,
+            "queue_ms": 234.333
+          },
+          {
+            "session": "chat-state-ab-14",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4842.294422967825,
+            "queue_ms": 234.174
+          },
+          {
+            "session": "chat-state-ab-15",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4844.166494964156,
+            "queue_ms": 235.338
+          },
+          {
+            "session": "chat-state-ab-16",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4843.671765993349,
+            "queue_ms": 234.637
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5152.783714001998,
+            "queue_ms": 7.196
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5157.755655993242,
+            "queue_ms": 9.706
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5157.1599040180445,
+            "queue_ms": 11.152
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5156.731950992253,
+            "queue_ms": 12.331
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5150.59370000381,
+            "queue_ms": 11.909
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5161.699194984976,
+            "queue_ms": 205.193
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5161.745454999618,
+            "queue_ms": 205.477
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5159.049768990371,
+            "queue_ms": 204.629
+          },
+          {
+            "session": "chat-state-ab-09",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5160.914612002671,
+            "queue_ms": 204.876
+          },
+          {
+            "session": "chat-state-ab-10",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5158.732363954186,
+            "queue_ms": 204.265
+          },
+          {
+            "session": "chat-state-ab-11",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5158.642049005721,
+            "queue_ms": 204.107
+          },
+          {
+            "session": "chat-state-ab-12",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5158.447331981733,
+            "queue_ms": 204.454
+          },
+          {
+            "session": "chat-state-ab-13",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5157.540243992116,
+            "queue_ms": 204.432
+          },
+          {
+            "session": "chat-state-ab-14",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5156.957380007952,
+            "queue_ms": 203.567
+          },
+          {
+            "session": "chat-state-ab-15",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5157.830919022672,
+            "queue_ms": 205.192
+          },
+          {
+            "session": "chat-state-ab-16",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5155.923423008062,
+            "queue_ms": 203.698
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5330.141836951952,
+            "queue_ms": 7.0
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5377.2288910113275,
+            "queue_ms": 8.787
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5375.508414988872,
+            "queue_ms": 131.482
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5373.197348031681,
+            "queue_ms": 10.141
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5366.889601980802,
+            "queue_ms": 129.965
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5375.7279819692485,
+            "queue_ms": 131.177
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5375.86592300795,
+            "queue_ms": 128.786
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5370.470118999947,
+            "queue_ms": 127.22
+          },
+          {
+            "session": "chat-state-ab-09",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5373.412812012248,
+            "queue_ms": 128.26
+          },
+          {
+            "session": "chat-state-ab-10",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5373.2619200018235,
+            "queue_ms": 126.231
+          },
+          {
+            "session": "chat-state-ab-11",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5371.511687000748,
+            "queue_ms": 125.62
+          },
+          {
+            "session": "chat-state-ab-12",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5372.535664995667,
+            "queue_ms": 125.582
+          },
+          {
+            "session": "chat-state-ab-13",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5370.1035139965825,
+            "queue_ms": 125.105
+          },
+          {
+            "session": "chat-state-ab-14",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5369.377023016568,
+            "queue_ms": 125.768
+          },
+          {
+            "session": "chat-state-ab-15",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5368.419312988408,
+            "queue_ms": 124.311
+          },
+          {
+            "session": "chat-state-ab-16",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 5365.906943043228,
+            "queue_ms": 125.074
+          }
+        ],
+        "scheduler": {
+          "shape_counts": {
+            "B1T1": 1,
+            "B1T12": 2,
+            "B1T17": 1,
+            "B1T37": 2,
+            "B1T39": 1,
+            "B1T49": 1,
+            "B1T56": 1,
+            "B1T59": 2,
+            "B2T1": 1,
+            "B2T2": 1,
+            "B2T27": 1,
+            "B2T47": 2,
+            "B2T5": 2,
+            "B2T64": 1,
+            "B3T1": 1,
+            "B3T64": 2,
+            "B4T22": 1,
+            "B5T1": 1,
+            "B5T64": 1,
+            "B6T1": 1,
+            "B7T1": 1,
+            "B7T2": 1,
+            "B7T27": 1,
+            "B7T64": 2,
+            "B8T1": 39,
+            "B8T49": 1,
+            "B8T64": 45
+          },
+          "decode_average_batch_fill": 7.4667,
+          "prefill_average_batch_fill": 6.1268,
+          "model_forward_calls": 116
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "state": {
+        "mode": "recurrent_session_state",
+        "requests": 48,
+        "output_tokens": 384,
+        "wall_seconds": 10.175789,
+        "setup_seconds": 2.635249,
+        "release_seconds": 0.035195,
+        "output_tokens_per_second": 37.7366,
+        "latency_ms": {
+          "mean": 2465.188,
+          "p50": 1474.304,
+          "p95": 4644.409,
+          "max": 4646.048
+        },
+        "ttft": {
+          "available": false,
+          "reason": "Sidecar HTTP endpoints are non-streaming"
+        },
+        "rows": [
+          {
+            "session": "chat-state-ab-01",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4523.270401987247,
+            "queue_ms": 5.586,
+            "seen_tokens": 532
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4525.571836042218,
+            "queue_ms": 0.396,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4524.975341977552,
+            "queue_ms": 3.836,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4524.779045023024,
+            "queue_ms": 2.008,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4646.047692978755,
+            "queue_ms": 131.469,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4645.234204013832,
+            "queue_ms": 130.133,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4644.409344007727,
+            "queue_ms": 128.262,
+            "seen_tokens": 542
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4641.97424199665,
+            "queue_ms": 126.998,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-09",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4641.865011013579,
+            "queue_ms": 123.772,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-10",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4642.044723033905,
+            "queue_ms": 125.16,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-11",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4520.002409000881,
+            "queue_ms": 119.474,
+            "seen_tokens": 512
+          },
+          {
+            "session": "chat-state-ab-12",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4641.052450984716,
+            "queue_ms": 121.742,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-13",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4638.728232006542,
+            "queue_ms": 117.606,
+            "seen_tokens": 532
+          },
+          {
+            "session": "chat-state-ab-14",
+            "turn": 1,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4637.504936021287,
+            "queue_ms": 116.072,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-15",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4638.304460968357,
+            "queue_ms": 114.797,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-16",
+            "turn": 1,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 4628.810281981714,
+            "queue_ms": 113.358,
+            "seen_tokens": 522
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1240.6369490199722,
+            "queue_ms": 5.03,
+            "seen_tokens": 557
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1363.637419999577,
+            "queue_ms": 135.172,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1237.241190043278,
+            "queue_ms": 1.572,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1239.062967011705,
+            "queue_ms": 1.894,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1369.6026210091077,
+            "queue_ms": 131.624,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1367.516848957166,
+            "queue_ms": 133.927,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1366.7028700001538,
+            "queue_ms": 130.269,
+            "seen_tokens": 567
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1367.8639539866708,
+            "queue_ms": 131.783,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-09",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1366.644011985045,
+            "queue_ms": 127.201,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-10",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1366.275565000251,
+            "queue_ms": 128.703,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-11",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1365.3464610106312,
+            "queue_ms": 124.578,
+            "seen_tokens": 537
+          },
+          {
+            "session": "chat-state-ab-12",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1362.6914960332215,
+            "queue_ms": 125.842,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-13",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1362.2489930130541,
+            "queue_ms": 122.859,
+            "seen_tokens": 557
+          },
+          {
+            "session": "chat-state-ab-14",
+            "turn": 2,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1362.0448909932747,
+            "queue_ms": 120.893,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-15",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1359.7626349655911,
+            "queue_ms": 121.097,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-16",
+            "turn": 2,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1360.3200659854338,
+            "queue_ms": 121.453,
+            "seen_tokens": 547
+          },
+          {
+            "session": "chat-state-ab-01",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1346.1412400356494,
+            "queue_ms": 4.278,
+            "seen_tokens": 579
+          },
+          {
+            "session": "chat-state-ab-02",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1478.1165689928457,
+            "queue_ms": 1.879,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-03",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1347.5500600179657,
+            "queue_ms": 2.891,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-04",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1477.536666963715,
+            "queue_ms": 1.667,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-05",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1346.571973990649,
+            "queue_ms": 1.15,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-06",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1477.1402620244771,
+            "queue_ms": 0.67,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-07",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1477.285435947124,
+            "queue_ms": 0.171,
+            "seen_tokens": 589
+          },
+          {
+            "session": "chat-state-ab-08",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1476.3755549793132,
+            "queue_ms": 200.349,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-09",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1475.52524600178,
+            "queue_ms": 199.819,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-10",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1469.0925530157983,
+            "queue_ms": 199.019,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-11",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1475.6249909987673,
+            "queue_ms": 198.252,
+            "seen_tokens": 559
+          },
+          {
+            "session": "chat-state-ab-12",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1474.9543780344538,
+            "queue_ms": 197.624,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-13",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1474.0358830313198,
+            "queue_ms": 196.877,
+            "seen_tokens": 579
+          },
+          {
+            "session": "chat-state-ab-14",
+            "turn": 3,
+            "text": " <think>The user wants me to",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              4660,
+              4811
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1474.303849041462,
+            "queue_ms": 196.056,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-15",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1473.3077149721794,
+            "queue_ms": 196.314,
+            "seen_tokens": 569
+          },
+          {
+            "session": "chat-state-ab-16",
+            "turn": 3,
+            "text": " <think>The user wants a brief",
+            "token_ids": [
+              295,
+              35762,
+              63,
+              6699,
+              32355,
+              40162,
+              332,
+              37909
+            ],
+            "stop_reason": "max_tokens",
+            "latency_ms": 1463.2962900213897,
+            "queue_ms": 196.163,
+            "seen_tokens": 569
+          }
+        ],
+        "released_states": 16,
+        "scheduler": {
+          "shape_counts": {
+            "B1T12": 2,
+            "B1T14": 1,
+            "B1T2": 1,
+            "B1T26": 16,
+            "B1T56": 1,
+            "B1T64": 16,
+            "B2T22": 2,
+            "B3T1": 3,
+            "B3T14": 1,
+            "B3T17": 1,
+            "B3T64": 1,
+            "B4T38": 2,
+            "B4T5": 1,
+            "B4T64": 1,
+            "B4T9": 1,
+            "B5T1": 3,
+            "B5T17": 1,
+            "B8T1": 45,
+            "B8T14": 1,
+            "B8T17": 1,
+            "B8T2": 1,
+            "B8T38": 1,
+            "B8T64": 11
+          },
+          "decode_average_batch_fill": 7.5294,
+          "prefill_average_batch_fill": 3.0952,
+          "model_forward_calls": 114
+        },
+        "persistent_allocated_before": 0,
+        "persistent_allocated_after": 0
+      },
+      "comparison": {
+        "compared_turns": 48,
+        "exact_turns": 48,
+        "all_exact": true,
+        "mismatches": []
+      },
+      "state_speedup": 1.5134,
+      "state_leak_count": 0,
+      "errors": []
+    }
+  ],
+  "initial_persistent_allocated": 0,
+  "final_persistent_allocated": 0,
+  "all_profiles_valid": true
+}

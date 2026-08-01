@@ -178,10 +178,17 @@ def build_rwkv_grounded_prompt(
     # Strong evidence goes last: RWKV recurrent state naturally gives recent
     # prompt tokens more influence.
     for item in sorted(evidence, key=lambda value: value.score):
+        components = item.metadata.get("score_components", {})
+        evidence_level = ""
+        if float(components.get("snippet_fallback") or 0.0) > 0:
+            evidence_level = (
+                "证据级别: 搜索结果摘要（原网页抓取失败，只能作为有限证据）\n"
+            )
         blocks.append(
             f"[{item.id}] {item.title}\n"
             f"URL: {item.url}\n"
             f"发布时间: {item.published_at or '未知'}\n"
+            f"{evidence_level}"
             f"{item.text}"
         )
     source_text = "\n\n".join(blocks) or "（没有检索到可用证据）"
@@ -203,7 +210,20 @@ def build_grounded_repair_prompt(
     evidence: Sequence[Evidence],
 ) -> str:
     blocks = "\n\n".join(
-        f"[{item.id}] {item.title}\n{item.text[:900]}" for item in evidence[:4]
+        f"[{item.id}] {item.title}\n"
+        + (
+            "证据级别: 搜索结果摘要（原网页抓取失败，只能作为有限证据）\n"
+            if float(
+                item.metadata.get("score_components", {}).get(
+                    "snippet_fallback", 0.0
+                )
+                or 0.0
+            )
+            > 0
+            else ""
+        )
+        + item.text[:900]
+        for item in evidence[:4]
     )
     allowed = "、".join(item.id for item in evidence)
     return f"""User: 请校验并重写下面的草稿。只能保留证据直接支持的内容，删除所有证据中没有的 URL、版本、日期、名称和推测。

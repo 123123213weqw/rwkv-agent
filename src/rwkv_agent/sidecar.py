@@ -157,6 +157,7 @@ class NativeG1I:
             batch_window_ms=BATCH_WINDOW_MS,
             max_waiting_jobs=MAX_WAITING_JOBS,
             request_timeout_seconds=REQUEST_TIMEOUT_SECONDS,
+            max_state_rows=MAX_BATCH_SIZE,
         )
         self.states = PersistentStateRuntime(
             tokenizer=self.pipeline,
@@ -165,6 +166,7 @@ class NativeG1I:
             eos_token_id=0,
             capacity=min(PERSISTENT_STATE_CAPACITY, STATE_CAPACITY),
             ttl_seconds=PERSISTENT_STATE_TTL_SECONDS,
+            decode_engine=self.engine,
         )
         self._counter_lock = threading.Lock()
         self.calls = 0
@@ -328,8 +330,8 @@ class NativeG1I:
         }
 
     def close(self) -> None:
-        self.states.close()
         self.engine.close()
+        self.states.close()
 
 
 service: NativeG1I | None = None

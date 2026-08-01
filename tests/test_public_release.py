@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import subprocess
 import sys
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from rwkv_search.config import AppConfig
@@ -92,3 +95,45 @@ def test_service_refuses_to_signal_pid_with_wrong_command(tmp_path: Path) -> Non
     assert result.returncode != 0
     assert "refusing to signal it" in result.stderr
     os.kill(os.getpid(), 0)
+
+
+def test_rwkv_launcher_tolerates_remote_tunnel_health_latency(tmp_path: Path) -> None:
+    class SlowHealthHandler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            time.sleep(2.2)
+            self.send_response(200 if self.path == "/health" else 404)
+            self.end_headers()
+
+        def log_message(self, *_args: object) -> None:
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), SlowHealthHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    service = tmp_path / "must-not-start"
+    service.write_text("#!/bin/sh\nexit 99\n", encoding="utf-8")
+    service.chmod(0o755)
+    endpoint = f"http://127.0.0.1:{server.server_port}"
+    env = os.environ | {
+        "RWKV_AGENT_ENDPOINT": endpoint,
+        "RWKV_AGENT_SERVICE_COMMAND": str(service),
+        "RWKV_AGENT_CLIENT_COMMAND": "/bin/echo",
+    }
+    try:
+        result = subprocess.run(
+            [ROOT / "cli/scripts/rwkv", "health"],
+            cwd=ROOT,
+            env=env,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=8,
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == f"--endpoint {endpoint} health"
+    assert "backend is offline" not in result.stderr

@@ -66,7 +66,7 @@ class FakeStateModel:
                     {
                         "state_id": "root",
                         "branch": "root",
-                        "text": "The verified answer is supported [W1].",
+                        "text": "The project was created by Ada Example [W1].",
                         "stop_reason": "</answer>",
                         "seen_tokens": 50,
                     }
@@ -100,7 +100,7 @@ class FakeStateModel:
     ):
         self.fallback_calls.append((prompt, max_tokens, list(stops or [])))
         return {
-            "raw": "The fallback answer is supported [W1].",
+            "raw": "The project is maintained by Ada Example [W1].",
             "stop": "</answer>",
             "output_tokens": 8,
         }
@@ -257,6 +257,178 @@ class StateNativeSearchAgentTests(unittest.TestCase):
         )
         self.assertEqual(commit["published_at"], "2026-07-27T01:00:00Z")
 
+    def test_evidence_merge_can_preserve_one_item_per_query_view(self) -> None:
+        results = []
+        direct_uris = [
+            f"https://source-{branch}.example/direct" for branch in range(4)
+        ]
+        for branch in range(4):
+            results.append(
+                {
+                    "_query_view_id": f"branch-{branch}",
+                    "query": f"facet-{branch} direct evidence",
+                    "evidence": [
+                        {
+                            "title": f"facet-{branch} direct evidence",
+                            "content": f"primary fact for facet-{branch}",
+                            "uri": f"https://source-{branch}.example/direct",
+                            "score": 1.0,
+                        },
+                        *[
+                            {
+                                "title": f"shared overview {branch}-{index}",
+                                "content": "general overview common background",
+                                "uri": (
+                                    "https://overview.example/"
+                                    f"{branch}-{index}"
+                                ),
+                                "score": 2.0,
+                            }
+                            for index in range(4)
+                        ],
+                        {
+                            "title": "Corroborated adjacent facet",
+                            "content": "independent corroboration",
+                            "uri": direct_uris[(branch + 1) % 4],
+                            "score": 0.5,
+                        },
+                    ],
+                }
+            )
+
+        control = _merge_evidence(
+            results,
+            question="compare four independent facets",
+            limit=8,
+        )
+        evidence = _merge_evidence(
+            results,
+            question="compare four independent facets",
+            limit=8,
+            preserve_query_views=True,
+        )
+        uris = {item["uri"] for item in evidence}
+
+        self.assertGreaterEqual(len(evidence), 8)
+        self.assertLessEqual(len(evidence), 12)
+        self.assertTrue({item["uri"] for item in control}.issubset(uris))
+        for branch in range(4):
+            self.assertIn(direct_uris[branch], uris)
+
+    def test_evidence_merge_does_not_append_one_off_lane_winner(self) -> None:
+        results = [
+            {
+                "query": "alpha",
+                "evidence": [
+                    {
+                        "title": "One-off alpha",
+                        "content": "alpha",
+                        "uri": "https://one-off.example/alpha",
+                    }
+                ],
+            },
+            {
+                "query": "beta",
+                "evidence": [
+                    {
+                        "title": "Repeated beta",
+                        "content": "beta",
+                        "uri": "https://repeated.example/beta",
+                    },
+                    {
+                        "title": "One-off alpha",
+                        "content": "alpha",
+                        "uri": "https://one-off.example/alpha",
+                    },
+                ],
+            },
+        ]
+        control = _merge_evidence(results, question="beta", limit=1)
+        candidate = _merge_evidence(
+            results,
+            question="beta",
+            limit=1,
+            preserve_query_views=True,
+        )
+
+        self.assertEqual(candidate, control)
+
+    def test_evidence_merge_query_view_quota_deduplicates_rounds(self) -> None:
+        repeated = [
+            {
+                "_query_view_id": "branch-a",
+                "query": f"alpha round {round_index}",
+                "evidence": [
+                    {
+                        "title": "Alpha primary page",
+                        "content": "alpha direct evidence",
+                        "uri": "https://alpha.example/fact",
+                    }
+                ],
+            }
+            for round_index in (1, 2)
+        ]
+        evidence = _merge_evidence(
+            [
+                *repeated,
+                {
+                    "_query_view_id": "branch-b",
+                    "query": "beta direct source",
+                    "evidence": [
+                        {
+                            "title": "Beta primary page",
+                            "content": "beta direct evidence",
+                            "uri": "https://beta.example/fact",
+                        }
+                    ],
+                },
+                {
+                    "_query_view_id": "branch-c",
+                    "query": "gamma direct source",
+                    "evidence": [
+                        {
+                            "title": "Gamma primary page",
+                            "content": "gamma direct evidence",
+                            "uri": "https://gamma.example/fact",
+                        }
+                    ],
+                },
+            ],
+            question="alpha beta gamma",
+            limit=4,
+            preserve_query_views=True,
+        )
+
+        self.assertEqual(
+            sum(item["uri"] == "https://alpha.example/fact" for item in evidence),
+            1,
+        )
+
+    def test_evidence_merge_preservation_is_default_off(self) -> None:
+        results = [
+            {
+                "_query_view_id": "branch-a",
+                "query": "alpha",
+                "evidence": [
+                    {
+                        "title": "Alpha",
+                        "content": "alpha",
+                        "uri": "https://alpha.example/fact",
+                    }
+                ],
+            }
+        ]
+
+        self.assertEqual(
+            _merge_evidence(results, question="alpha", limit=1),
+            _merge_evidence(
+                results,
+                question="alpha",
+                limit=1,
+                preserve_query_views=False,
+            ),
+        )
+
     def test_compact_answer_evidence_uses_one_generic_source_budget(self) -> None:
         records = ", ".join(f"record-{index}" for index in range(35))
         evidence = compact_answer_evidence(
@@ -399,6 +571,22 @@ class StateNativeSearchAgentTests(unittest.TestCase):
         self.assertEqual(coordinated["dropped_claim_count"], 1)
         self.assertIn("彭博", coordinated["answer"])
         self.assertNotIn("地铁", coordinated["answer"])
+
+    def test_answer_coordinator_drops_supported_but_irrelevant_claims(self) -> None:
+        coordinated = coordinate_answer_output(
+            "主要作者是彭博。[W1] 他拥有20年以上编程经验。[W2]",
+            [
+                {"id": "W1", "content": "主要作者是彭博。"},
+                {"id": "W2", "content": "他拥有20年以上编程经验。"},
+            ],
+            question="这个项目的主要作者是谁？",
+        )
+
+        self.assertTrue(coordinated["valid"])
+        self.assertTrue(coordinated["partial_answer"])
+        self.assertEqual(coordinated["irrelevant_claim_count"], 1)
+        self.assertIn("彭博", coordinated["answer"])
+        self.assertNotIn("编程经验", coordinated["answer"])
 
     def test_partial_answer_drops_orphaned_list_fragments(self) -> None:
         coordinated = coordinate_answer_output(
@@ -543,6 +731,8 @@ class StateNativeSearchAgentTests(unittest.TestCase):
         )
         self.assertTrue(prompt.endswith("Assistant: <answer>"))
         self.assertIn("Never output Tool Result", prompt)
+        self.assertIn("Every sentence must explicitly name", prompt)
+        self.assertIn("do not use pronouns", prompt)
 
     def test_root_fork_multi_round_search_and_root_resume(self) -> None:
         model = FakeStateModel()
@@ -560,8 +750,8 @@ class StateNativeSearchAgentTests(unittest.TestCase):
                         "title": f"Source {index}",
                         "content": (
                             f"{arguments['query']}. "
-                            "The verified answer is supported. "
-                            "The fallback answer is supported."
+                            "The project was created by Ada Example. "
+                            "The project is maintained by Ada Example."
                         ),
                         "uri": f"https://example.invalid/{index}",
                     }
@@ -597,7 +787,10 @@ class StateNativeSearchAgentTests(unittest.TestCase):
             result["trace"]["answer_evidence_profile"]["name"],
             "compact-question-span-v1",
         )
-        self.assertEqual(result["answer"], "The verified answer is supported [W1].")
+        self.assertEqual(
+            result["answer"],
+            "The project was created by Ada Example [W1].",
+        )
         self.assertEqual(len(result["trace"]["rounds"]), 2)
         query_views = [
             branch["route"].get("query_view")
@@ -671,7 +864,7 @@ class StateNativeSearchAgentTests(unittest.TestCase):
                     {
                         "id": "W1",
                         "title": "Source",
-                        "content": "The fallback answer is supported.",
+                        "content": "The project is maintained by Ada Example.",
                         "uri": "https://example.invalid/source",
                     }
                 ],
@@ -688,13 +881,17 @@ class StateNativeSearchAgentTests(unittest.TestCase):
             max_rounds=1,
         )
         self.assertEqual(result["status"], "ok")
-        self.assertEqual(result["answer"], "The fallback answer is supported [W1].")
+        self.assertEqual(
+            result["answer"],
+            "The project is maintained by Ada Example [W1].",
+        )
         self.assertEqual(len(tool_queries), 1)
         self.assertEqual(len(model.fallback_calls), 1)
         self.assertEqual(model.fallback_calls[0][1], ANSWER_MAX_TOKENS)
         self.assertEqual(model.fallback_calls[0][2], list(ANSWER_STOPS))
         protocol = result["trace"]["answer_protocol"]
         self.assertTrue(protocol["fallback_used"])
+        self.assertEqual(protocol["policy_notice"], "")
         self.assertIn("protocol_tag", protocol["primary"]["errors"])
         self.assertNotIn("text", result["trace"]["answer_completion"])
         self.assertNotIn("raw", protocol["fallback_completion"])

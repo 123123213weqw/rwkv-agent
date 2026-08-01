@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 from ..config import RealtimeSearchConfig, SearchConfig
 from ..semantic_selection import PairScorer
-from ..text import canonicalize_url
+from ..text import canonicalize_url, simhash64
 from .candidate_ranker import (
     CandidateAdmission,
     admit_candidates,
@@ -20,7 +20,7 @@ from .candidate_ranker import (
 )
 from .cache import TTLByteCache
 from .discovery import URLDiscovery
-from .extractor import extract_page
+from .extractor import classify_source, extract_page, extraction_quality
 from .fetcher import AsyncPageFetcher
 from .precision_discovery import (
     build_pivot_queries,
@@ -43,16 +43,98 @@ class _FetchOutcome:
     elapsed_ms: float
     error_type: str = ""
     error_message: str = ""
+    retrieval_mode: str = "web_fetch"
 
     def to_debug_dict(self) -> Dict[str, Any]:
+        status = "succeeded" if self.document else "failed"
+        if self.document and self.retrieval_mode == "search_snippet_fallback":
+            status = "fallback"
         return {
             "requested_url": self.candidate.url,
             "final_url": self.document.url if self.document else "",
-            "status": "succeeded" if self.document else "failed",
+            "status": status,
             "elapsed_ms": round(self.elapsed_ms, 3),
             "error_type": self.error_type,
             "error_message": self.error_message,
+            "retrieval_mode": self.retrieval_mode,
         }
+
+
+def select_fetch_candidates(
+    candidates: Sequence[DiscoveredURL],
+    *,
+    max_network_fetches: int,
+    local_limit: int,
+    local_min_score: float,
+    local_min_entity_coverage: float,
+    source_preference: str = "any",
+) -> List[DiscoveredURL]:
+    """Prioritize admitted evidence without consuming extra web GET budget.
+
+    Candidate admission may intentionally diversify its observable list.  Fetching
+    that list verbatim can nevertheless spend the small GET budget on diversified
+    but weaker pages while higher-confidence candidates wait below the cutoff.
+    Keep the cached-evidence lane separate, then order the network lane by the
+    admission score that already combines title, URL, snippet, source and rank
+    signals.  Python's stable sort preserves the admitted order for score ties.
+    """
+
+    cached = [
+        item
+        for item in candidates
+        if item.cached_text.strip()
+        and item.candidate_score >= local_min_score
+        and (
+            item.cached_text_mode == "structured_api"
+            or item.score_components.get("entity_coverage", 0.0)
+            >= local_min_entity_coverage
+        )
+    ]
+    cached.sort(
+        key=lambda item: (item.candidate_score, item.rrf_score),
+        reverse=True,
+    )
+    network = [item for item in candidates if not item.cached_text.strip()]
+    network.sort(
+        key=lambda item: (item.candidate_score, item.rrf_score),
+        reverse=True,
+    )
+    network_limit = max(0, int(max_network_fetches))
+    selected_network: List[DiscoveredURL] = []
+    if str(source_preference).casefold() != "any" and network_limit:
+        primary_types = {
+            "academic",
+            "company_filing",
+            "github_release",
+            "official_docs",
+            "official_repository",
+            "paper",
+            "regulator",
+        }
+        authoritative = [
+            item
+            for item in network
+            if item.engine == "direct" or classify_source(item.url)[0] in primary_types
+        ]
+        authoritative.sort(
+            key=lambda item: (item.candidate_score, item.rrf_score),
+            reverse=True,
+        )
+        # Reserve half of the small fetch budget for primary-source evidence,
+        # then fill the rest from the ordinary confidence order.  This is a
+        # bounded quota, not domain/topic routing, and cannot add page GETs.
+        quota = min(len(authoritative), max(1, network_limit // 2))
+        selected_network.extend(authoritative[:quota])
+    selected_ids = {id(item) for item in selected_network}
+    selected_network.extend(
+        item
+        for item in network
+        if id(item) not in selected_ids
+    )
+    return [
+        *cached[: max(0, int(local_limit))],
+        *selected_network[:network_limit],
+    ]
 
 
 class RealtimeSearchEngine:
@@ -514,6 +596,10 @@ class RealtimeSearchEngine:
         }
         if include_candidates:
             discovery_progress["errors"] = discovery_errors
+            discovery_progress["raw_candidates"] = [
+                self._candidate_debug_dict(item, position)
+                for position, item in enumerate(raw_candidates, 1)
+            ]
             discovery_progress["initial_candidates"] = [
                 self._candidate_debug_dict(item, position)
                 for position, item in enumerate(initial_admission.admitted, 1)
@@ -567,6 +653,11 @@ class RealtimeSearchEngine:
                         "rejected_candidates": len(admission.rejected),
                         "rejection_counts": admission.rejection_counts,
                         "attempted": 0,
+                        "network_attempted": 0,
+                        "local_reused": 0,
+                        "structured_reused": 0,
+                        "snippet_fallbacks": 0,
+                        "origin_fetch_succeeded": 0,
                         "completed": 0,
                         "fetched": 0,
                         "usable": 0,
@@ -584,12 +675,25 @@ class RealtimeSearchEngine:
 
         documents: List[RealtimeDocument] = []
         scheduled = 0
+        cached_reused_scheduled = 0
+        local_reused = 0
+        structured_reused = 0
         completed = 0
         failed = 0
+        snippet_fallbacks = 0
         cancelled = 0
         post_fetch_rejected = 0
         post_fetch_rejection_counts: Counter[str] = Counter()
-        target_candidates = candidates[:max_fetch]
+        target_candidates = select_fetch_candidates(
+            candidates,
+            max_network_fetches=max_fetch,
+            local_limit=self.config.local_discovery_evidence_limit,
+            local_min_score=self.config.local_discovery_evidence_min_score,
+            local_min_entity_coverage=(
+                self.config.local_discovery_evidence_min_entity_coverage
+            ),
+            source_preference=source_preference,
+        )
         expanded_parent_urls: set[str] = set()
         one_hop_candidate_count = 0
         batch_size = min(4, max(1, self.config.global_concurrency))
@@ -606,6 +710,7 @@ class RealtimeSearchEngine:
                 asyncio.create_task(self._fetch_extract_outcome(item)) for item in batch
             ]
             scheduled += len(tasks)
+            cached_reused_scheduled += sum(bool(item.cached_text.strip()) for item in batch)
             try:
                 for task in asyncio.as_completed(tasks, timeout=remaining):
                     if cancel_event and cancel_event.is_set():
@@ -615,29 +720,48 @@ class RealtimeSearchEngine:
                     except asyncio.CancelledError:
                         continue
                     completed += 1
+                    if outcome.document is not None and outcome.retrieval_mode == "local_index":
+                        local_reused += 1
+                    if (
+                        outcome.document is not None
+                        and outcome.retrieval_mode == "structured_api"
+                    ):
+                        structured_reused += 1
                     rejection_reasons: List[str] = []
                     if outcome.document is None:
                         failed += 1
-                    elif self.config.candidate_admission_enabled:
-                        rejection_reasons = candidate_rejection_reasons(
-                            query,
-                            DiscoveredURL(
-                                url=outcome.document.url,
-                                title=outcome.document.title,
-                                snippet=outcome.document.text[:500],
-                                engine="fetched_page",
-                            ),
-                        )
-                        if rejection_reasons:
-                            post_fetch_rejected += 1
-                            post_fetch_rejection_counts.update(rejection_reasons)
+                    else:
+                        if outcome.retrieval_mode == "search_snippet_fallback":
+                            # The candidate remains usable evidence, but the origin
+                            # fetch itself did not succeed. Keep both facts visible.
+                            failed += 1
+                            snippet_fallbacks += 1
+                        if self.config.candidate_admission_enabled:
+                            rejection_reasons = candidate_rejection_reasons(
+                                query,
+                                DiscoveredURL(
+                                    url=outcome.document.url,
+                                    title=outcome.document.title,
+                                    snippet=outcome.document.text[:500],
+                                    engine="fetched_page",
+                                ),
+                            )
+                            if rejection_reasons:
+                                post_fetch_rejected += 1
+                                post_fetch_rejection_counts.update(
+                                    rejection_reasons
+                                )
+                            else:
+                                documents.append(outcome.document)
                         else:
                             documents.append(outcome.document)
-                    else:
-                        documents.append(outcome.document)
                     progress: Dict[str, Any] = {
                         "attempted": completed,
                         "scheduled": scheduled,
+                        "network_attempted": scheduled - cached_reused_scheduled,
+                        "local_reused": local_reused,
+                        "structured_reused": structured_reused,
+                        "snippet_fallbacks": snippet_fallbacks,
                         "succeeded": completed - failed,
                         "usable": len(documents),
                         "rejected": post_fetch_rejected,
@@ -675,6 +799,11 @@ class RealtimeSearchEngine:
                                     "progress": {
                                         "attempted": completed,
                                         "scheduled": scheduled,
+                                        "network_attempted": (
+                                            scheduled - cached_reused_scheduled
+                                        ),
+                                        "local_reused": local_reused,
+                                        "structured_reused": structured_reused,
                                         "succeeded": completed - failed,
                                         "usable": len(documents),
                                         "rejected": post_fetch_rejected,
@@ -849,13 +978,29 @@ class RealtimeSearchEngine:
                         sorted(post_fetch_rejection_counts.items())
                     ),
                     "attempted": scheduled,
+                    "network_attempted": scheduled - cached_reused_scheduled,
+                    "local_reused": local_reused,
+                    "structured_reused": structured_reused,
+                    "snippet_fallbacks": snippet_fallbacks,
+                    "origin_fetch_succeeded": max(
+                        0,
+                        completed - failed - local_reused - structured_reused,
+                    ),
                     "completed": completed,
                     "fetched": len(documents) + post_fetch_rejected,
                     "usable": len(documents),
                     "failed": failed,
                     "cancelled": cancelled,
                     "selected": len(results),
-                    "fetch_success_rate": round(len(documents) / max(1, scheduled), 4),
+                    "fetch_success_rate": round(
+                        (
+                            len(documents)
+                            + post_fetch_rejected
+                            - snippet_fallbacks
+                        )
+                        / max(1, scheduled),
+                        4,
+                    ),
                     "discovery_elapsed_ms": discovery_elapsed_ms,
                     "fetch_elapsed_ms": fetch_elapsed_ms,
                     "elapsed_ms": round((time.monotonic() - started) * 1000.0, 3),
@@ -970,16 +1115,38 @@ class RealtimeSearchEngine:
             "parent_url": item.parent_url,
             "candidate_score": item.candidate_score,
             "score_components": item.score_components,
+            "cached_text_mode": item.cached_text_mode,
         }
 
     async def _fetch_extract(
         self, candidate: DiscoveredURL
     ) -> Optional[RealtimeDocument]:
+        cached_text = candidate.cached_text.strip()
+        if len(cached_text) >= 80:
+            source_type, authority = classify_source(candidate.url)
+            return RealtimeDocument(
+                url=candidate.url,
+                title=(candidate.title or candidate.url).strip()[:500],
+                text=cached_text[:400000],
+                published_at=candidate.published_hint,
+                fetched_at=time.time(),
+                source_type=source_type,
+                authority=authority,
+                extraction_quality=extraction_quality(
+                    candidate.title or candidate.url,
+                    cached_text,
+                ),
+                rrf_score=candidate.rrf_score,
+                candidate_score=candidate.candidate_score,
+                simhash=simhash64(cached_text[:120000]),
+                retrieval_mode=candidate.cached_text_mode or "local_index",
+            )
         assert self._fetcher is not None
         page = await self._fetcher.fetch(candidate.url)
         document = extract_page(page)
         if document:
             document.rrf_score = candidate.rrf_score
+            document.candidate_score = candidate.candidate_score
             if (
                 not document.title or document.title == document.url
             ) and candidate.title:
@@ -988,29 +1155,163 @@ class RealtimeSearchEngine:
 
     async def _fetch_extract_outcome(self, candidate: DiscoveredURL) -> _FetchOutcome:
         started = time.monotonic()
+        retrieval_mode = (
+            (candidate.cached_text_mode or "local_index")
+            if candidate.cached_text.strip()
+            else "web_fetch"
+        )
         try:
             document = await self._fetch_extract(candidate)
             if document is None:
+                extraction_error = RuntimeError(
+                    "page fetched but no usable document was extracted"
+                )
+                fallback = self._snippet_fallback_document(
+                    candidate,
+                    extraction_error,
+                    extraction_failed=True,
+                )
+                if fallback is not None:
+                    return _FetchOutcome(
+                        candidate=candidate,
+                        document=fallback,
+                        elapsed_ms=(time.monotonic() - started) * 1000.0,
+                        error_type="ExtractionError",
+                        error_message=str(extraction_error),
+                        retrieval_mode="search_snippet_fallback",
+                    )
                 return _FetchOutcome(
                     candidate=candidate,
                     document=None,
                     elapsed_ms=(time.monotonic() - started) * 1000.0,
                     error_type="ExtractionError",
-                    error_message="page fetched but no usable document was extracted",
+                    error_message=str(extraction_error),
+                    retrieval_mode=retrieval_mode,
                 )
             return _FetchOutcome(
                 candidate=candidate,
                 document=document,
                 elapsed_ms=(time.monotonic() - started) * 1000.0,
+                retrieval_mode=retrieval_mode,
             )
         except Exception as exc:
+            fallback = self._snippet_fallback_document(candidate, exc)
+            if fallback is not None:
+                return _FetchOutcome(
+                    candidate=candidate,
+                    document=fallback,
+                    elapsed_ms=(time.monotonic() - started) * 1000.0,
+                    error_type=type(exc).__name__,
+                    error_message=str(exc)[:300],
+                    retrieval_mode="search_snippet_fallback",
+                )
             return _FetchOutcome(
                 candidate=candidate,
                 document=None,
                 elapsed_ms=(time.monotonic() - started) * 1000.0,
                 error_type=type(exc).__name__,
                 error_message=str(exc)[:300],
+                retrieval_mode=retrieval_mode,
             )
+
+    def _snippet_fallback_document(
+        self,
+        candidate: DiscoveredURL,
+        error: Exception,
+        *,
+        extraction_failed: bool = False,
+    ) -> Optional[RealtimeDocument]:
+        """Return bounded SERP evidence when an origin yields no usable text."""
+
+        if not self.config.snippet_fallback_enabled or candidate.cached_text.strip():
+            return None
+        if extraction_failed and not self.config.snippet_fallback_on_extraction_error:
+            return None
+        message = str(error).casefold()
+        # Do not preserve stale/not-found URLs or pages rejected for safety and
+        # resource reasons.  The fallback is for access/network failures only.
+        if any(
+            value in message
+            for value in (
+                "http 404",
+                "http 410",
+                "invalid url",
+                "private or special",
+                "response too large",
+                "compressed response",
+                "unsupported content encoding",
+            )
+        ):
+            return None
+        error_name = type(error).__name__
+        eligible = (
+            extraction_failed
+            or "timeout" in error_name.casefold()
+            or "connection" in error_name.casefold()
+            or error_name
+            in {
+                "ClientConnectorError",
+                "ClientOSError",
+                "ClientResponseError",
+                "FetchError",
+                "ServerDisconnectedError",
+            }
+        )
+        if not eligible:
+            return None
+        snippet = " ".join(candidate.snippet.split()).strip()
+        title = " ".join(candidate.title.split()).strip()
+        cjk_count = sum(
+            "\u3400" <= character <= "\u9fff" for character in snippet
+        )
+        minimum_chars = (
+            self.config.snippet_fallback_min_cjk_chars
+            if cjk_count >= 16
+            else self.config.snippet_fallback_min_chars
+        )
+        entity_coverage = candidate.score_components.get("entity_coverage", 0.0)
+        entity_gate_passed = (
+            entity_coverage >= self.config.snippet_fallback_min_entity_coverage
+            or candidate.candidate_score
+            >= self.config.snippet_fallback_entity_bypass_score
+        )
+        if (
+            len(snippet) < max(1, minimum_chars)
+            or not title
+            or candidate.candidate_score
+            < self.config.snippet_fallback_min_candidate_score
+            or not entity_gate_passed
+            or candidate_rejection_reasons(
+                query="",
+                candidate=DiscoveredURL(
+                    url=candidate.url,
+                    title=f"{title} {snippet}",
+                    snippet=snippet,
+                    engine=candidate.engine,
+                ),
+            )
+        ):
+            return None
+        text = (
+            "Search result excerpt; the origin page could not be fetched, "
+            "so use this only as limited evidence.\n\n"
+            f"{title}\n\n{snippet}"
+        )
+        source_type, authority = classify_source(candidate.url)
+        return RealtimeDocument(
+            url=candidate.url,
+            title=title[:500],
+            text=text[:4000],
+            published_at=candidate.published_hint,
+            fetched_at=time.time(),
+            source_type=source_type,
+            authority=min(authority, 0.82),
+            extraction_quality=min(0.45, extraction_quality(title, text)),
+            rrf_score=candidate.rrf_score,
+            candidate_score=candidate.candidate_score,
+            simhash=simhash64(text),
+            retrieval_mode="search_snippet_fallback",
+        )
 
     def _ensure_started(self) -> None:
         if self._thread and self._thread.is_alive():
@@ -1066,6 +1367,8 @@ class RealtimeSearchEngine:
             timeout=timeout,
             connector=connector,
             auto_decompress=False,
+            max_line_size=max(8190, int(self.config.response_header_max_bytes)),
+            max_field_size=max(8190, int(self.config.response_header_max_bytes)),
             headers={
                 "User-Agent": self.config.user_agent,
                 "Accept": "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.2",

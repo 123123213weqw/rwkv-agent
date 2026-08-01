@@ -17,7 +17,7 @@ done
 
 ENDPOINT="http://127.0.0.1:$PORT"
 "$BIN" --endpoint "$ENDPOINT" health | grep -q "status: ready"
-"$BIN" --endpoint "$ENDPOINT" doctor | grep -q "\[ok\] model_sidecar"
+"$BIN" --endpoint "$ENDPOINT" doctor | grep -q "✓ model_sidecar"
 "$BIN" --endpoint "$ENDPOINT" --json doctor | grep -q '"status": "ready"'
 "$BIN" --endpoint "$ENDPOINT" ask "hello world" | grep -q "mock answer"
 "$BIN" --endpoint "$ENDPOINT" research --branches 4 --rounds 2 \
@@ -40,6 +40,7 @@ grep -q "Parallel state research" "$ROOT/runs/mock_claude_chat.txt"
 grep -q "mock research" "$ROOT/runs/mock_claude_chat.txt"
 grep -q "session switched: next-session" "$ROOT/runs/mock_claude_chat.txt"
 grep -q '"answer": "mock answer' "$ROOT/runs/mock_claude_chat.txt"
+! grep -q $'\033\[' "$ROOT/runs/mock_claude_chat.txt"
 
 "$BIN" --endpoint "$ENDPOINT" --json ask first >"$ROOT/runs/fresh_session_1.json"
 "$BIN" --endpoint "$ENDPOINT" --json ask second >"$ROOT/runs/fresh_session_2.json"

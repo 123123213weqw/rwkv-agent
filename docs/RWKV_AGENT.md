@@ -66,7 +66,8 @@ flowchart LR
     API --> C["AgentController"]
     C --> G["Policy + G1I chat/tool gate"]
     C <--> T["Transient pasted text\none per session, RAM only"]
-    G -->|chat| M["G1I completion"]
+    G -->|chat| CS["DirectChatSession\nopaque recurrent State + transcript fallback"]
+    CS --> M["G1I completion"]
     G -->|tool| F["Strict function call"]
     F --> W["web_search"]
     F --> K["knowledge_search"]
@@ -82,15 +83,37 @@ flowchart LR
     C --> SR["Explicit State research\nRoot + B4 × two rounds"]
     SR --> W
     SR --> P
-    M --> Q["ContinuousBatchEngine"]
-    Q --> P["Exact-chunk prefill\nactive-row decode"]
+    M --> Q["Unified Ready Queue"]
+    CS --> Q
+    SR --> Q
+    Q --> P["Mixed exact-chunk prefill\nmixed active-row decode"]
     P --> R["Albatross G1I 13.3B"]
 ```
+
+The Python implementation follows the same boundaries:
+
+- `controller.py` assembles dependencies and owns only request orchestration;
+- `tool_routing.py`, `tool_protocol.py` and `tool_executor.py` separate the
+  semantic gate, strict Function Call wire format and adapter dispatch;
+- `chat_session.py`, `chat_state.py` and `chat_prompts.py` separate opaque
+  recurrent-State lifecycle, bounded ownership/cache and prompt rendering;
+- `state_agent.py` orchestrates bounded research while `state_prompts.py`,
+  `state_evidence.py` and `state_answer.py` own protocol text, Evidence
+  selection and citation/claim validation;
+- `persistent_state.py` owns persistent State identity, owner, TTL and capacity;
+  `state_runtime.py` owns only inference operations against that registry, and
+  `state_batching.py` contains the immutable continuation-row contract;
+- `batching.py` owns the single bounded Ready Queue used by ordinary
+  Completion, Gate and persistent-State Continuation rows;
+- `rwkv_runtime` contains framework-neutral greedy token, decoded Stop,
+  classification and scheduler interface contracts shared by continuous and
+  persistent serving.
 
 ## Clean workspace layout
 
 ```text
 src/rwkv_agent/            Agent Controller, HTTP, Sidecar, batching and tools
+src/rwkv_runtime/          Framework-neutral decode/classification contracts
 src/rwkv7_scheduler/       State slab and exact chunk/decode scheduler
 src/rwkv_search/           Internal realtime and FineWiki dependencies
 cli/                       Claude-style Rust terminal client
@@ -170,22 +193,33 @@ Defaults are Top-16 chunks, eight workers, 1,200 characters per chunk, 160
 characters overlap, eight Evidence items, one million characters per pasted
 text and at most 32 buffered sessions.
 
-## Continuous batching integration
+## Unified batching integration
 
 `src/rwkv_agent/sidecar.py` owns one:
 
 - `AlbatrossStatePool`;
 - `AlbatrossChunkScheduler`;
-- `ContinuousBatchEngine` background worker.
+- one `ContinuousBatchEngine` unified Ready Queue worker.
 
-Concurrent completion and Gate requests enter the same bounded queue. The worker:
+Concurrent Completion, Gate, single-State chat continuation and multi-row Agent
+branch continuation requests enter the same bounded queue. The worker:
 
 1. admits jobs into generation-protected state slots;
-2. advances long prompts by one exact 64-token quantum per round;
-3. groups only equal-length tails and never pads RWKV state;
-4. lets newly arrived jobs join between decode ticks;
-5. greedily samples active rows together;
-6. releases state immediately on EOS, stop string, limit, cancellation or error.
+2. installs persistent continuations without running a separate blocking
+   prefill loop;
+3. advances ephemeral prompts and persistent continuations by one exact
+   64-token quantum per round;
+4. groups only equal-length tails and never pads RWKV state;
+5. greedily samples all ready ephemeral and persistent rows together;
+6. commits terminal stop/budget tokens only for persistent rows, preserving the
+   recurrent continuation boundary;
+7. releases ephemeral state immediately on EOS, stop, limit, cancellation or
+   error, while persistent state remains owned by its registry.
+
+Initial persistent-State creation, fork and persistent classification retain
+their lifecycle APIs and do not yet enter this queue. The unified worker removes
+the former second persistent-State decode thread; one queue capacity and one
+backpressure policy now cover all user-visible generation paths.
 
 Default environment configuration:
 
@@ -314,14 +348,21 @@ Enable only in an isolated Agent process:
 
 ```bash
 export RWKV_AGENT_WEB_SHADOW=1
-export RWKV_AGENT_WEB_SHADOW_LOG=var/web-shadow.jsonl
+export RWKV_AGENT_WEB_SHADOW_SAMPLE_RATE=0.10
+export RWKV_AGENT_WEB_SHADOW_MAX_PENDING=2
+export RWKV_AGENT_WEB_SHADOW_LOG_MODE=metrics
+export RWKV_AGENT_WEB_SHADOW_LOG=var/web-shadow-metrics.jsonl
 ```
 
 The visible tool result always remains the Legacy `W1..W5` evidence. The
-Shadow has one worker and at most two pending requests. Queue saturation,
+production default samples 10% of eligible Web calls before queue admission,
+writes only aggregate metrics, and never logs raw queries, URLs, page bodies,
+or full traces. The Shadow has one worker and at most two pending requests. Queue saturation,
 timeouts, discovery/fetch errors and trace-write failures drop or degrade only
 the Shadow arm. A healthy local SearXNG configured by `configs/default.json`
 is preferred; otherwise the current Bing HTML discovery fallback is used.
+See `docs/PRODUCTION_WEB_SHADOW.md` for preflight, observation, promotion, and
+rollback procedures. Full trace mode is reserved for isolated benchmarks.
 
 The frozen 50-case V100 comparison is `benchmarks/web_shadow_v1.json`.
 Enhanced reduced garbage results from 17.56% to 1.08%, but Candidate Domain

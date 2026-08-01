@@ -41,9 +41,9 @@ _PROVIDER_CAPABILITIES = {
     ),
     "github": SourceCapability(
         "github",
-        "GitHub public code hosting: users, organizations, software repositories, "
-        "source code projects, commits, releases, issues and pull requests. "
-        "GitHub 用户、组织、开源代码、软件项目、仓库、提交、版本发布和问题记录。",
+        "GitHub public code hosting: GitHub users, organizations, source-code "
+        "repositories, repos, commits, issues and pull requests. GitHub 用户、组织、"
+        "开源代码、代码仓库、项目、提交和问题记录。",
     ),
     "crossref": SourceCapability(
         "crossref",
@@ -57,6 +57,34 @@ _PROVIDER_CAPABILITIES = {
         "维基百科概念、人物、组织、创始人、简介、定义和历史背景。",
     ),
 }
+_GITHUB_DETAIL_CAPABILITIES = {
+    "profile": SourceCapability(
+        "profile",
+        "User profile, creator, founder, author, maintainer or identity. "
+        "用户、创始人、作者、维护者和身份。",
+    ),
+    "repos": SourceCapability(
+        "repos",
+        "All projects, repositories and project list owned by a user or "
+        "organization. 用户或组织拥有的全部项目、仓库和项目列表。",
+    ),
+    "releases": SourceCapability(
+        "releases",
+        "Software release, releases, version, versions, stable version, tag and "
+        "changelog. 软件发布、正式版、版本、标签和发布记录。",
+    ),
+    "commits": SourceCapability(
+        "commits",
+        "Commit, commits, update, updates, recent changes and development activity. "
+        "提交、代码更新、改动、变更和开发活动。",
+    ),
+}
+
+
+def _structured_evidence(title: str, snippet: str) -> str:
+    """Keep bounded normalized text already returned by a source API."""
+
+    return " ".join(f"{title}. {snippet}".split())[:4000]
 
 
 def select_source_providers(
@@ -79,6 +107,20 @@ def select_source_providers(
         allowed,
         _PROVIDER_CAPABILITIES,
         max_optional=max_specialized,
+    )
+
+
+def select_github_detail_scopes(query: str) -> tuple[str, ...]:
+    """Select only the GitHub endpoints required by the visible request."""
+
+    # Endpoint selection intentionally uses the declarative lexical fallback.
+    # Unlike a general reranker, it returns no scope when the query contains no
+    # evidence for that endpoint, preventing four core API calls per repo hit.
+    return SourceSelector().select(
+        query,
+        tuple(_GITHUB_DETAIL_CAPABILITIES),
+        _GITHUB_DETAIL_CAPABILITIES,
+        max_optional=3,
     )
 
 
@@ -126,17 +168,21 @@ def parse_github_repositories(value: Mapping[str, Any]) -> list[DiscoveredURL]:
         details.append(f"Stars: {stars}")
         if pushed:
             details.append(f"Last push: {pushed}")
+        title = name[:500]
+        snippet = ". ".join(value for value in details if value)[:1800]
         output.append(
             DiscoveredURL(
                 url=url,
-                title=name[:500],
-                snippet=". ".join(value for value in details if value)[:1800],
+                title=title,
+                snippet=snippet,
                 engine="github",
                 rank=rank,
                 published_hint=pushed or None,
                 engine_score=min(1.0, 0.2 + stars / 100_000.0),
                 engines=["github"],
                 positions=[rank],
+                cached_text=_structured_evidence(title, snippet),
+                cached_text_mode="structured_api",
             )
         )
     return output
@@ -149,15 +195,19 @@ def parse_github_release(item: Mapping[str, Any]) -> DiscoveredURL | None:
         return None
     body = " ".join(str(item.get("body") or "").split())
     published = str(item.get("published_at") or item.get("created_at") or "")
+    title = f"GitHub Release {tag}"[:500]
+    snippet = body[:1800]
     return DiscoveredURL(
         url=url,
-        title=f"GitHub Release {tag}"[:500],
-        snippet=body[:1800],
+        title=title,
+        snippet=snippet,
         engine="github",
         published_hint=published or None,
         rrf_score=0.02,
         engine_score=1.0,
         engines=["github"],
+        cached_text=_structured_evidence(title, snippet),
+        cached_text_mode="structured_api",
     )
 
 
@@ -176,11 +226,13 @@ def parse_github_commits(
         sha = str(item.get("sha") or "")[:12]
         if not url or not message:
             continue
+        title = f"Commit {sha}: {message.splitlines()[0]}"[:500]
+        snippet = message[:1800]
         output.append(
             DiscoveredURL(
                 url=url,
-                title=f"Commit {sha}: {message.splitlines()[0]}"[:500],
-                snippet=message[:1800],
+                title=title,
+                snippet=snippet,
                 engine="github",
                 rank=rank,
                 published_hint=date or None,
@@ -188,6 +240,8 @@ def parse_github_commits(
                 engine_score=0.9,
                 engines=["github"],
                 positions=[rank],
+                cached_text=_structured_evidence(title, snippet),
+                cached_text_mode="structured_api",
             )
         )
     return output
@@ -228,17 +282,21 @@ def parse_crossref_results(value: Mapping[str, Any]) -> list[DiscoveredURL]:
             ) if value
         )
         published = _crossref_date(item)
+        title = title[:500]
+        snippet = snippet[:1800]
         output.append(
             DiscoveredURL(
                 url=url,
-                title=title[:500],
-                snippet=snippet[:1800],
+                title=title,
+                snippet=snippet,
                 engine="crossref",
                 rank=rank,
                 published_hint=published,
                 engine_score=max(0.0, float(item.get("score") or 0.0)),
                 engines=["crossref"],
                 positions=[rank],
+                cached_text=_structured_evidence(title, snippet),
+                cached_text_mode="structured_api",
             )
         )
     return output
@@ -281,17 +339,21 @@ def parse_mediawiki_pages(
         if isinstance(revisions, list) and revisions and isinstance(revisions[0], Mapping):
             timestamp = str(revisions[0].get("timestamp") or "")
         if title and url:
+            title = title[:500]
+            snippet = extract[:1800]
             output.append(
                 DiscoveredURL(
                     url=url,
-                    title=title[:500],
-                    snippet=extract[:1800],
+                    title=title,
+                    snippet=snippet,
                     engine="mediawiki",
                     rank=rank,
                     published_hint=timestamp or None,
                     engine_score=0.8,
                     engines=["mediawiki"],
                     positions=[rank],
+                    cached_text=_structured_evidence(title, snippet),
+                    cached_text_mode="structured_api",
                 )
             )
     return output
@@ -313,6 +375,11 @@ class SourceAPIDiscovery:
             tuple[float, list[DiscoveredURL]],
         ] = {}
         self._github_locks: dict[str, asyncio.Lock] = {}
+        self._github_repository_cache: dict[
+            str,
+            tuple[float, list[DiscoveredURL]],
+        ] = {}
+        self._github_repository_locks: dict[str, asyncio.Lock] = {}
 
     async def discover(
         self,
@@ -323,7 +390,6 @@ class SourceAPIDiscovery:
         providers = select_source_providers(
             query,
             self.config.api_discovery_providers,
-            scorer=self.semantic_scorer,
         )
         tasks = {
             provider: asyncio.create_task(self._one(provider, query, diagnostics))
@@ -485,7 +551,9 @@ class SourceAPIDiscovery:
                 -tokens.index(value),
             ),
         )
-        cache_key = repository_token.casefold()
+        detail_scopes = select_github_detail_scopes(query)
+        repository_key = repository_token.casefold()
+        cache_key = repository_key + "\0" + ",".join(detail_scopes)
         cached = self._github_cache.get(cache_key)
         if cached and cached[0] > time.monotonic():
             return copy.deepcopy(cached[1])
@@ -494,7 +562,7 @@ class SourceAPIDiscovery:
             cached = self._github_cache.get(cache_key)
             if cached and cached[0] > time.monotonic():
                 return copy.deepcopy(cached[1])
-            output = await self._github_uncached(repository_token)
+            output = await self._github_uncached(repository_token, detail_scopes)
             if output:
                 ttl = max(30.0, float(self.config.search_cache_ttl_seconds))
                 self._github_cache[cache_key] = (
@@ -503,9 +571,46 @@ class SourceAPIDiscovery:
                 )
             return output
 
+    async def _github_repositories(
+        self,
+        repository_token: str,
+        headers: Mapping[str, str],
+    ) -> list[DiscoveredURL]:
+        cache_key = repository_token.casefold()
+        cached = self._github_repository_cache.get(cache_key)
+        if cached and cached[0] > time.monotonic():
+            return copy.deepcopy(cached[1])
+        lock = self._github_repository_locks.setdefault(cache_key, asyncio.Lock())
+        async with lock:
+            cached = self._github_repository_cache.get(cache_key)
+            if cached and cached[0] > time.monotonic():
+                return copy.deepcopy(cached[1])
+            value = await self._request_json(
+                "get",
+                "https://api.github.com/search/repositories",
+                headers=headers,
+                params={
+                    "q": repository_token + " in:name",
+                    "sort": "stars",
+                    "order": "desc",
+                    "per_page": str(self.config.api_provider_max_results),
+                },
+            )
+            repositories = parse_github_repositories(
+                value if isinstance(value, Mapping) else {}
+            )
+            if repositories:
+                ttl = max(30.0, float(self.config.search_cache_ttl_seconds))
+                self._github_repository_cache[cache_key] = (
+                    time.monotonic() + ttl,
+                    copy.deepcopy(repositories),
+                )
+            return repositories
+
     async def _github_uncached(
         self,
         repository_token: str,
+        detail_scopes: Sequence[str],
     ) -> list[DiscoveredURL]:
         headers = {
             "Accept": "application/vnd.github+json",
@@ -515,52 +620,49 @@ class SourceAPIDiscovery:
         auth_token = os.getenv(self.config.github_token_env, "").strip()
         if auth_token:
             headers["Authorization"] = f"Bearer {auth_token}"
-        value = await self._request_json(
-            "get",
-            "https://api.github.com/search/repositories",
-            headers=headers,
-            params={
-                "q": repository_token + " in:name",
-                "sort": "stars",
-                "order": "desc",
-                "per_page": str(self.config.api_provider_max_results),
-            },
-        )
-        repositories = parse_github_repositories(value if isinstance(value, Mapping) else {})
+        repositories = await self._github_repositories(repository_token, headers)
         if not repositories:
             return []
         parsed = urlsplit(repositories[0].url).path.strip("/").split("/")
         if len(parsed) < 2:
             return repositories
         owner, repo = parsed[:2]
-        requests = [
-            self._request_json(
+        requests: dict[str, Any] = {}
+        selected_scopes = set(detail_scopes)
+        if "profile" in selected_scopes:
+            requests["profile"] = self._request_json(
                 "get",
                 f"https://api.github.com/users/{quote(owner)}",
                 headers=headers,
-            ),
-            self._request_json(
+            )
+        if "releases" in selected_scopes:
+            requests["release"] = self._request_json(
                 "get",
                 f"https://api.github.com/repos/{quote(owner)}/{quote(repo)}/releases/latest",
                 headers=headers,
-            ),
-            self._request_json(
+            )
+        if "commits" in selected_scopes:
+            requests["commits"] = self._request_json(
                 "get",
                 f"https://api.github.com/repos/{quote(owner)}/{quote(repo)}/commits",
                 headers=headers,
                 params={"per_page": "3"},
-            ),
-            self._request_json(
+            )
+        if "repos" in selected_scopes:
+            requests["owner_repos"] = self._request_json(
                 "get",
                 f"https://api.github.com/users/{quote(owner)}/repos",
                 headers=headers,
                 params={"sort": "pushed", "direction": "desc", "per_page": "100"},
-            ),
-        ]
-        profile, release, commits, owner_repos = await asyncio.gather(
-            *requests,
-            return_exceptions=True,
-        )
+            )
+        details: dict[str, Any] = {}
+        if requests:
+            values = await asyncio.gather(*requests.values(), return_exceptions=True)
+            details = dict(zip(requests, values))
+        profile = details.get("profile")
+        release = details.get("release")
+        commits = details.get("commits")
+        owner_repos = details.get("owner_repos")
         primary = repositories[0]
         primary.discovery_stage = "github_primary_repository"
         primary.discovery_stages = [primary.discovery_stage]
@@ -595,6 +697,10 @@ class SourceAPIDiscovery:
                     discovery_stage="github_owner_profile",
                     discovery_stages=["github_owner_profile"],
                 )
+                profile_result.cached_text = _structured_evidence(
+                    profile_result.title, profile_result.snippet
+                )
+                profile_result.cached_text_mode = "structured_api"
                 output.append(profile_result)
         parsed_owner_repos: list[DiscoveredURL] = []
         if isinstance(owner_repos, list):
@@ -619,20 +725,23 @@ class SourceAPIDiscovery:
                         f" Most recently pushed: {parsed_owner_repos[0].title} "
                         f"at {latest_push}."
                     )
-                output.append(
-                    DiscoveredURL(
-                        url=f"https://github.com/{quote(owner)}?tab=repositories",
-                        title=f"{owner} GitHub repositories",
-                        snippet=index_snippet[:1800],
-                        engine="github",
-                        published_hint=latest_push,
-                        rrf_score=0.04,
-                        engine_score=1.0,
-                        engines=["github"],
-                        discovery_stage="github_owner_repository_index",
-                        discovery_stages=["github_owner_repository_index"],
-                    )
+                index_result = DiscoveredURL(
+                    url=f"https://github.com/{quote(owner)}?tab=repositories",
+                    title=f"{owner} GitHub repositories",
+                    snippet=index_snippet[:1800],
+                    engine="github",
+                    published_hint=latest_push,
+                    rrf_score=0.04,
+                    engine_score=1.0,
+                    engines=["github"],
+                    discovery_stage="github_owner_repository_index",
+                    discovery_stages=["github_owner_repository_index"],
                 )
+                index_result.cached_text = _structured_evidence(
+                    index_result.title, index_result.snippet
+                )
+                index_result.cached_text_mode = "structured_api"
+                output.append(index_result)
         if isinstance(release, Mapping):
             parsed_release = parse_github_release(release)
             if parsed_release is not None:

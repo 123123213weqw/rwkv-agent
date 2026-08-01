@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Sequence, Tuple
 
 from rwkv_search.analysis import QueryAnalyzer
+from rwkv_search.p4_search import resolve_model_query_constraints
 
 try:
     from .retrieval_metrics import evaluate_case
@@ -58,6 +59,62 @@ def load_p4_plans(path: Path) -> Dict[str, Dict[str, Any]]:
     return output
 
 
+def resolve_p4_plan_query(
+    raw_query: str,
+    p4_plan: Mapping[str, Any] | None,
+) -> Dict[str, Any]:
+    """Resolve a frozen P4 row with the same safety fallback as the runtime.
+
+    New plan files carry ``effective_query`` after runtime validation.  Older
+    frozen files only carry the model-authored query, so they must be checked
+    again with the current domain-neutral constraints before a benchmark can
+    execute them.
+    """
+
+    raw = _clean_query(raw_query)
+    if not p4_plan:
+        return {
+            "query": "",
+            "source": "missing_plan",
+            "fallback_to_raw": False,
+            "fallback_reason": "missing_plan",
+            "constraint_evaluation": {},
+        }
+
+    if p4_plan.get("strict_success") is False:
+        return {
+            "query": raw,
+            "source": "raw_fallback",
+            "fallback_to_raw": True,
+            "fallback_reason": "format_invalid",
+            "constraint_evaluation": {},
+        }
+
+    recorded_fallback = bool(p4_plan.get("fallback_to_raw"))
+    effective = _clean_query(str(p4_plan.get("effective_query") or ""))
+    model = _clean_query(str(p4_plan.get("model_query") or ""))
+    candidate = model if recorded_fallback and model else (effective or model)
+    source = "effective_query" if effective else "legacy_model_query"
+    resolution = resolve_model_query_constraints(raw, candidate)
+    if bool(resolution["fallback_to_raw"]):
+        return {
+            "query": raw,
+            "source": "raw_fallback",
+            "fallback_to_raw": True,
+            "fallback_reason": str(resolution["fallback_reason"]),
+            "constraint_evaluation": dict(resolution["constraint_evaluation"]),
+        }
+    constraints = dict(resolution["constraint_evaluation"])
+    repaired = bool(constraints.get("repair_applied"))
+    return {
+        "query": str(resolution["effective_query"]),
+        "source": "repaired_model_query" if repaired else source,
+        "fallback_to_raw": False,
+        "fallback_reason": "",
+        "constraint_evaluation": constraints,
+    }
+
+
 def strategy_queries(
     case: Mapping[str, Any],
     p4_plan: Mapping[str, Any] | None,
@@ -69,9 +126,8 @@ def strategy_queries(
     analysis = analyzer.analyze(raw_query)
     rule_queries = _unique_queries(analysis.search_queries or (analysis.resolved_query,))
 
-    p4_query = ""
-    if p4_plan and bool(p4_plan.get("strict_success")):
-        p4_query = str(p4_plan.get("model_query") or "")
+    p4_resolution = resolve_p4_plan_query(raw_query, p4_plan)
+    p4_query = str(p4_resolution["query"] or "")
     return {
         "raw": _unique_queries((raw_query,)),
         "rules": rule_queries,

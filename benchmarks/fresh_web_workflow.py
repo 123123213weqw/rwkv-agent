@@ -250,6 +250,7 @@ def freeze_collection(
         "event": "fresh_collection_frozen",
         "created_at": utc_now(),
         "checkpoint_manifest_sha256": checkpoint["checkpoint_manifest_sha256"],
+        "checkpoint_record_sha256": sha256(checkpoint_record),
         "summary": summary,
         "artifacts": {
             public_path.name: {"bytes": public_path.stat().st_size, "sha256": sha256(public_path)},
@@ -277,9 +278,105 @@ def claim_blind_run(manifest_path: Path, run_id: str) -> dict[str, Any]:
     return claim
 
 
+def seal_blind_predictions(
+    manifest_path: Path,
+    claim_path: Path,
+    run_manifest_path: Path,
+    execution_cases_path: Path,
+    results_path: Path,
+    output_path: Path,
+    *,
+    require_no_tavily: bool = True,
+) -> dict[str, Any]:
+    """Freeze model-visible inputs and predictions before private Gold is revealed."""
+
+    manifest_path = manifest_path.expanduser().resolve()
+    claim_path = claim_path.expanduser().resolve()
+    run_manifest_path = run_manifest_path.expanduser().resolve()
+    execution_cases_path = execution_cases_path.expanduser().resolve()
+    results_path = results_path.expanduser().resolve()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    claim = json.loads(claim_path.read_text(encoding="utf-8"))
+    run_manifest = json.loads(run_manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("event") != "fresh_collection_frozen":
+        raise ValueError("invalid fresh collection manifest")
+    if claim.get("event") != "fresh_blind_run_claimed":
+        raise ValueError("invalid blind-run claim")
+    if claim.get("manifest_sha256") != sha256(manifest_path):
+        raise ValueError("blind-run claim does not bind this collection")
+    if claim.get("checkpoint_manifest_sha256") != manifest.get(
+        "checkpoint_manifest_sha256"
+    ):
+        raise ValueError("checkpoint binding differs between claim and collection")
+    if str(run_manifest.get("run_id") or "") != str(claim.get("run_id") or ""):
+        raise ValueError("run manifest ID differs from blind-run claim")
+    if run_manifest.get("datasets") != ["webwalkerqa"]:
+        raise ValueError("blind Fresh-Web run must contain only webwalkerqa")
+    if run_manifest.get("mode") != "full" or not run_manifest.get("defer_scoring"):
+        raise ValueError("blind Fresh-Web run must be full and defer scoring")
+    checkpoint_binding = run_manifest.get("checkpoint_manifest")
+    if not isinstance(checkpoint_binding, Mapping) or checkpoint_binding.get(
+        "sha256"
+    ) != manifest.get("checkpoint_record_sha256"):
+        raise ValueError("run manifest does not bind the frozen checkpoint record")
+    providers = [
+        str(value).casefold()
+        for value in run_manifest.get("web_api_providers") or []
+    ]
+    if require_no_tavily and "tavily" in providers:
+        raise ValueError("no-Tavily blind run cannot enable Tavily")
+    public_artifact = dict(manifest.get("artifacts") or {}).get(
+        "cases.public.jsonl"
+    )
+    if not isinstance(public_artifact, Mapping) or public_artifact.get(
+        "sha256"
+    ) != sha256(execution_cases_path):
+        raise ValueError("execution cases differ from frozen public cases")
+    public_rows = _jsonl_load(execution_cases_path)
+    result_rows = _jsonl_load(results_path)
+    public_ids = [str(row.get("id") or "") for row in public_rows]
+    result_ids = [str(row.get("case_id") or "") for row in result_rows]
+    if (
+        not public_ids
+        or len(public_ids) != len(set(public_ids))
+        or len(result_ids) != len(set(result_ids))
+        or set(public_ids) != set(result_ids)
+    ):
+        raise ValueError("public cases and predictions must have identical unique IDs")
+    seal = {
+        "schema_version": SCHEMA_VERSION,
+        "event": "fresh_blind_predictions_sealed",
+        "created_at": utc_now(),
+        "run_id": str(claim.get("run_id") or ""),
+        "collection_manifest_sha256": sha256(manifest_path),
+        "blind_claim_sha256": sha256(claim_path),
+        "checkpoint_manifest_sha256": manifest["checkpoint_manifest_sha256"],
+        "checkpoint_record_sha256": manifest["checkpoint_record_sha256"],
+        "run_manifest_sha256": sha256(run_manifest_path),
+        "require_no_tavily": bool(require_no_tavily),
+        "web_api_providers": providers,
+        "artifacts": {
+            "execution_cases": {
+                "path": str(execution_cases_path),
+                "cases": len(public_rows),
+                "sha256": sha256(execution_cases_path),
+            },
+            "results": {
+                "path": str(results_path),
+                "cases": len(result_rows),
+                "sha256": sha256(results_path),
+            },
+        },
+        "gold_revealed_before_predictions": False,
+    }
+    _json_dump(output_path, seal, exclusive=True)
+    return seal
+
+
 def materialize_blind_scoring_cases(
     manifest_path: Path,
     claim_path: Path,
+    prediction_seal_path: Path,
     output_dir: Path,
 ) -> dict[str, Any]:
     """Reveal private Gold to an exclusive scoring directory after the claim.
@@ -291,8 +388,10 @@ def materialize_blind_scoring_cases(
 
     manifest_path = manifest_path.expanduser().resolve()
     claim_path = claim_path.expanduser().resolve()
+    prediction_seal_path = prediction_seal_path.expanduser().resolve()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     claim = json.loads(claim_path.read_text(encoding="utf-8"))
+    prediction_seal = json.loads(prediction_seal_path.read_text(encoding="utf-8"))
     if manifest.get("event") != "fresh_collection_frozen":
         raise ValueError("invalid fresh collection manifest")
     if claim.get("event") != "fresh_blind_run_claimed":
@@ -303,6 +402,22 @@ def materialize_blind_scoring_cases(
         "checkpoint_manifest_sha256"
     ):
         raise ValueError("checkpoint binding differs between claim and collection")
+    if prediction_seal.get("event") != "fresh_blind_predictions_sealed":
+        raise ValueError("invalid blind prediction seal")
+    if prediction_seal.get("collection_manifest_sha256") != sha256(manifest_path):
+        raise ValueError("prediction seal does not bind this collection")
+    if prediction_seal.get("blind_claim_sha256") != sha256(claim_path):
+        raise ValueError("prediction seal does not bind this blind-run claim")
+    if prediction_seal.get("run_id") != claim.get("run_id"):
+        raise ValueError("prediction seal run ID differs from blind-run claim")
+    results_artifact = dict(prediction_seal.get("artifacts") or {}).get("results")
+    if not isinstance(results_artifact, Mapping):
+        raise ValueError("prediction seal has no results artifact")
+    sealed_results = Path(_require_text(results_artifact, "path", "seal.results"))
+    if not sealed_results.is_file() or sha256(sealed_results) != _require_text(
+        results_artifact, "sha256", "seal.results"
+    ):
+        raise ValueError("sealed prediction artifact changed before Gold reveal")
     artifacts = dict(manifest.get("artifacts") or {})
     public_path = manifest_path.parent / "cases.public.jsonl"
     private_path = manifest_path.parent / "gold.private.jsonl"
@@ -353,6 +468,8 @@ def materialize_blind_scoring_cases(
         "checkpoint_manifest_sha256": manifest["checkpoint_manifest_sha256"],
         "collection_manifest_sha256": sha256(manifest_path),
         "blind_claim_sha256": sha256(claim_path),
+        "prediction_seal_sha256": sha256(prediction_seal_path),
+        "sealed_results_sha256": results_artifact["sha256"],
         "artifacts": {
             cases_path.name: {
                 "bytes": cases_path.stat().st_size,
@@ -390,9 +507,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     claim = subparsers.add_parser("claim-blind-run")
     claim.add_argument("--manifest", type=Path, required=True)
     claim.add_argument("--run-id", required=True)
+    seal = subparsers.add_parser("seal-blind-predictions")
+    seal.add_argument("--manifest", type=Path, required=True)
+    seal.add_argument("--claim", type=Path, required=True)
+    seal.add_argument("--run-manifest", type=Path, required=True)
+    seal.add_argument("--execution-cases", type=Path, required=True)
+    seal.add_argument("--results", type=Path, required=True)
+    seal.add_argument("--output", type=Path, required=True)
+    seal.add_argument("--allow-tavily", action="store_true")
     materialize = subparsers.add_parser("materialize-blind-cases")
     materialize.add_argument("--manifest", type=Path, required=True)
     materialize.add_argument("--claim", type=Path, required=True)
+    materialize.add_argument("--prediction-seal", type=Path, required=True)
     materialize.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "freeze-checkpoint":
@@ -407,10 +533,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     elif args.command == "claim-blind-run":
         value = claim_blind_run(args.manifest, args.run_id)
+    elif args.command == "seal-blind-predictions":
+        value = seal_blind_predictions(
+            args.manifest,
+            args.claim,
+            args.run_manifest,
+            args.execution_cases,
+            args.results,
+            args.output,
+            require_no_tavily=not args.allow_tavily,
+        )
     else:
         value = materialize_blind_scoring_cases(
             args.manifest,
             args.claim,
+            args.prediction_seal,
             args.output_dir,
         )
     print(json.dumps(value, ensure_ascii=False, sort_keys=True))

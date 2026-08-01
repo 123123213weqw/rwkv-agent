@@ -3,7 +3,7 @@
   "search": {
     "candidate_limit": 100,
     "result_limit": 10,
-    "per_domain_limit": 2,
+    "per_domain_limit": 3,
     "evidence_limit": 8,
     "evidence_character_budget": 18000
   },

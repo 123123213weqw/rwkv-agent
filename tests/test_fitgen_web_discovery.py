@@ -15,6 +15,7 @@ from rwkv_search.realtime.source_api import (
     parse_github_repositories,
     parse_mediawiki_pages,
     parse_tavily_results,
+    select_github_detail_scopes,
     select_source_providers,
 )
 
@@ -330,6 +331,10 @@ def test_source_provider_selection_is_source_shaped() -> None:
         configured,
     ) == ("tavily", "crossref")
     assert select_source_providers(
+        "Python current stable release from the official website",
+        configured,
+    ) == ("tavily",)
+    assert select_source_providers(
         "上海唐镇站如何到RWKV公司？",
         configured,
     ) == ("tavily",)
@@ -372,6 +377,37 @@ def test_source_api_keeps_fast_provider_when_another_times_out() -> None:
     assert time.monotonic() - started < 0.15
     assert [item.engine for item in results] == ["github"]
     assert any(item["engine"] == "mediawiki" for item in diagnostics)
+
+
+def test_source_api_activation_does_not_fan_out_from_uncalibrated_scorer() -> None:
+    class AlwaysHighScorer:
+        model_name = "uncalibrated-test-scorer"
+
+        def score(self, query, documents):
+            return [100.0] * len(documents)
+
+    class CaptureDiscovery(SourceAPIDiscovery):
+        providers: list[str] = []
+
+        async def _one(self, provider, query, diagnostics):
+            del query, diagnostics
+            self.providers.append(provider)
+            return []
+
+    discovery = CaptureDiscovery(
+        RealtimeSearchConfig(
+            api_discovery_providers=["github", "crossref", "mediawiki"]
+        ),
+        object(),
+        semantic_scorer=AlwaysHighScorer(),
+    )
+    asyncio.run(
+        discovery.discover(
+            "Python current stable release from the official website"
+        )
+    )
+
+    assert discovery.providers == []
 
 
 def test_tavily_results_keep_rank_score_and_content() -> None:
@@ -424,8 +460,21 @@ def test_github_repository_and_commit_results_use_html_urls() -> None:
 
     assert repositories[0].title == "BlinkDL/RWKV-LM"
     assert repositories[0].published_hint == "2026-07-27T00:00:00Z"
+    assert repositories[0].cached_text_mode == "structured_api"
+    assert "Stars: 15000" in repositories[0].cached_text
     assert commits[0].url.endswith("/commit/1234")
     assert "Update inference" in commits[0].title
+    assert commits[0].cached_text_mode == "structured_api"
+
+
+def test_github_detail_scopes_are_capability_selected() -> None:
+    assert select_github_detail_scopes("vLLM latest release") == ("releases",)
+    assert set(
+        select_github_detail_scopes(
+            "RWKV creator GitHub projects latest update"
+        )
+    ) == {"profile", "repos", "commits"}
+    assert select_github_detail_scopes("Find the official GitHub repository") == ()
 
 
 def test_github_discovery_uses_entity_name_not_auth_token() -> None:
@@ -580,7 +629,9 @@ def test_github_discovery_emits_owner_profile_repo_index_and_latest_commit() -> 
         RealtimeSearchConfig(api_discovery_providers=["github"]),
         object(),
     )
-    results = asyncio.run(discovery._github("RWKV GitHub projects latest update"))
+    results = asyncio.run(
+        discovery._github("RWKV creator GitHub projects latest update")
+    )
     by_stage = {item.discovery_stage: item for item in results}
 
     assert by_stage["github_owner_profile"].title == "PENG Bo (@BlinkDL)"
@@ -590,6 +641,42 @@ def test_github_discovery_emits_owner_profile_repo_index_and_latest_commit() -> 
     assert "BlinkDL/ChatRWKV" in by_stage["github_owner_repository_index"].snippet
     assert "BlinkDL/RWKV-CUDA" in by_stage["github_owner_repository_index"].snippet
     assert by_stage["github_latest_commit"].published_hint == "2026-07-27T01:00:00Z"
+
+
+def test_github_release_query_uses_one_detail_endpoint() -> None:
+    class CaptureDiscovery(SourceAPIDiscovery):
+        urls: list[str] = []
+
+        async def _request_json(self, method, url, **kwargs):
+            del method, kwargs
+            self.urls.append(url)
+            if url.endswith("/search/repositories"):
+                return {
+                    "items": [
+                        {
+                            "full_name": "vllm-project/vllm",
+                            "html_url": "https://github.com/vllm-project/vllm",
+                        }
+                    ]
+                }
+            if url.endswith("/releases/latest"):
+                return {
+                    "tag_name": "v1.0.0",
+                    "html_url": "https://github.com/vllm-project/vllm/releases/tag/v1.0.0",
+                }
+            raise AssertionError(f"unexpected GitHub endpoint: {url}")
+
+    discovery = CaptureDiscovery(
+        RealtimeSearchConfig(api_discovery_providers=["github"]),
+        object(),
+    )
+    results = asyncio.run(discovery._github("vLLM latest release"))
+
+    assert len(discovery.urls) == 2
+    release = next(
+        item for item in results if item.discovery_stage == "github_latest_release"
+    )
+    assert release.cached_text_mode == "structured_api"
 
 
 def test_public_evidence_uses_semantic_relevance_not_discovery_stage() -> None:
@@ -913,8 +1000,10 @@ def test_crossref_and_mediawiki_results_become_candidates() -> None:
 
     assert crossref[0].url == "https://doi.org/10.1000/rwkv"
     assert crossref[0].published_hint == "2026-07-01"
+    assert crossref[0].cached_text_mode == "structured_api"
     assert mediawiki[0].engine == "mediawiki"
     assert "语言模型" in mediawiki[0].snippet
+    assert mediawiki[0].cached_text_mode == "structured_api"
 
 
 def test_api_provider_override_is_explicit() -> None:

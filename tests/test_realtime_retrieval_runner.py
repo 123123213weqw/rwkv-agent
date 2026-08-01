@@ -168,6 +168,40 @@ class RealtimeRetrievalRunnerTest(unittest.TestCase):
             )
             cases = apply_model_queries([self.case], path)
         self.assertEqual(cases[0]["model_query"], "python.org stable release")
+        self.assertEqual(
+            cases[0]["model_query_resolution"]["source"], "legacy_model_query"
+        )
+
+    def test_frozen_legacy_query_with_invented_year_is_repaired(self) -> None:
+        case = dict(self.case)
+        case["query"] = "Find the latest Python release."
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "plans.jsonl"
+            path.write_text(
+                json.dumps(
+                    {
+                        "id": case["id"],
+                        "strict_success": True,
+                        "fallback_to_raw": False,
+                        "model_query": "Python latest release 2025",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            cases = apply_model_queries([case], path)
+        self.assertEqual(cases[0]["model_query"], "Python latest release")
+        self.assertFalse(cases[0]["model_query_resolution"]["fallback_to_raw"])
+        self.assertEqual(
+            cases[0]["model_query_resolution"]["source"],
+            "repaired_model_query",
+        )
+        self.assertEqual(
+            cases[0]["model_query_resolution"]["constraint_evaluation"][
+                "removed_absolute_terms"
+            ],
+            ["2025"],
+        )
 
     def test_frozen_model_queries_must_cover_every_selected_case(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

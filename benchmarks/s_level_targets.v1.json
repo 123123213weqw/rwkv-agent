@@ -1,0 +1,190 @@
+{
+  "schema_version": "rwkv-agent-s-level-targets.v1",
+  "benchmark": "RWKV-Agent-S-Level-v1",
+  "description": "Independent hard gates for a production-grade general web-search agent. There is no grand score.",
+  "integrity": {
+    "minimum_cases": {
+      "production": 500,
+      "s_level": 500
+    },
+    "minimum_live_repetitions": {
+      "production": 3,
+      "s_level": 3
+    },
+    "required_language_groups": [
+      "zh",
+      "en"
+    ],
+    "subgroup_floor_ratio": 0.9
+  },
+  "metrics": {
+    "search_gate_accuracy": {
+      "track": "routing",
+      "operator": ">=",
+      "production": 0.98,
+      "s_level": 0.995
+    },
+    "search_false_positive_rate": {
+      "track": "routing",
+      "operator": "<=",
+      "production": 0.02,
+      "s_level": 0.005
+    },
+    "search_false_negative_rate": {
+      "track": "routing",
+      "operator": "<=",
+      "production": 0.01,
+      "s_level": 0.003
+    },
+    "tool_call_strict_success_rate": {
+      "track": "tool_call",
+      "operator": ">=",
+      "production": 0.995,
+      "s_level": 0.999
+    },
+    "domain_recall_at_10": {
+      "track": "discovery",
+      "operator": ">=",
+      "production": 0.97,
+      "s_level": 0.99,
+      "subgroup_gate": true
+    },
+    "exact_page_recall_at_20": {
+      "track": "discovery",
+      "operator": ">=",
+      "production": 0.8,
+      "s_level": 0.95,
+      "subgroup_gate": true
+    },
+    "accessible_fetch_success_rate": {
+      "track": "fetch",
+      "operator": ">=",
+      "production": 0.97,
+      "s_level": 0.99
+    },
+    "garbage_result_rate": {
+      "track": "fetch",
+      "operator": "<=",
+      "production": 0.02,
+      "s_level": 0.005
+    },
+    "discovered_to_evidence_retention_rate": {
+      "track": "evidence",
+      "operator": ">=",
+      "production": 0.95,
+      "s_level": 0.99
+    },
+    "final_evidence_exact_recall": {
+      "track": "evidence",
+      "operator": ">=",
+      "production": 0.75,
+      "s_level": 0.9,
+      "subgroup_gate": true
+    },
+    "citation_validity_precision": {
+      "track": "citation",
+      "operator": ">=",
+      "production": 0.98,
+      "s_level": 0.995
+    },
+    "citation_exact_page_recall": {
+      "track": "citation",
+      "operator": ">=",
+      "production": 0.75,
+      "s_level": 0.9,
+      "subgroup_gate": true
+    },
+    "important_claim_citation_coverage": {
+      "track": "citation",
+      "operator": ">=",
+      "production": 0.95,
+      "s_level": 0.99
+    },
+    "unsupported_claim_rate": {
+      "track": "answer",
+      "operator": "<=",
+      "production": 0.03,
+      "s_level": 0.01,
+      "subgroup_gate": true
+    },
+    "answer_factual_accuracy": {
+      "track": "answer",
+      "operator": ">=",
+      "production": 0.9,
+      "s_level": 0.97,
+      "subgroup_gate": true
+    },
+    "answer_completeness_rate": {
+      "track": "answer",
+      "operator": ">=",
+      "production": 0.85,
+      "s_level": 0.95
+    },
+    "correct_abstention_rate": {
+      "track": "answer",
+      "operator": ">=",
+      "production": 0.95,
+      "s_level": 0.99
+    },
+    "multihop_complete_rate": {
+      "track": "multihop",
+      "operator": ">=",
+      "production": 0.75,
+      "s_level": 0.9
+    },
+    "repeat_stability_rate": {
+      "track": "stability",
+      "operator": ">=",
+      "production": 0.9,
+      "s_level": 0.97
+    },
+    "status_ok_rate": {
+      "track": "reliability",
+      "operator": ">=",
+      "production": 0.995,
+      "s_level": 0.999
+    },
+    "state_leak_count": {
+      "track": "reliability",
+      "operator": "==",
+      "production": 0,
+      "s_level": 0
+    },
+    "chat_p50_ttft_ms": {
+      "track": "latency",
+      "operator": "<=",
+      "production": 1000,
+      "s_level": 500
+    },
+    "chat_p95_ttft_ms": {
+      "track": "latency",
+      "operator": "<=",
+      "production": 2000,
+      "s_level": 1500
+    },
+    "search_p50_latency_ms": {
+      "track": "latency",
+      "operator": "<=",
+      "production": 10000,
+      "s_level": 5000
+    },
+    "search_p95_latency_ms": {
+      "track": "latency",
+      "operator": "<=",
+      "production": 20000,
+      "s_level": 10000
+    },
+    "deep_research_p95_latency_ms": {
+      "track": "latency",
+      "operator": "<=",
+      "production": 120000,
+      "s_level": 90000
+    },
+    "average_pages_fetched": {
+      "track": "efficiency",
+      "operator": "<=",
+      "production": 8,
+      "s_level": 6
+    }
+  }
+}

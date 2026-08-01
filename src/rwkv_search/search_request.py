@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any, Dict, Optional, Tuple
 
 from .pipeline.query_compiler import QueryCompiler, QueryHints
@@ -62,12 +62,38 @@ class SearchRequestBuilder:
         model_query: str,
         *,
         hints: QueryHints | None = None,
+        preserve_raw_query: bool = False,
+        raw_query_max_characters: int = 256,
     ) -> SearchRequest:
         compiled = self.compiler.compile(raw_query, model_query, hints=hints)
+        execution_queries = list(compiled.execution_queries)
+        trace = list(compiled.trace)
+        if preserve_raw_query and compiled.model_query:
+            raw_hints = replace(
+                hints or QueryHints(),
+                sites=compiled.sites,
+            )
+            raw_compiled = self.compiler.compile(raw_query, "", hints=raw_hints)
+            raw_execution = raw_compiled.execution_queries[0]
+            if raw_execution in execution_queries:
+                raw_lane_status = "duplicate"
+            elif len(raw_execution) > max(1, int(raw_query_max_characters)):
+                raw_lane_status = "skipped_too_long"
+            else:
+                execution_queries.append(raw_execution)
+                raw_lane_status = "added"
+            trace.append(
+                {
+                    "stage": "raw_query_recall_lane",
+                    "enabled": True,
+                    "status": raw_lane_status,
+                    "max_characters": max(1, int(raw_query_max_characters)),
+                }
+            )
         return SearchRequest(
             raw_query=compiled.raw_query,
             model_query=compiled.model_query,
-            execution_queries=compiled.execution_queries,
+            execution_queries=tuple(execution_queries),
             entities=(),
             freshness=compiled.freshness,
             time_terms=compiled.time_terms,
@@ -75,7 +101,7 @@ class SearchRequestBuilder:
             source_preference=compiled.source_preference,
             sites=compiled.sites,
             depth=compiled.depth,
-            trace=compiled.trace,
+            trace=tuple(trace),
         )
 
 

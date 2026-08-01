@@ -151,6 +151,16 @@ class FitGenReleaseGateTests(unittest.TestCase):
             state_fit = make_run("state-fit", ("longbench_v2",), {"longbench_v2": 70}, state=True)
             state_ood = make_run("state-ood", ("longbench_v2",), {"longbench_v2": 98}, state=True)
             fresh = make_run("fresh", ("webwalkerqa",), {"webwalkerqa": 200})
+            fresh_run_manifest = json.loads(
+                (fresh / "run-manifest.json").read_text(encoding="utf-8")
+            )
+            fresh_run_manifest.update(
+                {
+                    "defer_scoring": True,
+                    "web_api_providers": ["github", "crossref", "mediawiki"],
+                }
+            )
+            dump(fresh / "run-manifest.json", fresh_run_manifest)
             eli5 = make_run("eli5", ("alce",), {"alce": 300})
 
             fresh_manifest = root / "fresh-manifest.json"
@@ -164,6 +174,33 @@ class FitGenReleaseGateTests(unittest.TestCase):
                     "checkpoint_manifest_sha256": "artifact-sha",
                 },
             )
+            fresh_prediction_seal = root / "fresh-prediction-seal.json"
+            dump(
+                fresh_prediction_seal,
+                {
+                    "event": "fresh_blind_predictions_sealed",
+                    "run_id": "fresh",
+                    "collection_manifest_sha256": hashlib.sha256(
+                        fresh_manifest.read_bytes()
+                    ).hexdigest(),
+                    "blind_claim_sha256": hashlib.sha256(
+                        fresh_claim.read_bytes()
+                    ).hexdigest(),
+                    "require_no_tavily": True,
+                    "web_api_providers": ["github", "crossref", "mediawiki"],
+                },
+            )
+            fresh_summary_path = fresh / "webwalkerqa.score-summary.json"
+            fresh_summary = json.loads(
+                fresh_summary_path.read_text(encoding="utf-8")
+            )
+            fresh_summary["blind_scoring"] = {
+                "prediction_seal_sha256": hashlib.sha256(
+                    fresh_prediction_seal.read_bytes()
+                ).hexdigest(),
+                "gold_revealed_after_predictions": True,
+            }
+            dump(fresh_summary_path, fresh_summary)
             fresh_scoring_manifest = root / "fresh-scoring-manifest.json"
             dump(
                 fresh_scoring_manifest,
@@ -175,6 +212,9 @@ class FitGenReleaseGateTests(unittest.TestCase):
                     ).hexdigest(),
                     "blind_claim_sha256": hashlib.sha256(
                         fresh_claim.read_bytes()
+                    ).hexdigest(),
+                    "prediction_seal_sha256": hashlib.sha256(
+                        fresh_prediction_seal.read_bytes()
                     ).hexdigest(),
                     "artifacts": {
                         "webwalkerqa.jsonl": {
@@ -192,6 +232,7 @@ class FitGenReleaseGateTests(unittest.TestCase):
                 fresh_run=fresh,
                 fresh_manifest=fresh_manifest,
                 fresh_blind_claim=fresh_claim,
+                fresh_prediction_seal=fresh_prediction_seal,
                 fresh_scoring_manifest=fresh_scoring_manifest,
                 eli5_run=eli5,
                 longbench_state_fit_id_run=state_fit,

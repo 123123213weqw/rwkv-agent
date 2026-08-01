@@ -1,8 +1,8 @@
 # Known issues and optimization backlog
 
 This file distinguishes a usable Beta from remaining quality and production
-work. Items are based on the fixed 200-case Preview4922 13.3B regression and
-the current deployment audit.
+work. Items include the fixed Preview4922 13.3B regression, the later
+time-isolated Fresh-Web-200-v1 blind run and the current deployment audit.
 
 ## P0: correctness and reliability
 
@@ -19,10 +19,12 @@ the current deployment audit.
 
 ## P1: search quality
 
-- **Weak open-Web discovery:** WebWalker Evidence coverage and domain recall
-  both remained 20%; exact-page recall was 2.5%.
-- **Exact-page retrieval:** FRAMES improved to 14.79%, which is useful but still
-  too low for precise recent facts.
+- **Fresh-Web answer quality:** the sealed 200-case run completed every request
+  and reached 81% Gold-domain recall, but answer Token F1 was only 11.19% and
+  citation presence was 58.5%; it did not pass the release gate.
+- **Exact-page retrieval:** Fresh-Web Gold exact-URL recall was 16.75% and cited
+  exact-URL recall was 9.5%. Most failed cases reached the correct domain but
+  did not retain the exact answer-bearing page through Evidence and citation.
 - **Evidence selection:** stronger models answer more often but can select a
   plausible non-answer passage. Reranking must optimize answer-bearing passages,
   source authority, freshness and diversity together.
@@ -36,6 +38,8 @@ the current deployment audit.
 
 - FRAMES P95 was 33.2 seconds on one V100;
 - WebWalker P95 was 24.6 seconds;
+- Fresh-Web P95 was 42.33 seconds and all 200 requests exceeded its 20-second
+  budget;
 - state research lacks evidence-sufficiency early stop;
 - no cross-request model prefix cache is exposed at the product layer;
 - no user-visible progressive search timeline is available in the current CLI.
@@ -51,7 +55,9 @@ to answer faster.
 - no file upload, PDF/Office ingestion or persistent document library;
 - pasted long text is process memory and is lost on restart;
 - no source side panel, regenerate, stop-generation or per-source inspection UI;
-- no packaged Linux service unit, container image or prebuilt release binaries.
+- no packaged Linux service unit or container image;
+- a two-target CLI release workflow now exists, but no public binary is
+  available until a reviewed Beta tag is pushed.
 
 ## P2: model/runtime portability
 

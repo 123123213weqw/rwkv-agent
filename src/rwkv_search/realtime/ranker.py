@@ -21,7 +21,7 @@ def rank_documents(
     *,
     freshness_mode: str,
     limit: int,
-    per_domain_limit: int = 2,
+    per_domain_limit: int = 4,
     scorer: PairScorer | None = None,
     query_views: Sequence[str] = (),
     source_preference: str = "any",
@@ -40,6 +40,7 @@ def rank_documents(
         )
         document.score = (
             4.5 * document.rrf_score
+            + 0.24 * document.candidate_score
             + 0.33 * document.relevance
             + 0.22 * document.authority
             + 0.16 * document.freshness
@@ -116,11 +117,15 @@ def to_search_results(query: str, documents: Iterable[RealtimeDocument]) -> List
                 score=item.score,
                 score_components={
                     "rrf": item.rrf_score,
+                    "candidate_score": item.candidate_score,
                     "relevance": item.relevance,
                     "authority": item.authority,
                     "freshness": item.freshness,
                     "extraction_quality": item.extraction_quality,
                     "source_bonus": source_bonus(item.source_type),
+                    "snippet_fallback": float(
+                        item.retrieval_mode == "search_snippet_fallback"
+                    ),
                 },
             )
         )
