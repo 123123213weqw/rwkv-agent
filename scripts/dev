@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+cd "$ROOT"
+PYTHON=${RWKV_AGENT_PYTHON:-}
+if [[ -z "$PYTHON" ]]; then
+  if [[ -x "$ROOT/.venv/bin/python" ]]; then
+    PYTHON="$ROOT/.venv/bin/python"
+  else
+    PYTHON=python3
+  fi
+fi
+
+usage() {
+  cat <<'TXT'
+Usage: ./scripts/dev <command> [args]
+
+  setup       Install the editable Python development environment
+  check       Run static checks and the public-release audit
+  test        Run Python and Rust tests
+  build       Build the Python package and Rust release workspace
+  data-plane  Run the isolated Python data plane (default port 8121)
+  server      Run the isolated Rust Agent server (default port 8122)
+  cli         Run the terminal client against the isolated Rust server
+TXT
+}
+
+command=${1:-}
+[[ $# -eq 0 ]] || shift
+case "$command" in
+  setup)
+    exec "$PYTHON" -m pip install -e '.[realtime,segment,dev]' fastapi uvicorn
+    ;;
+  check)
+    ruff check src bench benchmarks tests scripts
+    "$PYTHON" -m compileall -q src
+    "$PYTHON" scripts/check_public_release.py
+    cargo fmt --check
+    cargo clippy --workspace --all-targets -- -D warnings
+    ;;
+  test)
+    PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:. "$PYTHON" -m pytest -q
+    cargo test --locked
+    ;;
+  build)
+    "$PYTHON" -m build
+    cargo build --workspace --release --locked
+    ;;
+  data-plane)
+    export PYTHONPATH="${PYTHONPATH:-src}:src"
+    exec "$PYTHON" -m rwkv_agent.data_server \
+      --port "${RWKV_AGENT_DATA_PLANE_PORT:-8121}" \
+      --model-urls "${RWKV_AGENT_MODEL_URLS:-http://127.0.0.1:8417}" "$@"
+    ;;
+  server)
+    exec cargo run -p rwkv-agent-server -- \
+      --port "${RWKV_AGENT_SERVER_PORT:-8122}" \
+      --model-urls "${RWKV_AGENT_MODEL_URLS:-http://127.0.0.1:8417}" \
+      --data-plane-url "${RWKV_AGENT_DATA_PLANE_URL:-http://127.0.0.1:8121}" "$@"
+    ;;
+  cli)
+    exec cargo run -p rwkv-agent-cli -- \
+      --endpoint "${RWKV_AGENT_ENDPOINT:-http://127.0.0.1:8122}" "$@"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac

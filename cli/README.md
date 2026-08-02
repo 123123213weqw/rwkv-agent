@@ -91,22 +91,53 @@ rwkv-agent-service init
 ```
 
 Continue with the repository
-[Quickstart](https://github.com/123123213weqw/rwkv-search/blob/main/docs/QUICKSTART.md)
+[Quickstart](https://github.com/123123213weqw/rwkv-agent/blob/main/docs/QUICKSTART.md)
 for model, runtime, SearXNG and local knowledge configuration.
+
+## Source location
+
+The Rust workspace lives at the repository root so the active Agent code is
+visible without entering a directory named only for the client:
+
+- `../crates/agent-cli` is the released terminal binary;
+- `../crates/agent-core` contains the runtime-neutral strict protocol, typed tool
+  registry, bounded same-State loop, cancellation/budget policy and lifecycle
+  events.
+- `../crates/agent-runtime` owns routing, recurrent chat State, durable transcripts,
+  the Tool/Observation loop, parallel-State research and the safe command policy;
+- `../crates/agent-server` exposes the CLI-compatible Rust HTTP control plane.
+
+This `cli/` directory retains installer, release packaging, local lifecycle and
+integration-smoke scripts for compatibility. See the repository
+[`DEVELOPING.md`](../DEVELOPING.md) and [`code map`](../docs/CODEMAP.md).
+
+Python continues to own the RWKV CUDA runtime, search, Evidence and long-text
+data plane. The Rust server defaults to isolated port `8122`; the existing
+Python Controller on `8120` remains compatible and unchanged until a separately
+authorized deployment switch.
+
+Run the split stack in an isolated environment:
+
+```bash
+rwkv-agent-data-plane --port 8121 --model-urls http://127.0.0.1:8417
+cargo run -p rwkv-agent-server -- --port 8122 \
+  --model-urls http://127.0.0.1:8417 \
+  --data-plane-url http://127.0.0.1:8121
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
+```
 
 ## Build and test
 
 ```bash
-cd cli
 cargo fmt --check
 cargo test --locked
 cargo clippy --all-targets -- -D warnings
 cargo build --release --locked
-bash tests/cli_smoke.sh
+bash cli/tests/cli_smoke.sh
 ```
 
 Create a release archive for the current native Rust target:
 
 ```bash
-./package-release.sh
+./cli/package-release.sh
 ```

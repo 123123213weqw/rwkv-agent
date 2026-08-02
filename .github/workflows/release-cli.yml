@@ -27,19 +27,16 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: cli
       - name: Verify tag matches Cargo version
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
-          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' cli/Cargo.toml | head -n 1)
+          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
           test "${GITHUB_REF_NAME}" = "v${version}"
       - name: Test terminal client
-        working-directory: cli
         run: |
-          cargo test --locked --target "${{ matrix.target }}"
-          cargo clippy --all-targets --target "${{ matrix.target }}" -- -D warnings
+          cargo test --locked -p rwkv-agent-cli --target "${{ matrix.target }}"
+          cargo clippy --all-targets -p rwkv-agent-cli --target "${{ matrix.target }}" -- -D warnings
       - name: Build release archive
         run: cli/package-release.sh "${{ matrix.target }}" "$GITHUB_WORKSPACE/dist"
       - uses: actions/upload-artifact@v4

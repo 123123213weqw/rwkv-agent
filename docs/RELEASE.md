@@ -21,12 +21,11 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:. python -m pytest -q
 ruff check src bench benchmarks tests scripts
 python -m build
 
-cd cli
 cargo fmt --check
 cargo test --locked
 cargo clippy --all-targets -- -D warnings
 cargo build --release --locked
-bash tests/cli_smoke.sh
+bash cli/tests/cli_smoke.sh
 ```
 
 The release audit verifies version alignment, required files, executable startup

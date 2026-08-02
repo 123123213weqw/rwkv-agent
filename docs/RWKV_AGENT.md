@@ -112,11 +112,15 @@ The Python implementation follows the same boundaries:
 ## Clean workspace layout
 
 ```text
+crates/agent-cli/          Rust terminal client
+crates/agent-core/         Strict protocol, registry and bounded Agent loop
+crates/agent-runtime/      State, sessions, tools, research and sandbox policy
+crates/agent-server/       Rust HTTP control plane
 src/rwkv_agent/            Agent Controller, HTTP, Sidecar, batching and tools
 src/rwkv_runtime/          Framework-neutral decode/classification contracts
 src/rwkv7_scheduler/       State slab and exact chunk/decode scheduler
 src/rwkv_search/           Internal realtime and FineWiki dependencies
-cli/                       Claude-style Rust terminal client
+cli/                       Client packaging and compatibility lifecycle scripts
 tests/                     Current unit and scheduler tests
 benchmarks/                Current reproducible performance runners/results
 deploy/                    Local Agent and optional SearXNG examples
@@ -303,7 +307,6 @@ pip install -e '.[realtime,analysis,agent]'
 PYTHONPATH=src python -m unittest discover -s tests -v
 ruff check src tests benchmarks
 
-cd cli
 cargo fmt --check
 cargo test
 cargo clippy --all-targets -- -D warnings

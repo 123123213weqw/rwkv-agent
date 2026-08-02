@@ -9,8 +9,12 @@ import json
 import os
 import re
 import sys
-import tomllib
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 development environments
+    import tomli as tomllib
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,23 +24,36 @@ RUST_VERSION = "0.3.0-beta.1"
 REQUIRED_FILES = (
     ".env.example",
     "CHANGELOG.md",
+    "DEVELOPING.md",
     "README.md",
     "SECURITY.md",
     "bench/baselines/agent-unified-regression-v1/manifest.json",
     "bench/baselines/agent-unified-regression-v1/public-results-manifest.json",
     "configs/production.example.json",
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/agent-cli/Cargo.toml",
+    "crates/agent-cli/README.md",
+    "crates/agent-core/Cargo.toml",
+    "crates/agent-core/README.md",
+    "crates/agent-runtime/Cargo.toml",
+    "crates/agent-runtime/README.md",
+    "crates/agent-server/Cargo.toml",
+    "crates/agent-server/README.md",
     "cli/scripts/rwkv",
     "cli/scripts/rwkv-agent-service",
     "deploy/agent/README.md",
     "deploy/agent/start_g1i_sidecars.sh",
     "deploy/agent/stop_g1i_sidecars.sh",
     "docs/CONFIGURATION.md",
+    "docs/CODEMAP.md",
     "docs/DEPLOYMENT.md",
     "docs/KNOWN_ISSUES.md",
     "docs/MODEL_SETUP.md",
     "docs/QUICKSTART.md",
     "docs/RELEASE.md",
     "docs/TROUBLESHOOTING.md",
+    "scripts/dev",
 )
 
 EXECUTABLE_FILES = (
@@ -44,14 +61,22 @@ EXECUTABLE_FILES = (
     "cli/scripts/rwkv-agent-service",
     "deploy/agent/start_g1i_sidecars.sh",
     "deploy/agent/stop_g1i_sidecars.sh",
+    "scripts/dev",
 )
 
-SCAN_FILES = (".env.example", "CHANGELOG.md", "CONTRIBUTING.md", "README.md", "SECURITY.md")
+SCAN_FILES = (
+    ".env.example",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "DEVELOPING.md",
+    "README.md",
+    "SECURITY.md",
+)
 SCAN_DIRS = (
     ".github",
     "bench/baselines",
     "benchmarks",
-    "cli/src",
+    "crates",
     "cli/tests",
     "cli/scripts",
     "configs",
@@ -128,15 +153,42 @@ def _check_versions(errors: list[str]) -> None:
     if actual_python != PYTHON_VERSION:
         _error(errors, f"pyproject version is {actual_python!r}; expected {PYTHON_VERSION!r}")
 
-    cargo = tomllib.loads((ROOT / "cli/Cargo.toml").read_text(encoding="utf-8"))
-    actual_rust = cargo.get("package", {}).get("version")
+    cargo = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))
+    actual_rust = cargo.get("workspace", {}).get("package", {}).get("version")
     if actual_rust != RUST_VERSION:
-        _error(errors, f"Cargo version is {actual_rust!r}; expected {RUST_VERSION!r}")
+        _error(errors, f"Cargo workspace version is {actual_rust!r}; expected {RUST_VERSION!r}")
 
-    lock = tomllib.loads((ROOT / "cli/Cargo.lock").read_text(encoding="utf-8"))
+    lock = tomllib.loads((ROOT / "Cargo.lock").read_text(encoding="utf-8"))
     cli_packages = [p for p in lock.get("package", []) if p.get("name") == "rwkv-agent-cli"]
     if len(cli_packages) != 1 or cli_packages[0].get("version") != RUST_VERSION:
         _error(errors, "Cargo.lock does not contain exactly one rwkv-agent-cli at the release version")
+    core_packages = [
+        p for p in lock.get("package", []) if p.get("name") == "rwkv-agent-core"
+    ]
+    if len(core_packages) != 1 or core_packages[0].get("version") != RUST_VERSION:
+        _error(
+            errors,
+            "Cargo.lock does not contain exactly one rwkv-agent-core at the release version",
+        )
+    for package_name, manifest_path in (
+        ("rwkv-agent-cli", "crates/agent-cli/Cargo.toml"),
+        ("rwkv-agent-core", "crates/agent-core/Cargo.toml"),
+        ("rwkv-agent-runtime", "crates/agent-runtime/Cargo.toml"),
+        ("rwkv-agent-server", "crates/agent-server/Cargo.toml"),
+    ):
+        manifest = tomllib.loads((ROOT / manifest_path).read_text(encoding="utf-8"))
+        if manifest.get("package", {}).get("version", {}).get("workspace") is not True:
+            _error(errors, f"{package_name} must inherit the Cargo workspace version")
+        packages = [
+            package
+            for package in lock.get("package", [])
+            if package.get("name") == package_name
+        ]
+        if len(packages) != 1 or packages[0].get("version") != RUST_VERSION:
+            _error(
+                errors,
+                f"Cargo.lock does not contain exactly one {package_name} at the release version",
+            )
 
 
 def _check_files(errors: list[str]) -> None:

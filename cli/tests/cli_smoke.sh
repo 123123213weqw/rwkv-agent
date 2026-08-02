@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+CLI_DIR=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$CLI_DIR/.." && pwd)
 PORT=${RWKV_AGENT_MOCK_PORT:-18121}
 BIN="$ROOT/target/release/rwkv-agent"
-mkdir -p "$ROOT/runs"
+RUNS="$ROOT/var/cli-smoke"
+mkdir -p "$RUNS"
 
-python3 "$ROOT/tests/mock_server.py" "$PORT" &
+python3 "$CLI_DIR/tests/mock_server.py" "$PORT" &
 PID=$!
 trap 'kill "$PID" 2>/dev/null || true' EXIT
 
@@ -32,19 +34,19 @@ printf 'hello chat\n/exit\n' \
   | grep -q "mock answer"
 printf '/status\n/tools\n/web latest\n/research Who created RWKV?\n/session next-session\n/json on\nhello default chat\n/json off\n/exit\n' \
   | "$BIN" --endpoint "$ENDPOINT" \
-  >"$ROOT/runs/mock_claude_chat.txt"
-grep -q "status: ready" "$ROOT/runs/mock_claude_chat.txt"
-grep -q "web_search(query)" "$ROOT/runs/mock_claude_chat.txt"
-grep -q "Mock evidence" "$ROOT/runs/mock_claude_chat.txt"
-grep -q "Parallel state research" "$ROOT/runs/mock_claude_chat.txt"
-grep -q "mock research" "$ROOT/runs/mock_claude_chat.txt"
-grep -q "session switched: next-session" "$ROOT/runs/mock_claude_chat.txt"
-grep -q '"answer": "mock answer' "$ROOT/runs/mock_claude_chat.txt"
-! grep -q $'\033\[' "$ROOT/runs/mock_claude_chat.txt"
+  >"$RUNS/mock_claude_chat.txt"
+grep -q "status: ready" "$RUNS/mock_claude_chat.txt"
+grep -q "web_search(query)" "$RUNS/mock_claude_chat.txt"
+grep -q "Mock evidence" "$RUNS/mock_claude_chat.txt"
+grep -q "Parallel state research" "$RUNS/mock_claude_chat.txt"
+grep -q "mock research" "$RUNS/mock_claude_chat.txt"
+grep -q "session switched: next-session" "$RUNS/mock_claude_chat.txt"
+grep -q '"answer": "mock answer' "$RUNS/mock_claude_chat.txt"
+! grep -q $'\033\[' "$RUNS/mock_claude_chat.txt"
 
-"$BIN" --endpoint "$ENDPOINT" --json ask first >"$ROOT/runs/fresh_session_1.json"
-"$BIN" --endpoint "$ENDPOINT" --json ask second >"$ROOT/runs/fresh_session_2.json"
-python3 - "$ROOT/runs/fresh_session_1.json" "$ROOT/runs/fresh_session_2.json" <<'PY'
+"$BIN" --endpoint "$ENDPOINT" --json ask first >"$RUNS/fresh_session_1.json"
+"$BIN" --endpoint "$ENDPOINT" --json ask second >"$RUNS/fresh_session_2.json"
+python3 - "$RUNS/fresh_session_1.json" "$RUNS/fresh_session_2.json" <<'PY'
 import json
 import sys
 
