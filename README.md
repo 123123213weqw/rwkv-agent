@@ -55,8 +55,8 @@ authenticated private gateway rather than exposing port 8120 directly.
 ### Client-only install
 
 ```bash
-git clone https://github.com/123123213weqw/rwkv-search.git
-cd rwkv-search
+git clone https://github.com/123123213weqw/rwkv-agent.git
+cd rwkv-agent
 ./cli/install.sh --client-only
 
 ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
@@ -72,16 +72,14 @@ Requirements: Linux CUDA host, Python 3.10+, Rust toolchain, `curl`, an RWKV G1I
 checkpoint and a compatible Albatross runtime.
 
 ```bash
-git clone https://github.com/123123213weqw/rwkv-search.git
-cd rwkv-search
+git clone https://github.com/123123213weqw/rwkv-agent.git
+cd rwkv-agent
 
 python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[realtime,agent]'
 
-cd cli
-./install.sh
-cd ..
+./cli/install.sh
 ```
 
 ### 2. Configure the model
@@ -130,16 +128,17 @@ recovery.
 
 ```mermaid
 flowchart LR
-    U["User / rwkv"] --> API["Agent HTTP"]
+    U["User / rwkv"] --> API["Rust Agent control plane"]
     API --> G["Semantic Search Gate"]
-    G -->|"chat"| M["RWKV 13.3B"]
-    G -->|"tool"| T["Strict Tool Call"]
-    T --> D["Structured providers / SearXNG / fallback"]
+    G -->|"chat + recurrent State"| M["RWKV CUDA Sidecar"]
+    G -->|"tool"| T["Strict Rust Tool loop"]
+    T --> P["Python retrieval / Evidence data plane"]
+    P --> D["Structured providers / SearXNG / fallback"]
     D --> F["Bounded fetch + extraction"]
     F --> E["Evidence selection + claim checks"]
     E --> M
     M --> A["Answer + citations"]
-    API --> R["Opt-in state research"]
+    API --> R["Parallel-state research"]
     R --> D
 ```
 
@@ -190,11 +189,15 @@ Machine-readable summaries:
 ## Repository layout
 
 ```text
-src/rwkv_agent/       Current Agent Controller, tools and Sidecar
+crates/agent-cli/      Rust terminal client
+crates/agent-core/     Strict Tool protocol, lifecycle and budgets
+crates/agent-runtime/  State, sessions, tools, research and sandbox policy
+crates/agent-server/   Rust HTTP control plane
+src/rwkv_agent/        Python retrieval and Evidence data plane
 src/rwkv_runtime/     Shared decode, classification and scheduler contracts
 src/rwkv7_scheduler/  Recurrent state pool and unified mixed-row scheduling
 src/rwkv_search/      RWKV Search retrieval subsystem and Legacy Web Preview
-cli/                  Rust terminal client and local service lifecycle
+cli/                  Client packaging and compatibility lifecycle scripts
 configs/              Default, production example and benchmark configs
 deploy/               Agent host and optional SearXNG examples
 contracts/            Chat, Evidence, source and error schemas
@@ -203,6 +206,10 @@ bench/baselines/      Reviewed, publishable benchmark summaries
 docs/                 User, architecture and development documentation
 tests/                Unit and regression tests
 ```
+
+Developers should start with [`DEVELOPING.md`](DEVELOPING.md) and the
+authoritative [`code map`](docs/CODEMAP.md). Rust and Python checks run from the
+repository root; `./scripts/dev` provides the common commands.
 
 ## Documentation
 
@@ -215,6 +222,8 @@ tests/                Unit and regression tests
 - [Known issues and optimization backlog](docs/KNOWN_ISSUES.md)
 - [Release checklist](docs/RELEASE.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Code map](docs/CODEMAP.md)
+- [Development](DEVELOPING.md)
 - [Benchmark method](docs/AGENT_BENCHMARK.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)

@@ -1,0 +1,19 @@
+[workspace]
+members = [
+    "crates/agent-cli",
+    "crates/agent-core",
+    "crates/agent-runtime",
+    "crates/agent-server",
+]
+default-members = [
+    "crates/agent-cli",
+    "crates/agent-core",
+    "crates/agent-runtime",
+    "crates/agent-server",
+]
+resolver = "3"
+
+[workspace.package]
+version = "0.3.0-beta.1"
+edition = "2024"
+license = "MIT"

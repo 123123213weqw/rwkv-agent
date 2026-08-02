@@ -11,7 +11,6 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:. python -m pytest -q
 ruff check src bench benchmarks tests scripts
 python scripts/check_public_release.py
 
-cd cli
 cargo fmt --check
 cargo test --locked
 cargo clippy --all-targets -- -D warnings

@@ -32,25 +32,20 @@ jobs:
 
   rust:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cli
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: cli
       - run: cargo fmt --check
       - run: cargo test --locked
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo build --release --locked
       - name: CLI mock smoke
-        run: bash tests/cli_smoke.sh
+        run: bash cli/tests/cli_smoke.sh
       - name: CLI install smoke
-        run: bash tests/install_smoke.sh
+        run: bash cli/tests/install_smoke.sh
 
   shell:
     runs-on: ubuntu-latest

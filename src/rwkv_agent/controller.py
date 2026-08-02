@@ -13,6 +13,7 @@ from .chat_prompts import (
 )
 from .chat_session import DirectChatSession
 from .chat_state import ChatStateCache
+from .data_plane import AgentDataPlane
 from .evidence_admission import EntityEvidenceAdmission
 from .memory import MemoryStore
 from .model_client import ModelClient
@@ -26,7 +27,6 @@ from .tool_protocol import (
     policy_tool_gate as policy_tool_gate,
     render_tool_prompt,
 )
-from .tool_executor import ToolExecutor
 from .tool_routing import ToolRouter
 from .tools import KnowledgeSearchAdapter, LongTextQAAdapter, WebSearchAdapter
 from rwkv_search.pipeline.answer_policy import AnswerPolicy
@@ -91,12 +91,16 @@ class AgentController:
         self.session_text = session_text_buffer or SessionTextBuffer(
             max_chars=max_text_chars
         )
-        self.tool_executor = ToolExecutor(
+        self.data_plane = AgentDataPlane(
             web=self.web,
             knowledge=self.knowledge,
             long_text=self.long_text,
             session_text=self.session_text,
+            semantic_scorer=self.semantic_scorer,
+            evidence_admission=self.evidence_admission,
+            answer_policy=self.answer_policy,
         )
+        self.tool_executor = self.data_plane.tool_executor
         if chat_state_enabled is None:
             chat_state_enabled = (
                 os.getenv("RWKV_AGENT_CHAT_STATE_ENABLED", "1")
@@ -194,7 +198,7 @@ class AgentController:
         session_id: str = "default",
         original_query: str | None = None,
     ) -> dict[str, Any]:
-        return self.tool_executor.execute(
+        return self.data_plane.execute_raw(
             name,
             arguments,
             session_id=session_id,
@@ -487,8 +491,4 @@ class AgentController:
 
     def close(self) -> None:
         self.chat_session.close()
-        self.session_text.close()
-        knowledge_close = getattr(self.knowledge, "close", None)
-        if callable(knowledge_close):
-            knowledge_close()
-        self.web.close()
+        self.data_plane.close()

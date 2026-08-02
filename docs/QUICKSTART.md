@@ -22,8 +22,8 @@ The Rust client does not need CUDA or model weights. Install it on a laptop and
 connect to an already configured Controller:
 
 ```bash
-git clone https://github.com/123123213weqw/rwkv-search.git
-cd rwkv-search
+git clone https://github.com/123123213weqw/rwkv-agent.git
+cd rwkv-agent
 ./cli/install.sh --client-only
 
 ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
@@ -40,15 +40,13 @@ The remaining sections install the complete backend on a Linux CUDA host.
 ## Full backend install
 
 ```bash
-git clone https://github.com/123123213weqw/rwkv-search.git
-cd rwkv-search
+git clone https://github.com/123123213weqw/rwkv-agent.git
+cd rwkv-agent
 python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[realtime,agent]'
 
-cd cli
-./install.sh
-cd ..
+./cli/install.sh
 ```
 
 Ensure `$HOME/.local/bin` is in `PATH`.
@@ -65,8 +63,8 @@ $EDITOR ~/.config/rwkv-agent/rwkv-agent.env
 At minimum, replace:
 
 ```bash
-RWKV_AGENT_PROJECT_ROOT=/absolute/path/to/rwkv-search
-RWKV_AGENT_PYTHON=/absolute/path/to/rwkv-search/.venv/bin/python
+RWKV_AGENT_PROJECT_ROOT=/absolute/path/to/rwkv-agent
+RWKV_AGENT_PYTHON=/absolute/path/to/rwkv-agent/.venv/bin/python
 G1I_MODEL_PATH=/absolute/path/to/model.pth
 G1I_RUNTIME_DIR=/absolute/path/to/albatross-runtime
 ```

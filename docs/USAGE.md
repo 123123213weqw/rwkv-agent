@@ -10,7 +10,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[realtime,agent]'
 
-cd cli && ./install.sh && cd ..
+./cli/install.sh
 rwkv-agent-service init
 $EDITOR ~/.config/rwkv-agent/rwkv-agent.env
 rwkv-agent-service doctor

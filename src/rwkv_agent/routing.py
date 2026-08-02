@@ -47,6 +47,12 @@ def render_tool_gate_prompt(
         "System: Recent conversation reference:\nUser: We are discussing the "
         "JAX library.\nAssistant: Understood.\nEnd recent conversation.\n"
         "Current user request: Who originally created it?\nAssistant: search\n\n"
+        "System: Active pasted long text: yes.\n"
+        "Current user request: 材料中的项目负责人是谁？\nAssistant: search\n\n"
+        "System: Active pasted long text: yes.\n"
+        "Current user request: Summarize the pasted document.\nAssistant: search\n\n"
+        "System: Active pasted long text: yes.\n"
+        "Current user request: 谢谢。\nAssistant: chat\n\n"
     )
     if context.strip():
         prompt += (

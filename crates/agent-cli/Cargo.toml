@@ -1,8 +1,8 @@
 [package]
 name = "rwkv-agent-cli"
-version = "0.3.0-beta.1"
-edition = "2024"
-license = "MIT"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 description = "Terminal client for RWKV tools and opt-in state-native research"
 
 [[bin]]

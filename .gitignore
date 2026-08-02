@@ -47,3 +47,6 @@ vendor/
 .backups/
 *.before-*
 *private-backup*
+
+# Local-only live Agent traces (reviewed summaries belong under bench/baselines)
+/benchmarks/scheduler/unified_live_smoke_v1/

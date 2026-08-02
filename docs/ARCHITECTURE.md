@@ -1,5 +1,43 @@
 # 架构
 
+## Rust 控制面与 Python 数据面
+
+当前代码提供两套兼容 Controller：原 Python Controller，以及默认监听
+`8122` 的 Rust-first Controller。Rust 路径已完整覆盖 CLI 所需的 Gate、普通
+聊天、严格 Tool/Observation 循环、跨轮 Recurrent State、并行 State Research、
+Session transcript 和 State 释放；Python 不再承担这条路径的 Agent 状态机。
+
+```mermaid
+flowchart LR
+    CLI["Rust CLI"] --> RS["Rust Agent Server :8122"]
+    RS --> RT["Rust Agent Runtime"]
+    RT --> SC["RWKV CUDA Sidecar :8417"]
+    RT --> DP["Python Data Plane :8121"]
+    DP --> WEB["Realtime Web + Evidence"]
+    DP --> KB["Local knowledge"]
+    DP --> LT["Long-text QA"]
+```
+
+边界是刻意冻结的：
+
+- Rust 持有请求预算、工具注册表、严格协议、Session 锁、State ID/Owner、LRU、
+  Fork/Batch Continue、取消与所有成功/失败路径的 Release；
+- Python 数据面只持有 `web_search`、`knowledge_search`、`long_text_qa`、
+  Query Coordination、Evidence Reduce/Admission 和 Claim Validation；
+- CUDA/Torch、模型权重、Crawler、索引和语义模型不迁移到 Rust；
+- Session transcript 是唯一持久记忆，不做隐式用户画像提取；粘贴长文本按
+  Session 暂存于数据面；
+- `run_command(command)`默认关闭，仅在 Linux + Bubblewrap + 显式 Workspace
+  条件同时满足时出现，且没有非隔离后备路径。
+
+Rust Server与旧API保持`/health`、`/v1/agent/run`、
+`/v1/agent/run_stateful`、`/v1/agent/gate`、`/v1/tools/call`兼容。
+在单独授权切换前，公共`8120`仍由旧Python Controller持有；Rust默认端口
+`8122`只用于隔离/Shadow验证。
+
+活跃Rust源码在仓库根目录`crates/`；`cli/`只保留客户端安装、打包、服务生命周期和
+集成Smoke脚本。详细文件所属见[`CODEMAP.md`](CODEMAP.md)。
+
 ## 两条路径
 
 ### 普通聊天路径

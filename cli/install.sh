@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT=$(cd "$(dirname "$0")" && pwd)
+CLI_DIR=$(cd "$(dirname "$0")" && pwd)
+ROOT=$(cd "$CLI_DIR/.." && pwd)
 PREFIX=${PREFIX:-"$HOME/.local"}
 CLIENT_ONLY=0
 SKIP_BUILD=0
@@ -53,7 +54,7 @@ if [[ $SKIP_BUILD -eq 0 ]]; then
     echo "cargo is required to build rwkv-agent" >&2
     exit 1
   }
-  cargo build --release --locked
+  cargo build --release --locked -p rwkv-agent-cli
 fi
 
 [[ -x target/release/rwkv-agent ]] || {
@@ -66,8 +67,8 @@ install -m 0755 target/release/rwkv-agent "$PREFIX/bin/rwkv-agent"
 echo "installed $PREFIX/bin/rwkv-agent"
 
 if [[ $CLIENT_ONLY -eq 0 ]]; then
-  install -m 0755 scripts/rwkv "$PREFIX/bin/rwkv"
-  install -m 0755 scripts/rwkv-agent-service "$PREFIX/bin/rwkv-agent-service"
+  install -m 0755 "$CLI_DIR/scripts/rwkv" "$PREFIX/bin/rwkv"
+  install -m 0755 "$CLI_DIR/scripts/rwkv-agent-service" "$PREFIX/bin/rwkv-agent-service"
   echo "installed $PREFIX/bin/rwkv"
   echo "installed $PREFIX/bin/rwkv-agent-service"
 fi
