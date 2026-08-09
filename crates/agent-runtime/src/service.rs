@@ -749,7 +749,7 @@ impl WorkspaceExecution {
     }
 }
 
-fn inventory_path(row: &String) -> Option<String> {
+fn inventory_path(row: &str) -> Option<String> {
     let (path, _) = row.rsplit_once(" (")?;
     (!path.trim().is_empty() && !path.starts_with("... inventory truncated"))
         .then(|| normalize_workspace_path(path))
@@ -869,8 +869,7 @@ fn replacement_file_content(answer: &str) -> Option<String> {
 }
 
 fn file_content_equivalent(left: &str, right: &str) -> bool {
-    left.trim_end_matches(|character| matches!(character, '\r' | '\n'))
-        == right.trim_end_matches(|character| matches!(character, '\r' | '\n'))
+    left.trim_end_matches(['\r', '\n']) == right.trim_end_matches(['\r', '\n'])
 }
 
 fn normalize_workspace_value(value: &str, display_directory: &str) -> String {
@@ -1577,6 +1576,7 @@ impl AgentService {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn direct_chat(
         &self,
         task_spec: &TaskSpec,

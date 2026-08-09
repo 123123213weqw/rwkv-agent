@@ -304,7 +304,7 @@ impl SandboxedCommand {
     }
 
     pub async fn write_file(&self, path: &str, content: &str) -> Result<Value, String> {
-        if content.as_bytes().len() > self.policy.max_output_bytes {
+        if content.len() > self.policy.max_output_bytes {
             return Ok(json!({
                 "status":"rejected",
                 "message":"content exceeds the workspace text-tool limit",
@@ -326,14 +326,14 @@ impl SandboxedCommand {
             .file_name()
             .ok_or_else(|| "workspace file path must name a file".to_string())?;
         let target = parent.join(name);
-        if let Ok(metadata) = tokio::fs::symlink_metadata(&target).await {
-            if metadata.file_type().is_symlink() || !metadata.is_file() {
-                return Ok(json!({
-                    "status":"rejected",
-                    "message":"write_file refuses symlinks and non-files",
-                    "path":relative,
-                }));
-            }
+        if let Ok(metadata) = tokio::fs::symlink_metadata(&target).await
+            && (metadata.file_type().is_symlink() || !metadata.is_file())
+        {
+            return Ok(json!({
+                "status":"rejected",
+                "message":"write_file refuses symlinks and non-files",
+                "path":relative,
+            }));
         }
         static NEXT: AtomicU64 = AtomicU64::new(1);
         let temporary = parent.join(format!(

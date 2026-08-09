@@ -89,8 +89,10 @@ def _summary(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
     return {
         "rows": len(rows),
         "datasets": dict(sorted(Counter(str(row["dataset"]) for row in rows).items())),
-        "tasks": dict(sorted(Counter(str(row.get("task") or "")) for row in rows).items()),
-        "families": dict(sorted(Counter(str(row.get("family") or "")) for row in rows).items()),
+        "tasks": dict(sorted(Counter(str(row.get("task") or "") for row in rows).items())),
+        "families": dict(
+            sorted(Counter(str(row.get("family") or "") for row in rows).items())
+        ),
     }
 
 

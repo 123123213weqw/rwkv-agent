@@ -1,7 +1,14 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 CAPTURE_DIR = Path("benchmarks/scheduler/unified_live_smoke_v1")
+REQUIRED_CAPTURES = ("search.json", "research.json", "research-direct.json")
+pytestmark = pytest.mark.skipif(
+    not all((CAPTURE_DIR / name).is_file() for name in REQUIRED_CAPTURES),
+    reason="live replay captures are local-only and are not part of the public release",
+)
 MODULE_PATH = Path("benchmarks/replay_live_answer_quality.py")
 SPEC = importlib.util.spec_from_file_location("replay_live_answer_quality", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
