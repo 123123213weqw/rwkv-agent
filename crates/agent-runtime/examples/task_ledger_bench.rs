@@ -282,7 +282,7 @@ fn parse_args() -> Result<Config, String> {
             _ => return Err(format!("unknown argument {argument}")),
         }
     }
-    if stages < 2 || stages > 32 {
+    if !(2..=32).contains(&stages) {
         return Err("stages must be between 2 and 32".into());
     }
     Ok(Config {
