@@ -1,23 +1,18 @@
 # RWKV State Agent
 
-**AMD AI DevMaster Hackathon 2026 — Track 2: Development & Local Deployment of Private AI Agents**
+**A local, state-native Agent runtime for RWKV models**
 
 RWKV State Agent is a fully local, general-purpose Agent built around RWKV recurrent state. It reuses computed context across chat turns, executes strict Tool Calls, and advances many isolated Agent States through one AMD Radeon GPU scheduler.
 
 > **One-line pitch:** a private local Agent that remembers through recurrent state, acts through bounded tools, and can advance 100 isolated jobs on one Radeon GPU without sharing their context.
 
-## Submission status
+## Release status
 
-| Official Track 2 requirement | Deliverable |
-|---|---|
-| Project Specification Document | [`docs/PROJECT_SPECIFICATION.md`](docs/PROJECT_SPECIFICATION.md) |
-| Source code, environment, startup guide, dependencies | This repository and this README |
-| 3–5 minute AMD Radeon demo video | In preparation; the frozen Gate 4 real-run clip is already available in the private evidence package |
-| PPT or poster | In preparation |
+The current public beta is [`v0.3.0-beta.1`](https://github.com/123123213weqw/rwkv-agent/releases/tag/v0.3.0-beta.1). It includes the Rust control plane, local Web UI and CLI, recurrent-State runtime, bounded tools, AMD ROCm configuration, benchmarks, and reviewed evidence summaries.
 
-The official rules require all submission materials and the Pull Request to be in English. The final PR will only be created after Owner review.
+The architecture and operating contract are documented in [`docs/PROJECT_SPECIFICATION.md`](docs/PROJECT_SPECIFICATION.md).
 
-## What the evaluator can verify
+## What you can verify
 
 - **Ordinary chat:** greetings remain on the direct path and do not call a tool.
 - **State-native memory:** the same session reuses its RWKV recurrent state and only computes new turns.
@@ -179,7 +174,7 @@ Suggested evaluation:
 - ROCm PyTorch, Transformers, FastAPI, and Uvicorn;
 - Rust 1.97+ for the Controller and CLI;
 - RWKV G1I Preview4922 13.3B weights converted to the verified HF native format;
-- approximately 48 GB GPU memory for the submitted 13.3B / 100-resident-State profile.
+- approximately 48 GB GPU memory for the verified 13.3B / 100-resident-State profile.
 
 ### Python environment
 
@@ -232,19 +227,19 @@ web/                    Claude Code/Codex-inspired local UI and task wall
 docs/                   architecture, setup, benchmark, and specification
 ```
 
-The main development map is [`docs/CODEMAP.md`](docs/CODEMAP.md). Historical CUDA deployment instructions remain in [`docs/QUICKSTART.md`](docs/QUICKSTART.md); the Track 2 submitted configuration is the Radeon path documented here.
+The main development map is [`docs/CODEMAP.md`](docs/CODEMAP.md). Historical CUDA deployment instructions remain in [`docs/QUICKSTART.md`](docs/QUICKSTART.md); the verified Radeon configuration is documented here.
 
 ## Privacy and execution boundaries
 
 - Model inference, recurrent State, transcript, workspace, and benchmark artifacts stay on the local host.
 - Automatic cross-session preference extraction is intentionally disabled for this release.
-- `run_command` is opt-in and restricted to a configured workspace. The submitted AMD container uses an unprivileged user, user/network namespaces, PRoot, bounded output, a timeout, and no unsafe fallback.
+- `run_command` is opt-in and restricted to a configured workspace. The verified AMD environment uses an unprivileged user, user/network namespaces, PRoot, bounded output, a timeout, and no unsafe fallback.
 - The HTTP Controller has no public authentication. Keep it on loopback, use SSH forwarding, or place it behind an authenticated private gateway.
 - Optional `web_search` is the only feature that intentionally uses external network sources.
 
 ## Known limitations
 
-- The submitted Radeon path uses the HF native recurrent PyTorch backend; the NVIDIA Albatross MMA extension is not claimed to run on ROCm.
+- The Radeon path uses the HF native recurrent PyTorch backend; the NVIDIA Albatross MMA extension is not claimed to run on ROCm.
 - The 40-case semantic routing set scored 95% with zero missed Tool requests and two false Tool routes.
 - The live task wall stores only the latest 100 runs in Controller memory and resets on restart; it is an operational view, not a task database.
 - Model weights are external to GitHub and must be converted separately.
@@ -255,10 +250,10 @@ The main development map is [`docs/CODEMAP.md`](docs/CODEMAP.md). Historical CUD
 The project keeps frozen input hashes, runner hashes, raw JSONL, aggregate metrics, ROCm time series, failure traces, videos, and artifact checksums. Run:
 
 ```bash
-bash scripts/verify_submission.sh
+bash scripts/verify_release.sh
 ```
 
-The private AMD evidence root remains `/root/rwkv-agent-track2/evidence/`. Submission-safe reviewed summaries, the final live verification log, and media are available under `submission/` for Owner review; raw traces, private prompts, model assets, and machine-local configuration remain outside the repository.
+Reviewed benchmark summaries and screenshots are available under [`evidence/`](evidence/). Raw traces, private prompts, model assets, and machine-local configuration remain outside the repository. Override `EVIDENCE_ROOT` when validating another environment.
 
 ## License
 

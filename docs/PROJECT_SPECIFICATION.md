@@ -1,8 +1,6 @@
 # RWKV State Agent — Project Specification
 
-**AMD AI DevMaster Hackathon 2026**  
-**Track 2 — Development & Local Deployment of Private AI Agents**  
-**Candidate version:** 0.3.0-beta.1  
+**Version:** 0.3.0-beta.1
 **Date:** 5 August 2026
 
 ## 1. Executive summary
@@ -11,7 +9,7 @@ RWKV State Agent is a private, locally deployed general Agent that treats recurr
 
 The same mechanism enables efficient independent work: many jobs retain isolated recurrent States while one scheduler batches ready rows on an AMD Radeon GPU. A strict Rust control plane supplies bounded Tool Calling, Action/Observation loops, state ownership, workspace isolation, streaming, metrics, and release guarantees.
 
-The submitted implementation runs RWKV-7 G1I Preview4922 13.3B locally on an AMD Radeon `gfx1100` GPU with ROCm 7.2.1. The demonstrated 100-job workload uses 100 independent prompts, owners, States, sessions, and workspaces with physical decode concurrency 32.
+The verified implementation runs RWKV-7 G1I Preview4922 13.3B locally on an AMD Radeon `gfx1100` GPU with ROCm 7.2.1. The demonstrated 100-job workload uses 100 independent prompts, owners, States, sessions, and workspaces with physical decode concurrency 32.
 
 ## 2. Target users and application scenarios
 
@@ -178,7 +176,7 @@ Every persistent State is bound to an Owner ID. Fork, continuation, classificati
 
 ### 6.3 Workspace isolation
 
-Agent tasks receive an explicit workspace. The submitted AMD container uses an unprivileged user, user/network namespaces, PRoot, a command timeout, bounded output, and no unsafe fallback. Workspace escape is rejected.
+Agent tasks receive an explicit workspace. The verified AMD environment uses an unprivileged user, user/network namespaces, PRoot, a command timeout, bounded output, and no unsafe fallback. Workspace escape is rejected.
 
 ## 7. Model and local deployment plan
 
@@ -221,7 +219,7 @@ The original checkpoint and converted weights are external assets and are not co
 18122  read-only frozen 100-job review dashboard
 ```
 
-All submitted services bind to loopback. A remote evaluator should use SSH port forwarding or an authenticated private gateway.
+The default services bind to loopback. Remote access should use SSH port forwarding or an authenticated private gateway.
 
 ## 8. AMD Radeon inference optimization
 
@@ -341,7 +339,7 @@ Each frozen benchmark retains:
 - artifact manifests and SHA256SUMS;
 - State release snapshots.
 
-The private AMD evidence root is `/root/rwkv-agent-track2/evidence/`. Submission-safe reviewed summaries, the final live verification log, and media are packaged under `submission/`; raw traces, private prompts, machine configuration, and large model assets remain outside the repository.
+Reviewed benchmark summaries and screenshots are stored under `evidence/`. Raw traces, private prompts, machine configuration, and large model assets remain outside the repository. Deployments can override `EVIDENCE_ROOT`.
 
 ## 11. User interfaces
 
@@ -365,7 +363,7 @@ The Rust CLI connects to the same Controller. It supports ordinary chat, direct 
 - No cloud language model is required for the core Agent path.
 - Prompts, transcript, recurrent State, workspaces, and artifacts remain local.
 - Optional Web Search is clearly separated from the local execution path.
-- The Controller is not a public authenticated service and binds to loopback in the submitted configuration.
+- The Controller is not a public authenticated service and binds to loopback by default.
 - Workspace command execution is disabled unless explicitly configured.
 - Owner isolation protects persistent State operations.
 - State capacity, queue capacity, token count, tool count, elapsed time, command output, and task history are bounded.
@@ -377,7 +375,7 @@ The Rust CLI connects to the same Controller. It supports ordinary chat, direct 
 1. The Radeon runtime is the HF native recurrent PyTorch backend. The NVIDIA Albatross MMA extension was tested, failed on ROCm-specific incompatibilities, and is not claimed as ported.
 2. The demonstrated model is FP16 and requires a high-memory Radeon configuration for 100 resident States.
 3. The semantic gate still has two known false Tool routes in its 40-case set.
-4. Public authentication, TLS termination, distributed multi-host scheduling, automatic cross-session personal memory, and model weight distribution are outside this candidate.
+4. Public authentication, TLS termination, distributed multi-host scheduling, automatic cross-session personal memory, and model weight distribution are outside this release.
 5. “100 independent tasks · physical concurrency 32” is the only approved concurrency claim.
 
 ## 14. Reproduction outline
@@ -389,7 +387,7 @@ The Rust CLI connects to the same Controller. It supports ordinary chat, direct 
 5. Build the Rust workspace in release mode.
 6. Start Sidecar `18118`, data plane `18121`, and Controller `18120`.
 7. Open `/`, `/tasks`, and `/health`.
-8. Run `bash scripts/verify_submission.sh`.
+8. Run `bash scripts/verify_release.sh`.
 9. Run frozen AMD benchmarks when their required model and evidence paths are available.
 
 ## 15. Deliverables
@@ -402,5 +400,5 @@ The Rust CLI connects to the same Controller. It supports ordinary chat, direct 
 - State reuse, scaling, routing, streaming, and stability benchmarks;
 - 100-independent-State demonstration, artifacts, metrics, and trace;
 - English README and this Project Specification;
-- final 3–5 minute video and poster/PPT after packaging review;
-- submission verification script and Owner review checklist.
+- reviewed benchmark evidence bundles;
+- release verification script.

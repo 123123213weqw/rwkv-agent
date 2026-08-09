@@ -1,28 +1,25 @@
 #!/usr/bin/env bash
-# RWKV State Agent — reproducible Track 2 submission verification.
+# RWKV State Agent — reproducible source and runtime verification.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE_SOURCE=1
 MODE_FULL=0
 MODE_AMD=0
-MODE_PACKAGE=0
 PYTHON="${PYTHON:-python3}"
 CONTROLLER_URL="${CONTROLLER_URL:-http://127.0.0.1:18120}"
 SIDECAR_URL="${SIDECAR_URL:-http://127.0.0.1:18118}"
 DATA_PLANE_URL="${DATA_PLANE_URL:-http://127.0.0.1:18121}"
-EVIDENCE_ROOT="${EVIDENCE_ROOT:-/root/rwkv-agent-track2/evidence}"
+EVIDENCE_ROOT="${EVIDENCE_ROOT:-/root/rwkv-agent/evidence}"
 
 usage() {
   cat <<'TXT'
-Usage: scripts/verify_submission.sh [--source] [--full] [--amd-live] [--package]
+Usage: scripts/verify_release.sh [--source] [--full] [--amd-live]
 
   --source    Static source, documentation and Web asset checks (default).
   --full      Also run Python regressions and `cargo test --workspace`.
   --amd-live  Verify the running 13.3B ROCm Sidecar, data plane, Controller,
               streaming API, task wall, and frozen AMD evidence summaries.
-  --package   Require final PDF, 3–5 minute MP4, poster/PPT, and SHA256SUMS.
-
 Modes may be combined. Endpoint and evidence paths can be overridden through
 CONTROLLER_URL, SIDECAR_URL, DATA_PLANE_URL, and EVIDENCE_ROOT.
 TXT
@@ -33,7 +30,6 @@ while (($#)); do
     --source) MODE_SOURCE=1 ;;
     --full) MODE_FULL=1 ;;
     --amd-live) MODE_AMD=1 ;;
-    --package) MODE_PACKAGE=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -48,21 +44,21 @@ fail() { echo "ERROR: $*" >&2; exit 1; }
 require_file() { [[ -s "$1" ]] || fail "required file is missing or empty: $1"; }
 
 if ((MODE_SOURCE)); then
-  check "Required English Track 2 documents"
+  check "Required project documents"
   for file in \
     README.md \
     docs/PROJECT_SPECIFICATION.md \
     docs/CODEMAP.md \
     LICENSE \
-    scripts/verify_submission.sh; do
+    scripts/verify_release.sh; do
     require_file "$file"
   done
-  grep -qi "AMD AI DevMaster Hackathon 2026" README.md || fail "README lacks Track 2 identity"
+  grep -qi "RWKV State Agent" README.md || fail "README lacks project identity"
   grep -qi "application scenarios" docs/PROJECT_SPECIFICATION.md || fail "specification lacks application scenarios"
   grep -qi "system architecture" docs/PROJECT_SPECIFICATION.md || fail "specification lacks architecture"
   grep -qi "AMD Radeon inference optimization" docs/PROJECT_SPECIFICATION.md || fail "specification lacks AMD optimization"
 
-  check "Submission-facing source paths"
+  check "Release-facing source paths"
   for path in \
     crates/agent-core/src/lib.rs \
     crates/agent-runtime/src/service.rs \
@@ -88,9 +84,9 @@ if ((MODE_SOURCE)); then
       -not -path '*/__pycache__/*' \
       -print)"
   fi
-  if printf '%s\n' "$tracked" | grep -E '(^|/)\.env($|\.(local|dev|development|test|staging|prod|production)$)|(^|/)id_(rsa|ed25519)$|\.(pem|key|pth|safetensors)$|(^|/)(target|node_modules|\.venv)/' >/tmp/rwkv-submission-forbidden.txt; then
-    cat /tmp/rwkv-submission-forbidden.txt >&2
-    fail "forbidden submission files found"
+  if printf '%s\n' "$tracked" | grep -E '(^|/)\.env($|\.(local|dev|development|test|staging|prod|production)$)|(^|/)id_(rsa|ed25519)$|\.(pem|key|pth|safetensors)$|(^|/)(target|node_modules|\.venv)/' >/tmp/rwkv-release-forbidden.txt; then
+    cat /tmp/rwkv-release-forbidden.txt >&2
+    fail "forbidden release files found"
   fi
 
   check "Embedded Web UI and task-wall static contract"
@@ -155,7 +151,7 @@ PY
   CONTROLLER_URL="$CONTROLLER_URL" "$PYTHON" <<'PY'
 import json, os, threading, time, urllib.request, uuid
 base = os.environ["CONTROLLER_URL"].rstrip("/")
-session = "verify-submission-" + uuid.uuid4().hex[:12]
+session = "verify-release-" + uuid.uuid4().hex[:12]
 events, errors = [], []
 def get(path):
     with urllib.request.urlopen(base + path, timeout=30) as response:
@@ -217,38 +213,4 @@ print("frozen AMD evidence: PASS")
 PY
 fi
 
-if ((MODE_PACKAGE)); then
-  check "Final English submission package"
-  for file in \
-    submission/RWKV_State_Agent_Project_Specification.pdf \
-    submission/RWKV_State_Agent_Demo.mp4 \
-    submission/SHA256SUMS; do
-    require_file "$file"
-  done
-  if [[ -s submission/RWKV_State_Agent_Track2_Deck.pptx ]]; then
-    supplementary=submission/RWKV_State_Agent_Track2_Deck.pptx
-  elif [[ -s submission/RWKV_State_Agent_Poster.png ]]; then
-    supplementary=submission/RWKV_State_Agent_Poster.png
-  else
-    fail "package requires a PPT deck or poster"
-  fi
-  command -v ffprobe >/dev/null || fail "ffprobe is required for --package"
-  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 submission/RWKV_State_Agent_Demo.mp4)"
-  "$PYTHON" - "$duration" <<'PY'
-import sys
-seconds = float(sys.argv[1])
-assert 180 <= seconds <= 300, f"demo duration must be 3–5 minutes, got {seconds:.3f}s"
-print(f"demo duration: {seconds:.3f}s")
-PY
-  if [[ "$supplementary" == *.pptx ]]; then
-    command -v unzip >/dev/null || fail "unzip is required to validate the PPT deck"
-    unzip -tq "$supplementary" >/dev/null || fail "invalid PPT deck: $supplementary"
-  fi
-  if command -v sha256sum >/dev/null; then
-    (cd submission && sha256sum -c SHA256SUMS)
-  else
-    (cd submission && shasum -a 256 -c SHA256SUMS)
-  fi
-fi
-
-printf '\nRWKV State Agent submission verification: PASS\n'
+printf '\nRWKV State Agent release verification: PASS\n'
