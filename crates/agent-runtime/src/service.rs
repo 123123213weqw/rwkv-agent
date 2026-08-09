@@ -227,10 +227,15 @@ impl WorkspaceExecution {
         inventory: &[String],
     ) -> Self {
         let mut state = Self::from_task_spec(task, display_directory);
-        state.existing_files = inventory.iter().filter_map(inventory_path).collect();
+        state.existing_files = inventory
+            .iter()
+            .map(String::as_str)
+            .filter_map(inventory_path)
+            .collect();
         state.inspectable_files = inventory
             .iter()
             .filter(|row| !row.ends_with("(0 bytes)"))
+            .map(String::as_str)
             .filter_map(inventory_path)
             .collect();
         let nonempty_files = inventory
