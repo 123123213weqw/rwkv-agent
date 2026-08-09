@@ -1,0 +1,4 @@
+    PID    PPID STAT                  STARTED     ELAPSED CMD
+1654397       1 Ssl  Fri Aug  7 23:53:27 2026    08:31:06 /home/wzu/wangyue/envs/rwkv-g1i/bin/python -m rwkv_agent.sidecar --host 127.0.0.1 --port 19118
+1654792       1 Ss   Fri Aug  7 23:56:36 2026    08:27:57 /home/wzu/wangyue/envs/rwkv-g1i/bin/python -m rwkv_agent.data_server --host 127.0.0.1 --port 19121 --model-urls http://127.0.0.1:19118
+1691567       1 Ss   Sat Aug  8 08:15:13 2026       09:20 sh -c      while true; do       nvidia-smi --query-gpu=timestamp,memory.used,utilization.gpu --format=csv,noheader,nounits       sleep 1     done   

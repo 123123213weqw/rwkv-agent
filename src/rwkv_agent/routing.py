@@ -3,15 +3,10 @@
 from __future__ import annotations
 
 
-def render_tool_gate_prompt(
-    message: str,
-    *,
-    context: str = "",
-    has_pasted_text: bool = False,
-) -> str:
-    """Classify retrieval need semantically instead of matching topic words."""
+def render_tool_gate_root() -> str:
+    """Return the immutable semantic-routing prefix cached as an RWKV State."""
 
-    prompt = (
+    return (
         "System: Classify only the final Current user request. Reply with exactly "
         "one lowercase label: search or chat. Decide from meaning, not from the "
         "presence of words such as search, author, company, version, or source. "
@@ -54,6 +49,17 @@ def render_tool_gate_prompt(
         "System: Active pasted long text: yes.\n"
         "Current user request: 谢谢。\nAssistant: chat\n\n"
     )
+
+
+def render_tool_gate_turn(
+    message: str,
+    *,
+    context: str = "",
+    has_pasted_text: bool = False,
+) -> str:
+    """Return only request-local routing context appended to the cached root."""
+
+    prompt = ""
     if context.strip():
         prompt += (
             "System: Recent conversation reference:\n"
@@ -63,8 +69,22 @@ def render_tool_gate_prompt(
     prompt += (
         "System: Active pasted long text: "
         + ("yes" if has_pasted_text else "no")
-        + ". Its presence alone does not force search; an unrelated greeting is "
-        "still chat.\n"
+        + ".\n"
         + f"Current user request: {message.strip()}\nAssistant: "
     )
     return prompt
+
+
+def render_tool_gate_prompt(
+    message: str,
+    *,
+    context: str = "",
+    has_pasted_text: bool = False,
+) -> str:
+    """Build the uncached equivalent for parity tests and compatibility."""
+
+    return render_tool_gate_root() + render_tool_gate_turn(
+        message,
+        context=context,
+        has_pasted_text=has_pasted_text,
+    )

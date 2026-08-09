@@ -1,0 +1,41 @@
+{
+  "config": {
+    "concurrency": 16,
+    "recovery_tasks": 10,
+    "stages_per_task": 8,
+    "tasks": 100
+  },
+  "created_unix_ms": 1786083488796,
+  "environment": {
+    "hostname": "",
+    "ledger_root": "/tmp/rwkv-task-ledger-bench-c16"
+  },
+  "normal_run": {
+    "checkpoint_transitions": 1900,
+    "checkpoint_transitions_per_second": 1399.906,
+    "task_latency_ms": {
+      "max": 256,
+      "p50": 206,
+      "p95": 256
+    },
+    "tasks_per_second": 73.679,
+    "wall_ms": 1357.234
+  },
+  "restart_recovery": {
+    "completed_stage_replayed": 0,
+    "interrupted_detected": 10,
+    "interrupted_stage_attempts": 2,
+    "later_stage_attempts": 1,
+    "resumed": 10,
+    "wall_ms": 119.143
+  },
+  "schema": "rwkv-task-ledger-bench.v1",
+  "validation": {
+    "actual_records": 110,
+    "all_succeeded": true,
+    "expected_records": 110,
+    "orphan_temp_files": 0,
+    "passed": true,
+    "recovery_attempts_valid": true
+  }
+}

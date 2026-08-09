@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::time::Instant;
 
-use rwkv_agent_core::{Action, parse_action};
+use rwkv_agent_core::{Action, TOOL_CALL_JSON_PREFIX, parse_action};
 use serde_json::{Value, json};
 use tokio::task::JoinSet;
 
@@ -317,8 +317,10 @@ fn reconstruct_tool(row: &BatchContinuation) -> String {
     let raw = row.text.trim_start();
     let opening = if raw.starts_with("<tool_call>") {
         ""
-    } else {
+    } else if raw.starts_with("{\"name\":\"") {
         "<tool_call>"
+    } else {
+        TOOL_CALL_JSON_PREFIX
     };
     let closing = if raw.ends_with("</tool_call>") {
         ""

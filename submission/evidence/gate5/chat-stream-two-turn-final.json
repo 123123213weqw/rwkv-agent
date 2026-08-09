@@ -1,0 +1,695 @@
+{
+  "schema": "rwkv_agent_gate5_chat_stream.v1",
+  "session_id": "gate5-final-1785893744",
+  "turns": [
+    {
+      "message": "你好，只回复你好。",
+      "ttft_ms": 7811.743,
+      "wall_ms": 8239.507,
+      "events": [
+        {
+          "phase": "routing",
+          "type": "phase",
+          "received_ms": 17.663
+        },
+        {
+          "phase": "decoding",
+          "type": "phase",
+          "received_ms": 5938.399
+        },
+        {
+          "delta": "你",
+          "output_tokens": 1,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你",
+          "type": "delta",
+          "received_ms": 7811.743
+        },
+        {
+          "delta": "好",
+          "output_tokens": 2,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好",
+          "type": "delta",
+          "received_ms": 7891.481
+        },
+        {
+          "delta": "！",
+          "output_tokens": 3,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！",
+          "type": "delta",
+          "received_ms": 7970.086
+        },
+        {
+          "delta": "</",
+          "output_tokens": 4,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！</",
+          "type": "delta",
+          "received_ms": 8048.816
+        },
+        {
+          "delta": "answer",
+          "output_tokens": 5,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！</answer",
+          "type": "delta",
+          "received_ms": 8127.397
+        },
+        {
+          "delta": "你好！",
+          "output_tokens": 6,
+          "replace": true,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！",
+          "type": "delta",
+          "received_ms": 8205.837
+        },
+        {
+          "response": {
+            "answer": "你好！",
+            "message": "你好，只回复你好。",
+            "route": {
+              "mode": "direct",
+              "tool": null
+            },
+            "session_id": "gate5-final-1785893744",
+            "status": "ok",
+            "tool_result": null,
+            "trace": {
+              "answer_completion": {
+                "model_elapsed_ms": 2297.242,
+                "output_tokens": 6,
+                "reasoning_stripped": false,
+                "stop": "</answer>"
+              },
+              "context": {
+                "history_messages": 0,
+                "mode": "recurrent_session_state",
+                "session_state": {
+                  "cache_reject_reason": "",
+                  "cached": true,
+                  "reused": false,
+                  "seen_tokens": 71,
+                  "used": true
+                }
+              },
+              "control_plane": "rust",
+              "elapsed_ms": 8222.056228,
+              "gate": {
+                "batch_mode": "persistent_root_fork",
+                "elapsed_ms": 2401.24,
+                "label": "chat",
+                "margin": -5.40625,
+                "queue_ms": 0.0,
+                "root_reused": true,
+                "scores": {
+                  "chat": -10.1875,
+                  "tool": -15.59375
+                },
+                "threshold": -3.2,
+                "tool": null,
+                "use_tool": false
+              }
+            }
+          },
+          "type": "final",
+          "received_ms": 8239.419
+        }
+      ],
+      "response": {
+        "answer": "你好！",
+        "message": "你好，只回复你好。",
+        "route": {
+          "mode": "direct",
+          "tool": null
+        },
+        "session_id": "gate5-final-1785893744",
+        "status": "ok",
+        "tool_result": null,
+        "trace": {
+          "answer_completion": {
+            "model_elapsed_ms": 2297.242,
+            "output_tokens": 6,
+            "reasoning_stripped": false,
+            "stop": "</answer>"
+          },
+          "context": {
+            "history_messages": 0,
+            "mode": "recurrent_session_state",
+            "session_state": {
+              "cache_reject_reason": "",
+              "cached": true,
+              "reused": false,
+              "seen_tokens": 71,
+              "used": true
+            }
+          },
+          "control_plane": "rust",
+          "elapsed_ms": 8222.056228,
+          "gate": {
+            "batch_mode": "persistent_root_fork",
+            "elapsed_ms": 2401.24,
+            "label": "chat",
+            "margin": -5.40625,
+            "queue_ms": 0.0,
+            "root_reused": true,
+            "scores": {
+              "chat": -10.1875,
+              "tool": -15.59375
+            },
+            "threshold": -3.2,
+            "tool": null,
+            "use_tool": false
+          }
+        }
+      }
+    },
+    {
+      "message": "再回复一次你好。",
+      "ttft_ms": 6601.946,
+      "wall_ms": 7027.639,
+      "events": [
+        {
+          "phase": "routing",
+          "type": "phase",
+          "received_ms": 0.539
+        },
+        {
+          "phase": "decoding",
+          "type": "phase",
+          "received_ms": 5014.309
+        },
+        {
+          "delta": "你",
+          "output_tokens": 1,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你",
+          "type": "delta",
+          "received_ms": 6601.946
+        },
+        {
+          "delta": "好",
+          "output_tokens": 2,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好",
+          "type": "delta",
+          "received_ms": 6680.997
+        },
+        {
+          "delta": "！",
+          "output_tokens": 3,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！",
+          "type": "delta",
+          "received_ms": 6759.556
+        },
+        {
+          "delta": "</",
+          "output_tokens": 4,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！</",
+          "type": "delta",
+          "received_ms": 6838.034
+        },
+        {
+          "delta": "answer",
+          "output_tokens": 5,
+          "replace": false,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！</answer",
+          "type": "delta",
+          "received_ms": 6916.433
+        },
+        {
+          "delta": "你好！",
+          "output_tokens": 6,
+          "replace": true,
+          "state_id": "state-e75152fba26c4a6394bd2b037769f28b",
+          "text": "你好！",
+          "type": "delta",
+          "received_ms": 6995.035
+        },
+        {
+          "response": {
+            "answer": "你好！",
+            "message": "再回复一次你好。",
+            "route": {
+              "mode": "direct",
+              "tool": null
+            },
+            "session_id": "gate5-final-1785893744",
+            "status": "ok",
+            "tool_result": null,
+            "trace": {
+              "answer_completion": {
+                "model_elapsed_ms": 2011.301,
+                "output_tokens": 6,
+                "reasoning_stripped": false,
+                "stop": "</answer>"
+              },
+              "context": {
+                "history_messages": 1,
+                "mode": "recurrent_session_state",
+                "session_state": {
+                  "cache_reject_reason": "",
+                  "cached": true,
+                  "reused": true,
+                  "seen_tokens": 96,
+                  "used": true
+                }
+              },
+              "control_plane": "rust",
+              "elapsed_ms": 7027.082530000001,
+              "gate": {
+                "batch_mode": "persistent_root_fork",
+                "elapsed_ms": 5011.55,
+                "label": "chat",
+                "margin": -5.984375,
+                "queue_ms": 0.0,
+                "root_reused": true,
+                "scores": {
+                  "chat": -13.09375,
+                  "tool": -19.078125
+                },
+                "threshold": -3.2,
+                "tool": null,
+                "use_tool": false
+              }
+            }
+          },
+          "type": "final",
+          "received_ms": 7027.554
+        }
+      ],
+      "response": {
+        "answer": "你好！",
+        "message": "再回复一次你好。",
+        "route": {
+          "mode": "direct",
+          "tool": null
+        },
+        "session_id": "gate5-final-1785893744",
+        "status": "ok",
+        "tool_result": null,
+        "trace": {
+          "answer_completion": {
+            "model_elapsed_ms": 2011.301,
+            "output_tokens": 6,
+            "reasoning_stripped": false,
+            "stop": "</answer>"
+          },
+          "context": {
+            "history_messages": 1,
+            "mode": "recurrent_session_state",
+            "session_state": {
+              "cache_reject_reason": "",
+              "cached": true,
+              "reused": true,
+              "seen_tokens": 96,
+              "used": true
+            }
+          },
+          "control_plane": "rust",
+          "elapsed_ms": 7027.082530000001,
+          "gate": {
+            "batch_mode": "persistent_root_fork",
+            "elapsed_ms": 5011.55,
+            "label": "chat",
+            "margin": -5.984375,
+            "queue_ms": 0.0,
+            "root_reused": true,
+            "scores": {
+              "chat": -13.09375,
+              "tool": -19.078125
+            },
+            "threshold": -3.2,
+            "tool": null,
+            "use_tool": false
+          }
+        }
+      }
+    }
+  ],
+  "health": {
+    "agent_limits": {
+      "direct_chat_max_tokens": 96,
+      "max_model_tokens_per_turn": 384,
+      "max_tool_steps": 6
+    },
+    "command": {
+      "available": true,
+      "enabled": true,
+      "sandbox": "proot_unprivileged_usernet_no_unsafe_fallback"
+    },
+    "context": {
+      "history_messages": 12,
+      "long_term_memory": false,
+      "mode": "recurrent_session_state_with_transcript_fallback",
+      "session_state": {
+        "allocated": 1,
+        "capacity": 3,
+        "enabled": true,
+        "metrics": {
+          "hits": 1,
+          "misses": 1,
+          "stores": 2
+        },
+        "mode": "gpu_recurrent_lru"
+      }
+    },
+    "control_plane": "rust",
+    "data_plane": {
+      "answer_validation": "fitgen-claim-lexical-v2",
+      "mode": "python_model_retrieval_data_plane",
+      "model": [
+        {
+          "backend": "hf_recurrent",
+          "calls": 0,
+          "classify_calls": 0,
+          "context": 12288,
+          "cuda_visible_devices": "",
+          "gate_calls": 45,
+          "inference": {
+            "batch_window_ms": 10.0,
+            "decoding": 0,
+            "max_state_rows": 32,
+            "metrics": {
+              "admitted_state_jobs": 39,
+              "admitted_state_rows": 39,
+              "completed": 39,
+              "completed_state_continuation": 39,
+              "completed_state_rows": 39,
+              "submitted": 39,
+              "submitted_state_continuation": 39,
+              "submitted_state_rows": 39
+            },
+            "mode": "unified_ready_queue",
+            "prefilling": 0,
+            "queue_capacity": 256,
+            "request_timeout_seconds": 1800.0,
+            "scheduler": {
+              "admitted": 39,
+              "continuation_batches": 134,
+              "continuations": 292,
+              "decode_calls": 50,
+              "decode_tokens": 208,
+              "fork_calls": 45,
+              "forked_states": 45,
+              "forward_calls": 320,
+              "forward_rows": 508,
+              "forward_time_ms": 547491.293,
+              "forward_time_us": 547491293,
+              "forward_tokens": 8149,
+              "max_batch_observed": 32,
+              "pool": {
+                "allocated": 2,
+                "backend": "hf_recurrent",
+                "bytes_per_slot": 64970752,
+                "capacity": 132,
+                "device": "cuda",
+                "free": 130,
+                "peak_workspace_bytes": 2079064064,
+                "slab_bytes": 129941504,
+                "workspace_bytes": 0
+              },
+              "prefill_rounds": 9,
+              "released": 82,
+              "sample_calls": 50,
+              "shape_counts": {
+                "B1T1": 48,
+                "B1T10": 1,
+                "B1T14": 3,
+                "B1T19": 6,
+                "B1T2": 3,
+                "B1T20": 32,
+                "B1T22": 1,
+                "B1T23": 4,
+                "B1T24": 2,
+                "B1T25": 1,
+                "B1T26": 3,
+                "B1T27": 3,
+                "B1T28": 4,
+                "B1T29": 5,
+                "B1T3": 2,
+                "B1T30": 4,
+                "B1T31": 2,
+                "B1T32": 181,
+                "B1T4": 1,
+                "B1T5": 1,
+                "B1T6": 2,
+                "B1T7": 1,
+                "B27T1": 1,
+                "B27T16": 1,
+                "B2T1": 2,
+                "B32T1": 4,
+                "B5T16": 1,
+                "B7T1": 1
+              }
+            },
+            "waiting": 0,
+            "worker_alive": true,
+            "worker_error": ""
+          },
+          "loaded_seconds": 63.348,
+          "memory_gate_calls": 0,
+          "model": "rwkv7-g1i-preview4922-13.3b",
+          "persistent_states": {
+            "allocated": 2,
+            "batching": {
+              "active_rows": 0,
+              "batch_window_ms": 10.0,
+              "enabled": true,
+              "max_batch_size": 32,
+              "metrics": {
+                "admitted_state_jobs": 39,
+                "admitted_state_rows": 39,
+                "completed_state_continuation": 39,
+                "completed_state_rows": 39,
+                "submitted_state_continuation": 39,
+                "submitted_state_rows": 39
+              },
+              "mode": "shared_unified_ready_queue",
+              "waiting": 0,
+              "worker_alive": true,
+              "worker_error": ""
+            },
+            "busy": 0,
+            "capacity": 101,
+            "enabled": true,
+            "expired_on_health": 0,
+            "free": 99,
+            "metrics": {
+              "batch_prefill_calls": 0,
+              "batch_prefill_states": 0,
+              "classified": 45,
+              "continued": 39,
+              "created": 39,
+              "expired": 0,
+              "failed": 0,
+              "forked": 45,
+              "released": 82
+            },
+            "oldest_idle_seconds": 7.027,
+            "ttl_seconds": 3600.0
+          },
+          "pipeline_devices": [],
+          "status": "ready",
+          "tool_gate_state": {
+            "failures": 0,
+            "forks": 45,
+            "mode": "persistent_root_fork",
+            "root_available": true,
+            "root_builds": 1,
+            "root_reuses": 45
+          }
+        }
+      ],
+      "query_coordination": "structured-query-view",
+      "session_text": {
+        "chars": 4874,
+        "max_chars_per_session": 1000000,
+        "max_sessions": 32,
+        "mode": "transient_session_text",
+        "sessions": 2
+      },
+      "status": "ready",
+      "tools": [
+        "web_search",
+        "knowledge_search",
+        "long_text_qa"
+      ]
+    },
+    "model": [
+      {
+        "backend": "hf_recurrent",
+        "calls": 0,
+        "classify_calls": 0,
+        "context": 12288,
+        "cuda_visible_devices": "",
+        "gate_calls": 45,
+        "inference": {
+          "batch_window_ms": 10.0,
+          "decoding": 0,
+          "max_state_rows": 32,
+          "metrics": {
+            "admitted_state_jobs": 39,
+            "admitted_state_rows": 39,
+            "completed": 39,
+            "completed_state_continuation": 39,
+            "completed_state_rows": 39,
+            "submitted": 39,
+            "submitted_state_continuation": 39,
+            "submitted_state_rows": 39
+          },
+          "mode": "unified_ready_queue",
+          "prefilling": 0,
+          "queue_capacity": 256,
+          "request_timeout_seconds": 1800.0,
+          "scheduler": {
+            "admitted": 39,
+            "continuation_batches": 134,
+            "continuations": 292,
+            "decode_calls": 50,
+            "decode_tokens": 208,
+            "fork_calls": 45,
+            "forked_states": 45,
+            "forward_calls": 320,
+            "forward_rows": 508,
+            "forward_time_ms": 547491.293,
+            "forward_time_us": 547491293,
+            "forward_tokens": 8149,
+            "max_batch_observed": 32,
+            "pool": {
+              "allocated": 2,
+              "backend": "hf_recurrent",
+              "bytes_per_slot": 64970752,
+              "capacity": 132,
+              "device": "cuda",
+              "free": 130,
+              "peak_workspace_bytes": 2079064064,
+              "slab_bytes": 129941504,
+              "workspace_bytes": 0
+            },
+            "prefill_rounds": 9,
+            "released": 82,
+            "sample_calls": 50,
+            "shape_counts": {
+              "B1T1": 48,
+              "B1T10": 1,
+              "B1T14": 3,
+              "B1T19": 6,
+              "B1T2": 3,
+              "B1T20": 32,
+              "B1T22": 1,
+              "B1T23": 4,
+              "B1T24": 2,
+              "B1T25": 1,
+              "B1T26": 3,
+              "B1T27": 3,
+              "B1T28": 4,
+              "B1T29": 5,
+              "B1T3": 2,
+              "B1T30": 4,
+              "B1T31": 2,
+              "B1T32": 181,
+              "B1T4": 1,
+              "B1T5": 1,
+              "B1T6": 2,
+              "B1T7": 1,
+              "B27T1": 1,
+              "B27T16": 1,
+              "B2T1": 2,
+              "B32T1": 4,
+              "B5T16": 1,
+              "B7T1": 1
+            }
+          },
+          "waiting": 0,
+          "worker_alive": true,
+          "worker_error": ""
+        },
+        "loaded_seconds": 63.348,
+        "memory_gate_calls": 0,
+        "model": "rwkv7-g1i-preview4922-13.3b",
+        "persistent_states": {
+          "allocated": 2,
+          "batching": {
+            "active_rows": 0,
+            "batch_window_ms": 10.0,
+            "enabled": true,
+            "max_batch_size": 32,
+            "metrics": {
+              "admitted_state_jobs": 39,
+              "admitted_state_rows": 39,
+              "completed_state_continuation": 39,
+              "completed_state_rows": 39,
+              "submitted_state_continuation": 39,
+              "submitted_state_rows": 39
+            },
+            "mode": "shared_unified_ready_queue",
+            "waiting": 0,
+            "worker_alive": true,
+            "worker_error": ""
+          },
+          "busy": 0,
+          "capacity": 101,
+          "enabled": true,
+          "expired_on_health": 0,
+          "free": 99,
+          "metrics": {
+            "batch_prefill_calls": 0,
+            "batch_prefill_states": 0,
+            "classified": 45,
+            "continued": 39,
+            "created": 39,
+            "expired": 0,
+            "failed": 0,
+            "forked": 45,
+            "released": 82
+          },
+          "oldest_idle_seconds": 7.025,
+          "ttl_seconds": 3600.0
+        },
+        "pipeline_devices": [],
+        "status": "ready",
+        "tool_gate_state": {
+          "failures": 0,
+          "forks": 45,
+          "mode": "persistent_root_fork",
+          "root_available": true,
+          "root_builds": 1,
+          "root_reuses": 45
+        }
+      }
+    ],
+    "state_parallel_search": {
+      "enabled": true,
+      "endpoint": "/v1/agent/run_stateful",
+      "max_branches": 4,
+      "max_rounds": 3
+    },
+    "status": "ready",
+    "tool_gate": {
+      "mode": "semantic_single_token",
+      "pasted_text_threshold": -5.5,
+      "threshold": -3.2
+    },
+    "tools": [
+      "web_search",
+      "knowledge_search",
+      "long_text_qa",
+      "run_command"
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "rwkv_agent_gate5_b32_regression_final.v1",
+  "status": "pass",
+  "conclusion": "The first Gate 5 B32 sample included one-time unseen batch-shape warm-up. Same-protocol warm rerun preserves the frozen Gate 3 throughput envelope.",
+  "protocol": {
+    "model": "rwkv7-g1i-preview4922-13.3b",
+    "backend": "hf_recurrent",
+    "greedy": true,
+    "independent_states": 32,
+    "max_tokens": 8,
+    "physical_batch": 32
+  },
+  "frozen_gate3": {
+    "tps": 29.9838,
+    "wall_seconds": 5.536327,
+    "output_tokens": 166
+  },
+  "cold_diagnostic": {
+    "tps": 20.2245,
+    "wall_seconds": 8.207857,
+    "note": "not used as steady-state regression result; first unseen B27/B32 shape"
+  },
+  "batch_prefill_warmup": {
+    "tps": 30.724223046395963,
+    "wall_seconds": 5.402903101872653,
+    "successes": 32
+  },
+  "same_protocol_warm_rerun": {
+    "tps": 29.347189997513837,
+    "wall_seconds": 5.656418894417584,
+    "output_tokens": 166,
+    "successes": 32,
+    "released": 32,
+    "release_errors": [],
+    "shape_delta": {
+      "B13T1": 1,
+      "B13T16": 1,
+      "B19T16": 1,
+      "B1T1": 1,
+      "B1T20": 32,
+      "B1T32": 96,
+      "B20T1": 1,
+      "B2T1": 2,
+      "B32T1": 4
+    }
+  },
+  "steady_state_delta_pct": -2.123,
+  "acceptance": {
+    "max_regression_pct": 5.0,
+    "throughput_pass": true,
+    "correctness_pass": true,
+    "release_pass": true
+  },
+  "source_artifacts": [
+    "/root/rwkv-agent-track2/evidence/gate5/b32-throughput-regression.json",
+    "/root/rwkv-agent-track2/evidence/gate5/b32-batch-prefill-diagnostic.json",
+    "/root/rwkv-agent-track2/evidence/gate5/b32-sequential-prefill-warm-diagnostic.json"
+  ],
+  "created_unix": 1785894534.4669204
+}

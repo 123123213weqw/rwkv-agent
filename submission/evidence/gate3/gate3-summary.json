@@ -1,0 +1,337 @@
+{
+  "schema": "rwkv_agent_gate3_summary.v1",
+  "status": "pass",
+  "time_asia_shanghai": "2026-08-04 18:55:24 CST",
+  "model": {
+    "id": "rwkv7-g1i-preview4922-13.3b",
+    "backend": "hf_recurrent",
+    "parameters": 13269245952,
+    "dtype": "fp16",
+    "context": 12288,
+    "decode": "greedy",
+    "model_sha256": "af0378e1241823733f1f603469f92970b388fd42bb6f7f1b955e45bce2883772"
+  },
+  "hardware": {
+    "gpu": "AMD Radeon gfx1100",
+    "rocm": "7.2.1",
+    "vram_total_bytes": 51522830336
+  },
+  "scheduler_config": {
+    "state_capacity": 132,
+    "persistent_state_capacity": 100,
+    "max_batch_size": 32,
+    "prefill_chunk_size": 32,
+    "batch_window_ms": 10,
+    "request_timeout_seconds": 1800
+  },
+  "scaling": [
+    {
+      "logical_tasks": 1,
+      "wall_seconds": 3.000982,
+      "output_tokens": 5,
+      "aggregate_output_tokens_per_second": 1.6661,
+      "latency_p50_ms": 3000.481,
+      "latency_p95_ms": 3000.481,
+      "physical_batch_observed": 1,
+      "decode_average_batch_fill": 1.0,
+      "gpu_busy_mean_pct": 66.0,
+      "gpu_busy_peak_pct": 93.0,
+      "vram_peak_bytes": 27525275648,
+      "resident_states_peak": 1,
+      "errors": []
+    },
+    {
+      "logical_tasks": 4,
+      "wall_seconds": 3.196371,
+      "output_tokens": 20,
+      "aggregate_output_tokens_per_second": 6.2571,
+      "latency_p50_ms": 3194.885,
+      "latency_p95_ms": 3195.01,
+      "physical_batch_observed": 4,
+      "decode_average_batch_fill": 4.0,
+      "gpu_busy_mean_pct": 73.5,
+      "gpu_busy_peak_pct": 93.0,
+      "vram_peak_bytes": 28544679936,
+      "resident_states_peak": 4,
+      "errors": []
+    },
+    {
+      "logical_tasks": 8,
+      "wall_seconds": 3.933138,
+      "output_tokens": 46,
+      "aggregate_output_tokens_per_second": 11.6955,
+      "latency_p50_ms": 3738.864,
+      "latency_p95_ms": 3930.619,
+      "physical_batch_observed": 8,
+      "decode_average_batch_fill": 5.75,
+      "gpu_busy_mean_pct": 77.833,
+      "gpu_busy_peak_pct": 92.0,
+      "vram_peak_bytes": 29739921408,
+      "resident_states_peak": 8,
+      "errors": []
+    },
+    {
+      "logical_tasks": 16,
+      "wall_seconds": 4.355469,
+      "output_tokens": 86,
+      "aggregate_output_tokens_per_second": 19.7453,
+      "latency_p50_ms": 4156.451,
+      "latency_p95_ms": 4352.064,
+      "physical_batch_observed": 16,
+      "decode_average_batch_fill": 10.75,
+      "gpu_busy_mean_pct": 90.75,
+      "gpu_busy_peak_pct": 99.0,
+      "vram_peak_bytes": 31392124928,
+      "resident_states_peak": 16,
+      "errors": []
+    },
+    {
+      "logical_tasks": 32,
+      "wall_seconds": 5.536327,
+      "output_tokens": 166,
+      "aggregate_output_tokens_per_second": 29.9838,
+      "latency_p50_ms": 5338.654,
+      "latency_p95_ms": 5442.72,
+      "physical_batch_observed": 32,
+      "decode_average_batch_fill": 18.4444,
+      "gpu_busy_mean_pct": 88.0,
+      "gpu_busy_peak_pct": 98.0,
+      "vram_peak_bytes": 37871226880,
+      "resident_states_peak": 32,
+      "errors": []
+    },
+    {
+      "logical_tasks": 64,
+      "wall_seconds": 12.670274,
+      "output_tokens": 326,
+      "aggregate_output_tokens_per_second": 25.7295,
+      "latency_p50_ms": 7624.022,
+      "latency_p95_ms": 12468.878,
+      "physical_batch_observed": 32,
+      "decode_average_batch_fill": 15.5238,
+      "gpu_busy_mean_pct": 86.0,
+      "gpu_busy_peak_pct": 98.0,
+      "vram_peak_bytes": 40056455168,
+      "resident_states_peak": 64,
+      "errors": []
+    },
+    {
+      "logical_tasks": 100,
+      "wall_seconds": 21.184853,
+      "output_tokens": 509,
+      "aggregate_output_tokens_per_second": 24.0266,
+      "latency_p50_ms": 16546.267,
+      "latency_p95_ms": 21165.101,
+      "physical_batch_observed": 32,
+      "decode_average_batch_fill": 16.9667,
+      "gpu_busy_mean_pct": 80.25,
+      "gpu_busy_peak_pct": 98.0,
+      "vram_peak_bytes": 42363338752,
+      "resident_states_peak": 100,
+      "errors": []
+    }
+  ],
+  "best_stable_batch": {
+    "logical_tasks": 32,
+    "wall_seconds": 5.536327,
+    "output_tokens": 166,
+    "aggregate_output_tokens_per_second": 29.9838,
+    "latency_p50_ms": 5338.654,
+    "latency_p95_ms": 5442.72,
+    "physical_batch_observed": 32,
+    "decode_average_batch_fill": 18.4444,
+    "gpu_busy_mean_pct": 88.0,
+    "gpu_busy_peak_pct": 98.0,
+    "vram_peak_bytes": 37871226880,
+    "resident_states_peak": 32,
+    "errors": [],
+    "selection_reason": "highest observed aggregate output tok/s with zero errors, exact B32 serial/concurrent output, and final release counters at zero"
+  },
+  "serial_concurrent_ab": {
+    "level": 32,
+    "compared": 32,
+    "exact": 32,
+    "all_exact": true,
+    "mismatches": [],
+    "concurrent_speedup": 10.5792,
+    "aggregate_tps_ratio": 10.5793,
+    "serial_wall_seconds": 58.569965,
+    "concurrent_wall_seconds": 5.536327
+  },
+  "b100": {
+    "logical_tasks": 100,
+    "wall_seconds": 21.184853,
+    "output_tokens": 509,
+    "aggregate_output_tokens_per_second": 24.0266,
+    "latency_p50_ms": 16546.267,
+    "latency_p95_ms": 21165.101,
+    "physical_batch_observed": 32,
+    "decode_average_batch_fill": 16.9667,
+    "gpu_busy_mean_pct": 80.25,
+    "gpu_busy_peak_pct": 98.0,
+    "vram_peak_bytes": 42363338752,
+    "resident_states_peak": 100,
+    "errors": [],
+    "claim": "100 independent tasks · physical concurrency 32",
+    "shared_root_fork": false
+  },
+  "state_reuse_ab": {
+    "schema": "rwkv_agent_gate3_state_reuse_depth.v1",
+    "status": "pass",
+    "model": "rwkv7-g1i-preview4922-13.3b",
+    "context": 12288,
+    "greedy": true,
+    "checkpoints": [
+      {
+        "turns": 2,
+        "transcript_input_tokens": 1076,
+        "state_input_tokens": 544,
+        "repeated_prefill_tokens_avoided": 532,
+        "transcript_seconds": 92.684501,
+        "state_seconds": 46.523837,
+        "state_speedup": 1.9922,
+        "compared_turns": 2,
+        "exact_turns": 2,
+        "all_exact": true
+      },
+      {
+        "turns": 4,
+        "transcript_input_tokens": 2254,
+        "state_input_tokens": 577,
+        "repeated_prefill_tokens_avoided": 1677,
+        "transcript_seconds": 191.730283,
+        "state_seconds": 50.672315,
+        "state_speedup": 3.7837,
+        "compared_turns": 4,
+        "exact_turns": 4,
+        "all_exact": true
+      },
+      {
+        "turns": 8,
+        "transcript_input_tokens": 4913,
+        "state_input_tokens": 648,
+        "repeated_prefill_tokens_avoided": 4265,
+        "transcript_seconds": 414.869256,
+        "state_seconds": 59.388359,
+        "state_speedup": 6.9857,
+        "compared_turns": 8,
+        "exact_turns": 8,
+        "all_exact": true
+      },
+      {
+        "turns": 16,
+        "transcript_input_tokens": 11447,
+        "state_input_tokens": 785,
+        "repeated_prefill_tokens_avoided": 10662,
+        "transcript_seconds": 961.510846,
+        "state_seconds": 76.397046,
+        "state_speedup": 12.5857,
+        "compared_turns": 16,
+        "exact_turns": 16,
+        "all_exact": true
+      }
+    ],
+    "full_profile_state_speedup": 12.5842,
+    "ttft": {
+      "available": false,
+      "reason": "Sidecar HTTP endpoint is non-streaming; wall and input-token cost are frozen instead"
+    },
+    "gpu": {
+      "samples": 457,
+      "busy_mean_pct": 99.737,
+      "busy_p95_pct": 100.0,
+      "busy_peak_pct": 100.0,
+      "vram_peak_bytes": 27527090176
+    },
+    "final_persistent_allocated": 0,
+    "initial_sampler_failure": "rocm.csv retained header only because tail selected a trailing blank line; corrected grep-based rocm-recovery.csv is the frozen telemetry source.",
+    "hashes": {
+      "runner_sha256": "5edfa25987c1fc7b796c9ab64c308d338615c9bcfbb769fbe8053b3a7ea2ddeb",
+      "raw_sha256": "adb3fbc7b81a7a516e1e7c5c0a737399335eedfdd7b49a74ba5a9753137a90d6",
+      "rocm_sha256": "128c68be4e569c4b6ce648a85e7bbee94388c85ccca5aa688663c33a80aab10c"
+    }
+  },
+  "failure_isolation": {
+    "status": "pass",
+    "expected_denied_status": 403,
+    "valid_peer_completed": true,
+    "final_worker_alive": true,
+    "final_allocated": 0,
+    "artifact": "/root/rwkv-agent-track2/evidence/gate3/failure-isolation-v2.json"
+  },
+  "hard_checks": {
+    "scaling_requests": 257,
+    "scaling_request_failures": 0,
+    "scaling_hard_errors": 0,
+    "scaling_telemetry_errors": 0,
+    "session_mix": 0,
+    "b32_greedy_output_exact": "32/32",
+    "state_reuse_output_exact": "16/16",
+    "state_leak": 0,
+    "intentional_owner_denial": 403,
+    "final_controller_session_states": 0,
+    "final_scheduler_states": 0,
+    "final_persistent_states": 0,
+    "final_busy_states": 0,
+    "final_waiting": 0,
+    "final_prefilling": 0,
+    "final_decoding": 0,
+    "worker_alive": true,
+    "worker_error": ""
+  },
+  "tests": {
+    "gate3_python": "47 passed",
+    "gate2_rust_unchanged": "65 passed"
+  },
+  "source": {
+    "local_amd_match": true,
+    "files": 880,
+    "bytes": 122270324,
+    "tree_sha256": "f7065964229be550cd8d0392f4984a5acbeebb94a66cf73787c9b48df7d95565",
+    "manifest": "/root/rwkv-agent-track2/evidence/gate3/source-manifest-amd.json",
+    "excluded": [
+      "docs/TODO.md",
+      ".env*",
+      ".DS_Store",
+      "*.pyc",
+      "*.pyo",
+      ".git",
+      ".mypy_cache",
+      ".pytest_cache",
+      ".ruff_cache",
+      ".venv",
+      "__pycache__",
+      "node_modules",
+      "target",
+      "var",
+      "venv"
+    ]
+  },
+  "artifacts": {
+    "scaling_summary": "/root/rwkv-agent-track2/evidence/gate3/scaling-b32/gate3-state-scaling-summary.json",
+    "scaling_rows": "/root/rwkv-agent-track2/evidence/gate3/scaling-b32/gate3-state-scaling-rows.jsonl",
+    "scaling_rocm": "/root/rwkv-agent-track2/evidence/gate3/scaling-b32/gate3-state-scaling-rocm.csv",
+    "state_reuse_raw": "/root/rwkv-agent-track2/evidence/gate3/state-reuse-depth16/chat-state-depth16.json",
+    "state_reuse_summary": "/root/rwkv-agent-track2/evidence/gate3/state-reuse-depth16/state-reuse-depth-summary.json",
+    "state_reuse_rocm": "/root/rwkv-agent-track2/evidence/gate3/state-reuse-depth16/rocm-recovery.csv",
+    "failure_isolation": "/root/rwkv-agent-track2/evidence/gate3/failure-isolation-v2.json",
+    "final_health": "/root/rwkv-agent-track2/evidence/gate3/final-health.json",
+    "controller_final_health": "/root/rwkv-agent-track2/evidence/gate3/controller-final-health.json",
+    "pytest": "/root/rwkv-agent-track2/evidence/gate3/pytest-gate3-final.log"
+  },
+  "limitations": [
+    "TTFT is explicitly unavailable because the current Sidecar State HTTP endpoint is non-streaming; per-request wall, queue time, input-token cost, P50 and P95 are frozen instead.",
+    "B64 and B100 are logical resident task counts executed in physical B32 waves; they are not advertised as 64-way or 100-way concurrent decode.",
+    "The first state-reuse ROCm sampler selected a trailing blank line and retained only its header; the corrected grep-based rocm-recovery.csv is frozen and the failed sampler file is retained.",
+    "Radeon uses the HF native recurrent PyTorch backend because the Albatross CUDA MMA extension is NVIDIA-specific."
+  ],
+  "production": {
+    "changed": false,
+    "public_8118_8120": "untouched",
+    "isolated_ports": [
+      18118,
+      18120,
+      18121
+    ]
+  }
+}

@@ -59,6 +59,8 @@ class PersistentStateRuntime:
         self._busy: set[str] = set()
         self._metrics = {
             "created": 0,
+            "batch_prefill_calls": 0,
+            "batch_prefill_states": 0,
             "forked": 0,
             "continued": 0,
             "classified": 0,
@@ -180,6 +182,26 @@ class PersistentStateRuntime:
         if busy:
             raise RuntimeError(f"persistent states are busy: {','.join(busy)}")
 
+    def has_state(
+        self,
+        *,
+        owner_id: str,
+        state_id: str,
+        touch: bool = False,
+    ) -> bool:
+        """Check a State under owner isolation, optionally refreshing its TTL."""
+
+        owner = self.registry.clean_owner(owner_id)
+        with self._lock:
+            self._cleanup_expired_locked()
+            try:
+                record = self.registry.require(state_id, owner)
+            except KeyError:
+                return False
+            if touch:
+                record.last_used_at = self._clock()
+            return True
+
     def prefill(
         self,
         *,
@@ -216,6 +238,77 @@ class PersistentStateRuntime:
             self._metrics["created"] += 1
             request = self.scheduler.request(state_id)
             return self._describe(record, request.seen_tokens)
+
+    def prefill_many(
+        self,
+        *,
+        items: Sequence[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Create independently owned States with one vectorized prefill.
+
+        Owner isolation remains per row; only model weights and the scheduler
+        call are shared.  This is intentionally different from Root Fork.
+        """
+
+        if not items:
+            raise ValueError("batch prefill items must not be empty")
+        normalized: list[tuple[str, tuple[int, ...], str]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                raise ValueError("batch prefill item must be an object")
+            normalized.append(
+                (
+                    self.registry.clean_owner(str(item.get("owner_id") or "")),
+                    self._encode(str(item.get("prompt") or "")),
+                    str(item.get("branch") or "root")[:80],
+                )
+            )
+        with self._lock:
+            self._cleanup_expired_locked()
+            self.registry.ensure_capacity(len(normalized))
+            state_ids = [self.registry.new_state_id() for _item in normalized]
+            admitted: list[str] = []
+            try:
+                for state_id, (_owner, tokens, _branch) in zip(
+                    state_ids, normalized, strict=True
+                ):
+                    self.scheduler.admit(state_id, tokens)
+                    admitted.append(state_id)
+                self.scheduler.prefill(state_ids)
+            except Exception:
+                for state_id in admitted:
+                    try:
+                        self.scheduler.release(state_id)
+                    except KeyError:
+                        pass
+                self._metrics["failed"] += 1
+                raise
+            now = self._clock()
+            records = [
+                PersistentState(
+                    state_id=state_id,
+                    owner_id=owner,
+                    parent_state_id=None,
+                    branch=branch,
+                    created_at=now,
+                    last_used_at=now,
+                )
+                for state_id, (owner, _tokens, branch) in zip(
+                    state_ids, normalized, strict=True
+                )
+            ]
+            for record in records:
+                self.registry.add(record)
+            self._metrics["created"] += len(records)
+            self._metrics["batch_prefill_calls"] += 1
+            self._metrics["batch_prefill_states"] += len(records)
+            return [
+                self._describe(
+                    record,
+                    self.scheduler.request(record.state_id).seen_tokens,
+                )
+                for record in records
+            ]
 
     def fork(
         self,
@@ -268,6 +361,7 @@ class PersistentStateRuntime:
         items: Sequence[dict[str, Any]],
         stops: Sequence[str],
         max_tokens: int,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> list[dict[str, Any]]:
         owner = self.registry.clean_owner(owner_id)
         if not items:
@@ -319,6 +413,7 @@ class PersistentStateRuntime:
                     ],
                     stops=stop_values,
                     max_tokens=max_tokens,
+                    event_sink=event_sink,
                 )
             else:
                 self.scheduler.continue_many(continuations)

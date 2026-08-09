@@ -1,0 +1,33 @@
+{
+  "read": {
+    "bytes": 11,
+    "content": "mode=debug\n",
+    "path": "config.ini",
+    "status": "ok",
+    "stdout": "mode=debug\n"
+  },
+  "edit": {
+    "bytes_written": 13,
+    "path": "config.ini",
+    "replacements": 1,
+    "status": "ok"
+  },
+  "write": {
+    "bytes_written": 12,
+    "path": "result.txt",
+    "status": "ok"
+  },
+  "verify": {
+    "exit_code": 0,
+    "standalone_test_runner_rewritten": false,
+    "status": "ok",
+    "stderr": "",
+    "stdout": "mode=release\nstatus=pass\n",
+    "truncated": false,
+    "workspace_alias_rewritten": false
+  },
+  "escape": {
+    "error": "workspace file path must be relative and cannot escape",
+    "status": "error"
+  }
+}

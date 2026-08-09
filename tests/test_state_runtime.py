@@ -115,6 +115,26 @@ class PersistentStateRuntimeTests(unittest.TestCase):
         self.assertEqual(released["released"], 3)
         self.assertEqual(scheduler.pool.allocated, 0)
 
+    def test_batch_prefill_vectorizes_independent_owners_without_fork(self) -> None:
+        scheduler, runtime = self.make_runtime()
+        states = runtime.prefill_many(
+            items=[
+                {"owner_id": "owner-a", "prompt": "abcd", "branch": "site-a"},
+                {"owner_id": "owner-b", "prompt": "wxyz", "branch": "site-b"},
+            ]
+        )
+        self.assertEqual(len(states), 2)
+        self.assertEqual({row["owner_id"] for row in states}, {"owner-a", "owner-b"})
+        self.assertTrue(all(row["parent_state_id"] is None for row in states))
+        self.assertIn("B2T4", scheduler.metrics()["shape_counts"])
+        self.assertEqual(runtime.health()["metrics"]["batch_prefill_states"], 2)
+        for state in states:
+            runtime.release(
+                owner_id=state["owner_id"],
+                state_ids=[state["state_id"]],
+            )
+        self.assertEqual(scheduler.pool.allocated, 0)
+
     def test_concurrent_runtime_calls_use_unified_ready_queue(self) -> None:
         scheduler, _unused = self.make_runtime()
         tokenizer = FakeTokenizer()
@@ -197,6 +217,31 @@ class PersistentStateRuntimeTests(unittest.TestCase):
             + [item["state_id"] for item in branches],
         )
         self.assertEqual(scheduler.pool.allocated, 0)
+
+    def test_cached_classification_root_survives_fork_classify_release(self) -> None:
+        scheduler, runtime = self.make_runtime()
+        root = runtime.prefill(owner_id="gate", prompt="static examples")
+        child = runtime.fork(
+            owner_id="gate",
+            parent_state_id=root["state_id"],
+            branches=["request-1"],
+        )[0]
+        result = runtime.classify_many(
+            owner_id="gate",
+            items=[{"state_id": child["state_id"], "input": "current request"}],
+            labels={"tool": 1, "chat": 2},
+        )[0]
+        self.assertEqual(set(result["scores"]), {"tool", "chat"})
+        runtime.release(owner_id="gate", state_ids=[child["state_id"]])
+        self.assertTrue(
+            runtime.has_state(
+                owner_id="gate",
+                state_id=root["state_id"],
+                touch=True,
+            )
+        )
+        self.assertEqual(scheduler.pool.allocated, 1)
+        runtime.release(owner_id="gate", state_ids=[root["state_id"]])
 
     def test_persistent_batch_classification_rejects_non_finite_logits(self) -> None:
         scheduler, runtime = self.make_runtime()

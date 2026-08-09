@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "standalone_test_runner_rewritten": false,
+  "status": "ok",
+  "stderr": "",
+  "stdout": "network_blocked OSError [Errno 101] Network is unreachable\n",
+  "truncated": false,
+  "workspace_alias_rewritten": false
+}

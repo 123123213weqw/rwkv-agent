@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -158,7 +159,12 @@ def main() -> None:
     semantic_scorer = build_semantic_scorer_from_env()
     web = WebSearchAdapter(args.web_config, semantic_scorer=semantic_scorer)
     knowledge = KnowledgeSearchAdapter(args.knowledge_endpoint)
-    long_text = LongTextQAAdapter(model.complete)
+    long_text = LongTextQAAdapter(
+        model.complete,
+        top_k=int(os.getenv("RWKV_LONG_TEXT_TOP_K", "16")),
+        concurrency=int(os.getenv("RWKV_LONG_TEXT_CONCURRENCY", "8")),
+        worker_max_tokens=int(os.getenv("RWKV_LONG_TEXT_MAX_TOKENS", "64")),
+    )
     session_text = SessionTextBuffer(
         max_chars=int(getattr(long_text, "max_document_chars", 1_000_000)),
     )

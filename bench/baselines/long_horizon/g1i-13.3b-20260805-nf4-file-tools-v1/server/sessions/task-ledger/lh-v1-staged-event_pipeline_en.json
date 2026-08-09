@@ -1,0 +1,274 @@
+{
+  "ledger_schema_version": 1,
+  "task_id": "lh-v1-staged-event_pipeline_en",
+  "session_id": "lh-v1-staged-event_pipeline_en",
+  "task_spec": {
+    "schema_version": 1,
+    "objective": "Work only in long-horizon/staged/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+    "acceptance_criteria": [
+      "summarize.py implements the specification rather than hard-coding the fixture result.",
+      "tests.py prints PIPELINE_OK."
+    ],
+    "constraints": [
+      "Do not modify SPEC.md, events.csv, or tests.py."
+    ],
+    "verification_commands": [
+      "python3 tests.py"
+    ],
+    "requires_mutation": true,
+    "working_directory": "long-horizon/staged/event_pipeline_en",
+    "stages": [
+      {
+        "id": "implement_parser",
+        "objective": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "The script parses the CSV generically and creates its requested outputs."
+        ],
+        "constraints": [
+          "Do not modify SPEC.md, events.csv, or tests.py."
+        ],
+        "verification_commands": [
+          "python3 summarize.py events.csv summary.json checksum.txt"
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "verify_semantics",
+        "objective": "Inspect summary.json and checksum.txt, run tests.py, and correct ordering, compact serialization, newline, aggregation, or checksum defects based on real failures.",
+        "depends_on": [
+          "implement_parser"
+        ],
+        "acceptance_criteria": [
+          "The supplied semantic test prints PIPELINE_OK."
+        ],
+        "constraints": [
+          "Do not modify SPEC.md, events.csv, or tests.py."
+        ],
+        "verification_commands": [
+          "python3 tests.py"
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "final_regression",
+        "objective": "Run the complete verifier again from the current durable workspace and report only after PIPELINE_OK is observed.",
+        "depends_on": [
+          "verify_semantics"
+        ],
+        "acceptance_criteria": [
+          "Final regression is green without changing protected inputs."
+        ],
+        "constraints": [
+          "Do not modify SPEC.md, events.csv, or tests.py."
+        ],
+        "verification_commands": [
+          "python3 tests.py"
+        ],
+        "requires_mutation": false
+      }
+    ]
+  },
+  "status": "failed",
+  "current_stage": "implement_parser",
+  "stages": [
+    {
+      "spec": {
+        "id": "implement_parser",
+        "objective": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "The script parses the CSV generically and creates its requested outputs."
+        ],
+        "constraints": [
+          "Do not modify SPEC.md, events.csv, or tests.py."
+        ],
+        "verification_commands": [
+          "python3 summarize.py events.csv summary.json checksum.txt"
+        ],
+        "requires_mutation": true
+      },
+      "status": "failed",
+      "attempts": 1,
+      "started_unix_ms": 1786148270081,
+      "completed_unix_ms": 1786148276478,
+      "response": {
+        "answer": "",
+        "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+        "error_code": "protocol_error",
+        "message": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-staged-event_pipeline_en",
+        "status": "error",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-9631a23e4e4a1a6e-0000000000000006",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-7c3313e2b87148779b7680188024616a",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-153ccf4c29454eef93d76c3730854ba4",
+                "type": "state_opened"
+              },
+              {
+                "message": "invalid tool-call JSON: expected value at line 1 column 1",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "invalid tool-call JSON: expected value at line 1 column 1",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-153ccf4c29454eef93d76c3730854ba4",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-7c3313e2b87148779b7680188024616a",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 6396.034443,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "The script parses the CSV generically and creates its requested outputs."
+            ],
+            "constraints": [
+              "Do not modify SPEC.md, events.csv, or tests.py.",
+              "Do not modify SPEC.md, events.csv, or tests.py."
+            ],
+            "objective": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 summarize.py events.csv summary.json checksum.txt"
+            ],
+            "working_directory": "long-horizon/staged/event_pipeline_en"
+          }
+        }
+      },
+      "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1"
+    },
+    {
+      "spec": {
+        "id": "verify_semantics",
+        "objective": "Inspect summary.json and checksum.txt, run tests.py, and correct ordering, compact serialization, newline, aggregation, or checksum defects based on real failures.",
+        "depends_on": [
+          "implement_parser"
+        ],
+        "acceptance_criteria": [
+          "The supplied semantic test prints PIPELINE_OK."
+        ],
+        "constraints": [
+          "Do not modify SPEC.md, events.csv, or tests.py."
+        ],
+        "verification_commands": [
+          "python3 tests.py"
+        ],
+        "requires_mutation": true
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    },
+    {
+      "spec": {
+        "id": "final_regression",
+        "objective": "Run the complete verifier again from the current durable workspace and report only after PIPELINE_OK is observed.",
+        "depends_on": [
+          "verify_semantics"
+        ],
+        "acceptance_criteria": [
+          "Final regression is green without changing protected inputs."
+        ],
+        "constraints": [
+          "Do not modify SPEC.md, events.csv, or tests.py."
+        ],
+        "verification_commands": [
+          "python3 tests.py"
+        ],
+        "requires_mutation": false
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    }
+  ],
+  "created_unix_ms": 1786148270079,
+  "updated_unix_ms": 1786148276478,
+  "revision": 3,
+  "recovery_count": 0,
+  "final_response": null,
+  "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+  "events": [
+    {
+      "sequence": 1,
+      "unix_ms": 1786148270079,
+      "kind": "created",
+      "stage_id": null,
+      "detail": "task persisted before execution"
+    },
+    {
+      "sequence": 2,
+      "unix_ms": 1786148270080,
+      "kind": "task_started",
+      "stage_id": null,
+      "detail": "stage controller claimed task"
+    },
+    {
+      "sequence": 3,
+      "unix_ms": 1786148270081,
+      "kind": "stage_started",
+      "stage_id": "implement_parser",
+      "detail": "checkpoint before execution"
+    },
+    {
+      "sequence": 4,
+      "unix_ms": 1786148276478,
+      "kind": "stage_failed",
+      "stage_id": "implement_parser",
+      "detail": "protocol error: invalid tool-call JSON: expected value at line 1 column 1"
+    }
+  ]
+}

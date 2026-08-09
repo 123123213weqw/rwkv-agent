@@ -14,7 +14,11 @@ from rwkv_agent.controller import (
     strip_leading_think_blocks,
 )
 from rwkv_agent.memory import MemoryStore
-from rwkv_agent.routing import render_tool_gate_prompt
+from rwkv_agent.routing import (
+    render_tool_gate_prompt,
+    render_tool_gate_root,
+    render_tool_gate_turn,
+)
 from rwkv_agent.tools.web import WebSearchAdapter
 
 
@@ -825,6 +829,13 @@ class ControllerGateTests(unittest.TestCase):
         self.assertIn("Recent conversation reference", prompt)
         self.assertIn("Active pasted long text: yes", prompt)
         self.assertIn("Current user request: 那它是谁创建的？", prompt)
+        turn = render_tool_gate_turn(
+            "那它是谁创建的？",
+            context="User: 我们在讨论RWKV。",
+            has_pasted_text=True,
+        )
+        self.assertNotIn("Mamba架构最初是谁提出的？", turn)
+        self.assertEqual(prompt, render_tool_gate_root() + turn)
 
     def test_policy_gate_only_applies_explicit_ui_search_mode(self) -> None:
         for message in (

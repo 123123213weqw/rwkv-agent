@@ -9,6 +9,13 @@ const TOOL_CLOSE: &str = "</tool_call>";
 const ANSWER_OPEN: &str = "<answer>";
 const ANSWER_CLOSE: &str = "</answer>";
 
+/// Structural prefill used whenever the controller has already decided that
+/// the next model action must be a tool call. Keeping the opening JSON shape
+/// in the prompt prevents small or quantized models from drifting to an
+/// incompatible `function`/`args` wire format; the strict parser remains the
+/// sole authority for the completed envelope.
+pub const TOOL_CALL_JSON_PREFIX: &str = "<tool_call>{\"name\":\"";
+
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum ProtocolError {
     #[error("output must contain exactly one strict tool-call or answer envelope")]
@@ -75,19 +82,101 @@ pub fn render_observation(result: &Value) -> String {
     render_observation_with_suffix(result, "Assistant:")
 }
 
+pub fn render_observation_with_progress(
+    result: &Value,
+    completed_steps: usize,
+    max_steps: usize,
+) -> String {
+    render_observation_with_progress_and_reminder(result, completed_steps, max_steps, "")
+}
+
+pub fn render_observation_with_progress_and_reminder(
+    result: &Value,
+    completed_steps: usize,
+    max_steps: usize,
+    reminder: &str,
+) -> String {
+    let instruction = if completed_steps >= max_steps {
+        format!(
+            "Tool step {completed_steps}/{max_steps} is complete. No tool budget remains. Return the best truthful final answer now and do not call another tool."
+        )
+    } else {
+        format!(
+            "Tool step {completed_steps}/{max_steps} is complete. Continue the original task. Do not repeat an identical successful command. Call one tool only if a distinct required action or verification remains; otherwise return the final answer now."
+        )
+    };
+    let instruction = if reminder.trim().is_empty() {
+        instruction
+    } else {
+        format!(
+            "Original task (authoritative): {}\n{instruction}\nBefore answering, compare every requested literal, filename, prefix, suffix, and verification result against this task.",
+            reminder.trim()
+        )
+    };
+    render_observation_with_instruction(result, &instruction, "Assistant:")
+}
+
+pub fn render_tool_observation_with_progress_and_reminder(
+    result: &Value,
+    completed_steps: usize,
+    max_steps: usize,
+    reminder: &str,
+) -> String {
+    render_tool_observation_with_progress_reminder_and_prefix(
+        result,
+        completed_steps,
+        max_steps,
+        reminder,
+        TOOL_CALL_JSON_PREFIX,
+    )
+}
+
+pub fn render_tool_observation_with_progress_reminder_and_prefix(
+    result: &Value,
+    completed_steps: usize,
+    max_steps: usize,
+    reminder: &str,
+    tool_prefix: &str,
+) -> String {
+    let mut value =
+        render_observation_with_progress_and_reminder(result, completed_steps, max_steps, reminder);
+    if value.ends_with("Assistant:") {
+        value.push(' ');
+        value.push_str(tool_prefix);
+    }
+    value
+}
+
 pub fn render_answer_observation(result: &Value) -> String {
     render_observation_with_suffix(result, "Assistant: <answer>")
 }
 
+pub fn render_answer_observation_with_reminder(result: &Value, reminder: &str) -> String {
+    render_observation_with_instruction(
+        result,
+        &format!(
+            "All mandatory execution phases are complete. Answer the original task now. Include every explicitly requested value, count, relation, filename/source, and exact literal; do not omit labels or provenance. Original task (authoritative): {}",
+            reminder.trim()
+        ),
+        "Assistant: <answer>",
+    )
+}
+
 fn render_observation_with_suffix(result: &Value, suffix: &str) -> String {
+    render_observation_with_instruction(
+        result,
+        "Continue the original task. Call a tool again only if more work or verification is required; otherwise return the final answer.",
+        suffix,
+    )
+}
+
+fn render_observation_with_instruction(result: &Value, instruction: &str, suffix: &str) -> String {
     let compact_value = compact_observation_value(normalize_tool_result(result.clone()));
     let compact =
         serde_json::to_string(&compact_value).expect("serde_json::Value is always serializable");
     format!(
         "\n\nTool: <tool_result>{compact}</tool_result>\n\n\
-         User: Continue the original task. Call a tool again only if more work or \
-         verification is required; otherwise return the final answer. Output exactly \
-         one protocol envelope and no reasoning.\n\n{suffix}"
+         User: {instruction} Output exactly one protocol envelope and no reasoning.\n\n{suffix}"
     )
 }
 
@@ -236,5 +325,52 @@ mod tests {
     fn answer_observation_commits_the_greedy_answer_prefix() {
         let rendered = render_answer_observation(&json!({"status":"ok","stdout":"done"}));
         assert!(rendered.ends_with("Assistant: <answer>"));
+    }
+
+    #[test]
+    fn progress_observation_exposes_budget_and_forces_final_boundary() {
+        let middle = render_observation_with_progress(&json!({"status":"ok"}), 2, 4);
+        assert!(middle.contains("Tool step 2/4"));
+        assert!(middle.contains("Do not repeat an identical successful command"));
+        let final_step = render_observation_with_progress(&json!({"status":"ok"}), 4, 4);
+        assert!(final_step.contains("No tool budget remains"));
+        assert!(final_step.ends_with("Assistant:"));
+    }
+
+    #[test]
+    fn tool_observation_commits_the_greedy_tool_prefix() {
+        let value = render_tool_observation_with_progress_and_reminder(
+            &json!({"stdout":"input\n"}),
+            1,
+            4,
+            "write out.txt next",
+        );
+        assert!(value.contains("write out.txt next"));
+        assert!(value.ends_with("Assistant: <tool_call>{\"name\":\""));
+    }
+
+    #[test]
+    fn tool_observation_can_commit_a_controller_selected_tool_name() {
+        let value = render_tool_observation_with_progress_reminder_and_prefix(
+            &json!({"stdout":"inputs inspected"}),
+            3,
+            8,
+            "create output.py",
+            "<tool_call>{\"name\":\"write_file\",\"arguments\":",
+        );
+        assert!(value.ends_with("Assistant: <tool_call>{\"name\":\"write_file\",\"arguments\":"));
+    }
+
+    #[test]
+    fn progress_observation_repeats_authoritative_task_contract() {
+        let rendered = render_observation_with_progress_and_reminder(
+            &json!({"status":"ok","stdout":"4\n"}),
+            2,
+            6,
+            "write exactly nonblank=4 to count.txt",
+        );
+        assert!(rendered.contains("Original task (authoritative)"));
+        assert!(rendered.contains("write exactly nonblank=4 to count.txt"));
+        assert!(rendered.contains("requested literal"));
     }
 }

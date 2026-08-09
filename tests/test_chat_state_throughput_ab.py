@@ -106,6 +106,11 @@ class ChatStateThroughputABTests(unittest.TestCase):
         self.assertEqual([len(item.messages) for item in first], [3] * 4)
         self.assertGreater(len(first[0].messages[0]), 1000)
 
+    def test_conversation_depth_supports_gate3_rounds(self) -> None:
+        conversation = build_conversations(1, turns=16)[0]
+        self.assertEqual(len(conversation.messages), 16)
+        self.assertTrue(conversation.messages[-1].startswith("Turn 16:"))
+
     def test_percentile_uses_nearest_rank(self) -> None:
         self.assertEqual(percentile([4, 1, 3, 2], 0.50), 2)
         self.assertEqual(percentile([4, 1, 3, 2], 0.95), 4)

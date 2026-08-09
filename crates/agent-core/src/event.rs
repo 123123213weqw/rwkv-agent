@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -21,6 +22,19 @@ pub enum AgentEvent {
         state_id: String,
         action: ActionKind,
     },
+    ProtocolRejected {
+        turn: usize,
+        retry: usize,
+        message: String,
+        /// Bounded raw model output retained for protocol debugging. This is
+        /// observation only: the strict parser remains the sole authority and
+        /// the preview is never fed back as executable input.
+        output_preview: String,
+    },
+    ControllerToolScheduled {
+        step: usize,
+        name: String,
+    },
     ToolStarted {
         step: usize,
         name: String,
@@ -29,9 +43,18 @@ pub enum AgentEvent {
         step: usize,
         name: String,
         status: String,
+        #[serde(skip_serializing, default)]
+        arguments: Map<String, Value>,
+        #[serde(skip_serializing, default)]
+        result: Value,
     },
     AnswerCompleted {
         answer: String,
+    },
+    AnswerRejected {
+        retry: usize,
+        require_tool: bool,
+        feedback: String,
     },
     RunFailed {
         code: String,

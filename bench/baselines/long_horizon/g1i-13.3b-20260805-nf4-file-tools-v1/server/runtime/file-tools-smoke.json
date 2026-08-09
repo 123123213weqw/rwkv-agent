@@ -1,0 +1,48 @@
+{
+  "read": {
+    "http": 200,
+    "body": {
+      "bytes": 11,
+      "content": "mode=debug\n",
+      "path": "config.ini",
+      "status": "ok",
+      "stdout": "mode=debug\n"
+    }
+  },
+  "edit": {
+    "http": 200,
+    "body": {
+      "bytes_written": 13,
+      "path": "config.ini",
+      "replacements": 1,
+      "status": "ok"
+    }
+  },
+  "write": {
+    "http": 200,
+    "body": {
+      "bytes_written": 12,
+      "path": "result.txt",
+      "status": "ok"
+    }
+  },
+  "verify": {
+    "http": 200,
+    "body": {
+      "exit_code": 0,
+      "standalone_test_runner_rewritten": false,
+      "status": "ok",
+      "stderr": "",
+      "stdout": "mode=release\nstatus=pass\n",
+      "truncated": false,
+      "workspace_alias_rewritten": false
+    }
+  },
+  "escape": {
+    "http": 500,
+    "body": {
+      "error": "workspace file path must be relative and cannot escape",
+      "status": "error"
+    }
+  }
+}

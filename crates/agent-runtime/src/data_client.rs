@@ -20,7 +20,7 @@ impl DataPlaneClient {
         }
         let http = Client::builder()
             .connect_timeout(Duration::from_secs(10))
-            .timeout(Duration::from_secs(180))
+            .timeout(Duration::from_secs(600))
             .build()
             .map_err(|error| error.to_string())?;
         Ok(Self {

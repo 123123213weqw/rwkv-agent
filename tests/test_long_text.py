@@ -22,7 +22,14 @@ class FakeChunkModel:
         self.lock = threading.Lock()
         self.calls: list[str] = []
 
-    def __call__(self, prompt: str, *, max_tokens: int = 96) -> dict:
+    def __call__(
+        self,
+        prompt: str,
+        *,
+        max_tokens: int = 96,
+        stops: list[str] | None = None,
+    ) -> dict:
+        del max_tokens, stops
         with self.lock:
             self.active += 1
             self.max_active = max(self.max_active, self.active)
@@ -169,6 +176,34 @@ class LongTextTests(unittest.TestCase):
         self.assertEqual(
             result["document"]["source"],
             "session_pasted_text",
+        )
+
+    def test_adapter_extracts_grounded_structured_code_without_model(self) -> None:
+        def unexpected_model_call(*_args, **_kwargs):
+            raise AssertionError("structured code fast path called the model")
+
+        document = "\n\n".join(
+            [
+                "背景说明：项目已经完成三轮普通审查。",
+                "审批委员会最终确认：最终批准代号是 ORBIT-73；该决定由负责人签署。",
+                "后续工作将依据审批结果安排。",
+            ]
+        )
+        result = LongTextQAAdapter(
+            unexpected_model_call,
+            top_k=3,
+        ).execute(document, "最终批准代号是什么？")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["answer_hint"], "ORBIT-73")
+        self.assertEqual(result["workers"]["submitted"], 0)
+        self.assertEqual(
+            result["evidence"][0]["content"],
+            "审批委员会最终确认：最终批准代号是 ORBIT-73；",
+        )
+        self.assertIn(
+            result["evidence"][0]["content"],
+            document,
         )
 
     def test_adapter_rejects_oversized_pasted_text(self) -> None:
