@@ -87,6 +87,10 @@ SCAN_DIRS = (
     "tests",
 )
 SCAN_EXCLUDES = {"docs/TODO.md"}
+# Frozen benchmark evidence intentionally preserves the exact experiment
+# workspace, including machine-local paths. It is integrity-checked by its own
+# SHA manifests and must not be rewritten by the public-source hygiene audit.
+SCAN_PREFIX_EXCLUDES = ("bench/baselines/long_horizon/",)
 TEXT_SUFFIXES = {
     "",
     ".css",
@@ -140,7 +144,11 @@ def _iter_public_text_files() -> list[Path]:
             if not path.is_file() or path.is_symlink():
                 continue
             rel = _relative(path)
-            if rel in SCAN_EXCLUDES or any(part.startswith(".") for part in path.relative_to(base).parts):
+            if (
+                rel in SCAN_EXCLUDES
+                or rel.startswith(SCAN_PREFIX_EXCLUDES)
+                or any(part.startswith(".") for part in path.relative_to(base).parts)
+            ):
                 continue
             if path.suffix.lower() in TEXT_SUFFIXES:
                 paths.add(path)

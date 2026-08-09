@@ -178,6 +178,7 @@ class ContinuousBatchEngineTests(unittest.TestCase):
         self.assertTrue(
             all(value["batch_mode"] == "unified" for value in outputs.values())
         )
+        self.assertTrue(all(value["input_tokens"] > 0 for value in outputs.values()))
         self.assertEqual(scheduler.pool.free, scheduler.pool.capacity)
 
     def test_completion_and_persistent_state_share_one_ready_queue(self) -> None:
@@ -223,6 +224,7 @@ class ContinuousBatchEngineTests(unittest.TestCase):
 
         self.assertEqual(outputs["completion"]["text"], "OK")
         self.assertEqual(outputs["state"]["text"], "A1")
+        self.assertEqual(outputs["state"]["input_tokens"], 5)
         self.assertTrue(
             any(
                 len(batch) == 2 and "state-a" in batch
@@ -265,6 +267,32 @@ class ContinuousBatchEngineTests(unittest.TestCase):
             [{"state-stop": ord("a")}, {"state-stop": ord("!")}],
         )
         del scheduler.requests["state-stop"]
+
+    def test_persistent_continuation_emits_real_decode_deltas(self) -> None:
+        scheduler, engine = self.make_engine(batch_window_ms=0)
+        scheduler.requests["state-stream"] = FakeRequest(
+            token_ids=[],
+            remaining=0,
+            output=list(FakeTokenizer.scripts[11]),
+        )
+        events: list[dict[str, Any]] = []
+        result = engine.continue_many(
+            [
+                StateContinuationItem(
+                    state_id="state-stream",
+                    branch="chat",
+                    token_ids=(40,),
+                )
+            ],
+            stops=[],
+            max_tokens=2,
+            event_sink=events.append,
+        )[0]
+        self.assertEqual(result["text"], "A1")
+        self.assertEqual([event["text"] for event in events], ["A", "A1"])
+        self.assertEqual([event["delta"] for event in events], ["A", "1"])
+        self.assertTrue(all(event["type"] == "delta" for event in events))
+        del scheduler.requests["state-stream"]
 
     def test_timed_out_ephemeral_job_is_cancelled_and_released(self) -> None:
         scheduler = BlockingScheduler()

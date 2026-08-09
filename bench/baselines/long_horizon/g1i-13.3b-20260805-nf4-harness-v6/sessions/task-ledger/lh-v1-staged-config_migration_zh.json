@@ -1,0 +1,419 @@
+{
+  "ledger_schema_version": 1,
+  "task_id": "lh-v1-staged-config_migration_zh",
+  "session_id": "lh-v1-staged-config_migration_zh",
+  "task_spec": {
+    "schema_version": 1,
+    "objective": "只在long-horizon/staged/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+    "acceptance_criteria": [
+      "可复用迁移脚本存在并实际处理两个配置。",
+      "validator.py 输出 MIGRATION_OK。"
+    ],
+    "constraints": [
+      "不得修改 validator.py。",
+      "不得用常量整体覆盖两个配置文件。"
+    ],
+    "verification_commands": [
+      "python3 validator.py"
+    ],
+    "requires_mutation": true,
+    "working_directory": "long-horizon/staged/config_migration_zh",
+    "stages": [
+      {
+        "id": "build_migrator",
+        "objective": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "migrate.py 能接受文件路径参数并解析旧配置。"
+        ],
+        "constraints": [
+          "不得修改 validator.py 或现有 JSON。"
+        ],
+        "verification_commands": [
+          "python3 migrate.py --check service.json worker.json"
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "apply_migration",
+        "objective": "使用 migrate.py 迁移 service.json 和 worker.json，并检查两个结果都符合 SPEC.md；同时生成 migration-report.json。",
+        "depends_on": [
+          "build_migrator"
+        ],
+        "acceptance_criteria": [
+          "两个配置由脚本迁移且报告已生成。"
+        ],
+        "constraints": [
+          "不得修改 validator.py。"
+        ],
+        "verification_commands": [
+          "python3 migrate.py service.json worker.json && python3 -c \"import json; from pathlib import Path; assert all(json.loads(Path(p).read_text())['schema_version']==2 for p in ('service.json','worker.json')); print('APPLY_OK')\""
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "validate_migration",
+        "objective": "运行完整 validator.py；若失败则根据真实错误修复迁移实现或产物，直到输出 MIGRATION_OK。",
+        "depends_on": [
+          "apply_migration"
+        ],
+        "acceptance_criteria": [
+          "完整隐藏于实现之外的验证程序成功。"
+        ],
+        "constraints": [
+          "不得修改 validator.py。"
+        ],
+        "verification_commands": [
+          "python3 validator.py"
+        ],
+        "requires_mutation": false
+      }
+    ]
+  },
+  "status": "failed",
+  "current_stage": "build_migrator",
+  "stages": [
+    {
+      "spec": {
+        "id": "build_migrator",
+        "objective": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "migrate.py 能接受文件路径参数并解析旧配置。"
+        ],
+        "constraints": [
+          "不得修改 validator.py 或现有 JSON。"
+        ],
+        "verification_commands": [
+          "python3 migrate.py --check service.json worker.json"
+        ],
+        "requires_mutation": true
+      },
+      "status": "failed",
+      "attempts": 1,
+      "started_unix_ms": 1786164111923,
+      "completed_unix_ms": 1786164236387,
+      "response": {
+        "answer": "",
+        "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+        "error_code": "protocol_error",
+        "message": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 4,
+          "strict": false,
+          "tool": "read_file"
+        },
+        "session_id": "lh-v1-staged-config_migration_zh",
+        "status": "error",
+        "tool_result": {
+          "bytes": 537,
+          "content": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n",
+          "path": "validator.py",
+          "status": "ok",
+          "stdout": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n"
+        },
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-9fa5c75b62d1d000-0000000000000005",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-3818b6bba84a45bb8fc596ff13954ea7",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-8e936676399148c18e4a71c0e96f9ec9",
+                "type": "state_opened"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-8e936676399148c18e4a71c0e96f9ec9",
+                "turn": 1,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 1,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 1,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-8e936676399148c18e4a71c0e96f9ec9",
+                "turn": 2,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 2,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 2,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-8e936676399148c18e4a71c0e96f9ec9",
+                "turn": 3,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 3,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 3,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-8e936676399148c18e4a71c0e96f9ec9",
+                "turn": 4,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 4,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 4,
+                "type": "tool_completed"
+              },
+              {
+                "state_id": "state-f96c15f31832443dbb1920819c65b1ad",
+                "type": "state_opened"
+              },
+              {
+                "error": "",
+                "state_id": "state-8e936676399148c18e4a71c0e96f9ec9",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "output_preview": "<tool_call>{\"name\":\"write_file\",\"arguments\":{\"path\":\"migrate.py\",\"content\":\"#!/usr/bin/env python3\\nimport json\\nimport argparse\\nfrom pathlib import Path\\n\\n\\ndef migrate_config(path: Path, schema_version: int = 2) -> dict:\\n    \\\"\\\"\\\"Migrate a single config file to v2.\\\"\\\"\\\"\\n    data = json.loads(path.read_text())\\n    \\n    # Rename timeout_ms to timeout_seconds using exact integer division by 1000\\n    if 'timeout_ms' in data:\\n        data['timeout_seconds'] = int(data['timeout_ms'] / 1000)\\n        del data['timeout_ms']\\n    \\n    # Rename debug to log_level: debug=true becomes debug, false becomes info\\n    if 'debug' in data:\\n        data['log_level'] = 'debug' if data['debug'] else 'info'\\n        del data['debug']\\n    \\n    # Preserve name\\n    if 'name' in data:\\n        data['name'] = data['name']\\n    \\n    # Add schema_version\\n    data['schema_version'] = schema_version\\n    \\n    return data\\n\\n\\ndef main():\\n    parser = argparse.ArgumentParser(description='Migrate",
+                "retry": 1,
+                "turn": 5,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "output_preview": "<tool_call>{\"name\":\"write_file\",\"arguments\":{\"path\":\"migrate.py\",\"content\":\"#!/usr/bin/env python3\\nimport json\\nimport argparse\\nfrom pathlib import Path\\n\\n\\ndef migrate_config(path: Path, schema_version: int = 2) -> dict:\\n    \\\"\\\"\\\"Migrate a single config file to v2.\\\"\\\"\\\"\\n    data = json.loads(path.read_text())\\n    \\n    # Rename timeout_ms to timeout_seconds using exact integer division by 1000\\n    if 'timeout_ms' in data:\\n        data['timeout_seconds'] = int(data['timeout_ms'] / 1000)\\n        del data['timeout_ms']\\n    \\n    # Rename debug to log_level: debug=true becomes debug, false becomes info\\n    if 'debug' in data:\\n        data['log_level'] = 'debug' if data['debug'] else 'info'\\n        del data['debug']\\n    \\n    # Preserve name\\n    if 'name' in data:\\n        data['name'] = data['name']\\n    \\n    # Add schema_version\\n    data['schema_version'] = schema_version\\n    \\n    return data\\n\\n\\ndef main():\\n    parser = argparse.ArgumentParser(description='Migrate",
+                "retry": 2,
+                "turn": 6,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-f96c15f31832443dbb1920819c65b1ad",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-3818b6bba84a45bb8fc596ff13954ea7",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 4,
+            "tool_steps": [
+              {
+                "arguments": {
+                  "path": "SPEC.md"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 201,
+                  "content": "# Config v2\n- rename timeout_ms to timeout_seconds using exact integer division by 1000\n- rename debug to log_level: debug=true becomes debug, false becomes info\n- preserve name\n- add schema_version=2\n",
+                  "path": "SPEC.md",
+                  "status": "ok",
+                  "stdout": "# Config v2\n- rename timeout_ms to timeout_seconds using exact integer division by 1000\n- rename debug to log_level: debug=true becomes debug, false becomes info\n- preserve name\n- add schema_version=2\n"
+                },
+                "step": 1
+              },
+              {
+                "arguments": {
+                  "path": "worker.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 49,
+                  "content": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n",
+                  "path": "worker.json",
+                  "status": "ok",
+                  "stdout": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n"
+                },
+                "step": 2
+              },
+              {
+                "arguments": {
+                  "path": "service.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 46,
+                  "content": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n",
+                  "path": "service.json",
+                  "status": "ok",
+                  "stdout": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n"
+                },
+                "step": 3
+              },
+              {
+                "arguments": {
+                  "path": "validator.py"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 537,
+                  "content": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n",
+                  "path": "validator.py",
+                  "status": "ok",
+                  "stdout": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n"
+                },
+                "step": 4
+              }
+            ]
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 124463.94336100001,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "migrate.py 能接受文件路径参数并解析旧配置。"
+            ],
+            "constraints": [
+              "不得修改 validator.py。",
+              "不得用常量整体覆盖两个配置文件。",
+              "不得修改 validator.py 或现有 JSON。"
+            ],
+            "objective": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 migrate.py --check service.json worker.json"
+            ],
+            "working_directory": "long-horizon/staged/config_migration_zh"
+          }
+        }
+      },
+      "error": "protocol error: output must contain exactly one strict tool-call or answer envelope"
+    },
+    {
+      "spec": {
+        "id": "apply_migration",
+        "objective": "使用 migrate.py 迁移 service.json 和 worker.json，并检查两个结果都符合 SPEC.md；同时生成 migration-report.json。",
+        "depends_on": [
+          "build_migrator"
+        ],
+        "acceptance_criteria": [
+          "两个配置由脚本迁移且报告已生成。"
+        ],
+        "constraints": [
+          "不得修改 validator.py。"
+        ],
+        "verification_commands": [
+          "python3 migrate.py service.json worker.json && python3 -c \"import json; from pathlib import Path; assert all(json.loads(Path(p).read_text())['schema_version']==2 for p in ('service.json','worker.json')); print('APPLY_OK')\""
+        ],
+        "requires_mutation": true
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    },
+    {
+      "spec": {
+        "id": "validate_migration",
+        "objective": "运行完整 validator.py；若失败则根据真实错误修复迁移实现或产物，直到输出 MIGRATION_OK。",
+        "depends_on": [
+          "apply_migration"
+        ],
+        "acceptance_criteria": [
+          "完整隐藏于实现之外的验证程序成功。"
+        ],
+        "constraints": [
+          "不得修改 validator.py。"
+        ],
+        "verification_commands": [
+          "python3 validator.py"
+        ],
+        "requires_mutation": false
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    }
+  ],
+  "created_unix_ms": 1786164111922,
+  "updated_unix_ms": 1786164236387,
+  "revision": 3,
+  "recovery_count": 0,
+  "final_response": null,
+  "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+  "events": [
+    {
+      "sequence": 1,
+      "unix_ms": 1786164111922,
+      "kind": "created",
+      "stage_id": null,
+      "detail": "task persisted before execution"
+    },
+    {
+      "sequence": 2,
+      "unix_ms": 1786164111922,
+      "kind": "task_started",
+      "stage_id": null,
+      "detail": "stage controller claimed task"
+    },
+    {
+      "sequence": 3,
+      "unix_ms": 1786164111923,
+      "kind": "stage_started",
+      "stage_id": "build_migrator",
+      "detail": "checkpoint before execution"
+    },
+    {
+      "sequence": 4,
+      "unix_ms": 1786164236387,
+      "kind": "stage_failed",
+      "stage_id": "build_migrator",
+      "detail": "protocol error: output must contain exactly one strict tool-call or answer envelope"
+    }
+  ]
+}

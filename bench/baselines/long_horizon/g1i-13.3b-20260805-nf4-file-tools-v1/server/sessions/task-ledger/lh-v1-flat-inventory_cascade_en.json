@@ -1,0 +1,175 @@
+{
+  "ledger_schema_version": 1,
+  "task_id": "lh-v1-flat-inventory_cascade_en",
+  "session_id": "lh-v1-flat-inventory_cascade_en",
+  "task_spec": {
+    "schema_version": 1,
+    "objective": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+    "acceptance_criteria": [
+      "Both focused tests and the full unittest discovery pass.",
+      "REPORT.md has the required two exact lines."
+    ],
+    "constraints": [
+      "Do not modify files under tests/."
+    ],
+    "verification_commands": [
+      "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+    ],
+    "requires_mutation": true,
+    "working_directory": "long-horizon/flat/inventory_cascade_en",
+    "stages": []
+  },
+  "status": "failed",
+  "current_stage": "main",
+  "stages": [
+    {
+      "spec": {
+        "id": "main",
+        "objective": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Both focused tests and the full unittest discovery pass.",
+          "REPORT.md has the required two exact lines."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+        ],
+        "requires_mutation": true
+      },
+      "status": "failed",
+      "attempts": 1,
+      "started_unix_ms": 1786148130461,
+      "completed_unix_ms": 1786148139960,
+      "response": {
+        "answer": "",
+        "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+        "error_code": "protocol_error",
+        "message": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-flat-inventory_cascade_en",
+        "status": "error",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-b9d2969f0f842bf0-0000000000000001",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-af16c539126b4ce9a756ec1a35231dfc",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-cb3eaf539b7a4851aebce6eea61c66b1",
+                "type": "state_opened"
+              },
+              {
+                "message": "invalid tool-call JSON: trailing characters at line 1 column 106",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "invalid tool-call JSON: trailing characters at line 1 column 106",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-cb3eaf539b7a4851aebce6eea61c66b1",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-af16c539126b4ce9a756ec1a35231dfc",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 9497.328327,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "Both focused tests and the full unittest discovery pass.",
+              "REPORT.md has the required two exact lines."
+            ],
+            "constraints": [
+              "Do not modify files under tests/."
+            ],
+            "objective": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+            ],
+            "working_directory": "long-horizon/flat/inventory_cascade_en"
+          }
+        }
+      },
+      "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106"
+    }
+  ],
+  "created_unix_ms": 1786148130460,
+  "updated_unix_ms": 1786148139960,
+  "revision": 3,
+  "recovery_count": 0,
+  "final_response": null,
+  "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+  "events": [
+    {
+      "sequence": 1,
+      "unix_ms": 1786148130460,
+      "kind": "created",
+      "stage_id": null,
+      "detail": "task persisted before execution"
+    },
+    {
+      "sequence": 2,
+      "unix_ms": 1786148130461,
+      "kind": "task_started",
+      "stage_id": null,
+      "detail": "stage controller claimed task"
+    },
+    {
+      "sequence": 3,
+      "unix_ms": 1786148130461,
+      "kind": "stage_started",
+      "stage_id": "main",
+      "detail": "checkpoint before execution"
+    },
+    {
+      "sequence": 4,
+      "unix_ms": 1786148139960,
+      "kind": "stage_failed",
+      "stage_id": "main",
+      "detail": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106"
+    }
+  ]
+}

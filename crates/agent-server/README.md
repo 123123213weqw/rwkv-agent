@@ -29,4 +29,9 @@ RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
 
 Command execution remains disabled unless both `--enable-command` and
 `--command-workspace` are supplied. There is no unsafe fallback when Bubblewrap
-is missing.
+is missing. On Ubuntu hosts that enable
+`kernel.apparmor_restrict_unprivileged_userns=1`, an already loaded,
+administrator-approved AppArmor profile that grants `userns` may be selected
+with `RWKV_AGENT_BWRAP_APPARMOR_PROFILE=<profile>`. The runtime invokes it as
+`aa-exec -p <profile> -- bwrap ...`; it never changes AppArmor policy, sudo,
+capabilities or kernel settings itself.

@@ -35,6 +35,10 @@ struct Args {
     chat_state_capacity: usize,
     #[arg(long, default_value_t = 6)]
     max_tool_steps: usize,
+    #[arg(long, default_value_t = 192)]
+    max_model_tokens_per_turn: u32,
+    #[arg(long, default_value_t = 96)]
+    direct_chat_max_tokens: u32,
     #[arg(long, default_value_t = 4000)]
     long_text_capture_chars: usize,
     #[arg(long, default_value_t = false)]
@@ -66,6 +70,8 @@ async fn main() -> Result<(), String> {
         long_text_capture_chars: args.long_text_capture_chars,
         chat_state_capacity: args.chat_state_capacity,
         max_tool_steps: args.max_tool_steps,
+        max_model_tokens_per_turn: args.max_model_tokens_per_turn,
+        direct_chat_max_tokens: args.direct_chat_max_tokens,
         command: CommandPolicy {
             enabled: args.enable_command,
             workspace: args.command_workspace,

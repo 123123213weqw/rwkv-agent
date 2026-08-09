@@ -27,6 +27,12 @@ _NUMBER_OR_CODE = re.compile(
     r"(?:[A-Za-z]+\s*)?\d+(?:\.\d+)?"
     r"(?:\s*[A-Za-z]+|兆赫|小时|米|次|号|人|个|名)?"
 )
+_STRUCTURED_CODE = re.compile(
+    r"(?<![A-Za-z0-9])"
+    r"(?=[A-Z0-9_-]*[A-Z])(?=[A-Z0-9_-]*\d)"
+    r"[A-Z][A-Z0-9]*(?:[-_][A-Z0-9]+)+"
+    r"(?![A-Za-z0-9])"
+)
 _QUERY_STOP = (
     "请根据",
     "根据",
@@ -350,6 +356,54 @@ def _grounded_answer_fragment(
     return proposed[0][1]
 
 
+def _structured_code_candidate(
+    question: str,
+    ranked: list[tuple[float, TextChunk]],
+) -> ChunkCandidate | None:
+    """Return an exact, high-confidence code from the best grounded sentence.
+
+    Identifiers such as release IDs, approval codes and ticket numbers are
+    already self-delimiting.  Extracting them deterministically avoids an
+    expensive model pass while retaining an exact source quote.  Free-form
+    answers still use the parallel recurrent-state workers below.
+    """
+
+    query_features = {
+        feature for feature in _query_features(question) if len(feature) >= 2
+    }
+    question_upper = str(question or "").upper()
+    best: tuple[float, ChunkCandidate] | None = None
+    for retrieval_score, chunk in ranked:
+        sentences = re.split(r"(?<=[。！？!?；;])|\n+", chunk.text)
+        for sentence in sentences:
+            quote = _normalize_space(sentence)
+            if not quote:
+                continue
+            overlap = sum(
+                len(feature)
+                for feature in query_features
+                if feature in quote.lower()
+            )
+            if query_features and overlap == 0:
+                continue
+            for match in _STRUCTURED_CODE.finditer(quote):
+                answer = match.group(0)
+                if answer.upper() in question_upper:
+                    continue
+                score = float(retrieval_score) + 0.25 * overlap
+                candidate = ChunkCandidate(
+                    chunk=chunk,
+                    answer=answer,
+                    quote=quote,
+                    retrieval_score=float(retrieval_score),
+                    raw="lexical_structured_code",
+                    model_elapsed_ms=0.0,
+                )
+                if best is None or score > best[0]:
+                    best = (score, candidate)
+    return best[1] if best else None
+
+
 class LongTextQAAdapter:
     """Analyze bounded pasted text with parallel chunk extraction."""
 
@@ -363,6 +417,7 @@ class LongTextQAAdapter:
         overlap_chars: int = 160,
         max_document_chars: int = 1_000_000,
         max_evidence: int = 8,
+        worker_max_tokens: int = 64,
     ) -> None:
         self.complete = complete
         self.top_k = max(1, int(top_k))
@@ -371,6 +426,7 @@ class LongTextQAAdapter:
         self.overlap_chars = int(overlap_chars)
         self.max_document_chars = max(1, int(max_document_chars))
         self.max_evidence = max(1, int(max_evidence))
+        self.worker_max_tokens = max(16, min(int(worker_max_tokens), 192))
 
     def _worker(
         self,
@@ -382,7 +438,8 @@ class LongTextQAAdapter:
         try:
             completion = self.complete(
                 render_chunk_worker_prompt(question, chunk),
-                max_tokens=96,
+                max_tokens=self.worker_max_tokens,
+                stops=["}", "\nUser:", "\nSystem:", "</s>"],
             )
             candidate = parse_chunk_candidate(
                 completion.get("raw", ""),
@@ -492,6 +549,68 @@ class LongTextQAAdapter:
                 "message": "document contains no usable text",
             }
         ranked = rank_chunks(clean_question, chunks, top_k=self.top_k)
+        structured_candidate = _structured_code_candidate(
+            clean_question,
+            ranked,
+        )
+        if structured_candidate is not None:
+            return {
+                "status": "ok",
+                "tool": "long_text_qa",
+                "answer_hint": structured_candidate.answer,
+                "answer_hint_evidence_id": "L1",
+                "document": {
+                    "source": "session_pasted_text",
+                    "name": clean_name,
+                    "chars": len(document_text),
+                    "chunks": len(chunks),
+                },
+                "retrieval": {
+                    "method": "query_feature_idf+structured_code",
+                    "selected_chunks": len(ranked),
+                    "top_k": self.top_k,
+                },
+                "workers": {
+                    "submitted": 0,
+                    "completed": 0,
+                    "concurrency": 0,
+                    "candidates": 1,
+                    "errors": 0,
+                    "elapsed_ms": round(
+                        (time.perf_counter() - started) * 1000.0,
+                        3,
+                    ),
+                },
+                "evidence": [
+                    {
+                        "id": "L1",
+                        "title": (
+                            f"{clean_name} · chunk "
+                            f"{structured_candidate.chunk.chunk_id}"
+                        ),
+                        "content": structured_candidate.quote,
+                        "uri": (
+                            "session-text://current#chunk="
+                            f"{structured_candidate.chunk.chunk_id}"
+                        ),
+                        "chunk_id": structured_candidate.chunk.chunk_id,
+                        "answer_candidate": structured_candidate.answer,
+                        "retrieval_score": round(
+                            structured_candidate.retrieval_score,
+                            6,
+                        ),
+                    }
+                ],
+                "trace": [
+                    {
+                        "chunk_id": structured_candidate.chunk.chunk_id,
+                        "status": "lexical_structured_code",
+                        "elapsed_ms": 0.0,
+                        "output_tokens": 0,
+                    }
+                ],
+                "message": "",
+            }
         traces: list[dict[str, Any]] = []
         candidates: list[ChunkCandidate] = []
         workers = min(self.concurrency, len(ranked))

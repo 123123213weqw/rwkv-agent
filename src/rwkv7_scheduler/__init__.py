@@ -1,4 +1,6 @@
-"""Production chunk scheduler for the Albatross RWKV7 runtime."""
+"""Production recurrent-State schedulers for RWKV7 runtimes."""
+
+from .hf_scheduler import HFRecurrentScheduler, HFRequestState, HFStatePoolView
 
 from .scheduler import (
     AlbatrossChunkScheduler,
@@ -17,6 +19,9 @@ from .state_pool import (
 __all__ = [
     "AlbatrossChunkScheduler",
     "AlbatrossStatePool",
+    "HFRecurrentScheduler",
+    "HFRequestState",
+    "HFStatePoolView",
     "RequestState",
     "SchedulerConfig",
     "StateHandle",

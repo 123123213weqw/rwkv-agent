@@ -9,7 +9,7 @@ import uuid
 from collections import Counter, deque
 from concurrent.futures import Future, TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from rwkv_runtime.classification import finite_label_scores
 from rwkv_runtime.decode import append_greedy_token, decode_text_stops
@@ -28,11 +28,13 @@ class InferenceJob:
     stops: tuple[str, ...] = ()
     max_tokens: int = 0
     labels: dict[str, int] = field(default_factory=dict)
+    input_tokens: int = 0
     created_at: float = field(default_factory=time.monotonic)
     admitted_at: float | None = None
     future: Future[Any] = field(default_factory=Future)
     cancelled: threading.Event = field(default_factory=threading.Event)
     state_results: dict[str, dict[str, Any]] = field(default_factory=dict)
+    event_sink: Callable[[dict[str, Any]], None] | None = None
 
     @property
     def persistent(self) -> bool:
@@ -159,6 +161,7 @@ class ContinuousBatchEngine:
         *,
         stops: Sequence[str],
         max_tokens: int,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> list[dict[str, Any]]:
         normalized = tuple(items)
         if not normalized:
@@ -184,6 +187,7 @@ class ContinuousBatchEngine:
                 state_items=normalized,
                 stops=tuple(str(value) for value in stops if str(value)),
                 max_tokens=int(max_tokens),
+                event_sink=event_sink,
             )
         )
 
@@ -380,6 +384,7 @@ class ContinuousBatchEngine:
                 if not values:
                     raise ValueError("prompt encoded to no tokens")
                 self.scheduler.admit(job.job_id, values)
+                job.input_tokens = len(values)
                 job.admitted_at = time.monotonic()
                 prefilling[job.job_id] = _ActiveRow(
                     request_id=job.job_id,
@@ -474,7 +479,30 @@ class ContinuousBatchEngine:
                     decoding.pop(candidate.request_id, None)
                 self._fail_rows(affected, exc)
                 continue
+            previous_text = row.output_text
             row.output_text = decoded.text
+            if row.job.event_sink is not None and decoded.text != previous_text:
+                delta = (
+                    decoded.text[len(previous_text) :]
+                    if decoded.text.startswith(previous_text)
+                    else decoded.text
+                )
+                try:
+                    row.job.event_sink(
+                        {
+                            "type": "delta",
+                            "state_id": row.request_id,
+                            "text": decoded.text,
+                            "delta": delta,
+                            "replace": not decoded.text.startswith(previous_text),
+                            "output_tokens": len(row.output_ids),
+                        }
+                    )
+                except Exception:
+                    # A disconnected UI must not interrupt recurrent State
+                    # mutation or make its Busy guard observable as complete.
+                    with self._state_lock:
+                        self._metrics["stream_sink_errors"] += 1
             stop_reason = (
                 decoded.stop_reason
                 or ("max_tokens" if status.budget_reached else "")
@@ -532,6 +560,7 @@ class ContinuousBatchEngine:
         output = []
         for item in job.state_items:
             value = dict(job.state_results[item.state_id])
+            value["input_tokens"] = len(item.token_ids)
             value["elapsed_ms"] = round(elapsed, 3)
             value["queue_ms"] = round(queue_ms, 3)
             value["batch_mode"] = "unified"
@@ -554,6 +583,7 @@ class ContinuousBatchEngine:
         queue_ms = (admitted - job.created_at) * 1000.0
         payload = {
             **result,
+            "input_tokens": int(job.input_tokens),
             "elapsed_ms": round(elapsed, 3),
             "queue_ms": round(queue_ms, 3),
             "batch_mode": "unified",

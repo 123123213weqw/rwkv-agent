@@ -10,10 +10,15 @@ mod research;
 mod service;
 mod session;
 mod sidecar;
+mod task_ledger;
 
 pub use command::{CommandPolicy, SandboxedCommand};
 pub use data_client::DataPlaneClient;
 pub use research::ResearchRunner;
+pub use rwkv_agent_core::{TASK_SPEC_SCHEMA_VERSION, TaskSpec, TaskSpecError, TaskStageSpec};
 pub use service::{AgentService, RuntimeConfig};
 pub use session::{Exchange, SessionStore};
 pub use sidecar::{BatchContinuation, GateDecision, SidecarClient, SidecarState};
+pub use task_ledger::{
+    LedgerEvent, StageStatus, TaskLedger, TaskRecord, TaskStageRecord, TaskStatus,
+};

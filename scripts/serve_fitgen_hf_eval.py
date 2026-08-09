@@ -204,9 +204,8 @@ class PromptStateRuntime:
 
 
 class HFEvalService:
-    def __init__(self, model_path: Path, adapter_path: Path, context: int) -> None:
+    def __init__(self, model_path: Path, adapter_path: Path | None, context: int) -> None:
         import torch
-        from peft import PeftModel
         from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
         started = time.perf_counter()
@@ -227,12 +226,21 @@ class HFEvalService:
             device_map={"": 0},
             low_cpu_mem_usage=True,
         )
-        self.model = PeftModel.from_pretrained(base, adapter_path, is_trainable=False)
+        if adapter_path is None:
+            self.model = base
+        else:
+            from peft import PeftModel
+
+            self.model = PeftModel.from_pretrained(base, adapter_path, is_trainable=False)
         self.model.eval()
         self.model.config.use_cache = True
         self.torch = torch
         self.context = int(context)
-        self.model_id = f"fitgen-hf-eval:{adapter_path.name}"
+        self.model_id = (
+            f"fitgen-hf-eval:{adapter_path.name}"
+            if adapter_path is not None
+            else f"fitgen-hf-eval-base:{model_path.name}"
+        )
         self.generate_lock = threading.Lock()
         self.calls = 0
         self.loaded_seconds = time.perf_counter() - started
@@ -427,12 +435,16 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=Path, required=True)
-    parser.add_argument("--adapter", type=Path, required=True)
+    parser.add_argument("--adapter", type=Path)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8317)
     parser.add_argument("--context", type=int, default=12288)
     args = parser.parse_args()
-    service = HFEvalService(args.model.resolve(), args.adapter.resolve(), args.context)
+    service = HFEvalService(
+        args.model.resolve(),
+        None if args.adapter is None else args.adapter.resolve(),
+        args.context,
+    )
     uvicorn.run(create_app(service), host=args.host, port=args.port, workers=1)
 
 

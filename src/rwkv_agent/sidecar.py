@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
+import queue
 import sys
 import threading
 import time
@@ -11,11 +13,15 @@ from typing import Any, Sequence
 from rwkv7_scheduler import (
     AlbatrossChunkScheduler,
     AlbatrossStatePool,
+    HFRecurrentScheduler,
     SchedulerConfig,
 )
 
 from .batching import ContinuousBatchEngine
-from .routing import render_tool_gate_prompt
+from .routing import (
+    render_tool_gate_root,
+    render_tool_gate_turn,
+)
 from .state_runtime import PersistentStateRuntime
 
 
@@ -28,6 +34,9 @@ RUNTIME_DIR = os.getenv(
     "vendor/Albatross/faster3a_2607",
 )
 MODEL_ID = os.getenv("G1I_MODEL_ID", "rwkv7-g1i-preview3260-7.2b")
+BACKEND = os.getenv("G1I_BACKEND", "albatross").strip().lower()
+HF_MODEL_PATH = os.getenv("G1I_HF_MODEL_PATH", MODEL_PATH)
+HF_DTYPE = os.getenv("G1I_HF_DTYPE", "fp16").strip().lower()
 CONTEXT = int(os.getenv("G1I_CONTEXT", "12288"))
 STATE_CAPACITY = int(os.getenv("G1I_STATE_CAPACITY", "32"))
 MAX_BATCH_SIZE = int(os.getenv("G1I_MAX_BATCH_SIZE", "8"))
@@ -110,6 +119,71 @@ def render_memory_gate_prompt(message: str) -> str:
 class NativeG1I:
     def __init__(self) -> None:
         started = time.perf_counter()
+        if BACKEND == "albatross":
+            self._load_albatross()
+        elif BACKEND == "hf_recurrent":
+            self._load_hf_recurrent()
+        else:
+            raise ValueError(
+                "G1I_BACKEND must be either albatross or hf_recurrent"
+            )
+        self.engine = ContinuousBatchEngine(
+            tokenizer=self.pipeline,
+            scheduler=self.scheduler,
+            context_limit=CONTEXT,
+            eos_token_id=0,
+            batch_window_ms=BATCH_WINDOW_MS,
+            max_waiting_jobs=MAX_WAITING_JOBS,
+            request_timeout_seconds=REQUEST_TIMEOUT_SECONDS,
+            max_state_rows=MAX_BATCH_SIZE,
+        )
+        self.states = PersistentStateRuntime(
+            tokenizer=self.pipeline,
+            scheduler=self.scheduler,
+            context_limit=CONTEXT,
+            eos_token_id=0,
+            capacity=min(PERSISTENT_STATE_CAPACITY, STATE_CAPACITY),
+            ttl_seconds=PERSISTENT_STATE_TTL_SECONDS,
+            decode_engine=self.engine,
+        )
+        self._counter_lock = threading.Lock()
+        self.calls = 0
+        self.classify_calls = 0
+        self.gate_calls = 0
+        self.memory_gate_calls = 0
+        self._tool_gate_owner = "system-tool-gate-v1"
+        self._tool_gate_root: dict[str, Any] | None = None
+        self._tool_gate_lock = threading.RLock()
+        self._tool_gate_sequence = 0
+        self._tool_gate_root_builds = 0
+        self._tool_gate_root_reuses = 0
+        self._tool_gate_forks = 0
+        self._tool_gate_failures = 0
+        # Pay the immutable semantic-gate prefill cost once at startup. Every
+        # request then forks this recurrent State and appends only local input.
+        with self._tool_gate_lock:
+            self._ensure_tool_gate_root_locked()
+        self.loaded_seconds = time.perf_counter() - started
+
+    def _ensure_tool_gate_root_locked(self) -> tuple[dict[str, Any], bool]:
+        root = self._tool_gate_root
+        if root is not None and self.states.has_state(
+            owner_id=self._tool_gate_owner,
+            state_id=str(root["state_id"]),
+            touch=True,
+        ):
+            self._tool_gate_root_reuses += 1
+            return root, True
+        root = self.states.prefill(
+            owner_id=self._tool_gate_owner,
+            prompt=render_tool_gate_root(),
+            branch="tool-gate-root",
+        )
+        self._tool_gate_root = root
+        self._tool_gate_root_builds += 1
+        return root, False
+
+    def _load_albatross(self) -> None:
         runtime = str(Path(RUNTIME_DIR).resolve())
         if runtime not in sys.path:
             sys.path.insert(0, runtime)
@@ -149,31 +223,46 @@ class NativeG1I:
             ),
             token_device="cpu" if self.model.emb_cpu else "cuda",
         )
-        self.engine = ContinuousBatchEngine(
-            tokenizer=self.pipeline,
-            scheduler=self.scheduler,
-            context_limit=CONTEXT,
-            eos_token_id=0,
-            batch_window_ms=BATCH_WINDOW_MS,
-            max_waiting_jobs=MAX_WAITING_JOBS,
-            request_timeout_seconds=REQUEST_TIMEOUT_SECONDS,
-            max_state_rows=MAX_BATCH_SIZE,
+
+    def _load_hf_recurrent(self) -> None:
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+
+        if HF_DTYPE not in {"fp16", "bf16"}:
+            raise ValueError("G1I_HF_DTYPE must be fp16 or bf16")
+        model_path = Path(HF_MODEL_PATH).resolve()
+        if not model_path.is_dir():
+            raise FileNotFoundError(
+                f"G1I_HF_MODEL_PATH is not a directory: {model_path}"
+            )
+        dtype = torch.float16 if HF_DTYPE == "fp16" else torch.bfloat16
+        self.pipeline = AutoTokenizer.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            local_files_only=True,
         )
-        self.states = PersistentStateRuntime(
-            tokenizer=self.pipeline,
-            scheduler=self.scheduler,
-            context_limit=CONTEXT,
-            eos_token_id=0,
-            capacity=min(PERSISTENT_STATE_CAPACITY, STATE_CAPACITY),
-            ttl_seconds=PERSISTENT_STATE_TTL_SECONDS,
-            decode_engine=self.engine,
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            local_files_only=True,
+            dtype=dtype,
+            low_cpu_mem_usage=True,
+        ).to("cuda").eval()
+        self.torch = torch
+        self.pool = None
+        self.scheduler = HFRecurrentScheduler(
+            self.model,
+            config=SchedulerConfig(
+                prefill_chunk_size=PREFILL_CHUNK_SIZE,
+                max_batch_size=MAX_BATCH_SIZE,
+                max_queue_size=STATE_CAPACITY,
+                max_input_tokens=CONTEXT,
+                eos_token_id=0,
+            ),
+            device="cuda",
+            capacity=STATE_CAPACITY,
         )
-        self._counter_lock = threading.Lock()
-        self.calls = 0
-        self.classify_calls = 0
-        self.gate_calls = 0
-        self.memory_gate_calls = 0
-        self.loaded_seconds = time.perf_counter() - started
+        self.pool = self.scheduler.pool
 
     def complete(
         self,
@@ -215,17 +304,49 @@ class NativeG1I:
             raise RuntimeError(
                 "G1I tool-gate labels must each encode to exactly one token"
             )
-        result = self.engine.classify(
-            render_tool_gate_prompt(
-                message,
-                context=context,
-                has_pasted_text=has_pasted_text,
-            ),
-            labels={
-                name: token_ids[0]
-                for name, token_ids in token_labels.items()
-            },
-        )
+        child: dict[str, Any] | None = None
+        root_reused = False
+        try:
+            with self._tool_gate_lock:
+                root, root_reused = self._ensure_tool_gate_root_locked()
+                self._tool_gate_sequence += 1
+                child = self.states.fork(
+                    owner_id=self._tool_gate_owner,
+                    parent_state_id=str(root["state_id"]),
+                    branches=[f"tool-gate-{self._tool_gate_sequence}"],
+                )[0]
+                self._tool_gate_forks += 1
+            result = self.states.classify_many(
+                owner_id=self._tool_gate_owner,
+                items=[
+                    {
+                        "state_id": child["state_id"],
+                        "input": render_tool_gate_turn(
+                            message,
+                            context=context,
+                            has_pasted_text=has_pasted_text,
+                        ),
+                    }
+                ],
+                labels={
+                    name: token_ids[0]
+                    for name, token_ids in token_labels.items()
+                },
+            )[0]
+        except Exception:
+            with self._tool_gate_lock:
+                self._tool_gate_failures += 1
+            raise
+        finally:
+            if child is not None:
+                try:
+                    self.states.release(
+                        owner_id=self._tool_gate_owner,
+                        state_ids=[str(child["state_id"])],
+                    )
+                except Exception:
+                    with self._tool_gate_lock:
+                        self._tool_gate_failures += 1
         scores = result["scores"]
         margin = scores["tool"] - scores["chat"]
         use_tool = margin >= threshold
@@ -241,8 +362,9 @@ class NativeG1I:
                 (time.perf_counter() - started) * 1000,
                 3,
             ),
-            "queue_ms": result["queue_ms"],
-            "batch_mode": result["batch_mode"],
+            "queue_ms": 0.0,
+            "batch_mode": "persistent_root_fork",
+            "root_reused": root_reused,
         }
 
     def classify(
@@ -320,11 +442,34 @@ class NativeG1I:
             classify_calls = self.classify_calls
             gate_calls = self.gate_calls
             memory_gate_calls = self.memory_gate_calls
+        with self._tool_gate_lock:
+            tool_gate_root_id = (
+                str(self._tool_gate_root["state_id"])
+                if self._tool_gate_root is not None
+                else ""
+            )
+            tool_gate_root_available = bool(
+                tool_gate_root_id
+                and self.states.has_state(
+                    owner_id=self._tool_gate_owner,
+                    state_id=tool_gate_root_id,
+                )
+            )
+            tool_gate_metrics = {
+                "root_available": tool_gate_root_available,
+                "root_builds": self._tool_gate_root_builds,
+                "root_reuses": self._tool_gate_root_reuses,
+                "forks": self._tool_gate_forks,
+                "failures": self._tool_gate_failures,
+                "mode": "persistent_root_fork",
+            }
         return {
+            "backend": BACKEND,
             "calls": calls,
             "classify_calls": classify_calls,
             "gate_calls": gate_calls,
             "memory_gate_calls": memory_gate_calls,
+            "tool_gate_state": tool_gate_metrics,
             "inference": self.engine.health(),
             "persistent_states": self.states.health(),
         }
@@ -339,6 +484,7 @@ service: NativeG1I | None = None
 
 def create_app():
     from fastapi import FastAPI, HTTPException
+    from fastapi.responses import StreamingResponse
 
     app = FastAPI(title="RWKV G1I continuous-batch sidecar", version="0.4.0")
 
@@ -362,6 +508,7 @@ def create_app():
         return {
             "status": "ready",
             "model": MODEL_ID,
+            "backend": BACKEND,
             "context": CONTEXT,
             "loaded_seconds": round(service.loaded_seconds, 3),
             "pipeline_devices": list(PIPELINE_DEVICES),
@@ -520,6 +667,20 @@ def create_app():
             state_error(exc)
             raise AssertionError("unreachable")
 
+    @app.post("/v1/states/batch_prefill")
+    def state_batch_prefill(payload: dict[str, Any]) -> dict[str, Any]:
+        if service is None:
+            raise HTTPException(503, "loading")
+        items = payload.get("items")
+        if not isinstance(items, list):
+            raise HTTPException(422, "items must be an object array")
+        try:
+            states = service.states.prefill_many(items=items)
+            return {"status": "ok", "states": states}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
     @app.post("/v1/states/{state_id}/fork")
     def state_fork(
         state_id: str,
@@ -568,6 +729,66 @@ def create_app():
         except Exception as exc:
             state_error(exc)
             raise AssertionError("unreachable")
+
+    @app.post("/v1/states/stream_continue")
+    def state_stream_continue(payload: dict[str, Any]) -> StreamingResponse:
+        if service is None:
+            raise HTTPException(503, "loading")
+        items = payload.get("items")
+        stops = payload.get("stop", [])
+        if not isinstance(items, list) or len(items) != 1:
+            raise HTTPException(422, "streaming requires exactly one state item")
+        if isinstance(stops, str):
+            stops = [stops]
+        if not isinstance(stops, list) or not all(
+            isinstance(value, str) for value in stops
+        ):
+            raise HTTPException(422, "stop must be a string array")
+        owner_id = str(payload.get("owner_id") or "")
+        max_tokens = int(payload.get("max_tokens", 192))
+
+        def body():
+            events: queue.Queue[dict[str, Any] | None] = queue.Queue()
+
+            def emit(event: dict[str, Any]) -> None:
+                events.put(event)
+
+            def run() -> None:
+                try:
+                    results = service.states.continue_many(
+                        owner_id=owner_id,
+                        items=items,
+                        stops=stops,
+                        max_tokens=max_tokens,
+                        event_sink=emit,
+                    )
+                    events.put({"type": "done", "results": results})
+                except Exception as exc:
+                    events.put(
+                        {
+                            "type": "error",
+                            "error": f"{type(exc).__name__}: {exc}",
+                        }
+                    )
+                finally:
+                    events.put(None)
+
+            threading.Thread(
+                target=run,
+                name="rwkv-state-stream",
+                daemon=True,
+            ).start()
+            while True:
+                event = events.get()
+                if event is None:
+                    return
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+
+        return StreamingResponse(
+            body(),
+            media_type="application/x-ndjson",
+            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        )
 
     @app.post("/v1/states/batch_classify")
     def state_batch_classify(payload: dict[str, Any]) -> dict[str, Any]:

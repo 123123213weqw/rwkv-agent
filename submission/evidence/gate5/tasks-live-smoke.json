@@ -1,0 +1,1155 @@
+{
+  "schema": "rwkv_agent_gate5_tasks_live.v1",
+  "status": "pass",
+  "session_id": "gate5-tasks-81d11b585db9",
+  "wall_ms": 9469.208,
+  "running_observed": true,
+  "stream_event_types": [
+    "phase",
+    "phase",
+    "delta",
+    "delta",
+    "delta",
+    "delta",
+    "delta",
+    "delta",
+    "final"
+  ],
+  "stream_error": [],
+  "final_task": {
+    "created_unix_ms": 1785895304584,
+    "elapsed_ms": 9412,
+    "error": "",
+    "id": "task-000001",
+    "kind": "agent",
+    "message": "你好，只回复你好。",
+    "route": "direct",
+    "session_id": "gate5-tasks-81d11b585db9",
+    "state": "cached",
+    "status": "complete",
+    "tool_count": 0
+  },
+  "final_counts": {
+    "complete": 1,
+    "failed": 0,
+    "running": 0,
+    "total": 1
+  },
+  "sample_count": 47,
+  "samples": [
+    {
+      "elapsed_ms": 37.273,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 0,
+        "total": 0
+      },
+      "tasks": []
+    },
+    {
+      "elapsed_ms": 238.003,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 201,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 438.698,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 401,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 639.372,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 602,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 840.082,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 803,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 1040.742,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 1003,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 1241.421,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 1204,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 1442.094,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 1405,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 1642.728,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 1605,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 1843.373,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 1806,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 2044.03,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 2007,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 2244.665,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 2207,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 2445.316,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 2408,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 2646.0,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 2609,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 2846.66,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 2809,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 3047.364,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 3010,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 3248.008,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 3211,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 3448.694,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 3411,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 3649.358,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 3612,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 3849.987,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 3813,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 4050.612,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 4013,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 4251.27,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 4214,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 4451.895,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 4415,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 4652.541,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 4615,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 4853.18,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 4816,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 5053.819,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 5016,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 5254.509,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 5217,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 5455.165,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 5418,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 5655.835,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 5618,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 5856.512,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 5819,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 6057.247,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 6020,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 6257.89,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 6221,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 6458.545,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 6421,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 6659.233,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 6622,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 6859.899,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 6822,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 7060.552,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 7023,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 7261.184,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 7224,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 7461.818,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 7424,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 7662.5,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 7625,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 7863.234,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 7826,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 8063.897,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 8026,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 8264.599,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 8227,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 8465.387,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 8428,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 8666.138,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 8629,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 8866.866,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 8829,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 9067.629,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 9030,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    },
+    {
+      "elapsed_ms": 9268.47,
+      "counts": {
+        "complete": 0,
+        "failed": 0,
+        "running": 1,
+        "total": 1
+      },
+      "tasks": [
+        {
+          "created_unix_ms": 1785895304584,
+          "elapsed_ms": 9231,
+          "error": "",
+          "id": "task-000001",
+          "kind": "agent",
+          "message": "你好，只回复你好。",
+          "route": "",
+          "session_id": "gate5-tasks-81d11b585db9",
+          "state": "active",
+          "status": "running",
+          "tool_count": 0
+        }
+      ]
+    }
+  ]
+}

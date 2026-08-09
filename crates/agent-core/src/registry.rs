@@ -43,6 +43,14 @@ impl ArgumentSpec {
             required: true,
         }
     }
+
+    pub fn optional_string(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            kind: JsonKind::String,
+            required: false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -210,6 +218,42 @@ mod tests {
             registry
                 .validate(&call("run_command", json!({"command": "pwd"})))
                 .is_ok()
+        );
+    }
+
+    #[test]
+    fn optional_arguments_remain_typed_and_unknown_keys_stay_rejected() {
+        let mut registry = ToolRegistry::default();
+        registry
+            .register(ToolDefinition {
+                name: "run_command".into(),
+                description: "run".into(),
+                arguments: vec![
+                    ArgumentSpec::required_string("command"),
+                    ArgumentSpec::optional_string("description"),
+                ],
+                allow_extra_arguments: false,
+            })
+            .unwrap();
+        let call = |arguments: Value| ToolCall {
+            name: "run_command".into(),
+            arguments: arguments.as_object().unwrap().clone(),
+        };
+        assert!(registry.validate(&call(json!({"command":"pwd"}))).is_ok());
+        assert!(
+            registry
+                .validate(&call(json!({"command":"pwd","description":"inspect"})))
+                .is_ok()
+        );
+        assert!(
+            registry
+                .validate(&call(json!({"command":"pwd","description":1})))
+                .is_err()
+        );
+        assert!(
+            registry
+                .validate(&call(json!({"command":"pwd","timeout":1})))
+                .is_err()
         );
     }
 

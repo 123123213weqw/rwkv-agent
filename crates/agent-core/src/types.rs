@@ -20,6 +20,15 @@ pub enum Action {
     Answer(String),
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum AnswerDecision {
+    Accept,
+    Retry {
+        feedback: String,
+        require_tool: bool,
+    },
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StateHandle {
     pub endpoint: String,
@@ -79,20 +88,29 @@ impl AgentRunRequest {
 #[derive(Clone, Debug)]
 pub struct RunLimits {
     pub max_tool_steps: usize,
+    pub max_protocol_retries: usize,
+    pub max_answer_retries: usize,
+    pub observation_reminder: String,
     pub max_tokens_per_turn: u32,
     pub max_elapsed: Duration,
     /// Commit the answer envelope after the first observation. This is the
     /// stable ordinary-tool path; multi-step command agents leave it disabled.
     pub answer_after_tool: bool,
+    /// Keep the pristine root state and fork a fresh worker for each phase.
+    pub fork_from_root: bool,
 }
 
 impl Default for RunLimits {
     fn default() -> Self {
         Self {
             max_tool_steps: 6,
+            max_protocol_retries: 2,
+            max_answer_retries: 3,
+            observation_reminder: String::new(),
             max_tokens_per_turn: 192,
             max_elapsed: Duration::from_secs(180),
             answer_after_tool: false,
+            fork_from_root: false,
         }
     }
 }
@@ -185,6 +203,10 @@ pub enum AgentError {
     OwnerChanged { expected: String, actual: String },
     #[error("tool-step budget exceeded: {max_steps}")]
     BudgetExceeded { max_steps: usize },
+    #[error("agent made no progress after {repetitions} repeated tool calls")]
+    NoProgress { repetitions: usize },
+    #[error("answer validation retry budget exceeded: {max_retries}")]
+    AnswerRejected { max_retries: usize },
     #[error("run cancelled")]
     Cancelled,
     #[error("run deadline exceeded")]
@@ -207,6 +229,8 @@ impl AgentError {
             Self::StateChanged { .. } => "state_changed",
             Self::OwnerChanged { .. } => "owner_changed",
             Self::BudgetExceeded { .. } => "budget_exceeded",
+            Self::NoProgress { .. } => "no_progress",
+            Self::AnswerRejected { .. } => "answer_rejected",
             Self::Cancelled => "cancelled",
             Self::DeadlineExceeded => "deadline_exceeded",
             Self::Release(_) => "release_error",

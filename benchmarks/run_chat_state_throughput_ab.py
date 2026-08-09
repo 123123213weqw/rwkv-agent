@@ -128,8 +128,8 @@ def build_conversations(
 ) -> list[Conversation]:
     if not 1 <= int(count) <= len(THEMES):
         raise ValueError(f"conversation count must be 1..{len(THEMES)}")
-    if not 2 <= int(turns) <= 6:
-        raise ValueError("turns must be 2..6")
+    if not 2 <= int(turns) <= 16:
+        raise ValueError("turns must be 2..16")
     output = []
     for index, theme in enumerate(THEMES[: int(count)], start=1):
         material = (
@@ -138,12 +138,17 @@ def build_conversations(
             "processed incrementally. Exact scheduling must preserve each "
             "request's state, token order, and stop boundary. "
         ) * 10
-        followups = (
+        followup_templates = (
             "Summarize the main mechanism in one sentence.",
             "What invariant must the scheduler preserve?",
             "Give one concise implementation consequence.",
             "State one likely throughput bottleneck.",
             "Give one correctness check for this design.",
+        )
+        followups = tuple(
+            f"Turn {turn}: "
+            f"{followup_templates[(turn - 2) % len(followup_templates)]}"
+            for turn in range(2, int(turns) + 1)
         )
         messages = (
             "Read this note and answer briefly:\n" + material,
@@ -290,6 +295,7 @@ def run_transcript_workload(
                 "stop_reason": str(result.get("stop_reason") or ""),
                 "latency_ms": elapsed_ms,
                 "queue_ms": float(result.get("queue_ms") or 0.0),
+                "input_tokens": int(result.get("input_tokens") or 0),
             }
 
         turn_rows = _parallel(concurrency, complete, prompts)
@@ -337,6 +343,7 @@ def run_state_workload(
     setup_started = time.perf_counter()
     states = _parallel(concurrency, prefill, conversations)
     setup_seconds = time.perf_counter() - setup_started
+    setup_input_tokens = sum(int(state.get("seen_tokens") or 0) for state in states)
     by_session = {
         conversation.session: state
         for conversation, state in zip(conversations, states, strict=True)
@@ -385,6 +392,7 @@ def run_state_workload(
                     "stop_reason": str(result.get("stop_reason") or ""),
                     "latency_ms": elapsed_ms,
                     "queue_ms": float(result.get("queue_ms") or 0.0),
+                    "input_tokens": int(result.get("input_tokens") or 0),
                     "seen_tokens": int(result.get("seen_tokens") or 0),
                 }
 
@@ -419,6 +427,11 @@ def run_state_workload(
         int(value.get("released") or 0)
         for value in releases
     )
+    output["setup_input_tokens"] = setup_input_tokens
+    output["total_input_tokens"] = (
+        setup_input_tokens
+        + sum(int(row.get("input_tokens") or 0) for row in rows)
+    )
     return output
 
 
@@ -436,6 +449,7 @@ def summarize_workload(
         "mode": mode,
         "requests": len(rows),
         "output_tokens": output_tokens,
+        "input_tokens": sum(int(row.get("input_tokens") or 0) for row in rows),
         "wall_seconds": round(float(wall_seconds), 6),
         "setup_seconds": round(float(setup_seconds), 6),
         "release_seconds": round(float(release_seconds), 6),
