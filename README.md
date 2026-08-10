@@ -23,6 +23,12 @@ The architecture and operating contract are documented in [`docs/PROJECT_SPECIFI
 - **Live task wall:** [`/tasks`](http://127.0.0.1:18120/tasks) shows real Controller runs and their Route, State, Tool count, status, and elapsed time.
 - **100-job proof:** 100 independent website tasks completed with physical decode concurrency 32, without shared context or prebuilt answers.
 
+## Frozen long-horizon comparison
+
+![Qwen3.5-9B NF4 versus RWKV-7.2B frozen Harness comparison](docs/assets/qwen9-vs-rwkv7-harness.png)
+
+The models use the same frozen dataset and runner, but different precision and runtimes, so this is an observed Harness comparison rather than an architecture-only ranking. See the [source CSV](bench/baselines/long_horizon/qwen9-nf4-vs-rwkv7-fp32io16-v7r4.csv) for full result hashes and preserved metrics.
+
 ## Architecture
 
 ```mermaid
