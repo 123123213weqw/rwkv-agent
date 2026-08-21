@@ -23,6 +23,14 @@ The architecture and operating contract are documented in [`docs/PROJECT_SPECIFI
 - **Live task wall:** [`/tasks`](http://127.0.0.1:18120/tasks) shows real Controller runs and their Route, State, Tool count, status, and elapsed time.
 - **100-job proof:** 100 independent website tasks completed with physical decode concurrency 32, without shared context or prebuilt answers.
 
+## Native state-memory scaling
+
+![Native inference-state memory scaling for Qwen3.5-9B and RWKV-7.2B](docs/assets/native-state-memory-scaling.png)
+
+The current RWKV engine measures **32.5 MiB per recurrent State slot** and reserves **4.06 GiB for 128 slots**, independent of history length. From the frozen [Qwen3.5-9B configuration](https://huggingface.co/Qwen/Qwen3.5-9B/blob/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json) and the [Transformers 5.14.1 cache layout](https://github.com/huggingface/transformers/blob/v5.14.1/src/transformers/models/qwen3_5/modeling_qwen3_5.py), the Qwen FP16 native-cache lower bound is 49.5 MiB of fixed linear-attention state plus 32 MiB per 1K history tokens. At 4K history this is 177.5 MiB per session: the current RWKV slab crosses over near 24 concurrent sessions and uses **4.3× less inference-state memory at 100 sessions**.
+
+This figure isolates native inference State/KV memory; model weights, compute workspace, allocator overhead, and durable transcript storage are excluded. It is an analytical cache-layout comparison backed by measured RWKV State sizes, **not** a measured Qwen native-runtime or whole-process VRAM result. The existing low-concurrency process baseline still records Qwen at 18,339 MiB Ready versus RWKV at 22,393 MiB Ready; see the frozen [Phase 0 comparison](bench/artifacts/long-lived-phase0-live-v1/comparison-and-decision.json).
+
 ## Architecture
 
 ```mermaid
