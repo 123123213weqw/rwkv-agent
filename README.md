@@ -31,6 +31,12 @@ The current RWKV engine measures **32.5 MiB per recurrent State slot** and reser
 
 This figure isolates native inference State/KV memory; model weights, compute workspace, allocator overhead, and durable transcript storage are excluded. It is an analytical cache-layout comparison backed by measured RWKV State sizes, **not** a measured Qwen native-runtime or whole-process VRAM result. The existing low-concurrency process baseline still records Qwen at 18,339 MiB Ready versus RWKV at 22,393 MiB Ready; see the frozen [Phase 0 comparison](bench/artifacts/long-lived-phase0-live-v1/comparison-and-decision.json).
 
+## Frozen long-horizon comparison
+
+![Qwen3.5-9B NF4 versus RWKV-7.2B frozen Harness comparison](docs/assets/qwen9-vs-rwkv7-harness.png)
+
+The models use the same frozen dataset and runner, but different precision and runtimes, so this is an observed Harness comparison rather than an architecture-only ranking. See the [source CSV](bench/baselines/long_horizon/qwen9-nf4-vs-rwkv7-fp32io16-v7r4.csv) for full result hashes and preserved metrics.
+
 ## Architecture
 
 ```mermaid
