@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/long-lived-agent-result-v1.schema.json",
+  "title": "Long-lived Agent Runtime Result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "split",
+    "provider_mode",
+    "placement_policy",
+    "workers",
+    "queue_capacity_per_worker",
+    "correctness",
+    "lifecycle",
+    "metrics",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": { "const": "long-lived-agent-result.v1" },
+    "split": { "enum": ["dev", "public_regression", "sealed_blind", "ood_transfer"] },
+    "provider_mode": {
+      "enum": ["rwkv_recurrent", "qwen_native_kv", "qwen_transcript_reprefill", "contract_test"]
+    },
+    "placement_policy": { "enum": ["keep_hot", "drop_reprefill", "move_cpu"] },
+    "workers": { "type": "integer", "minimum": 1 },
+    "queue_capacity_per_worker": { "type": "integer", "minimum": 1 },
+    "correctness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["events", "useful_events", "protocol_valid_events", "cross_talk", "failed_events"],
+      "properties": {
+        "events": { "type": "integer", "minimum": 0 },
+        "useful_events": { "type": "integer", "minimum": 0 },
+        "protocol_valid_events": { "type": "integer", "minimum": 0 },
+        "cross_talk": { "type": "integer", "minimum": 0 },
+        "failed_events": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["states_created", "states_released", "state_leak_count", "snapshots", "restores", "checksum_failures"],
+      "properties": {
+        "states_created": { "type": "integer", "minimum": 0 },
+        "states_released": { "type": "integer", "minimum": 0 },
+        "state_leak_count": { "type": "integer", "minimum": 0 },
+        "snapshots": { "type": "integer", "minimum": 0 },
+        "restores": { "type": "integer", "minimum": 0 },
+        "checksum_failures": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["wall_ms", "events_per_second", "useful_events_per_second", "event_completion_latency", "wake_latency", "ttft", "queue_backpressure_count", "reprefill_bytes", "restore_bytes"],
+      "properties": {
+        "wall_ms": { "type": "number", "minimum": 0 },
+        "events_per_second": { "type": "number", "minimum": 0 },
+        "useful_events_per_second": { "type": "number", "minimum": 0 },
+        "queue_backpressure_count": { "type": "integer", "minimum": 0 },
+        "reprefill_bytes": { "type": "integer", "minimum": 0 },
+        "restore_bytes": { "type": "integer", "minimum": 0 },
+        "event_completion_latency": {
+          "type": "object",
+          "required": ["p50_ms", "p95_ms", "p99_ms", "max_ms"],
+          "properties": {
+            "p50_ms": { "type": "number", "minimum": 0 },
+            "p95_ms": { "type": "number", "minimum": 0 },
+            "p99_ms": { "type": "number", "minimum": 0 },
+            "max_ms": { "type": "number", "minimum": 0 }
+          }
+        },
+        "wake_latency": {
+          "type": "object",
+          "required": ["available", "reason"],
+          "properties": {
+            "available": { "type": "boolean" },
+            "reason": { "type": "string", "minLength": 1 }
+          }
+        },
+        "ttft": {
+          "type": "object",
+          "required": ["available", "reason"],
+          "properties": {
+            "available": { "type": "boolean" },
+            "reason": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "errors": { "type": "array", "items": { "type": "string" } }
+  }
+}

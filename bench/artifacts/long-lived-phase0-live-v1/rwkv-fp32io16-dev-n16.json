@@ -1,0 +1,343 @@
+{
+  "allocated_after": 0,
+  "dtype": "fp32io16",
+  "endpoint": "http://127.0.0.1:19420",
+  "gpu": {
+    "power_w_peak": 225.24,
+    "samples": 39,
+    "temperature_c_peak": 52.0,
+    "used_memory_mib_min": 22561,
+    "used_memory_mib_peak": 22769,
+    "utilization_pct_mean": 88.38461538461539,
+    "utilization_pct_peak": 99.0
+  },
+  "gpu_samples": [
+    {
+      "power_w": 106.85,
+      "temperature_c": 47.0,
+      "timestamp_ms": 1787330624536,
+      "used_memory_mib": 22561,
+      "utilization_pct": 0.0
+    },
+    {
+      "power_w": 158.81,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330624765,
+      "used_memory_mib": 22577,
+      "utilization_pct": 65.0
+    },
+    {
+      "power_w": 158.94,
+      "temperature_c": 49.0,
+      "timestamp_ms": 1787330624993,
+      "used_memory_mib": 22625,
+      "utilization_pct": 73.0
+    },
+    {
+      "power_w": 157.92,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330625223,
+      "used_memory_mib": 22761,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 143.54,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330625452,
+      "used_memory_mib": 22761,
+      "utilization_pct": 85.0
+    },
+    {
+      "power_w": 138.5,
+      "temperature_c": 49.0,
+      "timestamp_ms": 1787330625684,
+      "used_memory_mib": 22761,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 144.66,
+      "temperature_c": 49.0,
+      "timestamp_ms": 1787330625913,
+      "used_memory_mib": 22761,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 161.56,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330626145,
+      "used_memory_mib": 22761,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 194.91,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330626375,
+      "used_memory_mib": 22769,
+      "utilization_pct": 85.0
+    },
+    {
+      "power_w": 134.75,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330626605,
+      "used_memory_mib": 22769,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 171.0,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330626834,
+      "used_memory_mib": 22769,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 149.7,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330627064,
+      "used_memory_mib": 22769,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 145.04,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330627293,
+      "used_memory_mib": 22769,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 154.82,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330627522,
+      "used_memory_mib": 22769,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 225.24,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330627752,
+      "used_memory_mib": 22769,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 123.8,
+      "temperature_c": 50.0,
+      "timestamp_ms": 1787330627982,
+      "used_memory_mib": 22769,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 158.23,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330628212,
+      "used_memory_mib": 22769,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 169.45,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330628446,
+      "used_memory_mib": 22769,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 169.68,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330628680,
+      "used_memory_mib": 22769,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 166.4,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330628915,
+      "used_memory_mib": 22769,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 153.74,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330629143,
+      "used_memory_mib": 22769,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 146.63,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330629372,
+      "used_memory_mib": 22769,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 158.47,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330629603,
+      "used_memory_mib": 22769,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 166.9,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330629832,
+      "used_memory_mib": 22769,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 168.37,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330630061,
+      "used_memory_mib": 22769,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 155.58,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330630290,
+      "used_memory_mib": 22769,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 200.91,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330630518,
+      "used_memory_mib": 22769,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 167.98,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330630747,
+      "used_memory_mib": 22769,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 157.54,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330630976,
+      "used_memory_mib": 22769,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 171.51,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330631204,
+      "used_memory_mib": 22769,
+      "utilization_pct": 77.0
+    },
+    {
+      "power_w": 144.61,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330631433,
+      "used_memory_mib": 22769,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 168.37,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330631662,
+      "used_memory_mib": 22769,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 187.37,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330631891,
+      "used_memory_mib": 22769,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 161.57,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330632121,
+      "used_memory_mib": 22769,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 163.5,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330632351,
+      "used_memory_mib": 22769,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 168.81,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330632582,
+      "used_memory_mib": 22769,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 157.65,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330632810,
+      "used_memory_mib": 22769,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 164.83,
+      "temperature_c": 52.0,
+      "timestamp_ms": 1787330633040,
+      "used_memory_mib": 22769,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 51.98,
+      "temperature_c": 51.0,
+      "timestamp_ms": 1787330633269,
+      "used_memory_mib": 22769,
+      "utilization_pct": 98.0
+    }
+  ],
+  "model_id": "rwkv-7.2b-fp32io16",
+  "provider_mode": "rwkv_recurrent",
+  "quantization": "none",
+  "requested_agents": 16,
+  "result": {
+    "correctness": {
+      "cross_talk": 0,
+      "events": 48,
+      "failed_events": 0,
+      "protocol_valid_events": 48,
+      "useful_events": 48
+    },
+    "errors": [],
+    "lifecycle": {
+      "checksum_failures": 0,
+      "restores": 0,
+      "snapshots": 0,
+      "state_leak_count": 0,
+      "states_created": 16,
+      "states_released": 16
+    },
+    "metrics": {
+      "event_completion_latency": {
+        "max_ms": 3849.283,
+        "p50_ms": 1538.671,
+        "p95_ms": 3654.13,
+        "p99_ms": 3849.283
+      },
+      "events_per_second": 5.518078769328496,
+      "queue_backpressure_count": 4,
+      "reprefill_bytes": 0,
+      "restore_bytes": 0,
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "useful_events_per_second": 5.518078769328496,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "wall_ms": 8698.679741
+    },
+    "placement_policy": "keep_hot",
+    "provider_mode": "rwkv_recurrent",
+    "queue_capacity_per_worker": 2,
+    "schema_version": "long-lived-agent-result.v1",
+    "split": "dev",
+    "workers": 16
+  },
+  "revision": "0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8",
+  "schema_version": "rwkv-live-long-lived-bench.v1",
+  "tokenizer": "rwkv_vocab_v20230424",
+  "trace_sha256": "89f54a5e0d0b1adde3c00bd17a0fee0a7f3c45bde1581249cec6c19c2abe87f0"
+}

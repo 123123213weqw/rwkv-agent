@@ -1,0 +1,161 @@
+{
+  "allocated_after": 0,
+  "dtype": "fp32io16",
+  "endpoint": "http://127.0.0.1:19420",
+  "gpu": {
+    "power_w_peak": 186.49,
+    "samples": 13,
+    "temperature_c_peak": 69.0,
+    "used_memory_mib_min": 22833,
+    "used_memory_mib_peak": 22833,
+    "utilization_pct_mean": 78.15384615384616,
+    "utilization_pct_peak": 99.0
+  },
+  "gpu_samples": [
+    {
+      "power_w": 133.11,
+      "temperature_c": 65.0,
+      "timestamp_ms": 1787330896499,
+      "used_memory_mib": 22833,
+      "utilization_pct": 0.0
+    },
+    {
+      "power_w": 186.49,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330896741,
+      "used_memory_mib": 22833,
+      "utilization_pct": 76.0
+    },
+    {
+      "power_w": 176.66,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330896970,
+      "used_memory_mib": 22833,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 180.77,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330897203,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 151.63,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330897435,
+      "used_memory_mib": 22833,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 173.91,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330897669,
+      "used_memory_mib": 22833,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 182.27,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330897904,
+      "used_memory_mib": 22833,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 177.62,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330898138,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 177.44,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330898375,
+      "used_memory_mib": 22833,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 184.36,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330898609,
+      "used_memory_mib": 22833,
+      "utilization_pct": 82.0
+    },
+    {
+      "power_w": 177.53,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330898843,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 84.02,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330899077,
+      "used_memory_mib": 22833,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 59.21,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330899311,
+      "used_memory_mib": 22833,
+      "utilization_pct": 0.0
+    }
+  ],
+  "model_id": "rwkv-7.2b-fp32io16",
+  "provider_mode": "rwkv_recurrent",
+  "quantization": "none",
+  "requested_agents": 4,
+  "result": {
+    "correctness": {
+      "cross_talk": 0,
+      "events": 12,
+      "failed_events": 0,
+      "protocol_valid_events": 12,
+      "useful_events": 12
+    },
+    "errors": [],
+    "lifecycle": {
+      "checksum_failures": 0,
+      "restores": 0,
+      "snapshots": 0,
+      "state_leak_count": 0,
+      "states_created": 4,
+      "states_released": 4
+    },
+    "metrics": {
+      "event_completion_latency": {
+        "max_ms": 995.354,
+        "p50_ms": 836.095,
+        "p95_ms": 995.354,
+        "p99_ms": 995.354
+      },
+      "events_per_second": 4.652281330763906,
+      "queue_backpressure_count": 2,
+      "reprefill_bytes": 0,
+      "restore_bytes": 0,
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "useful_events_per_second": 4.652281330763906,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "wall_ms": 2579.379695
+    },
+    "placement_policy": "keep_hot",
+    "provider_mode": "rwkv_recurrent",
+    "queue_capacity_per_worker": 2,
+    "schema_version": "long-lived-agent-result.v1",
+    "split": "sealed_blind",
+    "workers": 4
+  },
+  "revision": "0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8",
+  "schema_version": "rwkv-live-long-lived-bench.v1",
+  "tokenizer": "rwkv_vocab_v20230424",
+  "trace_sha256": "a36ab4c0f98f8a8b3cfd0678a03d7b5d5ae60a6772fe9e9fcf4167e96f0d2a17"
+}

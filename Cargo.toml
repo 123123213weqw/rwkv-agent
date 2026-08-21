@@ -4,12 +4,14 @@ members = [
     "crates/agent-core",
     "crates/agent-runtime",
     "crates/agent-server",
+    "crates/state-runtime",
 ]
 default-members = [
     "crates/agent-cli",
     "crates/agent-core",
     "crates/agent-runtime",
     "crates/agent-server",
+    "crates/state-runtime",
 ]
 resolver = "3"
 

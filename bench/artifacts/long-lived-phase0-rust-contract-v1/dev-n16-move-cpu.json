@@ -1,0 +1,46 @@
+{
+  "schema_version": "long-lived-agent-result.v1",
+  "split": "dev",
+  "provider_mode": "contract_test",
+  "placement_policy": "move_cpu",
+  "workers": 16,
+  "queue_capacity_per_worker": 8,
+  "correctness": {
+    "events": 48,
+    "useful_events": 48,
+    "protocol_valid_events": 48,
+    "cross_talk": 0,
+    "failed_events": 0
+  },
+  "lifecycle": {
+    "states_created": 48,
+    "states_released": 48,
+    "state_leak_count": 0,
+    "snapshots": 48,
+    "restores": 32,
+    "checksum_failures": 0
+  },
+  "metrics": {
+    "wall_ms": 1.150639,
+    "events_per_second": 41715.95087599152,
+    "useful_events_per_second": 41715.95087599152,
+    "event_completion_latency": {
+      "p50_ms": 0.351,
+      "p95_ms": 0.394,
+      "p99_ms": 0.411,
+      "max_ms": 0.411
+    },
+    "wake_latency": {
+      "available": false,
+      "reason": "provider v1 has no explicit inference-ready signal"
+    },
+    "ttft": {
+      "available": false,
+      "reason": "provider v1 continuation is non-streaming"
+    },
+    "queue_backpressure_count": 0,
+    "reprefill_bytes": 0,
+    "restore_bytes": 4889
+  },
+  "errors": []
+}
