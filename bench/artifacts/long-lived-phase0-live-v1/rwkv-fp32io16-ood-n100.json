@@ -1,0 +1,2723 @@
+{
+  "allocated_after": 0,
+  "dtype": "fp32io16",
+  "endpoint": "http://127.0.0.1:19420",
+  "gpu": {
+    "power_w_peak": 252.79,
+    "samples": 379,
+    "temperature_c_peak": 78.0,
+    "used_memory_mib_min": 22827,
+    "used_memory_mib_peak": 22833,
+    "utilization_pct_mean": 91.72295514511873,
+    "utilization_pct_peak": 99.0
+  },
+  "gpu_samples": [
+    {
+      "power_w": 121.54,
+      "temperature_c": 62.0,
+      "timestamp_ms": 1787330782554,
+      "used_memory_mib": 22827,
+      "utilization_pct": 0.0
+    },
+    {
+      "power_w": 152.52,
+      "temperature_c": 64.0,
+      "timestamp_ms": 1787330782788,
+      "used_memory_mib": 22827,
+      "utilization_pct": 60.0
+    },
+    {
+      "power_w": 172.66,
+      "temperature_c": 64.0,
+      "timestamp_ms": 1787330783025,
+      "used_memory_mib": 22827,
+      "utilization_pct": 75.0
+    },
+    {
+      "power_w": 176.1,
+      "temperature_c": 65.0,
+      "timestamp_ms": 1787330783259,
+      "used_memory_mib": 22827,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 156.18,
+      "temperature_c": 65.0,
+      "timestamp_ms": 1787330783492,
+      "used_memory_mib": 22827,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 159.08,
+      "temperature_c": 65.0,
+      "timestamp_ms": 1787330783725,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 172.56,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330783959,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 186.19,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330784194,
+      "used_memory_mib": 22827,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 178.84,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330784430,
+      "used_memory_mib": 22827,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 177.28,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330784665,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 167.48,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330784902,
+      "used_memory_mib": 22827,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 169.67,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330785132,
+      "used_memory_mib": 22827,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 223.84,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330785361,
+      "used_memory_mib": 22827,
+      "utilization_pct": 82.0
+    },
+    {
+      "power_w": 143.83,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330785591,
+      "used_memory_mib": 22827,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 141.19,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330785821,
+      "used_memory_mib": 22827,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 200.11,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330786052,
+      "used_memory_mib": 22827,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 145.4,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330786283,
+      "used_memory_mib": 22827,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 158.2,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330786513,
+      "used_memory_mib": 22827,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 160.08,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330786743,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 176.8,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330786974,
+      "used_memory_mib": 22827,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 139.59,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330787204,
+      "used_memory_mib": 22827,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 165.52,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330787438,
+      "used_memory_mib": 22827,
+      "utilization_pct": 82.0
+    },
+    {
+      "power_w": 157.76,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330787666,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 158.0,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330787896,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 160.52,
+      "temperature_c": 66.0,
+      "timestamp_ms": 1787330788130,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 178.06,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330788364,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 153.06,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330788593,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 181.17,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330788823,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 157.76,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330789052,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 180.1,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330789282,
+      "used_memory_mib": 22827,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 161.88,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330789511,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 161.92,
+      "temperature_c": 67.0,
+      "timestamp_ms": 1787330789741,
+      "used_memory_mib": 22827,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 181.18,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330789970,
+      "used_memory_mib": 22827,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 153.74,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330790202,
+      "used_memory_mib": 22827,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 197.91,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330790431,
+      "used_memory_mib": 22827,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 168.97,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330790659,
+      "used_memory_mib": 22827,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 181.39,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330790888,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 171.91,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330791117,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 165.65,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330791346,
+      "used_memory_mib": 22827,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 252.79,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330791575,
+      "used_memory_mib": 22827,
+      "utilization_pct": 80.0
+    },
+    {
+      "power_w": 145.9,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330791806,
+      "used_memory_mib": 22827,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 155.6,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330792036,
+      "used_memory_mib": 22827,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 155.02,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330792269,
+      "used_memory_mib": 22827,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 150.24,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330792500,
+      "used_memory_mib": 22827,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 240.74,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330792730,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 157.95,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330792961,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 159.0,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330793191,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 168.88,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330793425,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 171.93,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330793660,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 157.46,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330793898,
+      "used_memory_mib": 22827,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 174.02,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330794132,
+      "used_memory_mib": 22827,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 177.26,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330794367,
+      "used_memory_mib": 22827,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 195.9,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330794600,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 183.43,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330794835,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 168.75,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330795069,
+      "used_memory_mib": 22827,
+      "utilization_pct": 82.0
+    },
+    {
+      "power_w": 173.65,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330795304,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 200.17,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330795538,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 179.57,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330795772,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 162.51,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330796007,
+      "used_memory_mib": 22827,
+      "utilization_pct": 85.0
+    },
+    {
+      "power_w": 218.14,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330796243,
+      "used_memory_mib": 22827,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 164.93,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330796477,
+      "used_memory_mib": 22827,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 151.75,
+      "temperature_c": 68.0,
+      "timestamp_ms": 1787330796710,
+      "used_memory_mib": 22827,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 157.14,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330796943,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 178.47,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330797177,
+      "used_memory_mib": 22827,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 148.02,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330797413,
+      "used_memory_mib": 22827,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 181.75,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330797648,
+      "used_memory_mib": 22827,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 179.9,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330797883,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 235.66,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330798117,
+      "used_memory_mib": 22827,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 178.98,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330798349,
+      "used_memory_mib": 22827,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 179.74,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330798579,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 209.49,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330798808,
+      "used_memory_mib": 22827,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 170.71,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330799037,
+      "used_memory_mib": 22827,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 239.47,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330799268,
+      "used_memory_mib": 22827,
+      "utilization_pct": 82.0
+    },
+    {
+      "power_w": 156.01,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330799497,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 162.28,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330799729,
+      "used_memory_mib": 22827,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 181.92,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330799962,
+      "used_memory_mib": 22827,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 174.8,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330800196,
+      "used_memory_mib": 22827,
+      "utilization_pct": 85.0
+    },
+    {
+      "power_w": 181.76,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330800432,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 163.59,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330800665,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 172.93,
+      "temperature_c": 69.0,
+      "timestamp_ms": 1787330800897,
+      "used_memory_mib": 22827,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 192.05,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330801134,
+      "used_memory_mib": 22827,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 161.79,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330801368,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 199.93,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330801601,
+      "used_memory_mib": 22827,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 198.05,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330801830,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 185.29,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330802062,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 186.46,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330802290,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 176.3,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330802522,
+      "used_memory_mib": 22827,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 164.69,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330802751,
+      "used_memory_mib": 22827,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 180.51,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330802982,
+      "used_memory_mib": 22827,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 180.68,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330803213,
+      "used_memory_mib": 22827,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 173.04,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330803445,
+      "used_memory_mib": 22827,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 188.13,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330803676,
+      "used_memory_mib": 22827,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 167.03,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330803906,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 197.36,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330804135,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 177.39,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330804365,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 147.47,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330804598,
+      "used_memory_mib": 22827,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 202.57,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330804827,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 174.83,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330805056,
+      "used_memory_mib": 22827,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 159.23,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330805291,
+      "used_memory_mib": 22827,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 184.6,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330805526,
+      "used_memory_mib": 22827,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 191.16,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330805760,
+      "used_memory_mib": 22827,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 176.51,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330805994,
+      "used_memory_mib": 22827,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 212.58,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330806231,
+      "used_memory_mib": 22827,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 183.46,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330806464,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 147.07,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330806699,
+      "used_memory_mib": 22827,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 183.43,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330806927,
+      "used_memory_mib": 22827,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 206.63,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330807156,
+      "used_memory_mib": 22827,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 187.8,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330807384,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 202.94,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330807613,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 200.93,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330807841,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 205.31,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330808073,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 129.2,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330808303,
+      "used_memory_mib": 22829,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 163.08,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330808534,
+      "used_memory_mib": 22829,
+      "utilization_pct": 80.0
+    },
+    {
+      "power_w": 181.34,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330808768,
+      "used_memory_mib": 22829,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 165.71,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330809003,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 171.18,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330809231,
+      "used_memory_mib": 22829,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 181.21,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330809460,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 149.37,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330809689,
+      "used_memory_mib": 22829,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 177.35,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330809918,
+      "used_memory_mib": 22829,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 195.24,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330810148,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 191.59,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330810378,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 207.14,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330810608,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 122.02,
+      "temperature_c": 70.0,
+      "timestamp_ms": 1787330810839,
+      "used_memory_mib": 22829,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 197.62,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330811068,
+      "used_memory_mib": 22829,
+      "utilization_pct": 64.0
+    },
+    {
+      "power_w": 189.21,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330811297,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 201.86,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330811526,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 201.18,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330811758,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 185.97,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330811988,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 157.12,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330812216,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 182.94,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330812445,
+      "used_memory_mib": 22829,
+      "utilization_pct": 82.0
+    },
+    {
+      "power_w": 188.98,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330812675,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 175.04,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330812904,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 204.11,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330813134,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 136.26,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330813366,
+      "used_memory_mib": 22829,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 170.63,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330813594,
+      "used_memory_mib": 22829,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 226.05,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330813828,
+      "used_memory_mib": 22829,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 182.27,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330814062,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 165.32,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330814295,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 167.67,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330814530,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 167.06,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330814763,
+      "used_memory_mib": 22829,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 216.7,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330814998,
+      "used_memory_mib": 22829,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 165.42,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330815233,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 198.37,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330815467,
+      "used_memory_mib": 22829,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 162.48,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330815697,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 166.4,
+      "temperature_c": 71.0,
+      "timestamp_ms": 1787330815926,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 162.48,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330816156,
+      "used_memory_mib": 22829,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 190.25,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330816385,
+      "used_memory_mib": 22829,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 171.89,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330816613,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 157.07,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330816842,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 181.79,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330817075,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 151.27,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330817305,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 175.72,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330817535,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 195.31,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330817763,
+      "used_memory_mib": 22829,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 151.88,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330817991,
+      "used_memory_mib": 22829,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 172.42,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330818220,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 186.07,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330818449,
+      "used_memory_mib": 22829,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 180.98,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330818679,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 179.7,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330818909,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 187.18,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330819139,
+      "used_memory_mib": 22829,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 157.14,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330819368,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 169.71,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330819597,
+      "used_memory_mib": 22829,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 168.59,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330819826,
+      "used_memory_mib": 22829,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 181.92,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330820054,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 174.85,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330820284,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 167.48,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330820513,
+      "used_memory_mib": 22829,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 183.53,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330820743,
+      "used_memory_mib": 22829,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 183.04,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330820972,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 173.46,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330821199,
+      "used_memory_mib": 22829,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 183.13,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330821429,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 184.27,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330821658,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 182.77,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330821887,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 230.9,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330822119,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 177.59,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330822349,
+      "used_memory_mib": 22829,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 175.35,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330822580,
+      "used_memory_mib": 22829,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 164.34,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330822808,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 164.96,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330823038,
+      "used_memory_mib": 22829,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 166.26,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330823267,
+      "used_memory_mib": 22829,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 162.42,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330823497,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 162.24,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330823726,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 165.71,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330823956,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 167.35,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330824184,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 188.68,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330824417,
+      "used_memory_mib": 22829,
+      "utilization_pct": 80.0
+    },
+    {
+      "power_w": 151.68,
+      "temperature_c": 72.0,
+      "timestamp_ms": 1787330824646,
+      "used_memory_mib": 22829,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 195.76,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330824876,
+      "used_memory_mib": 22829,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 183.33,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330825105,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 167.09,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330825338,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 169.42,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330825569,
+      "used_memory_mib": 22829,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 207.14,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330825803,
+      "used_memory_mib": 22829,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 200.85,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330826036,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 183.69,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330826270,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 184.05,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330826507,
+      "used_memory_mib": 22829,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 208.86,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330826742,
+      "used_memory_mib": 22829,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 205.55,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330826977,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 183.04,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330827211,
+      "used_memory_mib": 22829,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 184.9,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330827445,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 169.51,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330827677,
+      "used_memory_mib": 22829,
+      "utilization_pct": 78.0
+    },
+    {
+      "power_w": 190.57,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330827910,
+      "used_memory_mib": 22829,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 181.7,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330828146,
+      "used_memory_mib": 22829,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 191.23,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330828381,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 191.75,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330828611,
+      "used_memory_mib": 22831,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 170.69,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330828849,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 180.2,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330829079,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 162.67,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330829317,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 173.47,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330829547,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 199.9,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330829776,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 208.05,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330830005,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 187.54,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330830234,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 209.22,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330830463,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 187.05,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330830692,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 181.15,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330830931,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 167.7,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330831161,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 162.26,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330831392,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 168.01,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330831621,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 165.61,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330831850,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 158.85,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330832081,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 164.83,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330832310,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 155.51,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330832540,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 164.99,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330832770,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 167.21,
+      "temperature_c": 73.0,
+      "timestamp_ms": 1787330833004,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 172.26,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330833239,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 208.14,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330833474,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 188.12,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330833709,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 169.04,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330833944,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 208.77,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330834178,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 188.48,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330834413,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 166.01,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330834647,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 220.5,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330834882,
+      "used_memory_mib": 22831,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 208.85,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330835118,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 190.54,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330835355,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 219.3,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330835589,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 186.01,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330835823,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 165.88,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330836055,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 161.11,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330836284,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 172.81,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330836513,
+      "used_memory_mib": 22831,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 161.3,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330836741,
+      "used_memory_mib": 22831,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 239.99,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330836970,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 157.38,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330837199,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 214.51,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330837428,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 172.12,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330837658,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 165.46,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330837887,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 164.73,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330838117,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 178.34,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330838347,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 183.46,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330838576,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 127.98,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330838808,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 206.52,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330839038,
+      "used_memory_mib": 22831,
+      "utilization_pct": 70.0
+    },
+    {
+      "power_w": 177.49,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330839271,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 164.01,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330839503,
+      "used_memory_mib": 22831,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 165.26,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330839738,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 182.8,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330839971,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 201.8,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330840205,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 187.87,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330840440,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 217.64,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330840673,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 215.1,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330840908,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 178.89,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330841142,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 171.21,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330841377,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 134.23,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330841607,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 179.22,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330841836,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 181.37,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330842065,
+      "used_memory_mib": 22831,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 217.64,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330842298,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 196.68,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330842531,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 225.15,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330842762,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 177.75,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330842998,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 167.21,
+      "temperature_c": 74.0,
+      "timestamp_ms": 1787330843232,
+      "used_memory_mib": 22831,
+      "utilization_pct": 72.0
+    },
+    {
+      "power_w": 163.34,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330843464,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 169.71,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330843695,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 152.34,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330843927,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 190.71,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330844156,
+      "used_memory_mib": 22831,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 176.96,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330844386,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 170.46,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330844615,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 165.2,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330844844,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 179.02,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330845075,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 216.55,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330845304,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 218.35,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330845537,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 169.99,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330845772,
+      "used_memory_mib": 22831,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 176.86,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330846006,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 200.17,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330846240,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 167.78,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330846473,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 166.57,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330846706,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 197.88,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330846942,
+      "used_memory_mib": 22831,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 204.23,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330847176,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 186.79,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330847410,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 191.13,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330847644,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 190.38,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330847878,
+      "used_memory_mib": 22831,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 190.83,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330848112,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 208.35,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330848346,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 189.04,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330848579,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 174.32,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330848814,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 174.81,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330849047,
+      "used_memory_mib": 22831,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 187.51,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330849280,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 210.6,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330849514,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 186.4,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330849747,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 211.02,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330849982,
+      "used_memory_mib": 22831,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 210.49,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330850216,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 181.21,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330850451,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 183.27,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330850684,
+      "used_memory_mib": 22831,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 156.38,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330850914,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 183.33,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330851145,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 182.94,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330851378,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 187.54,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330851612,
+      "used_memory_mib": 22831,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 178.34,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330851846,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 173.23,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330852080,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 166.99,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330852314,
+      "used_memory_mib": 22831,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 189.57,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330852549,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 205.54,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330852783,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 197.2,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330853016,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 212.3,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330853251,
+      "used_memory_mib": 22831,
+      "utilization_pct": 84.0
+    },
+    {
+      "power_w": 185.29,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330853484,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 188.26,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330853718,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 175.69,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330853952,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 192.3,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330854187,
+      "used_memory_mib": 22831,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 194.07,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330854421,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 193.22,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330854650,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 191.85,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330854880,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 181.57,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330855109,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 183.27,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330855339,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 186.14,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330855569,
+      "used_memory_mib": 22831,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 183.56,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330855798,
+      "used_memory_mib": 22831,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 193.29,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330856027,
+      "used_memory_mib": 22831,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 167.48,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330856258,
+      "used_memory_mib": 22831,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 210.0,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330856488,
+      "used_memory_mib": 22831,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 208.6,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330856716,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 181.8,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330856943,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 165.67,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330857173,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 170.5,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330857403,
+      "used_memory_mib": 22831,
+      "utilization_pct": 77.0
+    },
+    {
+      "power_w": 172.07,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330857632,
+      "used_memory_mib": 22831,
+      "utilization_pct": 85.0
+    },
+    {
+      "power_w": 180.07,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330857862,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 183.72,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330858092,
+      "used_memory_mib": 22831,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 173.7,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330858321,
+      "used_memory_mib": 22831,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 189.41,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330858555,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 174.51,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330858783,
+      "used_memory_mib": 22831,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 180.88,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330859015,
+      "used_memory_mib": 22831,
+      "utilization_pct": 85.0
+    },
+    {
+      "power_w": 176.58,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330859243,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 209.42,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330859475,
+      "used_memory_mib": 22831,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 170.6,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330859705,
+      "used_memory_mib": 22831,
+      "utilization_pct": 85.0
+    },
+    {
+      "power_w": 190.21,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330859936,
+      "used_memory_mib": 22831,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 179.9,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330860166,
+      "used_memory_mib": 22831,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 192.53,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330860394,
+      "used_memory_mib": 22831,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 165.36,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330860624,
+      "used_memory_mib": 22831,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 189.7,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330860853,
+      "used_memory_mib": 22833,
+      "utilization_pct": 89.0
+    },
+    {
+      "power_w": 198.24,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330861083,
+      "used_memory_mib": 22833,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 173.4,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330861312,
+      "used_memory_mib": 22833,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 188.23,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330861540,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 176.08,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330861769,
+      "used_memory_mib": 22833,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 191.65,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330861997,
+      "used_memory_mib": 22833,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 209.41,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330862225,
+      "used_memory_mib": 22833,
+      "utilization_pct": 86.0
+    },
+    {
+      "power_w": 211.89,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330862455,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 209.78,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330862684,
+      "used_memory_mib": 22833,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 212.83,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330862913,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 197.11,
+      "temperature_c": 78.0,
+      "timestamp_ms": 1787330863144,
+      "used_memory_mib": 22833,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 190.25,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330863373,
+      "used_memory_mib": 22833,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 189.73,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330863605,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 226.42,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330863833,
+      "used_memory_mib": 22833,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 165.36,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330864066,
+      "used_memory_mib": 22833,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 189.3,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330864296,
+      "used_memory_mib": 22833,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 184.27,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330864527,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 191.16,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330864759,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 191.45,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330864991,
+      "used_memory_mib": 22833,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 190.38,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330865225,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 190.9,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330865458,
+      "used_memory_mib": 22833,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 188.98,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330865694,
+      "used_memory_mib": 22833,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 190.09,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330865929,
+      "used_memory_mib": 22833,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 189.4,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330866162,
+      "used_memory_mib": 22833,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 168.35,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330866396,
+      "used_memory_mib": 22833,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 189.11,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330866633,
+      "used_memory_mib": 22833,
+      "utilization_pct": 82.0
+    },
+    {
+      "power_w": 187.87,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330866867,
+      "used_memory_mib": 22833,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 177.98,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330867101,
+      "used_memory_mib": 22833,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 191.91,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330867335,
+      "used_memory_mib": 22833,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 177.49,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330867565,
+      "used_memory_mib": 22833,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 191.29,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330867795,
+      "used_memory_mib": 22833,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 188.13,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330868024,
+      "used_memory_mib": 22833,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 186.66,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330868255,
+      "used_memory_mib": 22833,
+      "utilization_pct": 90.0
+    },
+    {
+      "power_w": 184.67,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330868487,
+      "used_memory_mib": 22833,
+      "utilization_pct": 83.0
+    },
+    {
+      "power_w": 188.33,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330868720,
+      "used_memory_mib": 22833,
+      "utilization_pct": 91.0
+    },
+    {
+      "power_w": 195.14,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330868955,
+      "used_memory_mib": 22833,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 183.63,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330869189,
+      "used_memory_mib": 22833,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 184.7,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330869424,
+      "used_memory_mib": 22833,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 171.79,
+      "temperature_c": 77.0,
+      "timestamp_ms": 1787330869659,
+      "used_memory_mib": 22833,
+      "utilization_pct": 97.0
+    },
+    {
+      "power_w": 171.99,
+      "temperature_c": 76.0,
+      "timestamp_ms": 1787330869894,
+      "used_memory_mib": 22833,
+      "utilization_pct": 96.0
+    },
+    {
+      "power_w": 65.95,
+      "temperature_c": 75.0,
+      "timestamp_ms": 1787330870123,
+      "used_memory_mib": 22833,
+      "utilization_pct": 43.0
+    }
+  ],
+  "model_id": "rwkv-7.2b-fp32io16",
+  "provider_mode": "rwkv_recurrent",
+  "quantization": "none",
+  "requested_agents": 100,
+  "result": {
+    "correctness": {
+      "cross_talk": 0,
+      "events": 400,
+      "failed_events": 0,
+      "protocol_valid_events": 400,
+      "useful_events": 400
+    },
+    "errors": [],
+    "lifecycle": {
+      "checksum_failures": 0,
+      "restores": 0,
+      "snapshots": 0,
+      "state_leak_count": 0,
+      "states_created": 100,
+      "states_released": 100
+    },
+    "metrics": {
+      "event_completion_latency": {
+        "max_ms": 8485.316,
+        "p50_ms": 2454.617,
+        "p95_ms": 4614.215,
+        "p99_ms": 6943.984
+      },
+      "events_per_second": 4.574336074538693,
+      "queue_backpressure_count": 65,
+      "reprefill_bytes": 0,
+      "restore_bytes": 0,
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "useful_events_per_second": 4.574336074538693,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "wall_ms": 87444.383946
+    },
+    "placement_policy": "keep_hot",
+    "provider_mode": "rwkv_recurrent",
+    "queue_capacity_per_worker": 2,
+    "schema_version": "long-lived-agent-result.v1",
+    "split": "ood_transfer",
+    "workers": 16
+  },
+  "revision": "0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8",
+  "schema_version": "rwkv-live-long-lived-bench.v1",
+  "tokenizer": "rwkv_vocab_v20230424",
+  "trace_sha256": "d609c21fb0d07cab49b8bc6f85c30ce7749b178686af41605b4661cffc26bbc4"
+}

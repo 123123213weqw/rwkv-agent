@@ -1,0 +1,27 @@
+{
+  "schema_version": "long-lived-agent-manifest.v1",
+  "split": "ood_transfer",
+  "trace_sha256": "d609c21fb0d07cab49b8bc6f85c30ce7749b178686af41605b4661cffc26bbc4",
+  "event_count": 400,
+  "agent_count": 100,
+  "generator_sha256": "24598b03ba3354afd403e896bb89ac630d4b59a01488cb6a67e4f74010e230e6",
+  "generation": {
+    "seed": 90001,
+    "rounds_per_agent": 4,
+    "min_wait_ms": 31000,
+    "max_wait_ms": 60000,
+    "min_token_budget": 64,
+    "max_token_budget": 256,
+    "event_types": [
+      "human_reply",
+      "timer_fired",
+      "dependency_ready"
+    ]
+  },
+  "anti_overfit": {
+    "gold_visible_during_development": true,
+    "case_specific_routing_allowed": false,
+    "failure_trace_training_allowed": false,
+    "formal_runs_allowed": 0
+  }
+}

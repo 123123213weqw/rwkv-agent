@@ -1,0 +1,464 @@
+{
+  "schema_version": "long-lived-phase0-comparison.v1",
+  "phase": "long-lived-agent-runtime-phase0",
+  "hardware": {
+    "host": "wzu-SYS-4029GP-TRT",
+    "gpu": "Tesla V100-PCIE-32GB",
+    "gpu_index": 0,
+    "driver": "580.173.02",
+    "same_physical_gpu_model_and_index": true
+  },
+  "arms": {
+    "qwen": {
+      "model": "Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "dtype": "float16",
+      "quantization": "none",
+      "provider_mode": "qwen_transcript_reprefill",
+      "native_kv_lifecycle": false,
+      "continuous_batching_requested": true,
+      "continuous_batching_effective": false,
+      "backend_limitation": "Transformers 5.14.1 reports Qwen3_5ForConditionalGeneration unsupported for continuous batching and falls back to sequential generation."
+    },
+    "rwkv": {
+      "model": "RWKV-7 G1i 7.2B 20260805",
+      "revision": "0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8",
+      "dtype": "fp32io16",
+      "quantization": "none",
+      "provider_mode": "rwkv_recurrent",
+      "state_capacity": 128,
+      "max_batch_size": 16,
+      "state_bytes_per_slot": 34078724,
+      "state_slab_bytes": 4362076672,
+      "workspace_bytes": 4634706464,
+      "external_engine": "legacy Albatross sidecar behind the Rust provider; not a Rust release dependency"
+    },
+    "qwen_nf4_historical": {
+      "gpu": "RTX 4080 16GB",
+      "peak_vram_mib": 8429,
+      "primary_comparator": false
+    }
+  },
+  "dev": {
+    "qwen_n1": {
+      "split": "dev",
+      "agents": 1,
+      "useful_events": 3,
+      "events": 3,
+      "useful_rate": 1,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 3,
+      "states_released": 3,
+      "wall_ms": 13202.229982,
+      "useful_events_per_second": 0.22723433875112145,
+      "completion_p50_ms": 3682.826,
+      "completion_p95_ms": 5932.27,
+      "completion_p99_ms": 5932.27,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 18339,
+      "gpu_peak_mib": 18477,
+      "gpu_utilization_mean_pct": 36.49152542372882
+    },
+    "qwen_n4": {
+      "split": "dev",
+      "agents": 4,
+      "useful_events": 12,
+      "events": 12,
+      "useful_rate": 1,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 12,
+      "states_released": 12,
+      "wall_ms": 41961.876598,
+      "useful_events_per_second": 0.2859738642044419,
+      "completion_p50_ms": 10765.484,
+      "completion_p95_ms": 14344.997,
+      "completion_p99_ms": 14344.997,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 18477,
+      "gpu_peak_mib": 18497,
+      "gpu_utilization_mean_pct": 47.77717391304348
+    },
+    "rwkv_n1": {
+      "split": "dev",
+      "agents": 1,
+      "useful_events": 3,
+      "events": 3,
+      "useful_rate": 1,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 1,
+      "states_released": 1,
+      "wall_ms": 1154.6954389999999,
+      "useful_events_per_second": 2.598087685007302,
+      "completion_p50_ms": 373.971,
+      "completion_p95_ms": 417.207,
+      "completion_p99_ms": 417.207,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 22401,
+      "gpu_peak_mib": 22409,
+      "gpu_utilization_mean_pct": 71.5
+    },
+    "rwkv_n4": {
+      "split": "dev",
+      "agents": 4,
+      "useful_events": 12,
+      "events": 12,
+      "useful_rate": 1,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 4,
+      "states_released": 4,
+      "wall_ms": 3900.829658,
+      "useful_events_per_second": 3.0762686536157378,
+      "completion_p50_ms": 887.163,
+      "completion_p95_ms": 1906.54,
+      "completion_p99_ms": 1906.54,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 22409,
+      "gpu_peak_mib": 22561,
+      "gpu_utilization_mean_pct": 86.10526315789474
+    },
+    "rwkv_scaling": [
+      {
+        "split": "dev",
+        "agents": 1,
+        "useful_events": 3,
+        "events": 3,
+        "useful_rate": 1,
+        "failed_events": 0,
+        "cross_talk": 0,
+        "state_leaks": 0,
+        "states_created": 1,
+        "states_released": 1,
+        "wall_ms": 1154.6954389999999,
+        "useful_events_per_second": 2.598087685007302,
+        "completion_p50_ms": 373.971,
+        "completion_p95_ms": 417.207,
+        "completion_p99_ms": 417.207,
+        "wake_latency": {
+          "available": false,
+          "reason": "provider v1 has no explicit inference-ready signal"
+        },
+        "ttft": {
+          "available": false,
+          "reason": "provider v1 continuation is non-streaming"
+        },
+        "gpu_min_mib": 22401,
+        "gpu_peak_mib": 22409,
+        "gpu_utilization_mean_pct": 71.5
+      },
+      {
+        "split": "dev",
+        "agents": 4,
+        "useful_events": 12,
+        "events": 12,
+        "useful_rate": 1,
+        "failed_events": 0,
+        "cross_talk": 0,
+        "state_leaks": 0,
+        "states_created": 4,
+        "states_released": 4,
+        "wall_ms": 3900.829658,
+        "useful_events_per_second": 3.0762686536157378,
+        "completion_p50_ms": 887.163,
+        "completion_p95_ms": 1906.54,
+        "completion_p99_ms": 1906.54,
+        "wake_latency": {
+          "available": false,
+          "reason": "provider v1 has no explicit inference-ready signal"
+        },
+        "ttft": {
+          "available": false,
+          "reason": "provider v1 continuation is non-streaming"
+        },
+        "gpu_min_mib": 22409,
+        "gpu_peak_mib": 22561,
+        "gpu_utilization_mean_pct": 86.10526315789474
+      },
+      {
+        "split": "dev",
+        "agents": 16,
+        "useful_events": 48,
+        "events": 48,
+        "useful_rate": 1,
+        "failed_events": 0,
+        "cross_talk": 0,
+        "state_leaks": 0,
+        "states_created": 16,
+        "states_released": 16,
+        "wall_ms": 8698.679741,
+        "useful_events_per_second": 5.518078769328496,
+        "completion_p50_ms": 1538.671,
+        "completion_p95_ms": 3654.13,
+        "completion_p99_ms": 3849.283,
+        "wake_latency": {
+          "available": false,
+          "reason": "provider v1 has no explicit inference-ready signal"
+        },
+        "ttft": {
+          "available": false,
+          "reason": "provider v1 continuation is non-streaming"
+        },
+        "gpu_min_mib": 22561,
+        "gpu_peak_mib": 22769,
+        "gpu_utilization_mean_pct": 88.38461538461539
+      },
+      {
+        "split": "dev",
+        "agents": 32,
+        "useful_events": 96,
+        "events": 96,
+        "useful_rate": 1,
+        "failed_events": 0,
+        "cross_talk": 0,
+        "state_leaks": 0,
+        "states_created": 32,
+        "states_released": 32,
+        "wall_ms": 20488.603107,
+        "useful_events_per_second": 4.685531731892511,
+        "completion_p50_ms": 1532.943,
+        "completion_p95_ms": 2995.774,
+        "completion_p99_ms": 3689.128,
+        "wake_latency": {
+          "available": false,
+          "reason": "provider v1 has no explicit inference-ready signal"
+        },
+        "ttft": {
+          "available": false,
+          "reason": "provider v1 continuation is non-streaming"
+        },
+        "gpu_min_mib": 22769,
+        "gpu_peak_mib": 22801,
+        "gpu_utilization_mean_pct": 86.8
+      },
+      {
+        "split": "dev",
+        "agents": 64,
+        "useful_events": 192,
+        "events": 192,
+        "useful_rate": 1,
+        "failed_events": 0,
+        "cross_talk": 0,
+        "state_leaks": 0,
+        "states_created": 64,
+        "states_released": 64,
+        "wall_ms": 37082.179017999995,
+        "useful_events_per_second": 5.177689258951088,
+        "completion_p50_ms": 1510.876,
+        "completion_p95_ms": 3452.186,
+        "completion_p99_ms": 4015.029,
+        "wake_latency": {
+          "available": false,
+          "reason": "provider v1 has no explicit inference-ready signal"
+        },
+        "ttft": {
+          "available": false,
+          "reason": "provider v1 continuation is non-streaming"
+        },
+        "gpu_min_mib": 22801,
+        "gpu_peak_mib": 22807,
+        "gpu_utilization_mean_pct": 90.45341614906832
+      },
+      {
+        "split": "dev",
+        "agents": 100,
+        "useful_events": 300,
+        "events": 300,
+        "useful_rate": 1,
+        "failed_events": 0,
+        "cross_talk": 0,
+        "state_leaks": 0,
+        "states_created": 100,
+        "states_released": 100,
+        "wall_ms": 57162.477351,
+        "useful_events_per_second": 5.248198012095986,
+        "completion_p50_ms": 1587.719,
+        "completion_p95_ms": 3467.815,
+        "completion_p99_ms": 3801.708,
+        "wake_latency": {
+          "available": false,
+          "reason": "provider v1 has no explicit inference-ready signal"
+        },
+        "ttft": {
+          "available": false,
+          "reason": "provider v1 continuation is non-streaming"
+        },
+        "gpu_min_mib": 22807,
+        "gpu_peak_mib": 22827,
+        "gpu_utilization_mean_pct": 90.6144578313253
+      }
+    ]
+  },
+  "ood": {
+    "qwen_n4": {
+      "split": "ood_transfer",
+      "agents": 4,
+      "useful_events": 16,
+      "events": 16,
+      "useful_rate": 1,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 16,
+      "states_released": 16,
+      "wall_ms": 64841.127458,
+      "useful_events_per_second": 0.2467569677958452,
+      "completion_p50_ms": 14768.719,
+      "completion_p95_ms": 18718.61,
+      "completion_p99_ms": 18718.61,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 18339,
+      "gpu_peak_mib": 18517,
+      "gpu_utilization_mean_pct": 41.014134275618375
+    },
+    "rwkv_n100": {
+      "split": "ood_transfer",
+      "agents": 100,
+      "useful_events": 400,
+      "events": 400,
+      "useful_rate": 1,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 100,
+      "states_released": 100,
+      "wall_ms": 87444.383946,
+      "useful_events_per_second": 4.574336074538693,
+      "completion_p50_ms": 2454.617,
+      "completion_p95_ms": 4614.215,
+      "completion_p99_ms": 6943.984,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 22827,
+      "gpu_peak_mib": 22833,
+      "gpu_utilization_mean_pct": 91.72295514511873
+    }
+  },
+  "sealed_blind": {
+    "qwen_n4": {
+      "split": "sealed_blind",
+      "agents": 4,
+      "useful_events": 11,
+      "events": 12,
+      "useful_rate": 0.9166666666666666,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 12,
+      "states_released": 12,
+      "wall_ms": 42623.05055,
+      "useful_events_per_second": 0.2580763192230031,
+      "completion_p50_ms": 13450.576,
+      "completion_p95_ms": 15799.39,
+      "completion_p99_ms": 15799.39,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 18517,
+      "gpu_peak_mib": 18517,
+      "gpu_utilization_mean_pct": 48.155080213903744
+    },
+    "rwkv_n4": {
+      "split": "sealed_blind",
+      "agents": 4,
+      "useful_events": 12,
+      "events": 12,
+      "useful_rate": 1,
+      "failed_events": 0,
+      "cross_talk": 0,
+      "state_leaks": 0,
+      "states_created": 4,
+      "states_released": 4,
+      "wall_ms": 2579.379695,
+      "useful_events_per_second": 4.652281330763906,
+      "completion_p50_ms": 836.095,
+      "completion_p95_ms": 995.354,
+      "completion_p99_ms": 995.354,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "gpu_min_mib": 22833,
+      "gpu_peak_mib": 22833,
+      "gpu_utilization_mean_pct": 78.15384615384616
+    },
+    "formal_trace_inspected_before_run": false
+  },
+  "common_n4": {
+    "rwkv_over_qwen_useful_events_per_second": 10.757167135443266,
+    "rwkv_minus_qwen_peak_vram_mib": 4064
+  },
+  "unsupported": {
+    "qwen_native_kv": "provider unavailable",
+    "qwen_effective_continuous_batching": "backend fell back to sequential",
+    "qwen_n16_n32_n64_n100": "not run as a claimed high-concurrency primary arm because the backend is sequential",
+    "rwkv_snapshot_restore": "not implemented in Phase 0",
+    "wake_latency": "not measured: provider v1 has no explicit readiness signal",
+    "ttft": "not measured: provider v1 is non-streaming",
+    "cpu_ram_per_agent": "not sampled in live result v1"
+  },
+  "decision": {
+    "phase0_primary_comparison": "PARTIAL",
+    "memory_crossover": "NOT_ESTABLISHED",
+    "throughput": "RWKV is faster on this exact useful-event workload and reaches N=100 with zero crosstalk/leaks; Qwen backend concurrency is sequential and therefore this is a runtime-path result, not a pure architecture proof.",
+    "memory": "At common N=4 the configured RWKV capacity-128 runtime peaks higher than unquantized Qwen transcript replay. Native Qwen KV is unavailable, so no fair state-memory crossover can be claimed.",
+    "generalization": "RWKV passes Dev, OOD N=100 and Sealed N=4. Qwen passes Dev/OOD correctness but reaches 11/12 useful events on Sealed N=4.",
+    "stop_condition": "Do not enter Phase 1 without Owner review and explicit authorization."
+  }
+}
