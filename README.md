@@ -8,7 +8,17 @@ RWKV State Agent is a fully local, general-purpose Agent built around RWKV recur
 
 ## Release status
 
-The current public beta is [`v0.3.0-beta.1`](https://github.com/123123213weqw/rwkv-agent/releases/tag/v0.3.0-beta.1). It includes the Rust control plane, local Web UI and CLI, recurrent-State runtime, bounded tools, AMD ROCm configuration, benchmarks, and reviewed evidence summaries.
+The current public beta is [`v0.3.0-beta.2`](https://github.com/123123213weqw/rwkv-agent/releases/tag/v0.3.0-beta.2). It includes the Rust control plane, local Web UI and CLI, recurrent-State runtime, bounded tools, AMD ROCm configuration, benchmarks, and reviewed evidence summaries.
+
+**New in Beta 2:** the canonical Rust service pipeline now accepts versioned
+TaskSpec requests, owns durable task identity, resume/cancel, strict streaming
+termination and dependency readiness, and exposes an opt-in local Debug Trace.
+Debug capture is release-default `off`; `full` traces contain private bodies and
+must remain local. The CUDA model Sidecar and retrieval Data Plane are still
+narrow external Python providers, and this release makes no new load-capacity or
+production-deployment claim. See
+[`docs/SERVICE_PIPELINE.md`](docs/SERVICE_PIPELINE.md) and
+[`docs/DEBUG_TRACE.md`](docs/DEBUG_TRACE.md).
 
 The architecture and operating contract are documented in [`docs/PROJECT_SPECIFICATION.md`](docs/PROJECT_SPECIFICATION.md).
 

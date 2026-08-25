@@ -33,6 +33,7 @@ struct MockModel {
     release_error: Option<String>,
     inputs: Vec<String>,
     returned_state_id: Option<String>,
+    cancel_after_continue: Option<CancellationToken>,
 }
 
 impl MockModel {
@@ -68,6 +69,9 @@ impl StateModel for MockModel {
         _context: RunContext,
     ) -> impl Future<Output = Result<ModelOutput, String>> + Send {
         self.inputs.push(request.input);
+        if let Some(token) = self.cancel_after_continue.take() {
+            token.cancel();
+        }
         let output = self
             .outputs
             .pop_front()
@@ -242,6 +246,7 @@ fn limits(max_tool_steps: usize) -> RunLimits {
         max_elapsed: Duration::from_secs(5),
         answer_after_tool: false,
         fork_from_root: false,
+        capture_model_output: false,
     }
 }
 
@@ -1066,6 +1071,40 @@ fn cancellation_after_tool_is_seen_before_next_model_turn_and_releases() {
     assert!(matches!(error, AgentError::Cancelled));
     assert_eq!(model.inputs.len(), 1);
     assert_eq!(model.released, 1);
+}
+
+#[test]
+fn cancellation_during_model_continue_is_seen_at_boundary_and_releases() {
+    let cancellation = CancellationToken::default();
+    let mut model = MockModel {
+        outputs: VecDeque::from([Ok("<answer>must not commit</answer>".into())]),
+        cancel_after_continue: Some(cancellation.clone()),
+        ..MockModel::default()
+    };
+    let mut tools = MockTools::default();
+    let registry = registry();
+    let mut events = VecEventSink::default();
+    let mut agent = AgentLoop::new(
+        &mut model,
+        &mut tools,
+        &registry,
+        &mut events,
+        limits(1),
+        cancellation,
+    )
+    .unwrap();
+
+    let error = block_on(agent.run(request())).unwrap_err();
+
+    assert!(matches!(error, AgentError::Cancelled));
+    assert_eq!(model.inputs.len(), 1);
+    assert_eq!(model.released, 1);
+    assert!(
+        !events
+            .events
+            .iter()
+            .any(|event| matches!(event, AgentEvent::AnswerCompleted { .. }))
+    );
 }
 
 #[test]

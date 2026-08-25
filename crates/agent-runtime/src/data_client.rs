@@ -44,7 +44,7 @@ impl DataPlaneClient {
             .get(format!("{}{}", self.endpoint, path))
             .send()
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|error| format!("data plane unavailable: {error}"))?;
         Self::decode(response).await
     }
 
@@ -55,13 +55,16 @@ impl DataPlaneClient {
             .json(&body)
             .send()
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|error| format!("data plane unavailable: {error}"))?;
         Self::decode(response).await
     }
 
     async fn decode(response: reqwest::Response) -> Result<Value, String> {
         let status = response.status();
-        let value = response.json::<Value>().await.map_err(|e| e.to_string())?;
+        let value = response
+            .json::<Value>()
+            .await
+            .map_err(|error| format!("data plane invalid JSON response: {error}"))?;
         if !status.is_success() {
             return Err(format!("data plane HTTP {status}: {value}"));
         }

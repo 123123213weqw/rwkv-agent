@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rwkv-search"
-version = "0.3.0b1"
+version = "0.3.0b2"
 description = "Local-first RWKV agent with chat, tool use, Web research and evidence-grounded answers."
 readme = "README.md"
 requires-python = ">=3.10"

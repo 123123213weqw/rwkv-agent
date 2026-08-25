@@ -331,7 +331,9 @@ function renderTasks(payload) {
 
 async function refreshTasks() {
   try {
-    renderTasks(await request("/v1/tasks", { headers: {} }));
+    // The embedded local task wall intentionally uses the compatibility admin
+    // view. Canonical `/v1/tasks` listing is owner-scoped and versioned.
+    renderTasks(await request("/v1/task-ledger", { headers: {} }));
   } catch (error) {
     elements.taskList.replaceChildren();
     const card = document.createElement("div");

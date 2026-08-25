@@ -5,14 +5,18 @@ use std::time::{Duration, Instant};
 
 use rwkv_agent_core::{
     AgentEvent, AgentLoop, AgentRunRequest, AnswerDecision, ArgumentSpec, CancellationToken,
-    RunContext, RunLimits, TOOL_CALL_JSON_PREFIX, TaskSpec, ToolCall, ToolDefinition, ToolExecutor,
-    ToolRegistry, VecEventSink,
+    RequestIdentity, RunContext, RunLimits, SERVICE_API_VERSION, TOOL_CALL_JSON_PREFIX, TaskSpec,
+    ToolCall, ToolDefinition, ToolExecutor, ToolRegistry, VecEventSink,
 };
 use serde_json::{Value, json};
-use tokio::sync::{Mutex, mpsc};
+use tokio::sync::{Mutex, Notify, mpsc};
 
 use crate::command::{CommandPolicy, SandboxedCommand};
 use crate::data_client::DataPlaneClient;
+use crate::debug_trace::{
+    DebugCapture, DebugTraceConfig, DebugTraceEvent, DebugTraceFileKind, DebugTraceFilter,
+    DebugTraceHandle, DebugTraceManifest, DebugTracePage, DebugTraceStart, DebugTraceStore,
+};
 use crate::prompt;
 use crate::research::ResearchRunner;
 use crate::session::{Exchange, SessionStore};
@@ -21,6 +25,7 @@ use crate::task_ledger::{StageStatus, TaskLedger, TaskRecord, TaskStatus};
 
 #[derive(Clone, Debug)]
 pub struct RuntimeConfig {
+    pub runtime_revision: String,
     pub model_urls: Vec<String>,
     pub data_plane_url: String,
     pub session_dir: PathBuf,
@@ -31,12 +36,16 @@ pub struct RuntimeConfig {
     pub max_tool_steps: usize,
     pub max_model_tokens_per_turn: u32,
     pub direct_chat_max_tokens: u32,
+    pub max_run_elapsed: Duration,
+    pub shutdown_grace: Duration,
     pub command: CommandPolicy,
+    pub debug_trace: DebugTraceConfig,
 }
 
 impl Default for RuntimeConfig {
     fn default() -> Self {
         Self {
+            runtime_revision: env!("CARGO_PKG_VERSION").into(),
             model_urls: vec!["http://127.0.0.1:8417".into()],
             data_plane_url: "http://127.0.0.1:8121".into(),
             session_dir: PathBuf::from("var/rust-agent-sessions"),
@@ -47,7 +56,10 @@ impl Default for RuntimeConfig {
             max_tool_steps: 6,
             max_model_tokens_per_turn: 192,
             direct_chat_max_tokens: 96,
+            max_run_elapsed: Duration::from_secs(600),
+            shutdown_grace: Duration::from_secs(200),
             command: CommandPolicy::default(),
+            debug_trace: DebugTraceConfig::default(),
         }
     }
 }
@@ -61,7 +73,10 @@ pub struct AgentService {
     chat_states: Arc<Mutex<ChatStateCache>>,
     command: SandboxedCommand,
     task_ledger: TaskLedger,
+    active_tasks: Arc<Mutex<HashMap<String, CancellationToken>>>,
+    task_completion: Arc<Notify>,
     recovered_tasks: usize,
+    debug_trace: DebugTraceStore,
 }
 
 #[derive(Clone, Debug)]
@@ -896,6 +911,9 @@ struct ToolRunOptions<'a> {
     started: Instant,
     command: SandboxedCommand,
     workspace_label: Option<&'a str>,
+    cancellation: CancellationToken,
+    debug_trace: Option<&'a DebugTraceHandle>,
+    stage_id: Option<&'a str>,
 }
 
 impl ToolExecutor for RuntimeTools {
@@ -1064,6 +1082,9 @@ impl ToolExecutor for RuntimeTools {
 
 impl AgentService {
     pub async fn new(config: RuntimeConfig) -> Result<Self, String> {
+        if config.runtime_revision.trim().is_empty() {
+            return Err("runtime_revision must not be empty".into());
+        }
         if !(-20.0..=20.0).contains(&config.tool_gate_threshold)
             || !(-20.0..=20.0).contains(&config.pasted_text_gate_threshold)
         {
@@ -1074,6 +1095,8 @@ impl AgentService {
             || config.max_model_tokens_per_turn == 0
             || config.direct_chat_max_tokens == 0
             || config.direct_chat_max_tokens > 1024
+            || config.max_run_elapsed.is_zero()
+            || config.shutdown_grace.is_zero()
         {
             return Err("State and tool capacities must be positive".into());
         }
@@ -1083,6 +1106,22 @@ impl AgentService {
         let task_ledger = TaskLedger::new(config.session_dir.join("task-ledger")).await?;
         let recovered_tasks = task_ledger.recover_interrupted().await?;
         let command = SandboxedCommand::new(config.command.clone());
+        let debug_trace = DebugTraceStore::new(
+            config.debug_trace.clone(),
+            config.runtime_revision.clone(),
+            config.model_urls.join(","),
+            "provider-owned".into(),
+            "rwkv-recurrent-state-http-v1".into(),
+            json!({
+                "runtime_revision":config.runtime_revision,
+                "model_urls":config.model_urls,
+                "data_plane_url":config.data_plane_url,
+                "command_enabled":config.command.enabled,
+                "max_tool_steps":config.max_tool_steps,
+                "max_model_tokens_per_turn":config.max_model_tokens_per_turn,
+            }),
+        )
+        .await?;
         Ok(Self {
             config: Arc::new(config),
             sidecar,
@@ -1091,20 +1130,80 @@ impl AgentService {
             chat_states: Arc::new(Mutex::new(ChatStateCache::default())),
             command,
             task_ledger,
+            active_tasks: Arc::new(Mutex::new(HashMap::new())),
+            task_completion: Arc::new(Notify::new()),
             recovered_tasks,
+            debug_trace,
         })
     }
 
-    pub async fn health(&self) -> Result<Value, String> {
-        let model = self.sidecar.health().await?;
-        let data = self.data.health().await?;
-        let states = self.chat_states.lock().await;
-        Ok(json!({
-            "status":"ready",
+    pub fn liveness(&self) -> Value {
+        json!({
+            "status":"alive",
+            "api_version":SERVICE_API_VERSION,
             "control_plane":"rust",
+            "runtime_revision":self.config.runtime_revision,
+        })
+    }
+
+    pub async fn readiness(&self) -> Value {
+        let (model, model_ready, model_error) = match self.sidecar.health().await {
+            Ok(model) => {
+                let ready = !model.is_empty()
+                    && model.iter().all(|item| {
+                        matches!(
+                            item.get("status").and_then(Value::as_str),
+                            Some("ready" | "ok")
+                        )
+                    });
+                (model, ready, String::new())
+            }
+            Err(error) => (Vec::new(), false, error),
+        };
+        let (data, data_ready, data_error) = match self.data.health().await {
+            Ok(data) => {
+                let ready = matches!(
+                    data.get("status").and_then(Value::as_str),
+                    Some("ready" | "ok")
+                );
+                (data, ready, String::new())
+            }
+            Err(error) => (Value::Null, false, error),
+        };
+        let (state_capacity, state_capacity_ready) = state_capacity_status(&model, model_ready);
+        let states = self.chat_states.lock().await;
+        let active_tasks = self.active_tasks.lock().await.len();
+        let sandbox_ready = !self.config.command.enabled || self.command.available();
+        let debug_trace = self.debug_trace.readiness().await;
+        let ready = model_ready && data_ready && sandbox_ready && state_capacity_ready;
+        json!({
+            "status":if ready {"ready"} else {"unavailable"},
+            "api_version":SERVICE_API_VERSION,
+            "control_plane":"rust",
+            "runtime_revision":self.config.runtime_revision,
             "tools":self.tool_names(),
             "model":model,
             "data_plane":data,
+            "components":{
+                "model_sidecar":{"status":if model_ready {"ready"} else {"unavailable"},"error":model_error},
+                "data_plane":{"status":if data_ready {"ready"} else {"unavailable"},"error":data_error},
+                "sandbox":{"status":if sandbox_ready {"ready"} else {"unavailable"},"required":self.config.command.enabled,
+                    "mode":self.command.sandbox_mode()},
+                "state_capacity":state_capacity,
+                "task_ledger":{"status":"ready","schema_version":crate::task_ledger::LEDGER_SCHEMA_VERSION,
+                    "active_tasks":active_tasks},
+                "debug_trace":debug_trace,
+            },
+            "configuration":{
+                "runtime_revision":self.config.runtime_revision,
+                "model_urls":self.config.model_urls,
+                "data_plane_url":self.config.data_plane_url,
+                "session_dir":self.config.session_dir,
+                "command_enabled":self.config.command.enabled,
+                "debug_trace_mode":self.config.debug_trace.mode,
+                "debug_trace_directory":self.config.debug_trace.directory,
+                "debug_trace_api":self.config.debug_trace.api_enabled,
+            },
             "context":{
                 "mode":"recurrent_session_state_with_transcript_fallback",
                 "history_messages":12,
@@ -1119,9 +1218,63 @@ impl AgentService {
             "state_parallel_search":{"enabled":true,"endpoint":"/v1/agent/run_stateful","max_branches":4,"max_rounds":3},
             "command":{"enabled":self.config.command.enabled,"available":self.command.available(),"sandbox":self.command.sandbox_mode()},
             "agent_limits":{"max_tool_steps":self.config.max_tool_steps,"max_model_tokens_per_turn":self.config.max_model_tokens_per_turn,
-                "direct_chat_max_tokens":self.config.direct_chat_max_tokens},
+                "direct_chat_max_tokens":self.config.direct_chat_max_tokens,
+                "max_run_seconds":self.config.max_run_elapsed.as_secs(),
+                "shutdown_grace_seconds":self.config.shutdown_grace.as_secs()},
             "task_ledger":{"enabled":true,"directory":self.task_ledger.root(),"recovered_on_startup":self.recovered_tasks},
-        }))
+            "debug_trace":debug_trace,
+        })
+    }
+
+    /// Compatibility alias for clients released before liveness and
+    /// readiness became separate canonical endpoints.
+    pub async fn health(&self) -> Result<Value, String> {
+        Ok(self.readiness().await)
+    }
+
+    pub fn debug_trace_api_enabled(&self) -> bool {
+        self.debug_trace.api_enabled()
+    }
+
+    pub async fn debug_traces_for_owner(
+        &self,
+        owner_id: &str,
+        filter: DebugTraceFilter,
+    ) -> Result<DebugTracePage, String> {
+        self.debug_trace.list_for_owner(owner_id, filter).await
+    }
+
+    pub async fn debug_trace_manifest_for_owner(
+        &self,
+        trace_id: &str,
+        owner_id: &str,
+    ) -> Result<DebugTraceManifest, String> {
+        self.debug_trace
+            .manifest_for_owner(trace_id, owner_id)
+            .await
+    }
+
+    pub async fn debug_trace_events_for_owner(
+        &self,
+        trace_id: &str,
+        owner_id: &str,
+        after_sequence: u64,
+        limit: usize,
+    ) -> Result<Vec<DebugTraceEvent>, String> {
+        self.debug_trace
+            .events_for_owner(trace_id, owner_id, after_sequence, limit)
+            .await
+    }
+
+    pub async fn debug_trace_file_for_owner(
+        &self,
+        trace_id: &str,
+        owner_id: &str,
+        kind: DebugTraceFileKind,
+    ) -> Result<Vec<u8>, String> {
+        self.debug_trace
+            .file_for_owner(trace_id, owner_id, kind)
+            .await
     }
 
     pub async fn gate(
@@ -1207,6 +1360,51 @@ impl AgentService {
         self.data.call_tool(name, arguments, session_id, "").await
     }
 
+    pub async fn call_tool_with_identity(
+        &self,
+        name: &str,
+        arguments: Value,
+        identity: &RequestIdentity,
+        working_directory: Option<&str>,
+    ) -> Result<Value, String> {
+        let start = self
+            .debug_trace
+            .start_lazy(
+                &identity.request_id,
+                &identity.owner_id,
+                &identity.session_id,
+                None,
+                || json!({"endpoint":"/v1/tools/call","name":name,"arguments":arguments,"working_directory":working_directory}),
+            )
+            .await;
+        debug_record(
+            start.handle.as_ref(),
+            "tools",
+            "tool_registry",
+            "tool_requested",
+            None,
+            || json!({"name":name,"arguments":arguments,"working_directory":working_directory}),
+        )
+        .await;
+        let result = self
+            .call_tool_with_workspace(name, arguments, &identity.session_id, working_directory)
+            .await;
+        debug_record(
+            start.handle.as_ref(),
+            "tools",
+            "sandbox",
+            "tool_completed",
+            None,
+            || match &result {
+                Ok(value) => json!({"name":name,"status":"ok","result":value}),
+                Err(error) => json!({"name":name,"status":"error","error":error}),
+            },
+        )
+        .await;
+        self.finish_standalone_trace(start, result, "tool_call_finished")
+            .await
+    }
+
     pub async fn run(&self, message: &str, session_id: &str) -> Result<Value, String> {
         self.run_with_workspace(message, session_id, None).await
     }
@@ -1256,10 +1454,33 @@ impl AgentService {
         task_id: Option<&str>,
     ) -> Result<Value, String> {
         let session_id = SessionStore::normalize_session_id(session_id)?;
+        let identity =
+            RequestIdentity::resolve(SERVICE_API_VERSION, None, None, &session_id, || {
+                legacy_request_id(task_id)
+            })?;
+        self.run_task_with_identity(task_spec, &identity, task_id)
+            .await
+    }
+
+    pub async fn run_task_with_identity(
+        &self,
+        task_spec: TaskSpec,
+        identity: &RequestIdentity,
+        task_id: Option<&str>,
+    ) -> Result<Value, String> {
         let record = self
             .task_ledger
-            .create(&session_id, task_spec, task_id)
+            .create_with_identity(
+                &identity.owner_id,
+                &identity.request_id,
+                &identity.session_id,
+                task_spec,
+                task_id,
+            )
             .await?;
+        if record.status != TaskStatus::Pending {
+            return replay_task_record(&record);
+        }
         self.execute_task_record(&record.task_id, None).await
     }
 
@@ -1281,16 +1502,73 @@ impl AgentService {
         events: mpsc::Sender<Value>,
     ) -> Result<Value, String> {
         let session_id = SessionStore::normalize_session_id(session_id)?;
+        let identity =
+            RequestIdentity::resolve(SERVICE_API_VERSION, None, None, &session_id, || {
+                legacy_request_id(task_id)
+            })?;
+        self.run_task_stream_with_identity(task_spec, &identity, task_id, events)
+            .await
+    }
+
+    pub async fn run_task_stream_with_identity(
+        &self,
+        task_spec: TaskSpec,
+        identity: &RequestIdentity,
+        task_id: Option<&str>,
+        events: mpsc::Sender<Value>,
+    ) -> Result<Value, String> {
         let record = self
             .task_ledger
-            .create(&session_id, task_spec, task_id)
+            .create_with_identity(
+                &identity.owner_id,
+                &identity.request_id,
+                &identity.session_id,
+                task_spec,
+                task_id,
+            )
             .await?;
+        let prepared_debug = if record.status == TaskStatus::Pending {
+            Some(self.start_task_debug_trace(&record).await?)
+        } else {
+            None
+        };
+        let mut task_created =
+            json!({"type":"task_created","task_id":record.task_id,"status":record.status});
+        if let Some(debug) = prepared_debug.as_ref() {
+            attach_debug_capture(
+                &mut task_created,
+                debug.trace_id.as_deref(),
+                debug.capture.as_ref(),
+            );
+            debug_record(
+                debug.handle.as_ref(),
+                "stream",
+                "runtime_stream",
+                "task_created",
+                None,
+                || task_created.clone(),
+            )
+            .await;
+        }
         events
-            .send(json!({"type":"task_created","task_id":record.task_id,"status":"pending"}))
+            .send(task_created)
             .await
             .map_err(|_| "stream receiver closed before task creation event".to_string())?;
+        if record.status != TaskStatus::Pending {
+            let response = replay_task_record(&record)?;
+            events
+                .send(json!({"type":"final","response":response.clone()}))
+                .await
+                .map_err(|_| "stream receiver closed before final event".to_string())?;
+            return Ok(response);
+        }
         match self
-            .execute_task_record(&record.task_id, Some(&events))
+            .execute_task_record_with_cancellation(
+                &record.task_id,
+                Some(&events),
+                CancellationToken::default(),
+                prepared_debug,
+            )
             .await
         {
             Ok(response) => {
@@ -1316,12 +1594,55 @@ impl AgentService {
         self.task_ledger.get(task_id).await
     }
 
+    pub async fn task_for_owner(
+        &self,
+        task_id: &str,
+        owner_id: &str,
+    ) -> Result<TaskRecord, String> {
+        self.task_ledger.get_for_owner(task_id, owner_id).await
+    }
+
     pub async fn tasks(&self, limit: usize) -> Result<Vec<TaskRecord>, String> {
         self.task_ledger.list(limit).await
     }
 
+    pub async fn tasks_for_owner(
+        &self,
+        owner_id: &str,
+        limit: usize,
+    ) -> Result<Vec<TaskRecord>, String> {
+        self.task_ledger.list_for_owner(owner_id, limit).await
+    }
+
     pub async fn cancel_task(&self, task_id: &str) -> Result<TaskRecord, String> {
-        self.task_ledger.cancel(task_id).await
+        let record = self.task_ledger.cancel(task_id).await?;
+        if let Some(cancellation) = self.active_tasks.lock().await.get(task_id).cloned() {
+            cancellation.cancel();
+        }
+        Ok(record)
+    }
+
+    pub async fn resume_task_for_owner(
+        &self,
+        task_id: &str,
+        owner_id: &str,
+    ) -> Result<Value, String> {
+        self.task_ledger
+            .prepare_resume_for_owner(task_id, owner_id)
+            .await?;
+        self.execute_task_record(task_id, None).await
+    }
+
+    pub async fn cancel_task_for_owner(
+        &self,
+        task_id: &str,
+        owner_id: &str,
+    ) -> Result<TaskRecord, String> {
+        let record = self.task_ledger.cancel_for_owner(task_id, owner_id).await?;
+        if let Some(cancellation) = self.active_tasks.lock().await.get(task_id).cloned() {
+            cancellation.cancel();
+        }
+        Ok(record)
     }
 
     async fn execute_task_record(
@@ -1329,10 +1650,212 @@ impl AgentService {
         task_id: &str,
         events: Option<&mpsc::Sender<Value>>,
     ) -> Result<Value, String> {
+        self.execute_task_record_with_cancellation(
+            task_id,
+            events,
+            CancellationToken::default(),
+            None,
+        )
+        .await
+    }
+
+    async fn execute_task_record_with_cancellation(
+        &self,
+        task_id: &str,
+        events: Option<&mpsc::Sender<Value>>,
+        cancellation: CancellationToken,
+        prepared_debug: Option<DebugTraceStart>,
+    ) -> Result<Value, String> {
+        let debug_start = match prepared_debug {
+            Some(value) => value,
+            None => {
+                let initial_record = self.task_ledger.get(task_id).await?;
+                self.start_task_debug_trace(&initial_record).await?
+            }
+        };
+        {
+            let mut active = self.active_tasks.lock().await;
+            if active
+                .insert(task_id.to_string(), cancellation.clone())
+                .is_some()
+            {
+                return Err(format!("task `{task_id}` is already running"));
+            }
+        }
+        let result = self
+            .execute_task_record_inner(task_id, events, &cancellation, debug_start.handle.as_ref())
+            .await;
+        self.active_tasks.lock().await.remove(task_id);
+        self.task_completion.notify_waiters();
+        let mut capture = debug_start.capture;
+        if let Some(handle) = debug_start.handle.as_ref() {
+            debug_record(
+                Some(handle),
+                "service",
+                "service_api",
+                "response_ready",
+                None,
+                || match &result {
+                    Ok(value) => json!({"status":"ok","response":value}),
+                    Err(error) => json!({"status":"error","error":error}),
+                },
+            )
+            .await;
+            if events.is_some() {
+                let event_type = if result.is_ok() { "final" } else { "error" };
+                debug_record(
+                    Some(handle),
+                    "stream",
+                    "runtime_stream",
+                    event_type,
+                    None,
+                    || match &result {
+                        Ok(value) => json!({"type":"final","response":value}),
+                        Err(error) => json!({"type":"error","error":error}),
+                    },
+                )
+                .await;
+            }
+            let task_record = self
+                .task_ledger
+                .get(task_id)
+                .await
+                .ok()
+                .and_then(|value| serde_json::to_value(value).ok());
+            let final_response = match &result {
+                Ok(value) => Some(value.clone()),
+                Err(error) => Some(json!({"status":"error","error":error})),
+            };
+            let reason = match &result {
+                Ok(value) if value.get("status").and_then(Value::as_str) == Some("cancelled") => {
+                    "task_cancelled"
+                }
+                Ok(_) => "task_finished",
+                Err(_) => "task_failed",
+            };
+            capture = Some(
+                match handle
+                    .finish(task_record, final_response, true, reason)
+                    .await
+                {
+                    Ok(_) => DebugCapture {
+                        mode: handle.mode(),
+                        status: "complete".into(),
+                        error: None,
+                    },
+                    Err(error) => DebugCapture {
+                        mode: handle.mode(),
+                        status: "incomplete".into(),
+                        error: Some(error),
+                    },
+                },
+            );
+            self.task_ledger
+                .set_debug_trace(
+                    task_id,
+                    debug_start.trace_id.clone(),
+                    capture
+                        .as_ref()
+                        .and_then(|value| serde_json::to_value(value).ok()),
+                )
+                .await?;
+        }
+        match result {
+            Ok(mut value) => {
+                attach_debug_capture(
+                    &mut value,
+                    debug_start.trace_id.as_deref(),
+                    capture.as_ref(),
+                );
+                Ok(value)
+            }
+            Err(error) => {
+                if let Some(trace_id) = debug_start.trace_id {
+                    let suffix = debug_error_markers(capture.as_ref());
+                    Err(format!("{error}; debug_trace_id={trace_id}{suffix}"))
+                } else {
+                    Err(error)
+                }
+            }
+        }
+    }
+
+    async fn start_task_debug_trace(&self, record: &TaskRecord) -> Result<DebugTraceStart, String> {
+        let debug_start = self
+            .debug_trace
+            .start_lazy(
+                &record.request_id,
+                &record.owner_id,
+                &record.session_id,
+                Some(&record.task_id),
+                || {
+                    json!({
+                        "task_spec":record.task_spec,
+                        "task_status":record.status,
+                        "task_revision":record.revision,
+                    })
+                },
+            )
+            .await;
+        if debug_start.trace_id.is_some() || debug_start.capture.is_some() {
+            self.task_ledger
+                .set_debug_trace(
+                    &record.task_id,
+                    debug_start.trace_id.clone(),
+                    debug_start
+                        .capture
+                        .as_ref()
+                        .and_then(|value| serde_json::to_value(value).ok()),
+                )
+                .await?;
+        }
+        debug_record(
+            debug_start.handle.as_ref(),
+            "service",
+            "service_api",
+            "request_received",
+            None,
+            || {
+                json!({
+                    "api_version":SERVICE_API_VERSION,
+                    "request_id":record.request_id,
+                    "owner_id":record.owner_id,
+                    "session_id":record.session_id,
+                    "task_id":record.task_id,
+                    "task_spec":record.task_spec,
+                })
+            },
+        )
+        .await;
+        Ok(debug_start)
+    }
+
+    async fn execute_task_record_inner(
+        &self,
+        task_id: &str,
+        events: Option<&mpsc::Sender<Value>>,
+        cancellation: &CancellationToken,
+        debug_trace: Option<&DebugTraceHandle>,
+    ) -> Result<Value, String> {
+        if cancellation.is_cancelled() {
+            return self.cancelled_task_response(task_id).await;
+        }
         let mut record = self.task_ledger.start_task(task_id).await?;
+        debug_record(
+            debug_trace,
+            "service",
+            "task_ledger",
+            "task_started",
+            None,
+            || json!({"task_id":task_id,"revision":record.revision,"status":record.status}),
+        )
+        .await;
         let stage_count = record.stages.len();
         let mut final_response = None;
         for index in 0..stage_count {
+            if cancellation.is_cancelled() {
+                return self.cancelled_task_response(task_id).await;
+            }
             let stage = record.stages[index].clone();
             if stage.status == StageStatus::Succeeded {
                 final_response = stage.response.clone().or(final_response);
@@ -1357,7 +1880,25 @@ impl AgentService {
                 .task_ledger
                 .start_stage(task_id, &stage.spec.id)
                 .await?;
+            debug_record(
+                debug_trace,
+                "service",
+                "task_ledger",
+                "stage_started",
+                Some(&stage.spec.id),
+                || json!({"stage_index":index,"stage_count":stage_count,"stage":stage.spec}),
+            )
+            .await;
             if let Some(events) = events {
+                debug_record(
+                    debug_trace,
+                    "stream",
+                    "runtime_stream",
+                    "stage_started",
+                    Some(&stage.spec.id),
+                    || json!({"type":"stage_started","task_id":task_id,"stage_id":stage.spec.id,"stage_index":index,"stage_count":stage_count}),
+                )
+                .await;
                 let _ = events
                     .send(json!({"type":"stage_started","task_id":task_id,"stage_id":stage.spec.id,"stage_index":index,"stage_count":stage_count}))
                     .await;
@@ -1367,8 +1908,18 @@ impl AgentService {
                 .task_for_stage(&stage.spec, index + 1 == stage_count)
                 .map_err(|error| error.to_string())?;
             let result = self
-                .run_task_inner(stage_task, &record.session_id, events)
+                .run_task_inner(
+                    stage_task,
+                    &record.session_id,
+                    events,
+                    cancellation,
+                    debug_trace,
+                    Some(&stage.spec.id),
+                )
                 .await;
+            if cancellation.is_cancelled() {
+                return self.cancelled_task_response(task_id).await;
+            }
             let response = match result {
                 Ok(response) if response.get("status").and_then(Value::as_str) == Some("ok") => {
                     response
@@ -1407,7 +1958,25 @@ impl AgentService {
                 .task_ledger
                 .complete_stage(task_id, &stage.spec.id, response.clone())
                 .await?;
+            debug_record(
+                debug_trace,
+                "service",
+                "task_ledger",
+                "stage_completed",
+                Some(&stage.spec.id),
+                || json!({"status":record.status,"response":response}),
+            )
+            .await;
             if let Some(events) = events {
+                debug_record(
+                    debug_trace,
+                    "stream",
+                    "runtime_stream",
+                    "stage_completed",
+                    Some(&stage.spec.id),
+                    || json!({"type":"stage_completed","task_id":task_id,"stage_id":stage.spec.id,"stage_index":index,"stage_count":stage_count}),
+                )
+                .await;
                 let _ = events
                     .send(json!({"type":"stage_completed","task_id":task_id,"stage_id":stage.spec.id,"stage_index":index,"stage_count":stage_count}))
                     .await;
@@ -1419,7 +1988,31 @@ impl AgentService {
             .task_ledger
             .complete_task(task_id, response.clone())
             .await?;
+        debug_record(
+            debug_trace,
+            "service",
+            "task_ledger",
+            "task_completed",
+            None,
+            || json!({"status":record.status,"revision":record.revision}),
+        )
+        .await;
         let mut response = response;
+        attach_task_ledger(&mut response, &record);
+        Ok(response)
+    }
+
+    async fn cancelled_task_response(&self, task_id: &str) -> Result<Value, String> {
+        let record = match self.task_ledger.get(task_id).await? {
+            record if record.status == TaskStatus::Cancelled => record,
+            _ => self.task_ledger.cancel(task_id).await?,
+        };
+        let mut response = json!({
+            "status":"cancelled",
+            "error_code":"cancelled",
+            "error":"task cancelled at a durable controller boundary",
+            "answer":"",
+        });
         attach_task_ledger(&mut response, &record);
         Ok(response)
     }
@@ -1429,8 +2022,23 @@ impl AgentService {
         task_spec: TaskSpec,
         session_id: &str,
         events: Option<&mpsc::Sender<Value>>,
+        cancellation: &CancellationToken,
+        debug_trace: Option<&DebugTraceHandle>,
+        stage_id: Option<&str>,
     ) -> Result<Value, String> {
+        if cancellation.is_cancelled() {
+            return Err("task cancelled".into());
+        }
         let task_spec = task_spec.normalize().map_err(|error| error.to_string())?;
+        debug_record(
+            debug_trace,
+            "service",
+            "runtime",
+            "task_spec_normalized",
+            stage_id,
+            || json!({"task_spec":task_spec}),
+        )
+        .await;
         let message = task_spec.objective.as_str();
         let workspace = match task_spec.working_directory.as_deref() {
             Some(value) => {
@@ -1442,8 +2050,11 @@ impl AgentService {
         let session_id = SessionStore::normalize_session_id(session_id)?;
         let _turn = self.sessions.lock(&session_id).await?;
         if workspace.is_none() && message.chars().count() >= self.config.long_text_capture_chars {
-            self.invalidate_chat_state(&session_id).await;
+            self.invalidate_chat_state(&session_id).await?;
             let tool_result = self.data.capture_text(&session_id, message).await?;
+            if cancellation.is_cancelled() {
+                return Err("task cancelled".into());
+            }
             let chars = message.chars().count();
             let answer = if contains_chinese(message) {
                 format!("已接收长文本，共{chars}个字符。请继续提问。")
@@ -1465,12 +2076,24 @@ impl AgentService {
         }
         let started = Instant::now();
         if let Some(events) = events {
+            debug_record(
+                debug_trace,
+                "stream",
+                "runtime_stream",
+                "phase",
+                stage_id,
+                || json!({"type":"phase","phase":"routing"}),
+            )
+            .await;
             let _ = events.send(json!({"type":"phase","phase":"routing"})).await;
         }
         let history = self.sessions.history(&session_id, 12).await?;
         let context = prompt::bounded_context(&history, 8000);
         let routing_context = prompt::bounded_context(&history, 2000);
         let text_status = self.data.text_status(&session_id).await?;
+        if cancellation.is_cancelled() {
+            return Err("task cancelled".into());
+        }
         let has_text = text_status
             .get("active")
             .and_then(Value::as_bool)
@@ -1498,6 +2121,18 @@ impl AgentService {
                 )
                 .await?
         };
+        debug_record(
+            debug_trace,
+            "model",
+            "routing",
+            "gate_completed",
+            stage_id,
+            || json!({"message":message,"routing_context":routing_context,"decision":gate}),
+        )
+        .await;
+        if cancellation.is_cancelled() {
+            return Err("task cancelled".into());
+        }
         if !gate.use_tool {
             return self
                 .direct_chat(
@@ -1509,13 +2144,25 @@ impl AgentService {
                     gate,
                     started,
                     events,
+                    cancellation,
+                    debug_trace,
+                    stage_id,
                 )
                 .await;
         }
         if let Some(events) = events {
+            debug_record(
+                debug_trace,
+                "stream",
+                "runtime_stream",
+                "phase",
+                stage_id,
+                || json!({"type":"phase","phase":"tool"}),
+            )
+            .await;
             let _ = events.send(json!({"type":"phase","phase":"tool"})).await;
         }
-        self.invalidate_chat_state(&session_id).await;
+        self.invalidate_chat_state(&session_id).await?;
         let (workspace_label, command) = match workspace {
             Some((label, command)) => (Some(label), command),
             None => (None, self.command.clone()),
@@ -1531,6 +2178,9 @@ impl AgentService {
                 started,
                 command,
                 workspace_label: workspace_label.as_deref(),
+                cancellation: cancellation.clone(),
+                debug_trace,
+                stage_id,
             },
         )
         .await
@@ -1543,16 +2193,36 @@ impl AgentService {
         branch_width: usize,
         max_rounds: usize,
     ) -> Result<Value, String> {
+        self.research_inner(message, session_id, branch_width, max_rounds, None)
+            .await
+    }
+
+    async fn research_inner(
+        &self,
+        message: &str,
+        session_id: &str,
+        branch_width: usize,
+        max_rounds: usize,
+        debug_trace: Option<&DebugTraceHandle>,
+    ) -> Result<Value, String> {
         let message = message.trim();
         if message.is_empty() {
             return Err("message must not be empty".into());
         }
         let session_id = SessionStore::normalize_session_id(session_id)?;
         let _turn = self.sessions.lock(&session_id).await?;
-        self.invalidate_chat_state(&session_id).await;
+        self.invalidate_chat_state(&session_id).await?;
         let runner = ResearchRunner::new(self.sidecar.clone(), self.data.clone());
         let result = runner
-            .run(message, &session_id, branch_width, max_rounds)
+            .run(
+                message,
+                &session_id,
+                branch_width,
+                max_rounds,
+                CancellationToken::default(),
+                self.config.max_run_elapsed,
+                debug_trace,
+            )
             .await?;
         self.sessions
             .append(
@@ -1567,7 +2237,136 @@ impl AgentService {
         Ok(result)
     }
 
-    pub async fn shutdown(&self) {
+    pub async fn research_with_identity(
+        &self,
+        message: &str,
+        identity: &RequestIdentity,
+        branch_width: usize,
+        max_rounds: usize,
+    ) -> Result<Value, String> {
+        let start = self
+            .debug_trace
+            .start_lazy(
+                &identity.request_id,
+                &identity.owner_id,
+                &identity.session_id,
+                None,
+                || json!({"endpoint":"/v1/research","message":message,"branch_width":branch_width,"max_rounds":max_rounds}),
+            )
+            .await;
+        debug_record(
+            start.handle.as_ref(),
+            "model",
+            "research",
+            "research_requested",
+            None,
+            || json!({"message":message,"branch_width":branch_width,"max_rounds":max_rounds}),
+        )
+        .await;
+        let result = self
+            .research_inner(
+                message,
+                &identity.session_id,
+                branch_width,
+                max_rounds,
+                start.handle.as_ref(),
+            )
+            .await;
+        debug_record(
+            start.handle.as_ref(),
+            "model",
+            "research",
+            "research_completed",
+            None,
+            || match &result {
+                Ok(value) => json!({"status":"ok","response":value}),
+                Err(error) => json!({"status":"error","error":error}),
+            },
+        )
+        .await;
+        self.finish_standalone_trace(start, result, "research_finished")
+            .await
+    }
+
+    async fn finish_standalone_trace(
+        &self,
+        start: DebugTraceStart,
+        result: Result<Value, String>,
+        reason: &str,
+    ) -> Result<Value, String> {
+        let mut capture = start.capture;
+        if let Some(handle) = start.handle.as_ref() {
+            capture = Some(
+                match handle
+                    .finish(
+                        None,
+                        Some(match &result {
+                            Ok(value) => value.clone(),
+                            Err(error) => json!({"status":"error","error":error}),
+                        }),
+                        true,
+                        reason,
+                    )
+                    .await
+                {
+                    Ok(_) => DebugCapture {
+                        mode: handle.mode(),
+                        status: "complete".into(),
+                        error: None,
+                    },
+                    Err(error) => DebugCapture {
+                        mode: handle.mode(),
+                        status: "incomplete".into(),
+                        error: Some(error),
+                    },
+                },
+            );
+        }
+        match result {
+            Ok(mut value) => {
+                attach_debug_capture(&mut value, start.trace_id.as_deref(), capture.as_ref());
+                Ok(value)
+            }
+            Err(error) => {
+                if let Some(trace_id) = start.trace_id {
+                    let suffix = debug_error_markers(capture.as_ref());
+                    Err(format!("{error}; debug_trace_id={trace_id}{suffix}"))
+                } else {
+                    Err(error)
+                }
+            }
+        }
+    }
+
+    pub async fn shutdown(&self) -> Result<(), String> {
+        for cancellation in self.active_tasks.lock().await.values() {
+            cancellation.cancel();
+        }
+        let deadline = Instant::now()
+            .checked_add(self.config.shutdown_grace)
+            .unwrap_or_else(Instant::now);
+        let mut failures = Vec::new();
+        loop {
+            let notified = self.task_completion.notified();
+            let active = self
+                .active_tasks
+                .lock()
+                .await
+                .keys()
+                .cloned()
+                .collect::<Vec<_>>();
+            if active.is_empty() {
+                break;
+            }
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            if remaining.is_zero() || tokio::time::timeout(remaining, notified).await.is_err() {
+                failures.push(format!(
+                    "shutdown deadline exceeded while tasks remained active: {}",
+                    active.join(",")
+                ));
+                break;
+            }
+        }
         let records = {
             let mut cache = self.chat_states.lock().await;
             cache
@@ -1577,7 +2376,14 @@ impl AgentService {
                 .collect::<Vec<_>>()
         };
         for record in &records {
-            let _ = self.release_chat_record(record).await;
+            if let Err(error) = self.release_chat_record(record).await {
+                failures.push(error);
+            }
+        }
+        if failures.is_empty() {
+            Ok(())
+        } else {
+            Err(failures.join("; "))
         }
     }
 
@@ -1592,21 +2398,49 @@ impl AgentService {
         gate: GateDecision,
         started: Instant,
         events: Option<&mpsc::Sender<Value>>,
+        cancellation: &CancellationToken,
+        debug_trace: Option<&DebugTraceHandle>,
+        stage_id: Option<&str>,
     ) -> Result<Value, String> {
         let history_len = history.len();
         let (cached, stale) = self.chat_states.lock().await.take(session_id, history_len);
         if let Some(stale) = &stale {
-            let _ = self.release_chat_record(stale).await;
+            self.release_chat_record(stale).await?;
         }
         let reused = cached.is_some();
         let mut state = if let Some(cached) = cached {
+            debug_record(
+                debug_trace,
+                "state",
+                "state_cache",
+                "state_reused",
+                stage_id,
+                || json!({"state_id":cached.state.state_id,"seen_tokens":cached.state.seen_tokens}),
+            )
+            .await;
             cached
         } else {
             let owner_id = owner_id("chat", session_id);
-            let state = self
-                .sidecar
-                .prefill(&owner_id, &prompt::direct_prefix(&context))
-                .await?;
+            let prefix = prompt::direct_prefix(&context);
+            debug_record(
+                debug_trace,
+                "model",
+                "provider",
+                "prefill_requested",
+                stage_id,
+                || json!({"owner_id":owner_id,"prompt":prefix}),
+            )
+            .await;
+            let state = self.sidecar.prefill(&owner_id, &prefix).await?;
+            debug_record(
+                debug_trace,
+                "state",
+                "provider",
+                "state_opened",
+                stage_id,
+                || json!({"state":state}),
+            )
+            .await;
             CachedChatState {
                 session_id: session_id.to_string(),
                 state,
@@ -1615,19 +2449,54 @@ impl AgentService {
                 last_used: 0,
             }
         };
+        if cancellation.is_cancelled() {
+            return Err(self
+                .release_chat_after_error(&state, "task cancelled", debug_trace, stage_id)
+                .await);
+        }
         let input = prompt::direct_turn(message, reused, &state.stop_reason);
         let stops = prompt::CHAT_STOPS
             .iter()
             .map(|value| (*value).to_string())
             .collect::<Vec<_>>();
         if let Some(events) = events {
+            debug_record(
+                debug_trace,
+                "stream",
+                "runtime_stream",
+                "phase",
+                stage_id,
+                || json!({"type":"phase","phase":"decoding"}),
+            )
+            .await;
             let _ = events
                 .send(json!({"type":"phase","phase":"decoding"}))
                 .await;
         }
-        let continuation = match events {
-            Some(events) => {
-                self.sidecar
+        debug_record(
+            debug_trace,
+            "model",
+            "provider",
+            "continue_requested",
+            stage_id,
+            || json!({"state_id":state.state.state_id,"input":input,"stops":stops,"max_tokens":self.config.direct_chat_max_tokens}),
+        )
+        .await;
+        let continuation = tokio::time::timeout(self.config.max_run_elapsed, async {
+            match events {
+                Some(events) if debug_trace.is_some() => {
+                    self.sidecar
+                        .continue_one_stream_captured(
+                            &state.state,
+                            &input,
+                            &stops,
+                            self.config.direct_chat_max_tokens,
+                            events.clone(),
+                        )
+                        .await
+                }
+                Some(events) => self
+                    .sidecar
                     .continue_one_stream(
                         &state.state,
                         &input,
@@ -1636,9 +2505,9 @@ impl AgentService {
                         events.clone(),
                     )
                     .await
-            }
-            None => {
-                self.sidecar
+                    .map(|row| (row, Vec::new())),
+                None => self
+                    .sidecar
                     .continue_one(
                         &state.state,
                         &input,
@@ -1646,18 +2515,60 @@ impl AgentService {
                         self.config.direct_chat_max_tokens,
                     )
                     .await
+                    .map(|row| (row, Vec::new())),
             }
-        };
-        let row = match continuation {
+        })
+        .await
+        .unwrap_or_else(|_| {
+            Err("run deadline exceeded during direct State continuation".to_string())
+        });
+        let (row, captured_stream_events) = match continuation {
             Ok(row) => row,
             Err(error) => {
-                let _ = self.release_chat_record(&state).await;
-                return Err(error);
+                return Err(self
+                    .release_chat_after_error(&state, &error, debug_trace, stage_id)
+                    .await);
             }
         };
+        for event in captured_stream_events {
+            let event_type = event
+                .get("type")
+                .and_then(Value::as_str)
+                .unwrap_or("provider_stream_event")
+                .to_string();
+            debug_record(
+                debug_trace,
+                "stream",
+                "provider_stream",
+                &event_type,
+                stage_id,
+                || event,
+            )
+            .await;
+        }
+        debug_record(
+            debug_trace,
+            "model",
+            "provider",
+            "continue_completed",
+            stage_id,
+            || json!({"state_id":row.state_id,"raw_output":row.text,"stop_reason":row.stop_reason,"token_ids":row.token_ids,"seen_tokens":row.seen_tokens,"elapsed_ms":row.elapsed_ms}),
+        )
+        .await;
+        if cancellation.is_cancelled() {
+            return Err(self
+                .release_chat_after_error(&state, "task cancelled", debug_trace, stage_id)
+                .await);
+        }
         if row.state_id != state.state.state_id {
-            let _ = self.release_chat_record(&state).await;
-            return Err("direct chat continuation changed state_id".into());
+            return Err(self
+                .release_chat_after_error(
+                    &state,
+                    "direct chat continuation changed state_id",
+                    debug_trace,
+                    stage_id,
+                )
+                .await);
         }
         let (mut answer, reasoning_stripped) = strip_leading_think(&row.text);
         let generated_usable = !answer.is_empty();
@@ -1665,8 +2576,9 @@ impl AgentService {
             answer = generation_failure(message);
         }
         if let Err(error) = self.sessions.append(session_id, message, &answer).await {
-            let _ = self.release_chat_record(&state).await;
-            return Err(error);
+            return Err(self
+                .release_chat_after_error(&state, &error, debug_trace, stage_id)
+                .await);
         }
         state.history_len = history_len + 1;
         state.stop_reason = row.stop_reason.clone();
@@ -1683,11 +2595,38 @@ impl AgentService {
                 .lock()
                 .await
                 .put(state.clone(), self.config.chat_state_capacity);
+            debug_record(
+                debug_trace,
+                "state",
+                "state_cache",
+                "state_cached",
+                stage_id,
+                || json!({"state_id":state.state.state_id,"seen_tokens":state.state.seen_tokens,"success":true}),
+            )
+            .await;
         } else {
             self.release_chat_record(&state).await?;
+            debug_record(
+                debug_trace,
+                "state",
+                "state_cache",
+                "state_released",
+                stage_id,
+                || json!({"state_id":state.state.state_id,"success":true,"reason":"unsafe_cache_boundary"}),
+            )
+            .await;
         }
         for evicted in &released {
-            let _ = self.release_chat_record(evicted).await;
+            self.release_chat_record(evicted).await?;
+            debug_record(
+                debug_trace,
+                "state",
+                "state_cache",
+                "state_released",
+                stage_id,
+                || json!({"state_id":evicted.state.state_id,"success":true,"reason":"cache_eviction"}),
+            )
+            .await;
         }
         Ok(json!({
             "status":"ok","session_id":session_id,"message":message,
@@ -1715,6 +2654,9 @@ impl AgentService {
             started,
             command,
             workspace_label,
+            cancellation,
+            debug_trace,
+            stage_id,
         } = options;
         let command_only = workspace_label.is_some();
         let workspace_inventory = if command_only {
@@ -1740,6 +2682,15 @@ impl AgentService {
                 format!("\n\nAssistant: {TOOL_CALL_JSON_PREFIX}"),
             ),
         };
+        debug_record(
+            debug_trace,
+            "model",
+            "provider",
+            "agent_prefill_requested",
+            stage_id,
+            || json!({"root_prompt":root_prompt,"initial_input":initial_input,"workspace_inventory":workspace_inventory}),
+        )
+        .await;
         let mut model = self.sidecar.clone();
         let mut tools = RuntimeTools {
             data: self.data.for_turn(session_id, message),
@@ -1760,12 +2711,13 @@ impl AgentService {
             max_answer_retries: 3,
             observation_reminder: String::new(),
             max_tokens_per_turn: self.config.max_model_tokens_per_turn,
-            max_elapsed: Duration::from_secs(600),
+            max_elapsed: self.config.max_run_elapsed,
             // Ordinary knowledge/Web/long-text tools commit after one
             // observation. Only an explicitly scoped workspace task enters
             // the multi-step command state machine.
             answer_after_tool: !command_only,
             fork_from_root: command_only,
+            capture_model_output: debug_trace.is_some(),
         };
         let run_result = {
             let mut agent = AgentLoop::new(
@@ -1774,7 +2726,7 @@ impl AgentService {
                 &registry,
                 &mut events,
                 limits,
-                CancellationToken::default(),
+                cancellation,
             )
             .map_err(|e| e.to_string())?;
             agent
@@ -1785,6 +2737,7 @@ impl AgentService {
                 })
                 .await
         };
+        record_agent_events(debug_trace, stage_id, &events.events).await;
         let report = match run_result {
             Ok(report) => report,
             Err(error) => {
@@ -1932,10 +2885,11 @@ impl AgentService {
         names
     }
 
-    async fn invalidate_chat_state(&self, session_id: &str) {
+    async fn invalidate_chat_state(&self, session_id: &str) -> Result<(), String> {
         if let Some(record) = self.chat_states.lock().await.pop(session_id) {
-            let _ = self.release_chat_record(&record).await;
+            self.release_chat_record(&record).await?;
         }
+        Ok(())
     }
 
     async fn release_chat_record(&self, record: &CachedChatState) -> Result<(), String> {
@@ -1948,6 +2902,98 @@ impl AgentService {
             .await
             .map(|_| ())
     }
+
+    async fn release_chat_after_error(
+        &self,
+        record: &CachedChatState,
+        error: &str,
+        debug_trace: Option<&DebugTraceHandle>,
+        stage_id: Option<&str>,
+    ) -> String {
+        let release = self.release_chat_record(record).await;
+        debug_record(
+            debug_trace,
+            "state",
+            "provider",
+            "state_released",
+            stage_id,
+            || match &release {
+                Ok(()) => json!({"state_id":record.state.state_id,"success":true,"reason":error}),
+                Err(release) => json!({"state_id":record.state.state_id,"success":false,"reason":error,"error":release}),
+            },
+        )
+        .await;
+        match release {
+            Ok(()) => error.to_string(),
+            Err(release) => format!("{error}; State release also failed: {release}"),
+        }
+    }
+}
+
+fn state_capacity_status(model: &[Value], model_ready: bool) -> (Value, bool) {
+    if !model_ready {
+        return (
+            json!({"status":"unavailable","providers":[],"error":"model Sidecar unavailable"}),
+            false,
+        );
+    }
+    let providers = model
+        .iter()
+        .map(|health| {
+            let capacity = health
+                .pointer("/persistent_states/capacity")
+                .or_else(|| health.pointer("/persistent_state/capacity"))
+                .and_then(Value::as_u64);
+            let allocated = health
+                .pointer("/persistent_states/allocated")
+                .or_else(|| health.pointer("/persistent_state/allocated"))
+                .and_then(Value::as_u64);
+            let free = health
+                .pointer("/persistent_states/free")
+                .or_else(|| health.pointer("/persistent_state/free"))
+                .and_then(Value::as_u64)
+                .or_else(|| {
+                    capacity
+                        .zip(allocated)
+                        .map(|(capacity, used)| capacity.saturating_sub(used))
+                });
+            json!({
+                "model":health.get("model").cloned().unwrap_or(Value::Null),
+                "capacity":capacity,
+                "allocated":allocated,
+                "free":free,
+            })
+        })
+        .collect::<Vec<_>>();
+    let fully_reported = !providers.is_empty()
+        && providers
+            .iter()
+            .all(|provider| provider.get("capacity").is_some_and(Value::is_u64));
+    let every_provider_has_free = providers.iter().all(|provider| {
+        provider
+            .get("free")
+            .and_then(Value::as_u64)
+            .is_some_and(|free| free > 0)
+    });
+    let (status, error, ready) = if !fully_reported {
+        (
+            "unsupported",
+            "Sidecar health does not report persistent State capacity",
+            false,
+        )
+    } else if !every_provider_has_free {
+        (
+            "unavailable",
+            "persistent State capacity is exhausted",
+            false,
+        )
+    } else {
+        ("ready", "", true)
+    };
+    (
+        json!({"status":status,"providers":providers,"error":error}),
+        ready,
+    )
 }
 
 fn owner_id(prefix: &str, session_id: &str) -> String {
@@ -1960,6 +3006,13 @@ fn owner_id(prefix: &str, session_id: &str) -> String {
         "{prefix}-{:016x}-{:016x}",
         hash.finish(),
         NEXT.fetch_add(1, Ordering::Relaxed)
+    )
+}
+
+fn legacy_request_id(task_id: Option<&str>) -> String {
+    task_id.map_or_else(
+        || owner_id("request", "legacy"),
+        |task_id| format!("legacy-{task_id}"),
     )
 }
 
@@ -2021,6 +3074,12 @@ fn attach_task_ledger(response: &mut Value, record: &TaskRecord) {
         return;
     };
     object.insert("task_id".into(), json!(record.task_id));
+    if let Some(trace_id) = &record.trace_id {
+        object.insert("trace_id".into(), json!(trace_id));
+    }
+    if let Some(capture) = &record.debug_capture {
+        object.insert("debug_capture".into(), capture.clone());
+    }
     let trace = object
         .entry("trace")
         .or_insert_with(|| json!({}))
@@ -2045,6 +3104,218 @@ fn attach_task_ledger(response: &mut Value, record: &TaskRecord) {
             }),
         );
     }
+}
+
+fn attach_debug_capture(
+    response: &mut Value,
+    trace_id: Option<&str>,
+    capture: Option<&DebugCapture>,
+) {
+    let Some(object) = response.as_object_mut() else {
+        return;
+    };
+    if let Some(trace_id) = trace_id {
+        object.insert("trace_id".into(), json!(trace_id));
+    }
+    if let Some(capture) = capture
+        && let Ok(value) = serde_json::to_value(capture)
+    {
+        object.insert("debug_capture".into(), value);
+    }
+}
+
+fn debug_error_markers(capture: Option<&DebugCapture>) -> String {
+    let Some(capture) = capture else {
+        return String::new();
+    };
+    let mut markers = format!(
+        "; debug_capture_status={}; debug_capture_mode={}",
+        capture.status, capture.mode
+    );
+    if let Some(error) = &capture.error {
+        markers.push_str("; debug_trace_incomplete=");
+        markers.push_str(error);
+    }
+    markers
+}
+
+async fn debug_record<F>(
+    trace: Option<&DebugTraceHandle>,
+    category: &'static str,
+    component: &str,
+    event_type: &str,
+    stage_id: Option<&str>,
+    payload: F,
+) where
+    F: FnOnce() -> Value,
+{
+    if let Some(trace) = trace {
+        let _ = trace
+            .record(category, component, event_type, stage_id, payload())
+            .await;
+    }
+}
+
+async fn record_agent_events(
+    trace: Option<&DebugTraceHandle>,
+    stage_id: Option<&str>,
+    events: &[AgentEvent],
+) {
+    let Some(trace) = trace else {
+        return;
+    };
+    for event in events {
+        let (category, component, event_type, payload) = match event {
+            AgentEvent::RunStarted { owner_id } => (
+                "service",
+                "agent_loop",
+                "run_started",
+                json!({"agent_owner_id":owner_id}),
+            ),
+            AgentEvent::StateOpened { state_id } => (
+                "state",
+                "agent_loop",
+                "state_opened",
+                json!({"state_id":state_id}),
+            ),
+            AgentEvent::ModelCompleted {
+                turn,
+                state_id,
+                action,
+                provider_input,
+                raw_output,
+                stop_reason,
+                max_tokens,
+            } => (
+                "model",
+                "provider",
+                "model_completed",
+                json!({
+                    "turn":turn,
+                    "state_id":state_id,
+                    "action":action,
+                    "provider_request":{
+                        "input":provider_input,
+                        "stops":["</tool_call>","</answer>"],
+                        "max_tokens":max_tokens
+                    },
+                    "provider_response":{
+                        "raw_output":raw_output,
+                        "stop_reason":stop_reason
+                    }
+                }),
+            ),
+            AgentEvent::ProtocolRejected {
+                turn,
+                retry,
+                message,
+                output_preview,
+                provider_input,
+                raw_output,
+                stop_reason,
+                max_tokens,
+            } => (
+                "model",
+                "strict_protocol",
+                "protocol_rejected",
+                json!({
+                    "turn":turn,
+                    "retry":retry,
+                    "message":message,
+                    "output_preview":output_preview,
+                    "provider_request":{
+                        "input":provider_input,
+                        "stops":["</tool_call>","</answer>"],
+                        "max_tokens":max_tokens
+                    },
+                    "provider_response":{
+                        "raw_output":raw_output,
+                        "stop_reason":stop_reason
+                    }
+                }),
+            ),
+            AgentEvent::ControllerToolScheduled { step, name } => (
+                "tools",
+                "controller",
+                "controller_tool_scheduled",
+                json!({"step":step,"name":name}),
+            ),
+            AgentEvent::ToolStarted { step, name } => (
+                "tools",
+                "tool_registry",
+                "tool_started",
+                json!({"step":step,"name":name}),
+            ),
+            AgentEvent::ToolCompleted {
+                step,
+                name,
+                status,
+                arguments,
+                result,
+            } => (
+                "tools",
+                "sandbox",
+                "tool_completed",
+                json!({"step":step,"name":name,"status":status,"arguments":arguments,"result":result}),
+            ),
+            AgentEvent::AnswerCompleted { answer } => (
+                "model",
+                "strict_protocol",
+                "answer_completed",
+                json!({"answer":answer}),
+            ),
+            AgentEvent::AnswerRejected {
+                retry,
+                require_tool,
+                feedback,
+            } => (
+                "model",
+                "strict_protocol",
+                "answer_rejected",
+                json!({"retry":retry,"require_tool":require_tool,"feedback":feedback}),
+            ),
+            AgentEvent::RunFailed { code, message } => (
+                "service",
+                "agent_loop",
+                "run_failed",
+                json!({"error_code":code,"message":message}),
+            ),
+            AgentEvent::StateReleased {
+                state_id,
+                success,
+                error,
+            } => (
+                "state",
+                "agent_loop",
+                "state_released",
+                json!({"state_id":state_id,"success":success,"error":error}),
+            ),
+        };
+        debug_record(
+            Some(trace),
+            category,
+            component,
+            event_type,
+            stage_id,
+            || payload,
+        )
+        .await;
+    }
+}
+
+fn replay_task_record(record: &TaskRecord) -> Result<Value, String> {
+    if record.status != TaskStatus::Succeeded {
+        return Err(format!(
+            "request_id `{}` already exists with task status {:?}; use the task control API",
+            record.request_id, record.status
+        ));
+    }
+    let mut response = record
+        .final_response
+        .clone()
+        .ok_or_else(|| format!("succeeded task `{}` has no final response", record.task_id))?;
+    attach_task_ledger(&mut response, record);
+    Ok(response)
 }
 
 fn task_requires_mutation(task: &str) -> bool {
@@ -2233,6 +3504,31 @@ mod tests {
         let mut config = RuntimeConfig::default();
         config.command.enabled = false;
         assert!(!config.command.enabled);
+    }
+
+    #[test]
+    fn readiness_requires_explicit_free_persistent_state_capacity() {
+        let (available, ready) = state_capacity_status(
+            &[json!({
+                "model":"rwkv-test",
+                "persistent_states":{"capacity":4,"allocated":3,"free":1}
+            })],
+            true,
+        );
+        assert!(ready);
+        assert_eq!(available["status"], "ready");
+        assert_eq!(available["providers"][0]["free"], 1);
+
+        let (exhausted, ready) = state_capacity_status(
+            &[json!({"persistent_states":{"capacity":4,"allocated":4,"free":0}})],
+            true,
+        );
+        assert!(!ready);
+        assert_eq!(exhausted["status"], "unavailable");
+
+        let (unknown, ready) = state_capacity_status(&[json!({"status":"ready"})], true);
+        assert!(!ready);
+        assert_eq!(unknown["status"], "unsupported");
     }
 
     #[test]

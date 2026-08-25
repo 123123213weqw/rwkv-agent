@@ -87,9 +87,17 @@ impl SidecarClient {
     }
 
     async fn get_json(&self, url: String) -> Result<Value, String> {
-        let response = self.http.get(url).send().await.map_err(|e| e.to_string())?;
+        let response = self
+            .http
+            .get(url)
+            .send()
+            .await
+            .map_err(|error| format!("sidecar unavailable: {error}"))?;
         let status = response.status();
-        let value = response.json::<Value>().await.map_err(|e| e.to_string())?;
+        let value = response
+            .json::<Value>()
+            .await
+            .map_err(|error| format!("sidecar invalid JSON response: {error}"))?;
         if !status.is_success() {
             return Err(format!("sidecar HTTP {status}: {value}"));
         }
@@ -103,9 +111,12 @@ impl SidecarClient {
             .json(&body)
             .send()
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|error| format!("sidecar unavailable: {error}"))?;
         let status = response.status();
-        let value = response.json::<Value>().await.map_err(|e| e.to_string())?;
+        let value = response
+            .json::<Value>()
+            .await
+            .map_err(|error| format!("sidecar invalid JSON response: {error}"))?;
         if !status.is_success() {
             return Err(format!("sidecar HTTP {status}: {value}"));
         }
@@ -139,7 +150,8 @@ impl SidecarClient {
                 }),
             )
             .await?;
-        serde_json::from_value(value).map_err(|e| e.to_string())
+        serde_json::from_value(value)
+            .map_err(|error| format!("sidecar invalid Gate response: {error}"))
     }
 
     pub async fn classify(&self, prompt: &str, labels: Value) -> Result<Value, String> {
@@ -163,7 +175,8 @@ impl SidecarClient {
             .get("state")
             .cloned()
             .ok_or_else(|| "sidecar prefill response has no state".to_string())?;
-        let mut parsed: SidecarState = serde_json::from_value(state).map_err(|e| e.to_string())?;
+        let mut parsed: SidecarState = serde_json::from_value(state)
+            .map_err(|error| format!("sidecar invalid prefill response: {error}"))?;
         parsed.owner_id = owner_id.to_string();
         parsed.home_url = endpoint;
         Ok(parsed)
@@ -186,8 +199,8 @@ impl SidecarClient {
             .ok_or_else(|| "sidecar fork response has no states".to_string())?
             .iter()
             .map(|item| {
-                let mut state: SidecarState =
-                    serde_json::from_value(item.clone()).map_err(|e| e.to_string())?;
+                let mut state: SidecarState = serde_json::from_value(item.clone())
+                    .map_err(|error| format!("sidecar invalid fork response: {error}"))?;
                 state.owner_id = root.owner_id.clone();
                 state.home_url = root.home_url.clone();
                 Ok(state)
@@ -223,7 +236,7 @@ impl SidecarClient {
                 .cloned()
                 .ok_or_else(|| "sidecar continuation response has no results".to_string())?,
         )
-        .map_err(|e| e.to_string())
+        .map_err(|error| format!("sidecar invalid continuation response: {error}"))
     }
 
     pub async fn continue_one(
@@ -256,6 +269,32 @@ impl SidecarClient {
         max_tokens: u32,
         events: mpsc::Sender<Value>,
     ) -> Result<BatchContinuation, String> {
+        self.continue_one_stream_inner(state, input, stops, max_tokens, events, false)
+            .await
+            .map(|(row, _)| row)
+    }
+
+    pub async fn continue_one_stream_captured(
+        &self,
+        state: &SidecarState,
+        input: &str,
+        stops: &[String],
+        max_tokens: u32,
+        events: mpsc::Sender<Value>,
+    ) -> Result<(BatchContinuation, Vec<Value>), String> {
+        self.continue_one_stream_inner(state, input, stops, max_tokens, events, true)
+            .await
+    }
+
+    async fn continue_one_stream_inner(
+        &self,
+        state: &SidecarState,
+        input: &str,
+        stops: &[String],
+        max_tokens: u32,
+        events: mpsc::Sender<Value>,
+        capture_events: bool,
+    ) -> Result<(BatchContinuation, Vec<Value>), String> {
         let mut response = self
             .http
             .post(format!(
@@ -270,16 +309,24 @@ impl SidecarClient {
             }))
             .send()
             .await
-            .map_err(|error| error.to_string())?;
+            .map_err(|error| format!("sidecar unavailable: {error}"))?;
         let status = response.status();
         if !status.is_success() {
-            let body = response.text().await.map_err(|error| error.to_string())?;
+            let body = response
+                .text()
+                .await
+                .map_err(|error| format!("sidecar response read failed: {error}"))?;
             return Err(format!("sidecar HTTP {status}: {body}"));
         }
 
         let mut pending = Vec::new();
         let mut rows: Option<Vec<BatchContinuation>> = None;
-        while let Some(chunk) = response.chunk().await.map_err(|error| error.to_string())? {
+        let mut captured = Vec::new();
+        while let Some(chunk) = response
+            .chunk()
+            .await
+            .map_err(|error| format!("sidecar stream read failed: {error}"))?
+        {
             pending.extend_from_slice(&chunk);
             while let Some(index) = pending.iter().position(|byte| *byte == b'\n') {
                 let line = pending.drain(..=index).collect::<Vec<_>>();
@@ -287,12 +334,19 @@ impl SidecarClient {
                     &line[..line.len().saturating_sub(1)],
                     &events,
                     &mut rows,
+                    capture_events.then_some(&mut captured),
                 )
                 .await?;
             }
         }
         if !pending.is_empty() {
-            Self::consume_stream_line(&pending, &events, &mut rows).await?;
+            Self::consume_stream_line(
+                &pending,
+                &events,
+                &mut rows,
+                capture_events.then_some(&mut captured),
+            )
+            .await?;
         }
         let mut rows = rows.ok_or_else(|| "sidecar stream ended without done event".to_string())?;
         if rows.len() != 1 {
@@ -301,26 +355,32 @@ impl SidecarClient {
                 rows.len()
             ));
         }
-        Ok(rows.remove(0))
+        Ok((rows.remove(0), captured))
     }
 
     async fn consume_stream_line(
         line: &[u8],
         events: &mpsc::Sender<Value>,
         rows: &mut Option<Vec<BatchContinuation>>,
+        captured: Option<&mut Vec<Value>>,
     ) -> Result<(), String> {
         if line.iter().all(u8::is_ascii_whitespace) {
             return Ok(());
         }
-        let value: Value = serde_json::from_slice(line).map_err(|error| error.to_string())?;
+        let value: Value = serde_json::from_slice(line)
+            .map_err(|error| format!("sidecar invalid stream event: {error}"))?;
+        if let Some(captured) = captured {
+            captured.push(value.clone());
+        }
         match value
             .get("type")
             .and_then(Value::as_str)
             .unwrap_or_default()
         {
             "delta" => {
-                // A disconnected browser must not interrupt the bounded State
-                // continuation. Keep consuming until the Sidecar commits it.
+                // Provider continuation is an atomic boundary. The server
+                // cancellation token is observed immediately after this
+                // boundary and releases the State before another action.
                 let _ = events.send(value).await;
             }
             "done" => {
@@ -331,7 +391,7 @@ impl SidecarClient {
                             .cloned()
                             .ok_or_else(|| "stream done event has no results".to_string())?,
                     )
-                    .map_err(|error| error.to_string())?,
+                    .map_err(|error| format!("sidecar invalid done event: {error}"))?,
                 );
             }
             "error" => {
@@ -376,7 +436,8 @@ impl SidecarClient {
             .get("g1i")
             .cloned()
             .ok_or_else(|| "completion response has no g1i".to_string())?;
-        serde_json::from_value(g1i).map_err(|e| e.to_string())
+        serde_json::from_value(g1i)
+            .map_err(|error| format!("sidecar invalid completion response: {error}"))
     }
 
     fn reconstruct_envelope(input: &str, row: &BatchContinuation) -> String {

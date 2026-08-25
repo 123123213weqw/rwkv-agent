@@ -12,8 +12,13 @@ time-isolated Fresh-Web-200-v1 blind run and the current deployment audit.
 - **Unsupported answered claims:** FRAMES unsupported-claim rate on answered
   cases was 15.52%. Strengthen claim-to-Evidence entailment and suppress only
   unsupported clauses rather than accepting the complete answer.
-- **Public API security:** Controller has no authentication, user authorization,
-  TLS or rate limiting. Loopback-only is the supported Beta deployment.
+- **Public API security:** the Rust Server and compatibility Controller have no
+  authentication, TLS or rate limiting. Service v1 `owner_id` is an isolation
+  key, not authentication. Loopback-only is the supported Beta deployment.
+- **Full Debug Trace privacy:** Debug Trace and its API are disabled by default.
+  Explicit `full` capture stores prompt, model and tool bodies for local
+  diagnosis and must not be published, exposed remotely or used as training
+  data.
 - **No high availability:** one Sidecar is a single point of failure. Add warm
   standby, readiness-aware routing and bounded overload rejection.
 
@@ -56,15 +61,20 @@ to answer faster.
 - pasted long text is process memory and is lost on restart;
 - no source side panel, regenerate, stop-generation or per-source inspection UI;
 - no packaged Linux service unit or container image;
-- a two-target CLI release workflow now exists, but no public binary is
-  available until a reviewed Beta tag is pushed.
+- two-target CLI archives are published from reviewed Beta tags; the Rust Server
+  and external Provider stack are currently source/configuration deployments.
 
 ## P2: model/runtime portability
 
-- only Preview4922 13.3B on one 32 GB V100 is release-verified;
+- the public Preview4922 13.3B profile is release-verified on one 32 GB V100;
+- the canonical service lifecycle also passed an isolated correctness smoke with
+  the 7.2B RWKV Provider on one RTX 4080, but this is not a general portability
+  or performance claim;
 - Search Gate threshold `-3.2` is checkpoint-specific;
 - CPU, quantized checkpoints and custom pipeline parallelism are unsupported;
 - the external Albatross runtime is not vendored and must match the checkpoint;
+- model inference, retrieval and evidence still use external Python Providers
+  until their separate Rust parity gates pass;
 - other GPUs need memory, kernel and correctness validation.
 
 ## Quality gates for stable v0.3.0

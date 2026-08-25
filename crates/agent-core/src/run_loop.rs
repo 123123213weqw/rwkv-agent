@@ -343,72 +343,115 @@ where
         let mut repeated_rejections = 0usize;
         loop {
             context.check()?;
-            let (action, controller_authored) = if let Some(call) = scheduled_tool.take() {
-                (Action::Tool(call), true)
-            } else {
-                let output = self
-                    .model
-                    .continue_state(
-                        StateContinueRequest {
-                            state: state.clone(),
-                            input: std::mem::take(&mut input),
-                            stops: vec!["</tool_call>".into(), "</answer>".into()],
-                            max_tokens: self.limits.max_tokens_per_turn,
-                        },
-                        context.clone(),
+            let (action, controller_authored, provider_input, raw_output, stop_reason, max_tokens) =
+                if let Some(call) = scheduled_tool.take() {
+                    (
+                        Action::Tool(call),
+                        true,
+                        String::new(),
+                        String::new(),
+                        None,
+                        0,
                     )
-                    .await
-                    .map_err(AgentError::Model)?;
-                if output.state_id != state.state_id {
-                    return Err(AgentError::StateChanged {
-                        expected: state.state_id.clone(),
-                        actual: output.state_id,
-                    });
-                }
-                model_turns += 1;
-                let action = match parse_action(&output.text) {
-                    Ok(action) => action,
-                    Err(error) if protocol_retries < self.limits.max_protocol_retries => {
-                        protocol_retries += 1;
-                        self.events.emit(AgentEvent::ProtocolRejected {
-                            turn: model_turns,
-                            retry: protocol_retries,
-                            message: error.to_string(),
-                            output_preview: output.text.chars().take(1_000).collect(),
+                } else {
+                    let request_input = std::mem::take(&mut input);
+                    let provider_input = if self.limits.capture_model_output {
+                        request_input.clone()
+                    } else {
+                        String::new()
+                    };
+                    let max_tokens = self.limits.max_tokens_per_turn;
+                    let output = self
+                        .model
+                        .continue_state(
+                            StateContinueRequest {
+                                state: state.clone(),
+                                input: request_input,
+                                stops: vec!["</tool_call>".into(), "</answer>".into()],
+                                max_tokens,
+                            },
+                            context.clone(),
+                        )
+                        .await
+                        .map_err(AgentError::Model)?;
+                    // Cancellation is cooperative at Provider boundaries. Never
+                    // drop an in-flight State mutation whose server-side commit
+                    // status is unknown; observe its response, then stop before
+                    // parsing or scheduling any further action.
+                    context.check()?;
+                    if output.state_id != state.state_id {
+                        return Err(AgentError::StateChanged {
+                            expected: state.state_id.clone(),
+                            actual: output.state_id,
                         });
-                        let feedback = format!(
-                            "The previous protocol envelope was rejected: {error}. Output a strict tool call whose arguments field is a JSON object like {{\"command\":\"...\"}}, never a JSON-encoded string."
-                        );
-                        if let Some(root_prompt) = self.tools.answer_retry_root_prompt(&feedback) {
-                            let refresh_worker =
-                                self.tools.refresh_worker_after_protocol_rejection();
-                            let forked = self
-                                .replace_state(
-                                    state,
-                                    owner_id,
-                                    &root_prompt,
-                                    root_state,
-                                    refresh_worker,
-                                    context.clone(),
-                                )
-                                .await?;
-                            let tool_prefix = self.tools.tool_call_prefix();
-                            input = replacement_input(&root_prompt, &tool_prefix, forked);
-                        } else {
-                            input = format!(
-                                "\n\nUser: Your previous protocol envelope was rejected: {error}. \
+                    }
+                    model_turns += 1;
+                    let raw_output = if self.limits.capture_model_output {
+                        output.text.clone()
+                    } else {
+                        String::new()
+                    };
+                    let stop_reason = output.stop_reason.clone();
+                    let action = match parse_action(&output.text) {
+                        Ok(action) => action,
+                        Err(error) if protocol_retries < self.limits.max_protocol_retries => {
+                            protocol_retries += 1;
+                            self.events.emit(AgentEvent::ProtocolRejected {
+                                turn: model_turns,
+                                retry: protocol_retries,
+                                message: error.to_string(),
+                                output_preview: output.text.chars().take(1_000).collect(),
+                                provider_input: provider_input.clone(),
+                                raw_output: if self.limits.capture_model_output {
+                                    output.text.clone()
+                                } else {
+                                    String::new()
+                                },
+                                stop_reason: output.stop_reason.clone(),
+                                max_tokens,
+                            });
+                            let feedback = format!(
+                                "The previous protocol envelope was rejected: {error}. Output a strict tool call whose arguments field is a JSON object like {{\"command\":\"...\"}}, never a JSON-encoded string."
+                            );
+                            if let Some(root_prompt) =
+                                self.tools.answer_retry_root_prompt(&feedback)
+                            {
+                                let refresh_worker =
+                                    self.tools.refresh_worker_after_protocol_rejection();
+                                let forked = self
+                                    .replace_state(
+                                        state,
+                                        owner_id,
+                                        &root_prompt,
+                                        root_state,
+                                        refresh_worker,
+                                        context.clone(),
+                                    )
+                                    .await?;
+                                let tool_prefix = self.tools.tool_call_prefix();
+                                input = replacement_input(&root_prompt, &tool_prefix, forked);
+                            } else {
+                                input = format!(
+                                    "\n\nUser: Your previous protocol envelope was rejected: {error}. \
 Retry {protocol_retries}/{}. Output exactly one valid <tool_call> JSON envelope or one non-empty <answer> envelope. \
 For JSON, escape backslashes and control characters correctly; prefer a simpler equivalent shell command when possible. \
 Do not include reasoning or repeat a completed command.\n\nAssistant:",
-                                self.limits.max_protocol_retries,
-                            );
+                                    self.limits.max_protocol_retries,
+                                );
+                            }
+                            continue;
                         }
-                        continue;
-                    }
-                    Err(error) => return Err(error.into()),
+                        Err(error) => return Err(error.into()),
+                    };
+                    (
+                        action,
+                        false,
+                        provider_input,
+                        raw_output,
+                        stop_reason,
+                        max_tokens,
+                    )
                 };
-                (action, false)
-            };
             if !controller_authored {
                 self.events.emit(AgentEvent::ModelCompleted {
                     turn: model_turns,
@@ -417,6 +460,10 @@ Do not include reasoning or repeat a completed command.\n\nAssistant:",
                         Action::Tool(_) => ActionKind::Tool,
                         Action::Answer(_) => ActionKind::Answer,
                     },
+                    provider_input,
+                    raw_output,
+                    stop_reason,
+                    max_tokens,
                 });
             }
             match action {
@@ -571,6 +618,10 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                         call: recorded_call.clone(),
                         result: result.clone(),
                     });
+                    // The completed result is retained in the run trace before
+                    // cancellation is honored. No subsequent controller or
+                    // model action may begin after the token is observed.
+                    context.check()?;
                     if repeated_rejections >= 2 {
                         return Err(AgentError::NoProgress {
                             repetitions: repeated_rejections,

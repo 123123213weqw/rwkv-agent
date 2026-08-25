@@ -32,16 +32,26 @@ class Handler(BaseHTTPRequestHandler):
                     }
                 ],
                 "state_parallel_search": {"enabled": True},
+                "configuration": {"runtime_revision": "cli-smoke-v1"},
+                "components": {
+                    "model_sidecar": {"status": "ready"},
+                    "data_plane": {"status": "ready"},
+                    "sandbox": {"status": "ready"},
+                    "state_capacity": {"status": "ready"},
+                    "task_ledger": {"status": "ready"},
+                },
             }
         )
 
     def do_POST(self) -> None:
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length))
-        if self.path == "/v1/agent/run":
+        if self.path in {"/v1/tasks", "/v1/agent/run"}:
             self.send_json(
                 {
                     "status": "ok",
+                    "request_id": body.get("request_id"),
+                    "owner_id": body.get("owner_id"),
                     "session_id": body["session_id"],
                     "route": {"tool": "knowledge_search"},
                     "answer": f"mock answer for {body['message']}",
@@ -49,12 +59,14 @@ class Handler(BaseHTTPRequestHandler):
                 }
             )
             return
-        if self.path == "/v1/agent/run_stateful":
+        if self.path in {"/v1/research", "/v1/agent/run_stateful"}:
             branches = body.get("branch_width", 4)
             rounds = body.get("max_rounds", 2)
             self.send_json(
                 {
                     "status": "ok",
+                    "request_id": body.get("request_id"),
+                    "owner_id": body.get("owner_id"),
                     "session_id": body["session_id"],
                     "route": {
                         "mode": "state_parallel_search",

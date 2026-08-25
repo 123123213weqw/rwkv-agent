@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/debug-trace-v1.schema.json",
+  "title": "RWKV Agent local Debug Trace v1",
+  "description": "Owner-scoped local diagnostic trace. Full mode may contain prompt, model, tool and sandbox bodies and is never a training-data contract.",
+  "$defs": {
+    "traceId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "mode": {
+      "enum": ["off", "redacted", "full"]
+    },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "status"],
+      "properties": {
+        "mode": { "$ref": "#/$defs/mode" },
+        "status": { "enum": ["active", "complete", "incomplete"] },
+        "error": { "type": "string" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "trace_id",
+        "sequence",
+        "timestamp_unix_ns",
+        "elapsed_us",
+        "request_id",
+        "owner_id",
+        "session_id",
+        "component",
+        "event_type",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": { "const": "rwkv-agent.debug-trace.v1" },
+        "trace_id": { "$ref": "#/$defs/traceId" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "timestamp_unix_ns": { "type": "integer", "minimum": 0 },
+        "elapsed_us": { "type": "integer", "minimum": 0 },
+        "request_id": { "type": "string", "minLength": 1 },
+        "owner_id": { "type": "string", "minLength": 1 },
+        "session_id": { "type": "string", "minLength": 1 },
+        "task_id": { "type": "string", "minLength": 1 },
+        "stage_id": { "type": "string", "minLength": 1 },
+        "component": { "type": "string", "minLength": 1 },
+        "event_type": { "type": "string", "minLength": 1 },
+        "payload": {}
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "trace_id",
+        "mode",
+        "request_id",
+        "owner_id",
+        "session_id",
+        "runtime_revision",
+        "model_revision",
+        "tokenizer_revision",
+        "state_abi_revision",
+        "configuration_identity",
+        "started_unix_ns",
+        "finished_unix_ns",
+        "complete",
+        "completion_reason",
+        "first_error",
+        "dropped_records",
+        "record_counts",
+        "file_bytes"
+      ],
+      "properties": {
+        "schema_version": { "const": "rwkv-agent.debug-trace.v1" },
+        "trace_id": { "$ref": "#/$defs/traceId" },
+        "mode": { "$ref": "#/$defs/mode" },
+        "request_id": { "type": "string", "minLength": 1 },
+        "owner_id": { "type": "string", "minLength": 1 },
+        "session_id": { "type": "string", "minLength": 1 },
+        "task_id": { "type": "string", "minLength": 1 },
+        "runtime_revision": { "type": "string", "minLength": 1 },
+        "model_revision": { "type": "string", "minLength": 1 },
+        "tokenizer_revision": { "type": "string", "minLength": 1 },
+        "state_abi_revision": { "type": "string", "minLength": 1 },
+        "configuration_identity": {},
+        "started_unix_ns": { "type": "integer", "minimum": 0 },
+        "finished_unix_ns": { "type": "integer", "minimum": 0 },
+        "complete": { "type": "boolean" },
+        "completion_reason": { "type": "string" },
+        "first_error": { "type": "string" },
+        "dropped_records": { "type": "integer", "minimum": 0 },
+        "record_counts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "file_bytes": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/event" },
+    { "$ref": "#/$defs/manifest" },
+    { "$ref": "#/$defs/capture" }
+  ]
+}

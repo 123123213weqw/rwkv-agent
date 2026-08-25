@@ -4,6 +4,7 @@ mod event;
 mod protocol;
 mod registry;
 mod run_loop;
+mod service_contract;
 mod task_spec;
 mod types;
 
@@ -17,6 +18,11 @@ pub use protocol::{
 };
 pub use registry::{ArgumentSpec, JsonKind, RegistryError, ToolDefinition, ToolRegistry};
 pub use run_loop::{AgentLoop, StateModel, ToolExecutor};
+pub use service_contract::{
+    RequestIdentity, ResearchRequest, SERVICE_API_VERSION, ServiceErrorCode, ServiceErrorDetail,
+    ServiceStreamEvent, TaskControlRequest, TaskRunRequest, ToolCallRequest, validate_api_version,
+    validate_identifier, validate_session_id,
+};
 pub use task_spec::{TASK_SPEC_SCHEMA_VERSION, TaskSpec, TaskSpecError, TaskStageSpec};
 pub use types::{
     Action, AgentError, AgentRunRequest, AnswerDecision, CancellationToken, ModelOutput,

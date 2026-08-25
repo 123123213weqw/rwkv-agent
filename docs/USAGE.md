@@ -2,8 +2,12 @@
 
 ## Current Agent path
 
-The supported `v0.3.0-beta.1` experience is the Rust CLI connected to the
-state-native Python Agent backend.
+The supported `v0.3.0-beta.2` service path is the Rust CLI connected to the
+canonical Rust Server on `8122`. The Server owns TaskSpec normalization,
+identity, lifecycle, streaming, cancellation and durable task records; the
+current CUDA model Sidecar and retrieval/evidence Data Plane remain narrow
+external Python providers. The `rwkv-agent-service` workflow below is retained
+as the port-8120 compatibility bootstrap, not as a second authoritative loop.
 
 ```bash
 python -m venv .venv
@@ -19,6 +23,8 @@ rwkv
 
 Detailed instructions:
 
+- [Canonical Rust service pipeline](SERVICE_PIPELINE.md)
+- [Debug Trace](DEBUG_TRACE.md)
 - [Quickstart](QUICKSTART.md)
 - [Model setup](MODEL_SETUP.md)
 - [Deployment](DEPLOYMENT.md)

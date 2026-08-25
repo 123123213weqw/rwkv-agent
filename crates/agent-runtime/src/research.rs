@@ -1,11 +1,12 @@
 use std::collections::BTreeSet;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
-use rwkv_agent_core::{Action, TOOL_CALL_JSON_PREFIX, parse_action};
+use rwkv_agent_core::{Action, CancellationToken, RunContext, TOOL_CALL_JSON_PREFIX, parse_action};
 use serde_json::{Value, json};
 use tokio::task::JoinSet;
 
 use crate::data_client::DataPlaneClient;
+use crate::debug_trace::DebugTraceHandle;
 use crate::prompt::{self, MISSIONS};
 use crate::sidecar::{BatchContinuation, SidecarClient, SidecarState};
 
@@ -15,17 +16,32 @@ pub struct ResearchRunner {
     data: DataPlaneClient,
 }
 
+struct OpenedResearch<'a> {
+    question: &'a str,
+    session_id: &'a str,
+    root: &'a SidecarState,
+    branches: &'a [SidecarState],
+    max_rounds: usize,
+    started: Instant,
+    context: &'a RunContext,
+    debug_trace: Option<&'a DebugTraceHandle>,
+}
+
 impl ResearchRunner {
     pub fn new(sidecar: SidecarClient, data: DataPlaneClient) -> Self {
         Self { sidecar, data }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn run(
         &self,
         question: &str,
         session_id: &str,
         branch_width: usize,
         max_rounds: usize,
+        cancellation: CancellationToken,
+        max_elapsed: Duration,
+        debug_trace: Option<&DebugTraceHandle>,
     ) -> Result<Value, String> {
         if !(1..=4).contains(&branch_width) {
             return Err("branch_width must be between 1 and 4".into());
@@ -33,16 +49,68 @@ impl ResearchRunner {
         if !(1..=3).contains(&max_rounds) {
             return Err("max_rounds must be between 1 and 3".into());
         }
+        if max_elapsed.is_zero() {
+            return Err("max_elapsed must be positive".into());
+        }
         let started = Instant::now();
+        let context = RunContext {
+            deadline: started.checked_add(max_elapsed).unwrap_or(started),
+            cancellation,
+        };
+        context.check().map_err(|error| error.to_string())?;
         let owner_id = unique_owner("research", session_id);
-        let root = self
-            .sidecar
-            .prefill(&owner_id, &prompt::research_root(question))
-            .await?;
+        let root_prompt = prompt::research_root(question);
+        trace_record(
+            debug_trace,
+            "model",
+            "provider",
+            "research_prefill_requested",
+            || json!({"owner_id":owner_id,"prompt":root_prompt}),
+        )
+        .await;
+        let root = tokio::time::timeout(
+            context.remaining(),
+            self.sidecar.prefill(&owner_id, &root_prompt),
+        )
+        .await
+        .map_err(|_| "run deadline exceeded during research State prefill".to_string())??;
+        trace_record(
+            debug_trace,
+            "state",
+            "provider",
+            "state_opened",
+            || json!({"state":root}),
+        )
+        .await;
+        if let Err(error) = context.check() {
+            let _ = self
+                .sidecar
+                .release_many(
+                    &root.home_url,
+                    &root.owner_id,
+                    std::slice::from_ref(&root.state_id),
+                )
+                .await;
+            return Err(error.to_string());
+        }
         let branch_names = (1..=branch_width)
             .map(|index| format!("branch-{index}"))
             .collect::<Vec<_>>();
-        let branches = match self.sidecar.fork(&root, &branch_names).await {
+        trace_record(
+            debug_trace,
+            "state",
+            "provider",
+            "fork_requested",
+            || json!({"root_state_id":root.state_id,"branches":branch_names}),
+        )
+        .await;
+        let branch_result =
+            tokio::time::timeout(context.remaining(), self.sidecar.fork(&root, &branch_names))
+                .await
+                .unwrap_or_else(|_| {
+                    Err("run deadline exceeded during research State fork".to_string())
+                });
+        let branches = match branch_result {
             Ok(branches) => branches,
             Err(error) => {
                 let _ = self
@@ -56,6 +124,14 @@ impl ResearchRunner {
                 return Err(error);
             }
         };
+        trace_record(
+            debug_trace,
+            "state",
+            "provider",
+            "fork_completed",
+            || json!({"root_state_id":root.state_id,"states":branches}),
+        )
+        .await;
         if branches.len() != branch_width {
             let state_ids = std::iter::once(root.state_id.clone())
                 .chain(branches.iter().map(|state| state.state_id.clone()))
@@ -73,13 +149,36 @@ impl ResearchRunner {
             .chain(branches.iter().map(|state| state.state_id.clone()))
             .collect::<Vec<_>>();
 
-        let run = self
-            .run_opened(question, session_id, &root, &branches, max_rounds, started)
-            .await;
+        let run = tokio::time::timeout(
+            context.remaining(),
+            self.run_opened(OpenedResearch {
+                question,
+                session_id,
+                root: &root,
+                branches: &branches,
+                max_rounds,
+                started,
+                context: &context,
+                debug_trace,
+            }),
+        )
+        .await
+        .unwrap_or_else(|_| Err("run deadline exceeded during research".into()));
         let release = self
             .sidecar
             .release_many(&root.home_url, &root.owner_id, &state_ids)
             .await;
+        trace_record(
+            debug_trace,
+            "state",
+            "provider",
+            "state_release_completed",
+            || match &release {
+                Ok(value) => json!({"success":true,"state_ids":state_ids,"response":value}),
+                Err(error) => json!({"success":false,"state_ids":state_ids,"error":error}),
+            },
+        )
+        .await;
         match (run, release) {
             (Ok(mut response), Ok(trace)) => {
                 response["trace"]["state_runtime"]["release"] = trace;
@@ -93,21 +192,24 @@ impl ResearchRunner {
         }
     }
 
-    async fn run_opened(
-        &self,
-        question: &str,
-        session_id: &str,
-        root: &SidecarState,
-        branches: &[SidecarState],
-        max_rounds: usize,
-        started: Instant,
-    ) -> Result<Value, String> {
+    async fn run_opened(&self, run: OpenedResearch<'_>) -> Result<Value, String> {
+        let OpenedResearch {
+            question,
+            session_id,
+            root,
+            branches,
+            max_rounds,
+            started,
+            context,
+            debug_trace,
+        } = run;
         let mut observations = std::collections::HashMap::<String, Value>::new();
         let mut used_queries = BTreeSet::<String>::new();
         let mut tool_results = Vec::<Value>::new();
         let mut round_traces = Vec::<Value>::new();
 
         for round_index in 1..=max_rounds {
+            context.check().map_err(|error| error.to_string())?;
             let items = branches
                 .iter()
                 .enumerate()
@@ -123,6 +225,14 @@ impl ResearchRunner {
                     })
                 })
                 .collect();
+            trace_record(
+                debug_trace,
+                "model",
+                "provider",
+                "research_batch_continue_requested",
+                || json!({"round":round_index,"owner_id":root.owner_id,"items":items,"stops":["</tool_call>"],"max_tokens":96}),
+            )
+            .await;
             let rows = self
                 .sidecar
                 .batch_continue(
@@ -133,6 +243,15 @@ impl ResearchRunner {
                     96,
                 )
                 .await?;
+            trace_record(
+                debug_trace,
+                "model",
+                "provider",
+                "research_batch_continue_completed",
+                || json!({"round":round_index,"rows":rows}),
+            )
+            .await;
+            context.check().map_err(|error| error.to_string())?;
             if rows.len() != branches.len() {
                 return Err(format!(
                     "branch continuation row count changed: expected {}, got {}",
@@ -150,6 +269,7 @@ impl ResearchRunner {
 
             let mut planned = Vec::new();
             for (index, row) in rows.iter().enumerate() {
+                context.check().map_err(|error| error.to_string())?;
                 let generated = reconstruct_tool(row);
                 let parsed = parse_action(&generated).map_err(|e| e.to_string());
                 let model_query = match parsed {
@@ -210,9 +330,19 @@ impl ResearchRunner {
             }
             let mut results = vec![json!({"status":"invalid","evidence":[]}); planned.len()];
             while let Some(joined) = searches.join_next().await {
+                context.check().map_err(|error| error.to_string())?;
                 let (index, value) = joined.map_err(|e| e.to_string())?;
                 results[index] = value?;
             }
+            trace_record(
+                debug_trace,
+                "tools",
+                "research",
+                "research_tools_completed",
+                || json!({"round":round_index,"results":results}),
+            )
+            .await;
+            context.check().map_err(|error| error.to_string())?;
 
             let mut branch_traces = Vec::new();
             for ((row, raw, view, accepted, query), result) in planned.into_iter().zip(results) {
@@ -238,14 +368,24 @@ impl ResearchRunner {
             .data
             .reduce_evidence(question, &tool_results, 8)
             .await?;
+        context.check().map_err(|error| error.to_string())?;
         let (status, answer, answer_protocol, answer_completion) = if evidence.is_empty() {
             ("ok", no_evidence(question), Value::Null, Value::Null)
         } else {
+            let final_prompt = prompt::research_final(question, &evidence);
+            trace_record(
+                debug_trace,
+                "model",
+                "provider",
+                "research_final_continue_requested",
+                || json!({"state_id":root.state_id,"input":final_prompt,"max_tokens":192}),
+            )
+            .await;
             let row = self
                 .sidecar
                 .continue_one(
                     root,
-                    &prompt::research_final(question, &evidence),
+                    &final_prompt,
                     &[
                         "</answer>".into(),
                         "<tool_call>".into(),
@@ -256,6 +396,15 @@ impl ResearchRunner {
                     192,
                 )
                 .await?;
+            trace_record(
+                debug_trace,
+                "model",
+                "provider",
+                "research_final_continue_completed",
+                || json!({"row":row}),
+            )
+            .await;
+            context.check().map_err(|error| error.to_string())?;
             if row.state_id != root.state_id {
                 return Err("research answer continuation changed root state identity".into());
             }
@@ -269,6 +418,7 @@ impl ResearchRunner {
                 .data
                 .validate_answer(question, raw_answer, &evidence)
                 .await?;
+            context.check().map_err(|error| error.to_string())?;
             if validation
                 .get("valid")
                 .and_then(Value::as_bool)
@@ -310,6 +460,22 @@ impl ResearchRunner {
                 "control_plane":"rust",
             }
         }))
+    }
+}
+
+async fn trace_record<F>(
+    trace: Option<&DebugTraceHandle>,
+    category: &'static str,
+    component: &str,
+    event_type: &str,
+    payload: F,
+) where
+    F: FnOnce() -> Value,
+{
+    if let Some(trace) = trace {
+        let _ = trace
+            .record(category, component, event_type, None, payload())
+            .await;
     }
 }
 
