@@ -10,6 +10,7 @@ map answers only where code lives.
 |---|---|---|
 | Terminal client | Active | `crates/agent-cli/` |
 | Strict Tool/Answer protocol | Active | `crates/agent-core/src/protocol.rs` |
+| Service v1 request/event/error contract | Active | `crates/agent-core/src/service_contract.rs` and `contracts/agent-service-v1.schema.json` |
 | Tool definitions and argument validation | Active | `crates/agent-core/src/registry.rs` |
 | Bounded same-State Agent loop | Active | `crates/agent-core/src/run_loop.rs` |
 | Agent service and routing | Active | `crates/agent-runtime/src/service.rs` |
@@ -18,6 +19,8 @@ map answers only where code lives.
 | Parallel-State research | Active | `crates/agent-runtime/src/research.rs` |
 | Command sandbox policy | Active, opt-in | `crates/agent-runtime/src/command.rs` |
 | Rust HTTP control plane | Active, isolated default | `crates/agent-server/` |
+| Durable Task Ledger v2 | Active | `crates/agent-runtime/src/task_ledger.rs` |
+| Local Rust Debug Trace v1 | Active, opt-in/off by default | `crates/agent-runtime/src/debug_trace.rs`, `contracts/debug-trace-v1.schema.json`, and `docs/DEBUG_TRACE.md` |
 | Retrieval/Evidence data plane | Active | `src/rwkv_agent/data_plane.py` |
 | Python data-plane HTTP process | Active | `src/rwkv_agent/data_server.py` |
 | Python compatibility Controller | Compatibility | `src/rwkv_agent/controller.py` |
@@ -32,7 +35,7 @@ map answers only where code lives.
 
 ```text
 crates/agent-cli
-    -> crates/agent-server
+    -> crates/agent-server (/v1/tasks)
         -> crates/agent-runtime
             -> crates/agent-core
             -> RWKV CUDA Sidecar
@@ -46,7 +49,8 @@ crates/agent-cli
 ### Rust control plane
 
 Rust owns request budgets, strict protocol parsing, exact argument validation,
-Session serialization, recurrent State identity and release, tool sequencing,
+Service request identity, TaskSpec conversion, Task Ledger, Session
+serialization, recurrent State identity and release, tool sequencing,
 research branches, cancellation and the sandbox boundary. It does not import
 Torch, CUDA, crawlers or indexes.
 
@@ -63,3 +67,7 @@ It does not own the Rust Agent State machine.
 - ignored `bench/runs/`, `var/` and `data/`: raw or runtime-only artifacts.
 - `docs/TODO.md`: local project status and execution record; intentionally not
   part of the public release surface.
+- `docs/SERVICE_PIPELINE.md`: canonical endpoints, startup order and failure
+  diagnosis for the isolated Rust service.
+- `docs/DEBUG_TRACE.md`: local full/redacted diagnostic capture, owner APIs,
+  privacy boundary, checksum verification and cleanup.

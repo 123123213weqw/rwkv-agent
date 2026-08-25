@@ -18,8 +18,9 @@ except ModuleNotFoundError:  # Python 3.10 development environments
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PYTHON_VERSION = "0.3.0b1"
-RUST_VERSION = "0.3.0-beta.1"
+PYTHON_VERSION = "0.3.0b2"
+RUST_VERSION = "0.3.0-beta.2"
+FROZEN_PUBLIC_RESULTS_RELEASE = "0.3.0-beta.1"
 
 REQUIRED_FILES = (
     ".env.example",
@@ -287,8 +288,12 @@ def _check_benchmark_publication(errors: list[str]) -> None:
 
     result_manifest_path = base / "public-results-manifest.json"
     result_manifest = json.loads(result_manifest_path.read_text(encoding="utf-8"))
-    if result_manifest.get("release") != "0.3.0-beta.1":
-        _error(errors, "public result manifest does not match release 0.3.0-beta.1")
+    if result_manifest.get("release") != FROZEN_PUBLIC_RESULTS_RELEASE:
+        _error(
+            errors,
+            "public result manifest does not match frozen release "
+            f"{FROZEN_PUBLIC_RESULTS_RELEASE}",
+        )
     for name, record in (result_manifest.get("artifacts") or {}).items():
         path = base / name
         if not path.is_file():

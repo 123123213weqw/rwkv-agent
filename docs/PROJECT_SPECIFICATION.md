@@ -1,7 +1,7 @@
 # RWKV State Agent — Project Specification
 
-**Version:** 0.3.0-beta.1
-**Date:** 5 August 2026
+**Version:** 0.3.0-beta.2
+**Date:** 25 August 2026
 
 ## 1. Executive summary
 

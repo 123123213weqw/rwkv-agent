@@ -21,6 +21,19 @@ pub enum AgentEvent {
         turn: usize,
         state_id: String,
         action: ActionKind,
+        /// Exact provider input retained in memory only for an explicitly
+        /// enabled local Debug Trace.
+        #[serde(skip_serializing, default)]
+        provider_input: String,
+        /// Complete provider generation retained in memory only for an
+        /// explicitly enabled local Debug Trace. Ordinary Agent events and
+        /// durable Task Ledger serialization never contain this body.
+        #[serde(skip_serializing, default)]
+        raw_output: String,
+        #[serde(skip_serializing, default)]
+        stop_reason: Option<String>,
+        #[serde(skip_serializing, default)]
+        max_tokens: u32,
     },
     ProtocolRejected {
         turn: usize,
@@ -30,6 +43,14 @@ pub enum AgentEvent {
         /// observation only: the strict parser remains the sole authority and
         /// the preview is never fed back as executable input.
         output_preview: String,
+        #[serde(skip_serializing, default)]
+        provider_input: String,
+        #[serde(skip_serializing, default)]
+        raw_output: String,
+        #[serde(skip_serializing, default)]
+        stop_reason: Option<String>,
+        #[serde(skip_serializing, default)]
+        max_tokens: u32,
     },
     ControllerToolScheduled {
         step: usize,

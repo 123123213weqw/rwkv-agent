@@ -1,8 +1,11 @@
 # RWKV Agent quickstart
 
-This guide starts the `v0.3.0-beta.1` Agent on one local CUDA host. The current
-public service script starts one model Sidecar and one Controller. It never
-creates SSH tunnels or contacts a private server.
+This guide starts the `v0.3.0-beta.2` Agent on one local CUDA host. The
+canonical path is the Rust CLI on `8122` → Rust Server → external model Sidecar
+and Data Plane. The existing `rwkv-agent-service` script remains a compatibility
+bootstrap for the Python Controller on `8120`; it never creates SSH tunnels or
+contacts a private server. See [Rust Service Pipeline](SERVICE_PIPELINE.md) for
+the canonical startup and readiness contract.
 
 ## Requirements
 
@@ -26,9 +29,9 @@ git clone https://github.com/123123213weqw/rwkv-agent.git
 cd rwkv-agent
 ./cli/install.sh --client-only
 
-ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent doctor
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent
+ssh -N -L 8122:127.0.0.1:8122 user@gpu-host
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent
 ```
 
 Prebuilt CLI archives, when attached to a tagged Beta release, contain the
@@ -71,18 +74,43 @@ G1I_RUNTIME_DIR=/absolute/path/to/albatross-runtime
 
 The environment file is mode `0600`. Do not commit it.
 
-## Validate and start
+## Canonical Rust service pipeline
+
+Start the configured model Sidecar, then the external Data Plane, and finally
+the Rust control plane. The tagged release archives contain the CLI; build the
+Server from the same tagged source tree:
+
+```bash
+cargo build --release --locked -p rwkv-agent-server
+export PATH="$PWD/target/release:$PATH"
+
+rwkv-agent-data-plane --port 8121 --model-urls http://127.0.0.1:8417
+rwkv-agent-server-rs \
+  --port 8122 \
+  --runtime-revision <runtime-commit-or-release> \
+  --model-urls http://127.0.0.1:8417 \
+  --data-plane-url http://127.0.0.1:8121
+
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent
+```
+
+Command execution remains disabled unless a bounded Sandbox and Workspace are
+explicitly configured. Debug Trace remains `off` unless explicitly enabled.
+
+## Compatibility lifecycle script
 
 ```bash
 rwkv-agent-service doctor
 rwkv
 ```
 
-`rwkv` automatically starts the configured local Sidecar and Controller when
-they are offline, then enters interactive chat. Service lifecycle commands are
-kept for administrators and troubleshooting.
+`rwkv` can automatically start the configured local Sidecar and compatibility
+Controller when they are offline, then enter interactive chat. Service lifecycle
+commands are retained for existing installations and troubleshooting; they do
+not replace the canonical Rust Server lifecycle above.
 
-The two local endpoints are:
+The compatibility endpoints are:
 
 - Sidecar: `http://127.0.0.1:8118`;
 - Controller: `http://127.0.0.1:8120`.
@@ -123,16 +151,18 @@ the bounded fallback engine. Search quality depends on network egress.
 
 ## Remote GPU host
 
-Run the installation and service on the GPU host, then forward the Controller:
+Run the installation and canonical service pipeline on the GPU host, then
+forward the Rust Server:
 
 ```bash
-ssh -N -L 8120:127.0.0.1:8120 user@gpu-host
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent doctor
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8120 rwkv-agent
+ssh -N -L 8122:127.0.0.1:8122 user@gpu-host
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
+RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent
 ```
 
-Do not bind the Beta Controller to a public interface without adding your own
-authentication, TLS, rate limiting and outbound network policy.
+Do not bind the Beta Server or compatibility Controller to a public interface
+without adding your own authentication, TLS, rate limiting and outbound network
+policy.
 
 ## Stop
 

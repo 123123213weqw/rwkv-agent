@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/agent-service-v1.schema.json",
+  "title": "RWKV Agent Service v1",
+  "description": "Versioned control-plane request, stream-event and error contracts. TaskSpec remains defined by its Rust schema-versioned type.",
+  "$defs": {
+    "apiVersion": {
+      "const": "rwkv-agent.service.v1"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:/-]+$"
+    },
+    "taskStageSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "objective"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "objective": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "depends_on": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "maxItems": 32 },
+        "acceptance_criteria": { "type": "array", "items": { "type": "string" }, "maxItems": 32 },
+        "constraints": { "type": "array", "items": { "type": "string" }, "maxItems": 32 },
+        "verification_commands": { "type": "array", "items": { "type": "string" }, "maxItems": 16 },
+        "requires_mutation": { "type": ["boolean", "null"] }
+      }
+    },
+    "taskSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "objective": { "type": "string", "minLength": 1, "maxLength": 16384 },
+        "acceptance_criteria": { "type": "array", "items": { "type": "string" }, "maxItems": 32 },
+        "constraints": { "type": "array", "items": { "type": "string" }, "maxItems": 32 },
+        "verification_commands": { "type": "array", "items": { "type": "string" }, "maxItems": 16 },
+        "requires_mutation": { "type": ["boolean", "null"] },
+        "working_directory": { "type": ["string", "null"] },
+        "stages": { "type": "array", "items": { "$ref": "#/$defs/taskStageSpec" }, "maxItems": 32 }
+      }
+    },
+    "requestIdentity": {
+      "type": "object",
+      "required": ["api_version", "request_id", "owner_id", "session_id"],
+      "properties": {
+        "api_version": { "$ref": "#/$defs/apiVersion" },
+        "request_id": { "$ref": "#/$defs/identifier" },
+        "owner_id": { "$ref": "#/$defs/identifier" },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "taskRunRequest": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/requestIdentity" },
+        {
+          "type": "object",
+          "properties": {
+            "task_id": { "$ref": "#/$defs/identifier" },
+            "message": { "type": "string" },
+            "working_directory": { "type": "string" },
+            "task_spec": { "$ref": "#/$defs/taskSpec" }
+          },
+          "anyOf": [
+            { "required": ["message"] },
+            { "required": ["task_spec"] }
+          ]
+        }
+      ]
+    },
+    "toolCallRequest": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/requestIdentity" },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "$ref": "#/$defs/identifier" },
+            "arguments": {},
+            "working_directory": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "researchRequest": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/requestIdentity" },
+        {
+          "type": "object",
+          "required": ["message"],
+          "properties": {
+            "message": { "type": "string", "minLength": 1 },
+            "branch_width": { "type": "integer", "minimum": 1, "maximum": 4 },
+            "max_rounds": { "type": "integer", "minimum": 1, "maximum": 3 }
+          }
+        }
+      ]
+    },
+    "taskControlRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api_version", "request_id", "owner_id"],
+      "properties": {
+        "api_version": { "$ref": "#/$defs/apiVersion" },
+        "request_id": { "$ref": "#/$defs/identifier" },
+        "owner_id": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "streamEvent": {
+      "type": "object",
+      "required": [
+        "api_version",
+        "request_id",
+        "owner_id",
+        "session_id",
+        "sequence",
+        "type"
+      ],
+      "properties": {
+        "api_version": { "$ref": "#/$defs/apiVersion" },
+        "request_id": { "$ref": "#/$defs/identifier" },
+        "owner_id": { "$ref": "#/$defs/identifier" },
+        "session_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "task_id": { "$ref": "#/$defs/identifier" },
+        "trace_id": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+        "debug_capture": {
+          "type": "object",
+          "required": ["mode", "status"],
+          "properties": {
+            "mode": { "enum": ["off", "redacted", "full"] },
+            "status": { "enum": ["active", "complete", "incomplete"] },
+            "error": { "type": "string" }
+          }
+        },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "type": {
+          "enum": [
+            "task_created",
+            "stage_started",
+            "phase",
+            "delta",
+            "stage_completed",
+            "final",
+            "error",
+            "runtime_event"
+          ]
+        }
+      }
+    },
+    "errorDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": {
+          "enum": [
+            "invalid_request",
+            "not_found",
+            "conflict",
+            "unavailable",
+            "unsupported",
+            "cancelled",
+            "deadline_exceeded",
+            "internal"
+          ]
+        },
+        "message": { "type": "string" },
+        "retryable": { "type": "boolean" }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api_version", "request_id", "status", "error", "error_detail"],
+      "properties": {
+        "api_version": { "$ref": "#/$defs/apiVersion" },
+        "request_id": { "$ref": "#/$defs/identifier" },
+        "owner_id": { "$ref": "#/$defs/identifier" },
+        "session_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "trace_id": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+        "debug_capture": {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "mode": { "enum": ["off", "redacted", "full"] },
+            "status": { "enum": ["active", "complete", "incomplete"] },
+            "error": { "type": "string" }
+          }
+        },
+        "status": { "const": "error" },
+        "error": { "type": "string" },
+        "error_detail": { "$ref": "#/$defs/errorDetail" }
+      }
+    }
+  },
+  "anyOf": [
+    { "$ref": "#/$defs/taskRunRequest" },
+    { "$ref": "#/$defs/toolCallRequest" },
+    { "$ref": "#/$defs/researchRequest" },
+    { "$ref": "#/$defs/taskControlRequest" },
+    { "$ref": "#/$defs/streamEvent" },
+    { "$ref": "#/$defs/errorResponse" }
+  ]
+}

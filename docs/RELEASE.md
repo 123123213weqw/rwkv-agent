@@ -68,5 +68,5 @@ Before tagging:
   an explicitly documented gateway;
 - no experimental profile is presented as the stable default.
 
-The current version is `0.3.0-beta.1`; the stable `0.3.0` quality gates remain
+The current version is `0.3.0-beta.2`; the stable `0.3.0` quality gates remain
 listed in [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).

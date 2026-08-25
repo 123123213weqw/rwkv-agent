@@ -98,6 +98,9 @@ pub struct RunLimits {
     pub answer_after_tool: bool,
     /// Keep the pristine root state and fork a fresh worker for each phase.
     pub fork_from_root: bool,
+    /// Retain successful raw provider generations only for an explicitly
+    /// enabled local Debug Trace. The release-default path leaves this false.
+    pub capture_model_output: bool,
 }
 
 impl Default for RunLimits {
@@ -111,6 +114,7 @@ impl Default for RunLimits {
             max_elapsed: Duration::from_secs(180),
             answer_after_tool: false,
             fork_from_root: false,
+            capture_model_output: false,
         }
     }
 }

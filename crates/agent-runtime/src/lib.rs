@@ -5,6 +5,7 @@
 
 mod command;
 mod data_client;
+mod debug_trace;
 mod prompt;
 mod research;
 mod service;
@@ -14,11 +15,21 @@ mod task_ledger;
 
 pub use command::{CommandPolicy, SandboxedCommand};
 pub use data_client::DataPlaneClient;
+pub use debug_trace::{
+    DEBUG_TRACE_SCHEMA_VERSION, DebugCapture, DebugTraceConfig, DebugTraceEvent,
+    DebugTraceFileKind, DebugTraceFilter, DebugTraceHandle, DebugTraceManifest, DebugTraceMode,
+    DebugTracePage, DebugTraceReadiness, DebugTraceStart, DebugTraceStore,
+};
 pub use research::ResearchRunner;
-pub use rwkv_agent_core::{TASK_SPEC_SCHEMA_VERSION, TaskSpec, TaskSpecError, TaskStageSpec};
+pub use rwkv_agent_core::{
+    RequestIdentity, ResearchRequest, SERVICE_API_VERSION, ServiceErrorCode, ServiceErrorDetail,
+    ServiceStreamEvent, TASK_SPEC_SCHEMA_VERSION, TaskControlRequest, TaskRunRequest, TaskSpec,
+    TaskSpecError, TaskStageSpec, ToolCallRequest,
+};
 pub use service::{AgentService, RuntimeConfig};
 pub use session::{Exchange, SessionStore};
 pub use sidecar::{BatchContinuation, GateDecision, SidecarClient, SidecarState};
 pub use task_ledger::{
-    LedgerEvent, StageStatus, TaskLedger, TaskRecord, TaskStageRecord, TaskStatus,
+    LEDGER_SCHEMA_VERSION, LedgerEvent, StageStatus, TaskLedger, TaskRecord, TaskStageRecord,
+    TaskStatus,
 };
