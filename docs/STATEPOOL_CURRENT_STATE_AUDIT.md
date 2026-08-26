@@ -53,9 +53,13 @@ Sidecar lifetime. Selection of a new Sidecar is round-robin and is not aware of
 state location, queue time, price, zone or SLO.
 
 The direct-chat cache in `AgentService` retains a bounded number of
-`CachedChatState` values in process memory. A transcript-length mismatch,
-eviction, explicit invalidation, error or shutdown releases the Sidecar state.
-The durable transcript remains the fallback source of truth.
+`CachedChatState` values in process memory. In default local mode these contain
+the original Hot Sidecar handles. With the independently opt-in lifecycle,
+safe turns are committed through a fenced Lease and the cache retains a
+Warm/Cold `StateReference` instead, so the Worker slot is released between
+turns. A transcript-length mismatch, eviction or explicit invalidation drops
+the cached location; the durable transcript remains the compatibility fallback
+only when no committed remote State is being resumed.
 
 ## Existing state contract
 
@@ -75,10 +79,11 @@ the scheduler exports recurrent tensors plus logits into a bounded
 `safetensors` envelope, the HTTP boundary checks SHA-256 and exact `ModelRef`,
 and restore installs the tensors into a fresh slab slot. Unit and HTTP-provider
 tests cover snapshot, mandatory source release, restore and continuation. The
-controller currently retains that payload in memory, so this is **not yet** an
-S3 durability or cross-Worker-kill result. The HF recurrent backend explicitly
-rejects exact snapshots until its cache constructor has an equivalent checked
-adapter.
+opt-in Controller path now commits that payload through the plugin to the
+configured LocalFS or S3 store and caches the returned reference. The
+deterministic full-path test is **not yet** a real GPU cross-Worker-kill result.
+The HF recurrent backend explicitly rejects exact snapshots until its cache
+constructor has an equivalent checked adapter.
 
 The v1 stateful inference contract remains unchanged. Cloud-specific location,
 version, lease and cost data are defined by separate StatePool plugin-v1
@@ -106,19 +111,23 @@ must be optional and old clients must continue to deserialize successfully.
 
 ## Failure and consistency gaps
 
-The Cloud Plugin must close the following gaps rather than hiding them:
+The remaining gaps must be closed rather than hidden:
 
 - the local `SessionStore` lock is process-local and cannot prevent two
-  Controllers from advancing the same cloud Session;
-- the live CPU snapshot payload is still controller-resident rather than
-  committed through the StatePool Lease into S3/MinIO;
+  Controllers from entering before Lease acquisition; lifecycle mutations are
+  fenced, but multi-Controller request admission still needs a distributed
+  Session boundary;
+- PostgreSQL/S3 retain the current State, but Controller restart does not yet
+  reconstruct its in-memory Session→`StateReference` index;
 - `SidecarClient::health` currently fails readiness if any configured endpoint
   fails, whereas a dynamic Worker pool needs per-Worker readiness;
-- round-robin selection is not state-aware;
-- current cache metrics do not measure restore time, transfer bytes,
+- default local selection remains round-robin; lifecycle restore placement is
+  state-aware through the plugin;
+- Controller cache metrics do not yet measure restore time, transfer bytes,
   GPU-seconds or cost;
-- there is no Worker drain handshake before Kubernetes termination;
-- no current test kills a Worker and proves exact continuation on a second
+- Worker drain is implemented and cross-process tested, but KEDA/Kubernetes
+  0→1→N→0 has not been exercised;
+- no current GPU test kills a Worker and proves exact continuation on a second
   compatible Worker.
 
 Until those gaps are implemented and verified, the product must retain the

@@ -373,6 +373,10 @@ impl CloudPluginClient {
         self.config.enabled && self.config.state_lifecycle
     }
 
+    pub async fn state_lifecycle_ready(&self) -> bool {
+        self.state_lifecycle_enabled() && self.state.read().await.status == "ready"
+    }
+
     pub fn state_target_tier(&self) -> CloudStatePlacement {
         self.config.state_target_tier.clone()
     }

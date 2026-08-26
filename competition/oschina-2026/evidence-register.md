@@ -4,7 +4,7 @@
 |---|---|---|---|---|
 | E01 | 插件关闭时不构造 HTTP Client并走原路径 | 自动测试 | 已验证 | `cloud_plugin::tests::disabled_plugin_never_builds_http_and_returns_original_local_path` |
 | E02 | 完整 Workspace Rust 检查 | 远程命令 | 已验证 | WZU_Server `cargo check --workspace --all-targets`，2026-08-26 |
-| E03 | Runtime 回归 65 + mock full path 13 | 远程测试 | 已验证 | `/tmp/rwkv-statepool-remote-test-2.log`（本机临时日志） |
+| E03 | Runtime 回归 70 + mock full path 15 | 远程测试 | 已验证 | `/tmp/rwkv-statepool-remote-test-2.log`（本机临时日志） |
 | E04 | StatePool 8 项测试和 wire 3 项测试 | 远程测试 | 已验证 | 同 E03 |
 | E05 | Snapshot/Restore bytes、checksum、CAS、stale fence | 自动测试 | 已验证 | `snapshot_restore_round_trip_uses_cas_checksum_and_fencing` |
 | E06 | 两个容器目标 release build、live/metrics/help smoke | 远程容器 | 已验证 | `evidence/statepool/remote-container-smoke-2026-08-26.md` |
@@ -21,6 +21,8 @@
 | E17 | V100/4080 远程环境与模型可用性探测 | 环境清单，非性能证据 | 已记录 | `evidence/statepool/gpu-environment-probe-2026-08-26.md` |
 | E18 | Cloud Lite PostgreSQL+MinIO 跨插件重启恢复 | 真实 Compose 服务闭环 | 已验证（通用 State bytes，非 GPU） | `evidence/statepool/cloud-lite-compose-restart-2026-08-27.txt` |
 | E19 | Worker 注册/心跳/排空意图与安全停止 | 跨进程控制面实测 | 已验证（非 GPU、非 Kubernetes） | `evidence/statepool/worker-adapter-2026-08-27.md` |
+| E20 | Controller 自动 acquire→continue→snapshot→commit→release→restore | Rust mock 全路径测试 | 已验证（确定性 CPU/mock State，非 GPU） | `evidence/statepool/controller-lifecycle-2026-08-27.md`、`direct_chat_persists_releases_restores_and_advances_fenced_state` |
+| E21 | 提交状态不确定时禁止自动重复执行 | 故障注入测试 | 已验证 | `evidence/statepool/controller-lifecycle-2026-08-27.md`、`uncertain_lifecycle_commit_blocks_automatic_double_execution` |
 
 规则：临时 `/tmp` 日志不算发布证据；正式提交前需要把去敏后的完整输出放入
 `bench/artifacts/`，填写 commit 和 checksum。

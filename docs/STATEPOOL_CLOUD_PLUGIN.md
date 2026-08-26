@@ -120,11 +120,12 @@ The current deterministic policy:
    GPU-hour price;
 6. returns an explainable `reason_code` and estimated queue/restore/cost values.
 
-The host currently invokes placement only when direct chat opens a new
-recurrent State. Cached chat State remains pinned to `home_url`; research forks
-and tool-loop roots still use the original local Sidecar selection. Those paths
-will be enabled only after their owner/release tests are extended to cover a
-remote Worker.
+The host invokes placement when direct chat opens a new recurrent State and
+again whenever a durable Warm/Cold `StateReference` must be restored. With
+lifecycle disabled, cached chat State retains the original `home_url` pinning.
+Research forks and tool-loop roots still use the original local Sidecar
+selection; those paths will be enabled only after their owner/release tests are
+extended to cover a remote Worker.
 
 `hybrid` currently permits local and edge Workers. Explicit cloud transfer for
 hybrid policy remains disabled until Context Capsule/encrypted checkpoint
@@ -207,29 +208,33 @@ The Albatross Sidecar exposes two exact-model Worker-local operations:
 
 The source State must be released before restore, preventing an accidental
 second writer. `RwkvHttpProvider` implements the stateful-inference contract
-over these endpoints. The Rust Controller now also has typed,
-integrity-checking Sidecar snapshot/restore and fenced plugin
-acquire/renew/commit/read/release clients. Both transports validate model
-identity, owner, State version, checksum and atomicity at their respective
-trust boundaries. The live driver retains the returned payload in Controller
-memory.
-This proves the live adapter boundary in deterministic CPU conformance tests;
-it does not by itself survive Controller loss. The live lifecycle driver can
-commit the same bytes through the plugin Lease/CAS path and whichever
-LocalFS/S3 store the plugin selected; the ordinary Controller chat cache is not
-yet wired to invoke that lifecycle automatically, and exact live GPU bytes have
-not yet passed the S3 Worker-kill experiment. The HF recurrent backend fails
-closed for exact snapshot/restore in this release.
+over these endpoints. The Rust Controller has typed, integrity-checking
+Sidecar snapshot/restore and fenced plugin acquire/renew/commit/read/release
+clients. Both transports validate model identity, owner, State version,
+checksum and atomicity at their respective trust boundaries.
+
+When `--cloud-state-lifecycle` is enabled, each safe direct-chat turn now runs
+`acquire → continue → renew → snapshot → CAS commit → Worker release → Lease
+release`, caches only the durable reference, and restores it on the next turn.
+The checked-in mock full-path test proves versions 0→1→2, Hot release after
+each commit and Cold restore without another prefill. An injected uncertain
+commit moves the Session to `blocked_hot` and proves that a following request
+does not execute again automatically.
+
+The remaining recovery gap is Controller restart: durable bytes and metadata
+survive in PostgreSQL/S3, but the Controller-side current `StateReference`
+index is not yet reconstructed at startup. Exact live GPU bytes have also not
+yet passed the S3 Worker-kill experiment. The HF recurrent backend fails closed
+for exact snapshot/restore in this release.
 
 ## Deliberate non-claims
 
 The current plugin advertises `placement`, `worker_registry`, `leases`,
 `state_lifecycle`, `drain` and `finops`. `leases` and `state_lifecycle` are
 available in local or PostgreSQL/S3 profiles. It does not advertise
-`remote_state`, because automatic Controller orchestration and the GPU
-Worker-kill experiment have not passed. A remote plan may
-select a compatible Worker for a newly opened State; it does not prove
-migration of an already-open State.
+`remote_state`, because the real GPU Worker-kill experiment and Controller
+restart reconstruction have not passed. The automatic mock/CPU lifecycle is
+conformance evidence, not a measured production GPU migration claim.
 
 Exact cross-Worker continuation may be claimed only after:
 

@@ -82,6 +82,15 @@ I/O runs; the next direct turn rebuilds once from the durable transcript.
 Expired, restarted or capacity-constrained Sidecars fall back to transcript
 prefill rather than losing the conversation.
 
+That paragraph describes the unchanged default. With
+`RWKV_AGENT_CLOUD_STATE_LIFECYCLE=true`, a safe direct-chat turn is snapshotted
+and committed before its Worker State is released; the LRU then holds a
+versioned durable reference rather than a GPU allocation. The following turn
+must restore that exact reference and is never allowed to silently fall back to
+transcript. An uncertain post-execution commit marks the Session
+`blocked_hot`, returns the completed answer with an observable persistence
+error, and rejects later automatic execution until reconciliation.
+
 ## Web configuration
 
 [`configs/production.example.json`](../configs/production.example.json) enables
