@@ -59,8 +59,8 @@ curl --fail http://127.0.0.1:8131/plugin/v1/health
 ```
 
 The checked-in credentials are local-demo values only. PostgreSQL and S3
-adapters were exercised against real containers on `WZU_Server`; this does not
-yet constitute the live GPU Worker-kill result.
+adapters were exercised against real containers on `WZU_Server`; an exact-model
+RTX 4080 Worker-process-loss recovery has also passed through those adapters.
 
 ## Profile 2: Kubernetes development control plane
 
@@ -162,6 +162,13 @@ KEDA itself is installed separately; the manifests were authored against
 [KEDA v2.20.1](https://github.com/kedacore/keda/releases/tag/v2.20.1).
 No KEDA source or Chart is vendored here.
 
+The chart and metrics path were runtime-verified on kind 0.30.0/Kubernetes
+1.34.0 with KEDA 2.20.1 and Prometheus 3.11.3. Three placement misses produced
+the measured desired-replica sequence 0→1→3→0, all three Pods became Ready,
+and all three preStop calls returned `safe_to_stop`. Commands, applied values,
+live objects, 230 samples and checksums are in
+[`bench/artifacts/statepool-keda-kind-20260827/`](../../bench/artifacts/statepool-keda-kind-20260827/README.md).
+
 The current pending metric is a bounded demand signal: a cloud-allowed plan
 miss increments it, and a compatible Worker registration clears it. A request
 that safely falls back locally is not replayed remotely. Thus scale-from-zero
@@ -176,7 +183,8 @@ only model endpoint at replica zero.
 
 ## Claim boundary
 
-These assets prove configuration and contract wiring, not a live GPU
-scale-to-zero benchmark. A competition result can be marked measured only after
-the exact images, cluster, KEDA version, Sidecar adapter, commands and raw logs
-are archived under `bench/`.
+These assets and the linked kind artifact prove live control-plane scaling with
+a protocol-faithful simulated Worker, not a live GPU scale-to-zero benchmark.
+The RTX 4080 artifact separately proves real State bytes, forced process loss,
+restore/continue/release and safe drain. A GPU Kubernetes result remains a
+future evidence gate and must not be inferred by combining the two.

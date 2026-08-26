@@ -1,0 +1,116 @@
+[
+    {
+        "Id": "sha256:396fbb6b4e7474255341b476d4aca9847503d1b692be7503ff88764228669040",
+        "RepoTags": [
+            "rwkv-statepool-cloud-plugin:0.3.0-beta.2-dev"
+        ],
+        "RepoDigests": [],
+        "Parent": "",
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-08-27T01:47:32.180513412+08:00",
+        "DockerVersion": "",
+        "Author": "",
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 112404947,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/293ddm2u0ezxibs2e1yasdrba/diff:/var/lib/docker/overlay2/ovf76ao3y0g918u7od468pw30/diff:/var/lib/docker/overlay2/b3ece17adbb53c1a3fd479779d7facfb8863b8924b46de536da5c5da0934a70b/diff",
+                "MergedDir": "/var/lib/docker/overlay2/i4sqimmyvikejz75irxmbbwy1/merged",
+                "UpperDir": "/var/lib/docker/overlay2/i4sqimmyvikejz75irxmbbwy1/diff",
+                "WorkDir": "/var/lib/docker/overlay2/i4sqimmyvikejz75irxmbbwy1/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:1d69a5fd31932841d7825ef4780c06f008eea65aaa9f3110fe09d5832ed5c7d8",
+                "sha256:88bf04db9605d2fefe4fbaffc1c43c9c280764205d4d94e043647edc7d88545a",
+                "sha256:d7599ac404571d513f44f0d76400fca089e3806dc416a2f7db9293e9a9ce54b9",
+                "sha256:c79dc97a7694984be1c58ca41d4d911ab7da75f05345305b772c0e297bb47072"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-08-27T01:47:32.241533541+08:00"
+        },
+        "Config": {
+            "Cmd": null,
+            "Entrypoint": [
+                "/usr/local/bin/rwkv-statepool-cloud-plugin"
+            ],
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "RWKV_STATEPOOL_HOST=0.0.0.0",
+                "RWKV_STATEPOOL_PORT=8130",
+                "RWKV_STATEPOOL_STATE_DIR=/var/lib/statepool/states"
+            ],
+            "ExposedPorts": {
+                "8130/tcp": {}
+            },
+            "Labels": null,
+            "OnBuild": null,
+            "User": "65532:65532",
+            "Volumes": {
+                "/var/lib/statepool/states": {}
+            },
+            "WorkingDir": ""
+        }
+    },
+    {
+        "Id": "sha256:7c6d2d5148ee11e60c697391e1d73345dd9c4e5e872f8b417b5390198981941c",
+        "RepoTags": [
+            "rwkv-statepool-worker-keda-sim:20260827"
+        ],
+        "RepoDigests": [],
+        "Parent": "",
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-08-27T02:25:14.757900903+08:00",
+        "DockerVersion": "",
+        "Author": "",
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 124278657,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/tpftfgvt6lprje7jyxkugfgs2/diff:/var/lib/docker/overlay2/8f9fec4b8bdfefb487a326b5656d7ef57e5629d513acc24aaa2224134565a1a0/diff:/var/lib/docker/overlay2/88fe963ce7c1b6ee370f2327dbe64516570dda1177064667bc0eb3e5e60f6617/diff:/var/lib/docker/overlay2/a2235bff22335f5cee06c8ece7586820c7a4bed1e2aedfc69a8886927f281b01/diff:/var/lib/docker/overlay2/6ffec9c93b1664dd6ca0cc20539536218fe1343715ff1afb04ac1f989c30a778/diff",
+                "MergedDir": "/var/lib/docker/overlay2/q1owevhs0rxdrou6283k2urzn/merged",
+                "UpperDir": "/var/lib/docker/overlay2/q1owevhs0rxdrou6283k2urzn/diff",
+                "WorkDir": "/var/lib/docker/overlay2/q1owevhs0rxdrou6283k2urzn/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:aca83606673032726b42f8e1396ceb979c32bfb26b602732baf699053e46b33e",
+                "sha256:9cec99e910cbef45442323a31a04c92b5c14dddf236dd769d02c54af99e56d6d",
+                "sha256:4858806d59148b044f1fb5491f84963f5742556eefa0ce9de13717e1a195edae",
+                "sha256:6bcbbe0b3546e8b3e707223aee64fd1c2d220d8d8c6834829e392648f38d5b6e",
+                "sha256:b0d53c91b99660cb8ef6d3e26991cfa8b4f8ee97b4860274089b953c66ba1adb",
+                "sha256:44100db6686331ed5873f6b3d05830ca62299ece40d0c396ba2a05b9bab415e6"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-08-27T02:25:14.768516112+08:00"
+        },
+        "Config": {
+            "Cmd": null,
+            "Entrypoint": [
+                "/usr/local/bin/mock_worker.py"
+            ],
+            "Env": [
+                "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "GPG_KEY=7169605F62C751356D054A26A821E680E5FA6305",
+                "PYTHON_VERSION=3.12.11",
+                "PYTHON_SHA256=c30bb24b7f1e9a19b11b55a546434f74e739bb4c271a3e3a80ff4380d49f7adb"
+            ],
+            "Labels": null,
+            "OnBuild": null,
+            "User": "65532:65532",
+            "Volumes": null,
+            "WorkingDir": ""
+        }
+    }
+]

@@ -33,7 +33,7 @@ tokenizer and State ABI, plus checksum and version/fencing validation.
 | [KServe](https://kserve.github.io/website/) | standardized predictive/generative model serving, rollout/routing and scale-to-zero | future optional `InferenceService`/gateway profile | State-safe scale-down and restore semantics for a personal Agent Session |
 | [KEDA](https://keda.sh/docs/2.20/concepts/scaling-deployments/) | generic event-driven 0↔1 and HPA-backed 1↔N scaling | Prometheus scaler over StatePool metrics | State-aware demand/backlog metrics and a drain gate; KEDA remains the scaler |
 | Prometheus/Grafana | time-series storage, PromQL and visualization | scrape endpoint and provisioned dashboard | domain metrics: State tier events, restoration, avoided Prefill, GPU seconds and estimated cost |
-| PostgreSQL/S3 | durable transactions and immutable object storage | planned MetadataStore/StateStore adapters | schema, CAS/fencing rules, exact compatibility and lifecycle policy |
+| PostgreSQL/S3 | durable transactions and immutable object storage | implemented MetadataStore/StateStore adapters | schema, CAS/fencing rules, exact compatibility and lifecycle policy |
 | Sticky Worker baseline | simplest State reuse with no transfer | benchmark baseline A | ability to release an idle Worker after a safe snapshot |
 | Stateless re-prefill baseline | any compatible Worker can serve from transcript | benchmark baseline B and incompatibility fallback | avoid repeated Prefill while retaining Worker elasticity |
 
@@ -51,8 +51,10 @@ feed AIBrix rather than fork it.
 
 KEDA distinguishes the 0↔1 activation phase from HPA-managed 1↔N scaling. The
 StatePool `ScaledObject` maps bounded pending demand to activation and estimated
-decode backlog to scaling. It does not claim the YAML alone proves a safe N→0;
-the Worker drain/snapshot handshake and a cluster test remain required.
+decode backlog to scaling. A kind/Kubernetes 1.34 control-plane run with KEDA
+2.20.1 measured 0→1→3→0 and three safe simulated-Worker preStop results. The
+separate RTX 4080 run validates the real data-plane drain and State recovery;
+the project does not merge these into a false GPU-on-Kubernetes claim.
 
 ## The unresolved gap
 
@@ -85,7 +87,7 @@ privacy-aware placement.
 | PostgreSQL distributed Lease/CAS | implemented; two-client container integration passed |
 | S3/MinIO Cold State adapter | implemented; MinIO container integration passed |
 | Real GPU preStop safe-drain gate | measured after restore/release; rebuildable system root remained and dirty user State was zero |
-| Measured live-Kubernetes/KEDA 0→1→N→0 | not measured |
+| Measured live-Kubernetes/KEDA 0→1→N→0 | measured on kind with a protocol-faithful, non-GPU Worker simulator; three safe preStop results |
 
 This table is the release claim boundary; competition material must not promote
 an item from “not implemented/measured” without linked evidence.

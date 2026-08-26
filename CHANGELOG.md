@@ -14,11 +14,17 @@ All notable public changes are recorded here.
   Compose/Helm/KEDA/ServiceMonitor and Grafana development assets;
 - related-work, governance, roadmap, release checklist and competition evidence
   materials with explicit implementation/measurement claim boundaries.
+- live Albatross RWKV snapshot/restore, PostgreSQL/S3 Cloud Lite durability,
+  exact-compatible RTX 4080 Worker-process-loss recovery, Controller lifecycle
+  and FinOps integration;
+- measured kind/Kubernetes 1.34 + KEDA 2.20.1 control-plane 0→1→3→0 cycle with
+  three safe simulated-Worker preStop results.
 
 ### Known limitations
 
-- live RWKV Sidecar Snapshot/Restore, PostgreSQL distributed metadata, S3 Cold
-  State and a measured Kubernetes/KEDA GPU lifecycle remain unimplemented;
+- Controller startup reconstruction of the current durable State index,
+  authenticated multi-tenant exposure, and a real GPU Pod 0→1→N→0 lifecycle
+  remain unimplemented;
 - `owner_id` is not authentication and the plugin must not be exposed publicly;
 - LocalFS/in-memory State lifecycle is a single-replica development profile.
 

@@ -279,3 +279,6 @@ See the [current-state audit](STATEPOOL_CURRENT_STATE_AUDIT.md) and
 
 Deployment profiles, KEDA gating and the provisioned Grafana dashboard are in
 [`deploy/statepool/README.md`](../deploy/statepool/README.md).
+The measured kind/KEDA control-plane cycle and its non-GPU claim boundary are
+archived in
+[`bench/artifacts/statepool-keda-kind-20260827/`](../bench/artifacts/statepool-keda-kind-20260827/README.md).

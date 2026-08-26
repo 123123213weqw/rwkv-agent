@@ -15,7 +15,8 @@
 - [`evaluation-protocol.md`](evaluation-protocol.md)：A/B/C 可复现实验；
 - [`evidence-register.md`](evidence-register.md)：实测、估算、待测证据台账。
 
-当前代码可以演示：默认关闭兼容、插件握手、Worker 注册/Placement、
-Lease/fencing、LocalFS Snapshot/Restore、旧 Lease 拒绝、Drain admission、
-Prometheus 指标与部署配置。跨真实 RWKV Worker 的 kill/restore、PostgreSQL、
-S3 和 KEDA 集群闭环仍是进入正式答辩前的硬门槛。
+当前代码和证据可以演示：默认关闭兼容、插件握手、Worker
+注册/Placement、Lease/fencing、PostgreSQL/S3 Snapshot/Restore、旧 Lease
+拒绝、RTX 4080 强杀进程后恢复续写、Drain admission、Prometheus 指标，以及
+kind/KEDA 0→1→3→0。GPU 数据面与非 GPU Kubernetes 控制面是两个独立证据
+切片；A/B/C 成本对照和真实 GPU Pod 闭环仍是后续证据门槛。

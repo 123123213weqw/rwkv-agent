@@ -1,0 +1,272 @@
+---
+# Source: rwkv-statepool/templates/plugin-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: statepool
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: statepool-plugin
+spec:
+  selector:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/component: statepool-plugin
+  ports:
+    - name: http
+      port: 8130
+      targetPort: http
+---
+# Source: rwkv-statepool/templates/worker-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: statepool-worker
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: inference-worker
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/component: inference-worker
+  ports:
+    - name: inference
+      port: 18118
+      targetPort: inference
+---
+# Source: rwkv-statepool/templates/plugin-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statepool
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: statepool-plugin
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rwkv-statepool
+      app.kubernetes.io/instance: statepool
+      app.kubernetes.io/component: statepool-plugin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rwkv-statepool
+        app.kubernetes.io/instance: statepool
+        app.kubernetes.io/component: statepool-plugin
+    spec:
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: statepool-plugin
+          image: "rwkv-statepool-cloud-plugin:0.3.0-beta.2-dev"
+          imagePullPolicy: Never
+          args:
+            - --host=0.0.0.0
+            - --port=8130
+            - --worker-ttl-seconds=30
+            - --lease-max-ttl-seconds=120
+            - --max-state-bytes=536870912
+            - --state-dir=/var/lib/statepool/states
+          ports:
+            - name: http
+              containerPort: 8130
+          readinessProbe:
+            httpGet: { path: /plugin/v1/health, port: http }
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet: { path: /live, port: http }
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: state
+              mountPath: /var/lib/statepool/states
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: state
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+# Source: rwkv-statepool/templates/worker-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statepool-worker
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: inference-worker
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rwkv-statepool
+      app.kubernetes.io/instance: statepool
+      app.kubernetes.io/component: inference-worker
+  template:
+    metadata:
+      annotations:
+        checksum/statepool-worker-contract: "statepool-worker-capability.v1"
+      labels:
+        app.kubernetes.io/name: rwkv-statepool
+        app.kubernetes.io/instance: statepool
+        app.kubernetes.io/component: inference-worker
+    spec:
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: worker
+          image: "rwkv-statepool-worker-keda-sim:20260827"
+          imagePullPolicy: Never
+          env:
+            - name: POD_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            - name: POD_UID
+              valueFrom: { fieldRef: { fieldPath: metadata.uid } }
+            - name: POD_NAMESPACE
+              valueFrom: { fieldRef: { fieldPath: metadata.namespace } }
+            - name: NODE_NAME
+              valueFrom: { fieldRef: { fieldPath: spec.nodeName } }
+            - name: POD_IP
+              valueFrom: { fieldRef: { fieldPath: status.podIP } }
+            - { name: RWKV_STATEPOOL_URL, value: "http://statepool:8130" }
+            - { name: RWKV_WORKER_PORT, value: "18118" }
+            - { name: RWKV_WORKER_ENDPOINT, value: "http://$(POD_IP):18118" }
+            - { name: RWKV_WORKER_ZONE, value: "cloud" }
+            - { name: RWKV_WORKER_MODEL_ID, value: "rwkv7-keda-sim" }
+            - { name: RWKV_WORKER_MODEL_REVISION, value: "keda-sim-20260827" }
+            - { name: RWKV_WORKER_TOKENIZER, value: "rwkv_vocab_v20230424" }
+            - { name: RWKV_WORKER_STATE_ABI, value: "rwkv7-keda-sim-state-v1" }
+            - { name: RWKV_WORKER_STATE_SLOTS, value: "8" }
+            - { name: RWKV_WORKER_MAX_BATCH, value: "8" }
+            - { name: RWKV_WORKER_HEARTBEAT_SECONDS, value: "2" }
+            - { name: RWKV_WORKER_DEVICE_VENDOR, value: "simulated" }
+            - { name: RWKV_WORKER_DEVICE_MODEL, value: "kind-control-plane" }
+            - { name: RWKV_WORKER_DEVICE_RUNTIME, value: "none" }
+            - { name: RWKV_WORKER_DEVICE_MEMORY_BYTES, value: "0" }
+            - { name: RWKV_WORKER_PRICE_CURRENCY, value: "CNY" }
+            - { name: RWKV_WORKER_PRICE_PER_GPU_HOUR, value: "0" }
+          ports:
+            - name: inference
+              containerPort: 18118
+          readinessProbe:
+            httpGet: { path: /ready, port: inference }
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet: { path: /live, port: inference }
+            periodSeconds: 10
+          # The chosen Worker image must implement this adapter. It stops
+          # admission, waits for in-flight requests, snapshots every dirty
+          # State under a fenced Lease, heartbeats unpersisted_state_slots=0,
+          # then returns success. A timeout makes Pod termination fail loudly.
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /usr/local/bin/rwkv-statepool-drain
+                  - --deadline-seconds=20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              nvidia.com/gpu: "0"
+            requests:
+              cpu: 10m
+              memory: 32Mi
+              nvidia.com/gpu: "0"
+---
+# Source: rwkv-statepool/templates/keda-scaledobject.yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: statepool-worker
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: statepool-worker
+  pollingInterval: 2
+  cooldownPeriod: 10
+  initialCooldownPeriod: 0
+  minReplicaCount: 0
+  idleReplicaCount: 0
+  maxReplicaCount: 3
+  advanced:
+    restoreToOriginalReplicaCount: true
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 10
+          policies:
+            - { type: Pods, value: 1, periodSeconds: 60 }
+  triggers:
+    - type: prometheus
+      metricType: AverageValue
+      metadata:
+        serverAddress: "http://prometheus.statepool-keda.svc.cluster.local:9090"
+        metricName: rwkv_statepool_pending_requests
+        query: sum(statepool_pending_requests)
+        threshold: "1"
+        activationThreshold: "0"
+        ignoreNullValues: "false"
+    - type: prometheus
+      metricType: AverageValue
+      metadata:
+        serverAddress: "http://prometheus.statepool-keda.svc.cluster.local:9090"
+        metricName: rwkv_statepool_estimated_decode_seconds
+        query: sum(statepool_estimated_decode_seconds)
+        threshold: "999999"
+        activationThreshold: "0"
+        ignoreNullValues: "false"
+

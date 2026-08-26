@@ -49,8 +49,9 @@ Worker heartbeat 报 `running_requests=1` 或不报告 dirty State，Drain 只�
 `statepool_pending_requests` 从 0→1，KEDA 拉起第一个 Worker；负载增加后
 `estimated_decode_seconds` 驱动 1→N；停止负载并完成 Drain 后 N→0。
 
-如果真实集群闭环尚未完成，答辩时只能展示 YAML/静态检查并明确说“待测”，
-不能播放伪造曲线。
+展示 `bench/artifacts/statepool-keda-kind-20260827/transitions-compact.csv`
+和三个 `prestop-results.json` 结果。明确这是 kind 上的控制面仿真；真实 RTX
+4080 State 恢复证据单独展示，不把两者表述为 GPU Pod 闭环。
 
 Grafana 展示 GPU seconds、Local/Cloud、Hot/Warm/Cold、Restore、避免 Prefill、
 State I/O、Lease conflict、分币种 estimated cost。

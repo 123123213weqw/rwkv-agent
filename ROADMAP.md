@@ -21,29 +21,36 @@ Roadmap items are evidence gates, not date promises.
 
 - Sidecar Snapshot/Restore/Batch Continue/Release contract (complete);
 - opt-in Worker registration, heartbeat, readiness and conservative preStop
-  drain adapter (complete; Kubernetes runtime evidence pending);
+  drain adapter (complete; real RTX 4080 process evidence and simulated-Worker
+  Kubernetes lifecycle evidence archived separately);
 - immutable model/tokenizer/State ABI from the Worker, not operator guesswork
   (complete);
-- local two-Worker export/import deterministic continuation test;
-- Controller Lease path for any plan with `lease_required=true`;
-- no fallback after ambiguous remote start.
+- exact-compatible fresh-Worker-process export/import continuation test
+  (complete on one physical RTX 4080, sequential processes);
+- Controller Lease path for any plan with `lease_required=true` (complete);
+- no fallback after ambiguous remote start (complete and fault-injection tested).
 
 ## Gate 3 — Cloud Lite durability
 
-- PostgreSQL MetadataStore with transactionally monotonic fencing and CAS;
-- S3-compatible StateStore with checksum, immutable key, multipart limits and
-  orphan garbage collection;
-- restart/reconnect/concurrent-replica fault injection;
-- Compose closes create→continue→snapshot→kill→restore→continue→release.
+- PostgreSQL MetadataStore with transactionally monotonic fencing and CAS
+  (complete; two-client PostgreSQL 17.6 integration);
+- S3-compatible StateStore with checksum and immutable keys (complete against
+  MinIO; multipart transfer and orphan garbage collection remain future work);
+- restart/reconnect/concurrent-client fault injection (complete for the
+  published adapter claims);
+- Compose closes a generic cross-plugin-restart byte lifecycle, and the same
+  services backed an exact-model RTX 4080 process-loss lifecycle.
 
 ## Gate 4 — Kubernetes elasticity
 
-- published image digests and SBOM;
+- image identities and development SBOM archived (published immutable registry
+  digests remain pending);
 - publish a real GPU Worker image containing the implemented heartbeat and
-  preStop drain adapter;
-- KEDA measured 0→1→N→0 without double execution or dirty State loss;
-- Dashboard screenshot and raw Prometheus series archived;
-- A/B/C Sticky/Re-prefill/StatePool benchmark.
+  preStop drain adapter (pending; the current real GPU run used a process);
+- KEDA control plane measured 0→1→3→0 with a protocol-faithful simulator and
+  three safe drains (complete); real GPU Pod lifecycle remains pending;
+- raw Prometheus/Kubernetes series archived; Grafana runtime screenshot pending;
+- A/B/C Sticky/Re-prefill/StatePool benchmark pending.
 
 ## Gate 5 — Optional ecosystem adapters
 

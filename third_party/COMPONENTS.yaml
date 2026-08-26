@@ -9,14 +9,15 @@ components:
     license: Apache-2.0
     integration: optional_runtime
     purpose: Pod lifecycle, node placement, health and service discovery
-    status: helm_manifest_authored_not_cluster_verified
+    version: "1.34.0-kind-0.30.0"
+    status: kind_control_plane_0_to_1_to_3_to_0_verified_with_simulated_worker
   - name: KEDA
     repository: https://github.com/kedacore/keda
     license: Apache-2.0
     integration: optional_runtime
     purpose: Event and Prometheus driven Worker autoscaling and scale-to-zero
     version: 2.20.1
-    status: scaledobject_authored_not_cluster_verified
+    status: kind_control_plane_0_to_1_to_3_to_0_verified_with_simulated_worker
   - name: AIBrix
     repository: https://github.com/vllm-project/aibrix
     license: Apache-2.0
@@ -56,7 +57,7 @@ components:
     integration: optional_runtime
     purpose: StatePool and GPU time-series metrics
     version: 3.11.3
-    status: compose_and_servicemonitor_authored_not_runtime_verified
+    status: kind_scrape_and_keda_external_metric_runtime_verified
   - name: Grafana
     repository: https://github.com/grafana/grafana
     license: AGPL-3.0-only

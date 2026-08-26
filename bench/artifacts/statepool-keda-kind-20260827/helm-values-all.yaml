@@ -1,0 +1,137 @@
+autoscaling:
+  cooldownPeriod: 10
+  decodeSecondsTarget: "999999"
+  enabled: true
+  initialCooldownPeriod: 0
+  maxReplicaCount: 3
+  minReplicaCount: 0
+  pendingRequestsTarget: "1"
+  pollingInterval: 2
+  prometheusServerAddress: http://prometheus.statepool-keda.svc.cluster.local:9090
+controller:
+  cloudPlugin:
+    fallback: fail_closed
+    latencySloMs: 5000
+    leaseTtlSeconds: 120
+    lifecycleTimeoutSeconds: 180
+    preferredZone: cloud
+    privacy: cloud_allowed
+    stateLifecycle: true
+    stateTargetTier: cold
+  dataPlaneUrl: http://replace-with-data-plane:8121
+  enabled: false
+  image:
+    pullPolicy: IfNotPresent
+    repository: ghcr.io/123123213weqw/rwkv-agent-controller
+    tag: 0.3.0-beta.2-dev
+  model:
+    id: rwkv7-g1i-preview4922-13.3b
+    revision: replace-with-immutable-model-revision
+    stateAbi: rwkv7-g1i-fp16-v1
+    tokenizer: rwkv-world-v20230424
+  modelUrls: http://replace-with-always-reachable-routing-sidecar:8118
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: ""
+  port: 18120
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+fullnameOverride: statepool
+grafanaDashboard:
+  enabled: false
+  labels:
+    grafana_dashboard: "1"
+nameOverride: ""
+plugin:
+  durable:
+    enabled: false
+    postgresSecret:
+      key: postgres-url
+      name: ""
+    s3:
+      allowHttp: false
+      bucket: ""
+      endpoint: ""
+      prefix: recurrent-state
+      region: us-east-1
+    s3Secret:
+      accessKeyIdKey: access-key-id
+      name: ""
+      secretAccessKeyKey: secret-access-key
+  image:
+    pullPolicy: Never
+    repository: rwkv-statepool-cloud-plugin
+    tag: 0.3.0-beta.2-dev
+  leaseMaxTtlSeconds: 120
+  maxStateBytes: "536870912"
+  persistence:
+    enabled: false
+    size: 20Gi
+    storageClass: ""
+  port: 8130
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: "1"
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  workerTtlSeconds: 30
+podSecurityContext:
+  fsGroup: 65532
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+  seccompProfile:
+    type: RuntimeDefault
+serviceMonitor:
+  enabled: false
+  interval: 5s
+  labels: {}
+worker:
+  affinity: {}
+  device:
+    memoryBytes: 0
+    model: kind-control-plane
+    runtime: none
+    vendor: simulated
+  enabled: true
+  heartbeatSeconds: 2
+  image:
+    pullPolicy: Never
+    repository: rwkv-statepool-worker-keda-sim
+    tag: "20260827"
+  maxBatch: 8
+  model:
+    id: rwkv7-keda-sim
+    revision: keda-sim-20260827
+    stateAbi: rwkv7-keda-sim-state-v1
+    tokenizer: rwkv_vocab_v20230424
+  nodeSelector: {}
+  podAnnotations: {}
+  port: 18118
+  price:
+    currency: CNY
+    perGpuHour: "0"
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+      nvidia.com/gpu: "0"
+    requests:
+      cpu: 10m
+      memory: 32Mi
+      nvidia.com/gpu: "0"
+  stateSlots: 8
+  terminationGracePeriodSeconds: 30
+  tolerations: []
+  zone: cloud

@@ -48,11 +48,13 @@ rwkv-agent Controller (plugin disabled by default)
 ## 场景落地（30%）
 
 现有主仓库已有真实 RWKV Agent、Sidecar、多 Session State pool 和 AMD/V100
-实验。本插件不是纸面新仓库：协议、服务、LocalFS State round trip、部署镜像、
-Compose、Helm、KEDA、ServiceMonitor、Dashboard 已进入同一仓库并有远程测试。
+实验。本插件不是纸面新仓库：协议、服务、PostgreSQL/S3、部署镜像、Compose、
+Helm、KEDA、ServiceMonitor、Dashboard 已进入同一仓库。RTX 4080 已完成
+12,911,277 字节 State 的强杀进程、冷存、fresh Worker restore/continue/release；
+kind/KEDA 已实测 0→1→3→0 和三个安全 preStop。
 
-正式提交必须补齐三组同协议实验：Sticky、Stateless re-prefill、StatePool，
-以及一次兼容 Worker 强杀/恢复闭环。结果必须标记实测或估算。
+正式提交仍需补齐同协议 Sticky、Stateless re-prefill、StatePool 三组成本对照，
+并严格把 GPU 数据面实测与非 GPU Kubernetes 控制面仿真分开标注。
 
 ## 开源治理（20%）
 
@@ -71,8 +73,8 @@ AIBrix/HAMi 集成。
 
 ## 当前诚实边界
 
-已经实现不等于已经完成比赛最终目标。Albatross live RWKV 的 CPU
-Snapshot/Restore 协议边界和确定性续写测试已经完成，但尚未完成
-PostgreSQL distributed Lease、S3 adapter、真实 KEDA 集群 0→1→N→0、以及
-Worker kill/restore GPU 实测。答辩材料不得把 CPU conformance 或配置存在
-写成跨 Worker 云端运行结果。
+已经实现不等于可以扩大结论。PostgreSQL Lease/CAS、S3 adapter、RTX 4080
+Worker 进程强杀恢复和 kind/KEDA 0→1→3→0 都有原始证据，但两次实验不是同一
+拓扑：GPU 实验是同一物理卡上的 sequential fresh process；Kubernetes 实验是
+非 GPU 协议 Worker 仿真。答辩不得把它们拼成“GPU Pod 跨节点迁移”，也不得
+把异常 SSH 隧道下的 S3 时延写成生产 SLO。

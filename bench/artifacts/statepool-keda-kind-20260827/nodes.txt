@@ -1,0 +1,2 @@
+NAME                           STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION      CONTAINER-RUNTIME
+statepool-keda-control-plane   Ready    control-plane   27m   v1.34.0   172.31.0.2    <none>        Debian GNU/Linux 12 (bookworm)   6.8.0-136-generic   containerd://2.1.3

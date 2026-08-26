@@ -1,0 +1,9 @@
+NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                IMAGES                                            SELECTOR
+deployment.apps/keda-admission           1/1     1            1           23m   keda-admission-webhooks   ghcr.io/kedacore/keda-admission-webhooks:2.20.1   app=keda-admission-webhooks
+deployment.apps/keda-metrics-apiserver   1/1     1            1           23m   keda-metrics-apiserver    ghcr.io/kedacore/keda-metrics-apiserver:2.20.1    app=keda-metrics-apiserver
+deployment.apps/keda-operator            1/1     1            1           23m   keda-operator             ghcr.io/kedacore/keda:2.20.1                      app=keda-operator
+
+NAME                                         READY   STATUS    RESTARTS      AGE   IP           NODE                           NOMINATED NODE   READINESS GATES
+pod/keda-admission-699646ff97-g5lwk          1/1     Running   0             23m   10.244.0.6   statepool-keda-control-plane   <none>           <none>
+pod/keda-metrics-apiserver-cbb8c8cd9-htj85   1/1     Running   0             23m   10.244.0.7   statepool-keda-control-plane   <none>           <none>
+pod/keda-operator-bc7fbd5db-b7cg8            1/1     Running   1 (23m ago)   23m   10.244.0.5   statepool-keda-control-plane   <none>           <none>

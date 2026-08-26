@@ -46,8 +46,11 @@ PostgreSQL/S3 adapters, a cross-plugin-restart byte lifecycle, and an
 exact-compatible real-GPU forced Worker-process-loss restore have passed. The
 raw RTX 4080 evidence is under
 [`bench/artifacts/statepool-4080-worker-kill-20260827/`](bench/artifacts/statepool-4080-worker-kill-20260827/README.md).
-The development line does not yet claim a measured live-Kubernetes/KEDA
-0→1→N→0 result or cross-model State migration.
+The Kubernetes/KEDA control plane has also completed a measured 0→1→3→0 kind
+cycle with three safe simulated-Worker preStop results; see
+[`bench/artifacts/statepool-keda-kind-20260827/`](bench/artifacts/statepool-keda-kind-20260827/README.md).
+That run performs no model inference. The project does not claim a GPU Pod
+cycle, production scaling SLO, or cross-model State migration.
 
 ## What you can verify
 

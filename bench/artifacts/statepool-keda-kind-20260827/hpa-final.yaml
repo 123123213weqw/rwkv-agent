@@ -1,0 +1,91 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    meta.helm.sh/release-name: statepool
+    meta.helm.sh/release-namespace: statepool-keda
+  creationTimestamp: "2026-08-26T18:38:50Z"
+  labels:
+    app.kubernetes.io/instance: statepool
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/part-of: statepool-worker
+    app.kubernetes.io/version: 0.3.0-beta.2
+    scaledobject.keda.sh/name: statepool-worker
+  name: keda-hpa-statepool-worker
+  namespace: statepool-keda
+  ownerReferences:
+  - apiVersion: keda.sh/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ScaledObject
+    name: statepool-worker
+    uid: f02553a2-99ac-4bb1-bbd4-81e81e230e4b
+  resourceVersion: "4110"
+  uid: fa2b333a-fcb7-4cf0-90a7-b888206f2e5e
+spec:
+  behavior:
+    scaleDown:
+      policies:
+      - periodSeconds: 60
+        type: Pods
+        value: 1
+      selectPolicy: Max
+      stabilizationWindowSeconds: 10
+    scaleUp:
+      policies:
+      - periodSeconds: 15
+        type: Pods
+        value: 4
+      - periodSeconds: 15
+        type: Percent
+        value: 100
+      selectPolicy: Max
+      stabilizationWindowSeconds: 0
+  maxReplicas: 3
+  metrics:
+  - external:
+      metric:
+        name: s0-prometheus
+        selector:
+          matchLabels:
+            scaledobject.keda.sh/name: statepool-worker
+      target:
+        averageValue: "1"
+        type: AverageValue
+    type: External
+  - external:
+      metric:
+        name: s1-prometheus
+        selector:
+          matchLabels:
+            scaledobject.keda.sh/name: statepool-worker
+      target:
+        averageValue: "999999"
+        type: AverageValue
+    type: External
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: statepool-worker
+status:
+  conditions:
+  - lastTransitionTime: "2026-08-26T18:38:53Z"
+    message: the HPA controller was able to get the target's current scale
+    reason: SucceededGetScale
+    status: "True"
+    type: AbleToScale
+  - lastTransitionTime: "2026-08-26T18:48:08Z"
+    message: scaling is disabled since the replica count of the target is zero
+    reason: ScalingDisabled
+    status: "False"
+    type: ScalingActive
+  - lastTransitionTime: "2026-08-26T18:47:38Z"
+    message: the desired count is within the acceptable range
+    reason: DesiredWithinRange
+    status: "False"
+    type: ScalingLimited
+  currentMetrics: null
+  desiredReplicas: 0
+  lastScaleTime: "2026-08-26T18:47:38Z"
