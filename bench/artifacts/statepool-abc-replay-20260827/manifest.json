@@ -1,0 +1,32 @@
+{
+  "schema_version": "statepool-finops-replay-manifest.v1",
+  "classification": "simulation_replay_from_measured_primitives",
+  "git_commit": "a7bf0100a1c9793977ea8a48cf72e36118ed64e3",
+  "git_worktree_dirty_at_start": false,
+  "generator": {
+    "path": "scripts/statepool_finops_replay.py",
+    "sha256": "573e7b265919c878bfa59282145cd284b62564966a4ee25ad72cf72699aff58e"
+  },
+  "source_files": [
+    {
+      "path": "bench/artifacts/statepool-keda-kind-20260827/verified-summary.json",
+      "sha256": "6c6120bb1e86cb4a74a19443e4347b2518985b6975d894f491a6885e93f32f42"
+    },
+    {
+      "path": "bench/artifacts/statepool-4080-worker-kill-20260827/worker/result.json",
+      "sha256": "0de94790941a41d8c74a42b09e01ec0c9517a6027e00f4dc4cc99c6157de688a"
+    },
+    {
+      "path": "bench/artifacts/long-lived-phase0-rust-contract-v1/dev-n100-keep-hot.json",
+      "sha256": "9450bb216e6304c4dd6d4412d880fbc54eef8466c1cbd3e427a38968378f0198"
+    },
+    {
+      "path": "bench/artifacts/long-lived-phase0-rust-contract-v1/dev-n100-drop-reprefill.json",
+      "sha256": "e179aa16a11abd79324acf4c18226561075108d955735845c93d8e3d3f2dfdde"
+    },
+    {
+      "path": "bench/artifacts/long-lived-phase0-rust-contract-v1/dev-n100-move-cpu.json",
+      "sha256": "e5c477765e88fd94cb65b948a42245db685968b86a7539d7cefa859f9ee383a9"
+    }
+  ]
+}

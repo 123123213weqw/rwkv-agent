@@ -52,6 +52,13 @@ cycle with three safe simulated-Worker preStop results; see
 That run performs no model inference. The project does not claim a GPU Pod
 cycle, production scaling SLO, or cross-model State migration.
 
+An explicitly labelled 100-Session A/B/C capacity replay combines the archived
+KEDA timing, one measured RTX 4080 State size and frozen contract-correctness
+runs. Under its published assumptions, StatePool uses 45.151% fewer modeled
+allocated GPU-hours than Sticky and avoids 51,200 repeated Prefill tokens versus
+Stateless; it is a simulation, not a live 100-Session GPU benchmark. See
+[`bench/artifacts/statepool-abc-replay-20260827/`](bench/artifacts/statepool-abc-replay-20260827/README.md).
+
 ## What you can verify
 
 - **Ordinary chat:** greetings remain on the direct path and do not call a tool.

@@ -53,8 +53,10 @@ Helm、KEDA、ServiceMonitor、Dashboard 已进入同一仓库。RTX 4080 已完
 12,911,277 字节 State 的强杀进程、冷存、fresh Worker restore/continue/release；
 kind/KEDA 已实测 0→1→3→0 和三个安全 preStop。
 
-正式提交仍需补齐同协议 Sticky、Stateless re-prefill、StatePool 三组成本对照，
-并严格把 GPU 数据面实测与非 GPU Kubernetes 控制面仿真分开标注。
+100 Session A/B/C 容量回放已按统一公式给出 GPU-hours、空闲分钟、Prefill、
+State I/O 和估算费用，并在每行标记 `simulation_replay`。按公开假设，C 相比 A
+减少 45.151% modeled GPU-hours，相比 B 避免 51,200 Prefill tokens。该结果不是
+live 100 Session GPU benchmark，后续可用同协议实测替换。
 
 ## 开源治理（20%）
 

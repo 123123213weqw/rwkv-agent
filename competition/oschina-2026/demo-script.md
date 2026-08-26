@@ -64,8 +64,10 @@ State I/O、Lease conflict、分币种 estimated cost。
 - B Re-prefill：可缩零、重复 Prefill 最大；
 - C StatePool：恢复有代价，但避免重复 Prefill并释放空闲 GPU。
 
-只展示 `evaluation-protocol.md` 生成的实测表，并在每列标注 hardware、date、
-measured/estimated。
+当前展示
+`bench/artifacts/statepool-abc-replay-20260827/results.csv` 时，页眉必须写
+“simulation replay”，并同时展示公式、来源 hash 和 `not_measured` 列表；不得
+口播成实测 GPU 利用率。将来只有同拓扑 live 结果才能替换此页。
 
 ## 7:15–8:00：为什么不是拼装
 

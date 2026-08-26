@@ -19,6 +19,8 @@ All notable public changes are recorded here.
   and FinOps integration;
 - measured kind/Kubernetes 1.34 + KEDA 2.20.1 control-plane 0→1→3→0 cycle with
   three safe simulated-Worker preStop results.
+- reproducible 100-Session A/B/C FinOps replay that keeps simulated outputs
+  separate from measured KEDA, RTX 4080 and contract-correctness inputs.
 
 ### Known limitations
 

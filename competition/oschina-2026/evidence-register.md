@@ -16,7 +16,7 @@
 | E12 | PostgreSQL distributed Lease/CAS | 双连接真实 17.6 容器集成测试 | 已验证 | `evidence/statepool/durable-adapters-2026-08-27.md` |
 | E13 | S3/MinIO immutable Cold State | 真实 MinIO 容器集成测试 | 已验证 | `evidence/statepool/durable-adapters-2026-08-27.md` |
 | E14 | KEDA 0→1→3→0 safe drain | kind/Kubernetes 控制面实测 | 已验证（协议 Worker 仿真，非 GPU Pod） | `bench/artifacts/statepool-keda-kind-20260827/` |
-| E15 | A/B/C 成本和利用率 | 对照实验 | 待完成 | — |
+| E15 | A/B/C GPU-hours、空闲分钟、Prefill、State I/O 与估算成本 | 100 Session 仿真回放 | 已验证（非 live GPU benchmark） | `bench/artifacts/statepool-abc-replay-20260827/` |
 | E16 | Albatross CPU snapshot→release→restore→continue | 自动测试 | 已验证 | `tests/test_state_runtime.py::test_safe_snapshot_release_restore_continue_roundtrip`、`crates/state-runtime/tests/rwkv_http.rs` |
 | E17 | V100/4080 远程环境与模型可用性探测 | 环境清单，非性能证据 | 已记录 | `evidence/statepool/gpu-environment-probe-2026-08-26.md` |
 | E18 | Cloud Lite PostgreSQL+MinIO 跨插件重启恢复 | 真实 Compose 服务闭环 | 已验证（通用 State bytes，非 GPU） | `evidence/statepool/cloud-lite-compose-restart-2026-08-27.txt` |

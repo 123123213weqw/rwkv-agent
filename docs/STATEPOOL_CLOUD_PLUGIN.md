@@ -282,3 +282,6 @@ Deployment profiles, KEDA gating and the provisioned Grafana dashboard are in
 The measured kind/KEDA control-plane cycle and its non-GPU claim boundary are
 archived in
 [`bench/artifacts/statepool-keda-kind-20260827/`](../bench/artifacts/statepool-keda-kind-20260827/README.md).
+The evidence-backed A/B/C capacity simulation, including formulae and explicit
+non-measurements, is under
+[`bench/artifacts/statepool-abc-replay-20260827/`](../bench/artifacts/statepool-abc-replay-20260827/README.md).

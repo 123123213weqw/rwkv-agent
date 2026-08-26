@@ -82,3 +82,12 @@ bench/artifacts/statepool-<date>-<hardware>/
 
 `manifest.json` 必须含 Git commit、dirty 状态、硬件、驱动、Kubernetes/KEDA、
 镜像 digest、模型 digest、区域、币种和 measured/estimated 字段。
+
+## 当前可用的仿真回放
+
+[`bench/artifacts/statepool-abc-replay-20260827/`](../../bench/artifacts/statepool-abc-replay-20260827/README.md)
+把 100 Session、两段 60 秒活跃和 300 秒空闲固定为同一 trace，并引用真实
+KEDA 时间、RTX 4080 State 大小/单次本地 snapshot/restore 和 100 Session
+contract correctness。它输出 `simulation_replay`，不能替代本协议要求的
+same-topology 三次 live GPU 实验；其作用是让比赛叙事中的成本公式先可审计、
+可改参数、可复算，而不是填造尚未采集的 GPU utilization 或 restore P95。

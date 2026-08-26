@@ -1,0 +1,130 @@
+{
+  "schema_version": "statepool-finops-replay.v1",
+  "classification": "simulation_replay_from_measured_primitives",
+  "config": {
+    "sessions": 100,
+    "sessions_per_worker": 8,
+    "active_seconds_per_window": 60.0,
+    "idle_seconds_between_windows": 300.0,
+    "windows": 2,
+    "second_window_history_tokens_per_session": 512,
+    "gpu_price_cny_per_hour": 2.0
+  },
+  "measured_inputs": {
+    "keda": {
+      "path": "bench/artifacts/statepool-keda-kind-20260827/verified-summary.json",
+      "sha256": "6c6120bb1e86cb4a74a19443e4347b2518985b6975d894f491a6885e93f32f42",
+      "environment": "kind 0.30.0 / Kubernetes 1.34.0 / KEDA 2.20.1 / simulated Worker",
+      "scale_from_demand_to_three_ready_seconds": 14.38,
+      "pending_clear_to_last_pod_gone_seconds": 40.803
+    },
+    "gpu_state": {
+      "path": "bench/artifacts/statepool-4080-worker-kill-20260827/worker/result.json",
+      "sha256": "0de94790941a41d8c74a42b09e01ec0c9517a6027e00f4dc4cc99c6157de688a",
+      "environment": "one RTX 4080; exact-compatible sequential Worker processes",
+      "state_size_bytes": 12911277,
+      "worker_snapshot_ms_single_sample": 81.266,
+      "worker_restore_ms_single_sample": 104.246,
+      "fresh_worker_ready_ms_warm_single_sample": 4011.946
+    },
+    "contract_correctness": {
+      "sticky_worker": {
+        "path": "bench/artifacts/long-lived-phase0-rust-contract-v1/dev-n100-keep-hot.json",
+        "sha256": "9450bb216e6304c4dd6d4412d880fbc54eef8466c1cbd3e427a38968378f0198",
+        "policy": "keep_hot",
+        "events": 300,
+        "cross_talk": 0,
+        "failed_events": 0,
+        "state_leak_count": 0
+      },
+      "stateless_reprefill": {
+        "path": "bench/artifacts/long-lived-phase0-rust-contract-v1/dev-n100-drop-reprefill.json",
+        "sha256": "e179aa16a11abd79324acf4c18226561075108d955735845c93d8e3d3f2dfdde",
+        "policy": "drop_reprefill",
+        "events": 300,
+        "cross_talk": 0,
+        "failed_events": 0,
+        "state_leak_count": 0
+      },
+      "statepool": {
+        "path": "bench/artifacts/long-lived-phase0-rust-contract-v1/dev-n100-move-cpu.json",
+        "sha256": "e5c477765e88fd94cb65b948a42245db685968b86a7539d7cefa859f9ee383a9",
+        "policy": "move_cpu",
+        "events": 300,
+        "cross_talk": 0,
+        "failed_events": 0,
+        "state_leak_count": 0
+      }
+    }
+  },
+  "derived_results": [
+    {
+      "scenario": "A",
+      "label": "sticky_worker",
+      "classification": "simulation_replay",
+      "sessions": 100,
+      "workers_at_peak": 13,
+      "allocated_gpu_seconds": 5460.0,
+      "gpu_hours_per_100_sessions": 1.516667,
+      "modeled_idle_gpu_minutes": 65.0,
+      "repeated_prefill_tokens": 0,
+      "prefill_tokens_avoided_vs_stateless": 51200,
+      "state_bytes_written": 0,
+      "state_bytes_read": 0,
+      "eligible_continue_state_hit_rate": 1.0,
+      "estimated_gpu_cost_cny": 3.033333
+    },
+    {
+      "scenario": "B",
+      "label": "stateless_reprefill",
+      "classification": "simulation_replay",
+      "sessions": 100,
+      "workers_at_peak": 13,
+      "allocated_gpu_seconds": 2994.758,
+      "gpu_hours_per_100_sessions": 0.831877,
+      "modeled_idle_gpu_minutes": 17.6813,
+      "repeated_prefill_tokens": 51200,
+      "prefill_tokens_avoided_vs_stateless": 0,
+      "state_bytes_written": 0,
+      "state_bytes_read": 0,
+      "eligible_continue_state_hit_rate": 0.0,
+      "estimated_gpu_cost_cny": 1.663754
+    },
+    {
+      "scenario": "C",
+      "label": "statepool",
+      "classification": "simulation_replay",
+      "sessions": 100,
+      "workers_at_peak": 13,
+      "allocated_gpu_seconds": 2994.758,
+      "gpu_hours_per_100_sessions": 0.831877,
+      "modeled_idle_gpu_minutes": 17.6813,
+      "repeated_prefill_tokens": 0,
+      "prefill_tokens_avoided_vs_stateless": 51200,
+      "state_bytes_written": 2582255400,
+      "state_bytes_read": 1291127700,
+      "eligible_continue_state_hit_rate": 1.0,
+      "estimated_gpu_cost_cny": 1.663754
+    }
+  ],
+  "comparisons": {
+    "statepool_gpu_hour_reduction_vs_sticky_percent": 45.151,
+    "statepool_estimated_gpu_cost_reduction_vs_sticky_percent": 45.151,
+    "statepool_prefill_tokens_avoided_vs_stateless": 51200,
+    "statepool_total_state_transfer_bytes": 3873383100
+  },
+  "not_measured": [
+    "GPU average utilization for these three scenarios",
+    "production restore P50/P95",
+    "prefill GPU seconds or throughput penalty in scenario B",
+    "storage, request and egress charges",
+    "real GPU Kubernetes Pod scaling"
+  ],
+  "interpretation_limits": [
+    "Derived GPU-hours are a capacity-allocation model, not a cloud bill.",
+    "B and C have equal modeled allocation because the unknown B re-prefill compute penalty is deliberately omitted.",
+    "The KEDA timing comes from a non-GPU kind Worker simulation.",
+    "The State size and local snapshot/restore timings are single RTX 4080 measurements.",
+    "The 2 CNY/GPU-hour input is an explicit scenario parameter, not a market price claim."
+  ]
+}

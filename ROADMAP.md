@@ -50,7 +50,8 @@ Roadmap items are evidence gates, not date promises.
 - KEDA control plane measured 0→1→3→0 with a protocol-faithful simulator and
   three safe drains (complete); real GPU Pod lifecycle remains pending;
 - raw Prometheus/Kubernetes series archived; Grafana runtime screenshot pending;
-- A/B/C Sticky/Re-prefill/StatePool benchmark pending.
+- evidence-backed 100-Session A/B/C capacity replay complete; a same-topology
+  live GPU benchmark remains pending.
 
 ## Gate 5 — Optional ecosystem adapters
 
