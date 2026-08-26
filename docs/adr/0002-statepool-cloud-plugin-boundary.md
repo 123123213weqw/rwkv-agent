@@ -153,8 +153,9 @@ processes and are documented in `third_party/COMPONENTS.yaml`.
 The local product remains small and stable, plugin failures are isolated, and
 cloud components can evolve behind standard contracts. The trade-off is an
 extra network boundary and the need for explicit reconciliation after
-ambiguous failures. Cross-Worker raw-State migration remains unavailable until
-the live RWKV Sidecar implements and passes snapshot/restore conformance tests.
+ambiguous failures. The Albatross Sidecar now passes CPU snapshot/restore
+conformance, but cross-Worker raw-State migration remains a non-claim until the
+distributed store/fencing path and real GPU Worker-kill experiment pass.
 
 ## Verification
 

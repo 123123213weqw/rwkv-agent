@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -34,7 +37,13 @@ RUNTIME_DIR = os.getenv(
     "vendor/Albatross/faster3a_2607",
 )
 MODEL_ID = os.getenv("G1I_MODEL_ID", "rwkv7-g1i-preview3260-7.2b")
+MODEL_REVISION = os.getenv("G1I_MODEL_REVISION", "preview3260")
+TOKENIZER_ID = os.getenv("G1I_TOKENIZER_ID", "rwkv_vocab_v20230424")
 BACKEND = os.getenv("G1I_BACKEND", "albatross").strip().lower()
+STATE_ABI = os.getenv(
+    "G1I_STATE_ABI",
+    f"rwkv7-{BACKEND}-recurrent-state-v1",
+)
 HF_MODEL_PATH = os.getenv("G1I_HF_MODEL_PATH", MODEL_PATH)
 HF_DTYPE = os.getenv("G1I_HF_DTYPE", "fp16").strip().lower()
 CONTEXT = int(os.getenv("G1I_CONTEXT", "12288"))
@@ -51,6 +60,9 @@ PERSISTENT_STATE_CAPACITY = int(
 )
 PERSISTENT_STATE_TTL_SECONDS = float(
     os.getenv("G1I_PERSISTENT_STATE_TTL_SECONDS", "120")
+)
+MAX_SNAPSHOT_BYTES = int(
+    os.getenv("G1I_MAX_SNAPSHOT_BYTES", str(512 * 1024 * 1024))
 )
 PIPELINE_DEVICES = tuple(
     int(value)
@@ -145,6 +157,7 @@ class NativeG1I:
             capacity=min(PERSISTENT_STATE_CAPACITY, STATE_CAPACITY),
             ttl_seconds=PERSISTENT_STATE_TTL_SECONDS,
             decode_engine=self.engine,
+            max_snapshot_bytes=MAX_SNAPSHOT_BYTES,
         )
         self._counter_lock = threading.Lock()
         self.calls = 0
@@ -488,6 +501,19 @@ def create_app():
 
     app = FastAPI(title="RWKV G1I continuous-batch sidecar", version="0.4.0")
 
+    def model_ref() -> dict[str, str]:
+        return {
+            "model_id": MODEL_ID,
+            "revision": MODEL_REVISION,
+            "tokenizer": TOKENIZER_ID,
+            "state_abi": STATE_ABI,
+        }
+
+    def require_model_ref(payload: dict[str, Any]) -> None:
+        supplied = payload.get("model_ref")
+        if supplied != model_ref():
+            raise HTTPException(409, "exact State model_ref mismatch")
+
     @app.on_event("startup")
     def startup() -> None:
         global service
@@ -508,6 +534,7 @@ def create_app():
         return {
             "status": "ready",
             "model": MODEL_ID,
+            "model_ref": model_ref(),
             "backend": BACKEND,
             "context": CONTEXT,
             "loaded_seconds": round(service.loaded_seconds, 3),
@@ -838,6 +865,72 @@ def create_app():
                 state_ids=state_ids,
             )
             return {"status": "ok", **released}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.post("/v1/states/{state_id}/snapshot")
+    def state_snapshot(state_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        if service is None:
+            raise HTTPException(503, "loading")
+        require_model_ref(payload)
+        if payload.get("target_tier", "cpu") != "cpu":
+            raise HTTPException(422, "Sidecar snapshot target_tier must be cpu")
+        try:
+            snapshot = service.states.snapshot(
+                owner_id=str(payload.get("owner_id") or ""),
+                state_id=state_id,
+            )
+            checkpoint_id = "checkpoint-" + snapshot["checksum"].removeprefix(
+                "sha256:"
+            )[:32]
+            return {
+                "status": "ok",
+                "checkpoint": {
+                    "checkpoint_id": checkpoint_id,
+                    "model_ref": model_ref(),
+                    "provider_mode": "rwkv_recurrent",
+                    "placement": "cpu",
+                    "checksum": snapshot["checksum"],
+                    "size_bytes": snapshot["size_bytes"],
+                    "atomic": True,
+                    "seen_tokens": snapshot["seen_tokens"],
+                },
+                "payload_base64": base64.b64encode(snapshot["payload"]).decode("ascii"),
+            }
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.post("/v1/states/restore")
+    def state_restore(payload: dict[str, Any]) -> dict[str, Any]:
+        if service is None:
+            raise HTTPException(503, "loading")
+        require_model_ref(payload)
+        encoded = payload.get("payload_base64")
+        if not isinstance(encoded, str) or not encoded:
+            raise HTTPException(422, "payload_base64 must be a non-empty string")
+        if len(encoded) > ((MAX_SNAPSHOT_BYTES + 2) // 3) * 4 + 4:
+            raise HTTPException(413, "snapshot exceeds configured byte limit")
+        try:
+            raw = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise HTTPException(422, "payload_base64 is invalid") from exc
+        expected_checksum = str(payload.get("checksum") or "")
+        actual_checksum = "sha256:" + hashlib.sha256(raw).hexdigest()
+        if expected_checksum != actual_checksum:
+            raise HTTPException(422, "snapshot checksum mismatch")
+        try:
+            state = service.states.restore(
+                owner_id=str(payload.get("owner_id") or ""),
+                payload=raw,
+                branch=(
+                    str(payload["branch"])
+                    if payload.get("branch") is not None
+                    else None
+                ),
+            )
+            return {"status": "ok", "state": state}
         except Exception as exc:
             state_error(exc)
             raise AssertionError("unreachable")

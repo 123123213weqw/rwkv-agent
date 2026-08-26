@@ -71,6 +71,8 @@ AIBrix/HAMi 集成。
 
 ## 当前诚实边界
 
-已经实现不等于已经完成比赛最终目标。当前尚未完成： live RWKV
-Snapshot/Restore、PostgreSQL distributed Lease、S3 adapter、真实 KEDA 集群
-0→1→N→0、Worker kill/restore GPU 实测。答辩材料不得把配置存在写成运行结果。
+已经实现不等于已经完成比赛最终目标。Albatross live RWKV 的 CPU
+Snapshot/Restore 协议边界和确定性续写测试已经完成，但尚未完成
+PostgreSQL distributed Lease、S3 adapter、真实 KEDA 集群 0→1→N→0、以及
+Worker kill/restore GPU 实测。答辩材料不得把 CPU conformance 或配置存在
+写成跨 Worker 云端运行结果。

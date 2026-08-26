@@ -35,7 +35,7 @@ realtime = [
 ]
 browser = ["playwright>=1.50"]
 model = ["torch", "transformers", "safetensors"]
-agent = ["fastapi>=0.115", "uvicorn>=0.34", "torch>=2.5"]
+agent = ["fastapi>=0.115", "uvicorn>=0.34", "torch>=2.5", "safetensors>=0.5"]
 retrieval = ["sentence-transformers", "faiss-cpu"]
 segment = ["jieba>=0.42.1"]
 analysis = ["jieba>=0.42.1"]

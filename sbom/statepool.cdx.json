@@ -6,10 +6,10 @@
     "timestamp": "2026-08-26T00:00:00Z",
     "component": {
       "type": "application",
-      "bom-ref": "pkg:github/123123213weqw/rwkv-agent@c0aa5ed%2Bworktree.20260826",
+      "bom-ref": "pkg:github/123123213weqw/rwkv-agent@codex-statepool-cloud-plugin",
       "name": "rwkv-agent",
-      "version": "c0aa5ed+worktree.20260826",
-      "purl": "pkg:github/123123213weqw/rwkv-agent@c0aa5ed%2Bworktree.20260826",
+      "version": "codex-statepool-cloud-plugin",
+      "purl": "pkg:github/123123213weqw/rwkv-agent@codex-statepool-cloud-plugin",
       "licenses": [
         {
           "license": {
@@ -6775,7 +6775,7 @@
   ],
   "dependencies": [
     {
-      "ref": "pkg:github/123123213weqw/rwkv-agent@c0aa5ed%2Bworktree.20260826",
+      "ref": "pkg:github/123123213weqw/rwkv-agent@codex-statepool-cloud-plugin",
       "dependsOn": [
         "pkg:cargo/rwkv-agent-cli@0.3.0-beta.2",
         "pkg:cargo/rwkv-agent-core@0.3.0-beta.2",

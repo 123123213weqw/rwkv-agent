@@ -69,11 +69,16 @@ The durable transcript remains the fallback source of truth.
 - atomic checkpoints with SHA-256, byte size and placement;
 - explicit provider and model mismatch failures.
 
-The in-memory conformance provider implements the complete lifecycle and
-validates checksum, owner and exact `ModelRef` equality. The live
-`RwkvHttpProvider` implements create/continue/describe/release, but currently
-returns `unsupported` for snapshot and restore. Therefore the repository does
-not yet prove GPU-to-CPU/S3 checkpointing or cross-Sidecar restoration.
+The in-memory conformance provider implements the complete lifecycle. The live
+Albatross Sidecar and `RwkvHttpProvider` now implement an exact CPU transport:
+the scheduler exports recurrent tensors plus logits into a bounded
+`safetensors` envelope, the HTTP boundary checks SHA-256 and exact `ModelRef`,
+and restore installs the tensors into a fresh slab slot. Unit and HTTP-provider
+tests cover snapshot, mandatory source release, restore and continuation. The
+controller currently retains that payload in memory, so this is **not yet** an
+S3 durability or cross-Worker-kill result. The HF recurrent backend explicitly
+rejects exact snapshots until its cache constructor has an equivalent checked
+adapter.
 
 The v1 stateful inference contract remains unchanged. Cloud-specific location,
 version, lease and cost data are defined by separate StatePool plugin-v1
@@ -92,8 +97,9 @@ The minimum-intrusion seams are:
    ABI-compatible restore succeeds.
 4. Emit usage after an atomic provider boundary. Usage failure must not change
    a successful model result.
-5. Keep snapshot/restore and distributed leases in the out-of-process plugin
-   until the live Sidecar implements the required state export/import API.
+5. Keep distributed persistence, Lease ownership and transfer orchestration in
+   the out-of-process plugin; the Sidecar implements only the Worker-local
+   tensor export/import boundary.
 
 No existing public Agent endpoint needs to change. New request placement hints
 must be optional and old clients must continue to deserialize successfully.
@@ -104,7 +110,8 @@ The Cloud Plugin must close the following gaps rather than hiding them:
 
 - the local `SessionStore` lock is process-local and cannot prevent two
   Controllers from advancing the same cloud Session;
-- the live RWKV HTTP provider cannot snapshot or restore recurrent state;
+- the live CPU snapshot payload is still controller-resident rather than
+  committed through the StatePool Lease into S3/MinIO;
 - `SidecarClient::health` currently fails readiness if any configured endpoint
   fails, whereas a dynamic Worker pool needs per-Worker readiness;
 - round-robin selection is not state-aware;
@@ -115,8 +122,8 @@ The Cloud Plugin must close the following gaps rather than hiding them:
   compatible Worker.
 
 Until those gaps are implemented and verified, the product must retain the
-documented transcript-reprefill fallback and must not claim exact cross-Worker
-State migration.
+documented transcript-reprefill fallback and must not claim measured
+cross-Worker State migration.
 
 ## Existing tests that protect compatibility
 

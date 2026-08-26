@@ -80,7 +80,8 @@ privacy-aware placement.
 | Single-process Lease/fencing/CAS | implemented and remotely tested |
 | Atomic LocalFS snapshot/restore of generic State bytes | implemented and remotely tested |
 | Compose, Helm, KEDA, ServiceMonitor and dashboard configuration | authored and statically validated |
-| Live RWKV Sidecar export/import across Workers | not implemented |
+| Live RWKV Albatross Sidecar CPU export/import boundary | implemented and conformance-tested |
+| Live RWKV export/import across killed GPU Workers | not measured |
 | PostgreSQL distributed Lease/CAS | not implemented |
 | S3/MinIO Cold State adapter | not implemented |
 | Measured KEDA 0→1→N→0 with safe GPU drain | not measured |

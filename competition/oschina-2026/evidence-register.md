@@ -17,6 +17,7 @@
 | E13 | S3/MinIO immutable Cold State | 集成测试 | 待完成 | — |
 | E14 | KEDA 0→1→N→0 safe drain | Kubernetes/GPU 实测 | 待完成 | — |
 | E15 | A/B/C 成本和利用率 | 对照实验 | 待完成 | — |
+| E16 | Albatross CPU snapshot→release→restore→continue | 自动测试 | 已验证 | `tests/test_state_runtime.py::test_safe_snapshot_release_restore_continue_roundtrip`、`crates/state-runtime/tests/rwkv_http.rs` |
 
 规则：临时 `/tmp` 日志不算发布证据；正式提交前需要把去敏后的完整输出放入
 `bench/artifacts/`，填写 commit 和 checksum。

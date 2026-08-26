@@ -158,20 +158,38 @@ This profile's metadata is in memory and its immutable objects are on LocalFS.
 A plugin restart loses Lease/current-version metadata, so it is not a
 multi-replica or production durability claim.
 
+## Live RWKV Worker adapter
+
+The Albatross Sidecar exposes two exact-model Worker-local operations:
+
+- `POST /v1/states/{state_id}/snapshot` exports a decode-ready recurrent State
+  and logits as a bounded, digest-protected `safetensors` envelope;
+- `POST /v1/states/restore` verifies SHA-256, owner, `model_id`, `revision`,
+  tokenizer and `state_abi`, then allocates a fresh State identity.
+
+The source State must be released before restore, preventing an accidental
+second writer. `RwkvHttpProvider` implements the stateful-inference contract
+over these endpoints and retains the returned payload in Controller memory.
+This proves the live adapter boundary in deterministic CPU conformance tests;
+it does not by itself survive Controller loss. The next adapter step is to
+commit these exact bytes through the plugin Lease/CAS path instead of retaining
+them in the provider process. The HF recurrent backend fails closed for exact
+snapshot/restore in this release.
+
 ## Deliberate non-claims
 
 The current plugin advertises `placement`, `worker_registry`, `leases`,
 `state_lifecycle`, `drain` and `finops`. `leases` and `state_lifecycle` are
 limited to the single-process development profile above. It does not advertise
-`remote_state`, because the live RWKV HTTP provider still lacks verified
-snapshot/restore, S3 persistence and distributed fencing. A remote plan may
+`remote_state`, because the live adapter is not yet connected to S3 persistence
+and distributed fencing and has not passed the GPU Worker-kill experiment. A remote plan may
 select a compatible Worker for a newly opened State; it does not prove
 migration of an already-open State.
 
 Exact cross-Worker continuation may be claimed only after:
 
-1. Sidecar export/import is implemented;
-2. checksum and exact model identity are validated;
+1. Sidecar export/import remains conformance-tested on the target GPU backend;
+2. checksum and exact model identity remain validated end to end;
 3. PostgreSQL lease/CAS and fencing tests pass;
 4. a real Worker-kill restore benchmark passes.
 
