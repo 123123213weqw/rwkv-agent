@@ -4,7 +4,8 @@ use std::time::Duration;
 
 use clap::Parser;
 use rwkv_agent_runtime::{
-    AgentService, CommandPolicy, DebugTraceConfig, DebugTraceMode, RuntimeConfig,
+    AgentService, CloudModelRef, CloudPluginConfig, CloudPluginFallback, CommandPolicy,
+    DebugTraceConfig, DebugTraceMode, PrivacyClass, RuntimeConfig, WorkerZone,
 };
 use rwkv_agent_server::router;
 
@@ -75,6 +76,42 @@ struct Args {
     max_run_seconds: u64,
     #[arg(long, env = "RWKV_AGENT_SHUTDOWN_GRACE_SECONDS", default_value_t = 200)]
     shutdown_grace_seconds: u64,
+    #[arg(long, env = "RWKV_AGENT_CLOUD_PLUGIN", default_value_t = false)]
+    cloud_plugin: bool,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_PLUGIN_URL",
+        default_value = "http://127.0.0.1:8130"
+    )]
+    cloud_plugin_url: String,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_PLUGIN_FALLBACK",
+        default_value = "local"
+    )]
+    cloud_plugin_fallback: String,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_PLUGIN_PRIVACY",
+        default_value = "local_only"
+    )]
+    cloud_plugin_privacy: String,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_PLUGIN_LATENCY_SLO_MS",
+        default_value_t = 5000
+    )]
+    cloud_plugin_latency_slo_ms: u64,
+    #[arg(long, env = "RWKV_AGENT_CLOUD_PLUGIN_PREFERRED_ZONE")]
+    cloud_plugin_preferred_zone: Option<String>,
+    #[arg(long, env = "RWKV_AGENT_CLOUD_MODEL_ID")]
+    cloud_model_id: Option<String>,
+    #[arg(long, env = "RWKV_AGENT_CLOUD_MODEL_REVISION")]
+    cloud_model_revision: Option<String>,
+    #[arg(long, env = "RWKV_AGENT_CLOUD_TOKENIZER")]
+    cloud_tokenizer: Option<String>,
+    #[arg(long, env = "RWKV_AGENT_CLOUD_STATE_ABI")]
+    cloud_state_abi: Option<String>,
     #[arg(long, env = "RWKV_AGENT_ENABLE_COMMAND", default_value_t = false)]
     enable_command: bool,
     #[arg(long, env = "RWKV_AGENT_COMMAND_WORKSPACE")]
@@ -110,6 +147,31 @@ async fn main() -> Result<(), String> {
         return Err("--debug-api requires a loopback listen address".into());
     }
     let debug_mode = args.debug_mode.parse::<DebugTraceMode>()?;
+    let cloud_plugin_fallback = args.cloud_plugin_fallback.parse::<CloudPluginFallback>()?;
+    let cloud_plugin_privacy = args.cloud_plugin_privacy.parse::<PrivacyClass>()?;
+    let cloud_plugin_preferred_zone = args
+        .cloud_plugin_preferred_zone
+        .map(|value| value.parse::<WorkerZone>())
+        .transpose()?;
+    let cloud_model_ref = match (
+        args.cloud_model_id,
+        args.cloud_model_revision,
+        args.cloud_tokenizer,
+        args.cloud_state_abi,
+    ) {
+        (Some(model_id), Some(revision), Some(tokenizer), Some(state_abi)) => Some(CloudModelRef {
+            model_id,
+            revision,
+            tokenizer,
+            state_abi,
+        }),
+        (None, None, None, None) => None,
+        _ => {
+            return Err(
+                "cloud model identity requires model-id, revision, tokenizer and state-abi".into(),
+            );
+        }
+    };
     let config = RuntimeConfig {
         runtime_revision: args.runtime_revision,
         model_urls: args
@@ -130,6 +192,16 @@ async fn main() -> Result<(), String> {
         direct_chat_max_tokens: args.direct_chat_max_tokens,
         max_run_elapsed: Duration::from_secs(args.max_run_seconds),
         shutdown_grace: Duration::from_secs(args.shutdown_grace_seconds),
+        cloud_plugin: CloudPluginConfig {
+            enabled: args.cloud_plugin,
+            endpoint: args.cloud_plugin_url,
+            fallback: cloud_plugin_fallback,
+            default_privacy: cloud_plugin_privacy,
+            latency_slo: Duration::from_millis(args.cloud_plugin_latency_slo_ms),
+            preferred_zone: cloud_plugin_preferred_zone,
+            model_ref: cloud_model_ref,
+            ..CloudPluginConfig::default()
+        },
         command: CommandPolicy {
             enabled: args.enable_command,
             workspace: args.command_workspace,

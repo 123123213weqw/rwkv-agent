@@ -165,6 +165,24 @@ impl SidecarClient {
 
     pub async fn prefill(&self, owner_id: &str, prompt: &str) -> Result<SidecarState, String> {
         let endpoint = self.choose();
+        self.prefill_at(&endpoint, owner_id, prompt).await
+    }
+
+    /// Opens a recurrent State on an explicitly selected Worker.
+    ///
+    /// The default local path continues to use [`Self::prefill`] and its
+    /// existing round-robin endpoint selection. StatePool placement uses this
+    /// method only after a versioned plugin plan selects a remote Worker.
+    pub async fn prefill_at(
+        &self,
+        endpoint: &str,
+        owner_id: &str,
+        prompt: &str,
+    ) -> Result<SidecarState, String> {
+        let endpoint = endpoint.trim().trim_end_matches('/').to_string();
+        if endpoint.is_empty() {
+            return Err("sidecar endpoint must not be empty".into());
+        }
         let value = self
             .post_json(
                 format!("{endpoint}/v1/states/prefill"),

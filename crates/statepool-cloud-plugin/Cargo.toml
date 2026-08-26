@@ -1,0 +1,21 @@
+[package]
+name = "rwkv-statepool-cloud-plugin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Optional out-of-process StatePool placement, Worker registry and FinOps service"
+
+[[bin]]
+name = "rwkv-statepool-cloud-plugin"
+path = "src/main.rs"
+
+[dependencies]
+rwkv-statepool-plugin-api = { path = "../statepool-plugin-api" }
+axum = "0.8"
+clap = { version = "4.5", features = ["derive", "env"] }
+serde_json = "1.0"
+tokio = { version = "1.47", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }

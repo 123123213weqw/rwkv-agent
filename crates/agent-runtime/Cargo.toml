@@ -8,6 +8,7 @@ description = "Rust control plane for RWKV recurrent State, tools and sessions"
 
 [dependencies]
 rwkv-agent-core = { path = "../agent-core" }
+rwkv-statepool-plugin-api = { path = "../statepool-plugin-api" }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 ring = "0.17"
 serde = { version = "1.0", features = ["derive"] }

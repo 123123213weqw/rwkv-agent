@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/worker-capability-v1.schema.json",
+  "title": "StatePool Worker Capability v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "worker_id",
+    "zone",
+    "endpoint",
+    "lifecycle",
+    "models",
+    "device",
+    "capacity",
+    "reported_at_ms"
+  ],
+  "properties": {
+    "contract_version": { "const": "statepool-worker-capability.v1" },
+    "worker_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "zone": { "enum": ["local", "edge", "cloud"] },
+    "endpoint": { "type": "string", "format": "uri" },
+    "lifecycle": { "enum": ["starting", "ready", "draining", "offline"] },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "stateful-inference-session-v1.schema.json#/$defs/model_ref" }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vendor", "model", "memory_bytes"],
+      "properties": {
+        "vendor": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "runtime": { "type": "string" },
+        "memory_bytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "capacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state_slots", "free_state_slots", "max_batch", "queue_depth", "running_requests"],
+      "properties": {
+        "state_slots": { "type": "integer", "minimum": 1 },
+        "free_state_slots": { "type": "integer", "minimum": 0 },
+        "max_batch": { "type": "integer", "minimum": 1 },
+        "queue_depth": { "type": "integer", "minimum": 0 },
+        "running_requests": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "price": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["currency", "per_gpu_hour"],
+      "properties": {
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "per_gpu_hour": { "type": "number", "minimum": 0 }
+      }
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "reported_at_ms": { "type": "integer", "minimum": 0 }
+  }
+}

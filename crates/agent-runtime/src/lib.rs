@@ -3,6 +3,7 @@
 //! CUDA inference and retrieval remain behind narrow HTTP data-plane APIs;
 //! this crate owns recurrent-State lifecycle, routing, sessions and tool loops.
 
+mod cloud_plugin;
 mod command;
 mod data_client;
 mod debug_trace;
@@ -13,6 +14,10 @@ mod session;
 mod sidecar;
 mod task_ledger;
 
+pub use cloud_plugin::{
+    CloudModelRef, CloudPluginClient, CloudPluginConfig, CloudPluginFallback, ExecutionPlan,
+    PrivacyClass, WorkerZone,
+};
 pub use command::{CommandPolicy, SandboxedCommand};
 pub use data_client::DataPlaneClient;
 pub use debug_trace::{

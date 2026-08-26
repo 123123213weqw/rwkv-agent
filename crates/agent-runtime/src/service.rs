@@ -11,6 +11,7 @@ use rwkv_agent_core::{
 use serde_json::{Value, json};
 use tokio::sync::{Mutex, Notify, mpsc};
 
+use crate::cloud_plugin::{CloudPluginClient, CloudPluginConfig};
 use crate::command::{CommandPolicy, SandboxedCommand};
 use crate::data_client::DataPlaneClient;
 use crate::debug_trace::{
@@ -38,6 +39,7 @@ pub struct RuntimeConfig {
     pub direct_chat_max_tokens: u32,
     pub max_run_elapsed: Duration,
     pub shutdown_grace: Duration,
+    pub cloud_plugin: CloudPluginConfig,
     pub command: CommandPolicy,
     pub debug_trace: DebugTraceConfig,
 }
@@ -58,6 +60,7 @@ impl Default for RuntimeConfig {
             direct_chat_max_tokens: 96,
             max_run_elapsed: Duration::from_secs(600),
             shutdown_grace: Duration::from_secs(200),
+            cloud_plugin: CloudPluginConfig::default(),
             command: CommandPolicy::default(),
             debug_trace: DebugTraceConfig::default(),
         }
@@ -72,6 +75,7 @@ pub struct AgentService {
     sessions: SessionStore,
     chat_states: Arc<Mutex<ChatStateCache>>,
     command: SandboxedCommand,
+    cloud_plugin: CloudPluginClient,
     task_ledger: TaskLedger,
     active_tasks: Arc<Mutex<HashMap<String, CancellationToken>>>,
     task_completion: Arc<Notify>,
@@ -1106,6 +1110,8 @@ impl AgentService {
         let task_ledger = TaskLedger::new(config.session_dir.join("task-ledger")).await?;
         let recovered_tasks = task_ledger.recover_interrupted().await?;
         let command = SandboxedCommand::new(config.command.clone());
+        let cloud_plugin = CloudPluginClient::new(config.cloud_plugin.clone())?;
+        cloud_plugin.initialize(&config.runtime_revision).await?;
         let debug_trace = DebugTraceStore::new(
             config.debug_trace.clone(),
             config.runtime_revision.clone(),
@@ -1117,6 +1123,7 @@ impl AgentService {
                 "model_urls":config.model_urls,
                 "data_plane_url":config.data_plane_url,
                 "command_enabled":config.command.enabled,
+                "cloud_plugin_enabled":config.cloud_plugin.enabled,
                 "max_tool_steps":config.max_tool_steps,
                 "max_model_tokens_per_turn":config.max_model_tokens_per_turn,
             }),
@@ -1129,6 +1136,7 @@ impl AgentService {
             sessions,
             chat_states: Arc::new(Mutex::new(ChatStateCache::default())),
             command,
+            cloud_plugin,
             task_ledger,
             active_tasks: Arc::new(Mutex::new(HashMap::new())),
             task_completion: Arc::new(Notify::new()),
@@ -1175,7 +1183,13 @@ impl AgentService {
         let active_tasks = self.active_tasks.lock().await.len();
         let sandbox_ready = !self.config.command.enabled || self.command.available();
         let debug_trace = self.debug_trace.readiness().await;
-        let ready = model_ready && data_ready && sandbox_ready && state_capacity_ready;
+        let cloud_plugin = self.cloud_plugin.readiness().await;
+        let cloud_plugin_ready = !self.cloud_plugin.blocks_readiness().await;
+        let ready = model_ready
+            && data_ready
+            && sandbox_ready
+            && state_capacity_ready
+            && cloud_plugin_ready;
         json!({
             "status":if ready {"ready"} else {"unavailable"},
             "api_version":SERVICE_API_VERSION,
@@ -1193,6 +1207,7 @@ impl AgentService {
                 "task_ledger":{"status":"ready","schema_version":crate::task_ledger::LEDGER_SCHEMA_VERSION,
                     "active_tasks":active_tasks},
                 "debug_trace":debug_trace,
+                "statepool_cloud_plugin":cloud_plugin,
             },
             "configuration":{
                 "runtime_revision":self.config.runtime_revision,
@@ -1203,6 +1218,8 @@ impl AgentService {
                 "debug_trace_mode":self.config.debug_trace.mode,
                 "debug_trace_directory":self.config.debug_trace.directory,
                 "debug_trace_api":self.config.debug_trace.api_enabled,
+                "cloud_plugin_enabled":self.config.cloud_plugin.enabled,
+                "cloud_plugin_fallback":self.config.cloud_plugin.fallback,
             },
             "context":{
                 "mode":"recurrent_session_state_with_transcript_fallback",
@@ -2408,7 +2425,13 @@ impl AgentService {
             self.release_chat_record(stale).await?;
         }
         let reused = cached.is_some();
+        let mut placement_trace = json!({
+            "contract_version":"statepool-execution-plan.v1",
+            "mode":"state_affinity",
+            "reason_code":"state_affinity",
+        });
         let mut state = if let Some(cached) = cached {
+            placement_trace["worker_endpoint"] = json!(cached.state.home_url);
             debug_record(
                 debug_trace,
                 "state",
@@ -2422,6 +2445,30 @@ impl AgentService {
         } else {
             let owner_id = owner_id("chat", session_id);
             let prefix = prompt::direct_prefix(&context);
+            // Planning receives bounded metadata only. Prompt text and raw
+            // recurrent-State bytes are never sent to the Cloud Plugin.
+            let plan = self
+                .cloud_plugin
+                .plan(
+                    session_id,
+                    &owner_id,
+                    ((prefix.chars().count() + 3) / 4)
+                        .try_into()
+                        .unwrap_or(u64::MAX),
+                    self.config.direct_chat_max_tokens.into(),
+                )
+                .await?;
+            placement_trace = serde_json::to_value(&plan)
+                .unwrap_or_else(|_| json!({"status":"serialization_error"}));
+            debug_record(
+                debug_trace,
+                "routing",
+                "statepool_cloud_plugin",
+                "execution_planned",
+                stage_id,
+                || placement_trace.clone(),
+            )
+            .await;
             debug_record(
                 debug_trace,
                 "model",
@@ -2431,7 +2478,20 @@ impl AgentService {
                 || json!({"owner_id":owner_id,"prompt":prefix}),
             )
             .await;
-            let state = self.sidecar.prefill(&owner_id, &prefix).await?;
+            let state = match plan.mode.as_str() {
+                "local" => self.sidecar.prefill(&owner_id, &prefix).await?,
+                "remote" => {
+                    let endpoint = plan
+                        .remote_endpoint()
+                        .ok_or_else(|| "cloud plugin remote plan has no endpoint".to_string())?;
+                    self.sidecar
+                        .prefill_at(endpoint, &owner_id, &prefix)
+                        .await?
+                }
+                "defer" => return Err("cloud plugin deferred execution".into()),
+                "reject" => return Err("cloud plugin rejected execution".into()),
+                mode => return Err(format!("cloud plugin returned unknown mode: {mode}")),
+            };
             debug_record(
                 debug_trace,
                 "state",
@@ -2635,6 +2695,7 @@ impl AgentService {
                 "task_spec":task_spec,"gate":gate,"context":{"history_messages":history_len,"mode":"recurrent_session_state","session_state":{
                     "used":true,"reused":reused,"cached":safe_to_cache,"cache_reject_reason":if !generated_usable{"empty_or_incomplete_generation"}else if !safe_to_cache{"unsafe_stop_boundary"}else{""},"seen_tokens":row.seen_tokens}},
                 "answer_completion":{"stop":row.stop_reason,"output_tokens":row.token_ids.len(),"model_elapsed_ms":row.elapsed_ms,"reasoning_stripped":reasoning_stripped},
+                "placement":placement_trace,
                 "elapsed_ms":started.elapsed().as_secs_f64()*1000.0,"control_plane":"rust",
             }
         }))

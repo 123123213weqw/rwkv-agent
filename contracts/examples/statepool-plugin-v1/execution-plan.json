@@ -1,0 +1,18 @@
+{
+  "contract_version": "statepool-execution-plan.v1",
+  "decision_id": "decision-001",
+  "request_id": "request-001",
+  "mode": "remote",
+  "worker_id": "v100-01",
+  "endpoint": "https://v100-01.example.invalid",
+  "state_action": "restore_cold",
+  "reason_code": "local_queue_exceeds_slo",
+  "lease_required": true,
+  "estimated_queue_ms": 1800,
+  "estimated_restore_ms": 430,
+  "estimated_cost": {
+    "currency": "CNY",
+    "amount": 0.08
+  },
+  "fallback": "local"
+}

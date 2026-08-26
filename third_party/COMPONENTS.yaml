@@ -1,0 +1,60 @@
+schema_version: "third-party-components.v1"
+policy: >-
+  Components are separate optional services or protocol targets unless the
+  integration field explicitly says package_dependency. No upstream source is
+  vendored or forked by the StatePool Cloud Plugin.
+components:
+  - name: Kubernetes
+    repository: https://github.com/kubernetes/kubernetes
+    license: Apache-2.0
+    integration: optional_runtime
+    purpose: Pod lifecycle, node placement, health and service discovery
+    status: planned
+  - name: KEDA
+    repository: https://github.com/kedacore/keda
+    license: Apache-2.0
+    integration: optional_runtime
+    purpose: Event and Prometheus driven Worker autoscaling and scale-to-zero
+    status: planned
+  - name: AIBrix
+    repository: https://github.com/vllm-project/aibrix
+    license: Apache-2.0
+    integration: optional_adapter
+    purpose: Optional Envoy gateway and inference-aware routing integration
+    status: planned
+  - name: HAMi
+    repository: https://github.com/Project-HAMi/HAMi
+    license: Apache-2.0
+    integration: optional_runtime
+    purpose: Optional heterogeneous GPU sharing and isolation
+    status: planned
+  - name: PostgreSQL
+    repository: https://github.com/postgres/postgres
+    license: PostgreSQL
+    integration: optional_runtime
+    purpose: Distributed Session metadata, leases, fencing and version CAS
+    status: planned
+  - name: MinIO
+    repository: https://github.com/minio/minio
+    license: AGPL-3.0-only
+    integration: separate_demo_service
+    purpose: Development S3-compatible Cold State object storage
+    status: planned
+  - name: Prometheus
+    repository: https://github.com/prometheus/prometheus
+    license: Apache-2.0
+    integration: optional_runtime
+    purpose: StatePool and GPU time-series metrics
+    status: planned
+  - name: Grafana
+    repository: https://github.com/grafana/grafana
+    license: AGPL-3.0-only
+    integration: separate_optional_service
+    purpose: FinOps and State lifecycle dashboards
+    status: planned
+  - name: NVIDIA DCGM Exporter
+    repository: https://github.com/NVIDIA/dcgm-exporter
+    license: Apache-2.0
+    integration: optional_runtime
+    purpose: NVIDIA GPU telemetry in Prometheus format
+    status: planned

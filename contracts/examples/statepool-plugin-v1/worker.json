@@ -1,0 +1,36 @@
+{
+  "contract_version": "statepool-worker-capability.v1",
+  "worker_id": "v100-01",
+  "zone": "cloud",
+  "endpoint": "https://v100-01.example.invalid",
+  "lifecycle": "ready",
+  "models": [
+    {
+      "model_id": "rwkv7-g1i-7b",
+      "revision": "sha256:example-model-revision",
+      "tokenizer": "rwkv-world-v20230424",
+      "state_abi": "rwkv7-g1i-fp16-v1"
+    }
+  ],
+  "device": {
+    "vendor": "nvidia",
+    "model": "Tesla V100 32GB",
+    "runtime": "cuda",
+    "memory_bytes": 34359738368
+  },
+  "capacity": {
+    "state_slots": 32,
+    "free_state_slots": 28,
+    "max_batch": 32,
+    "queue_depth": 2,
+    "running_requests": 2
+  },
+  "price": {
+    "currency": "CNY",
+    "per_gpu_hour": 2.8
+  },
+  "labels": {
+    "region": "cn-east"
+  },
+  "reported_at_ms": 1787753049000
+}

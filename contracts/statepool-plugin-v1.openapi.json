@@ -1,0 +1,356 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RWKV StatePool Cloud Plugin API",
+    "version": "1.0.0",
+    "description": "Optional out-of-process planning, Worker registry, state orchestration and FinOps API. The normal rwkv-agent API does not depend on this service when the plugin is disabled."
+  },
+  "servers": [
+    { "url": "http://127.0.0.1:8130", "description": "Local plugin process" }
+  ],
+  "paths": {
+    "/plugin/v1/handshake": {
+      "post": {
+        "operationId": "handshake",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "plugin-v1.schema.json#/$defs/handshake_request" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compatible plugin and supported capabilities",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "plugin-v1.schema.json#/$defs/handshake_response" }
+              }
+            }
+          },
+          "409": { "$ref": "#/components/responses/PluginError" },
+          "503": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/health": {
+      "get": {
+        "operationId": "pluginHealth",
+        "responses": {
+          "200": {
+            "description": "Plugin dependency health",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "plugin-v1.schema.json#/$defs/health_response" }
+              }
+            }
+          },
+          "503": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/plan": {
+      "post": {
+        "operationId": "planExecution",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "execution-plan-v1.schema.json#/$defs/plan_request" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Explainable execution placement decision",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "execution-plan-v1.schema.json#/$defs/execution_plan" }
+              }
+            }
+          },
+          "409": { "$ref": "#/components/responses/PluginError" },
+          "503": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/usage": {
+      "post": {
+        "operationId": "recordUsage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "usage-record-v1.schema.json" }
+            }
+          }
+        },
+        "responses": {
+          "202": { "description": "Usage record accepted" },
+          "400": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/workers/register": {
+      "post": {
+        "operationId": "registerWorker",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "worker-capability-v1.schema.json" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Worker registered" },
+          "400": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/workers/{worker_id}/heartbeat": {
+      "post": {
+        "operationId": "heartbeatWorker",
+        "parameters": [
+          { "$ref": "#/components/parameters/WorkerId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "worker-capability-v1.schema.json" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Heartbeat accepted" },
+          "404": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/workers/{worker_id}/drain": {
+      "post": {
+        "operationId": "drainWorker",
+        "parameters": [
+          { "$ref": "#/components/parameters/WorkerId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DrainRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Drain status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DrainStatus" }
+              }
+            }
+          },
+          "409": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/states/snapshot": {
+      "post": {
+        "operationId": "snapshotState",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SnapshotRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Published immutable State reference",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "state-reference-v1.schema.json" }
+              }
+            }
+          },
+          "409": { "$ref": "#/components/responses/PluginError" },
+          "501": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/states/restore": {
+      "post": {
+        "operationId": "restoreState",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RestoreRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "State restored to a compatible Worker",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "state-reference-v1.schema.json" }
+              }
+            }
+          },
+          "409": { "$ref": "#/components/responses/PluginError" },
+          "501": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/leases/acquire": {
+      "post": {
+        "operationId": "acquireLease",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AcquireLeaseRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Single-writer lease",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Lease" }
+              }
+            }
+          },
+          "409": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/leases/release": {
+      "post": {
+        "operationId": "releaseLease",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReleaseLeaseRequest" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Lease released" },
+          "409": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "WorkerId": {
+        "name": "worker_id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "minLength": 1 }
+      }
+    },
+    "responses": {
+      "PluginError": {
+        "description": "Versioned plugin error",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "plugin-v1.schema.json#/$defs/error_response" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "DrainRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_version", "deadline_ms"],
+        "properties": {
+          "contract_version": { "const": "statepool-drain-request.v1" },
+          "deadline_ms": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "DrainStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_version", "worker_id", "status", "active_requests", "unpersisted_states"],
+        "properties": {
+          "contract_version": { "const": "statepool-drain-status.v1" },
+          "worker_id": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["draining", "safe_to_stop", "deadline_exceeded"] },
+          "active_requests": { "type": "integer", "minimum": 0 },
+          "unpersisted_states": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "SnapshotRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_version", "state_ref", "target_tier", "lease"],
+        "properties": {
+          "contract_version": { "const": "statepool-snapshot-request.v1" },
+          "state_ref": { "$ref": "state-reference-v1.schema.json" },
+          "target_tier": { "enum": ["warm", "cold"] },
+          "lease": { "$ref": "#/components/schemas/Lease" }
+        }
+      },
+      "RestoreRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_version", "state_ref", "expected_model_ref", "target_worker_id", "lease"],
+        "properties": {
+          "contract_version": { "const": "statepool-restore-request.v1" },
+          "state_ref": { "$ref": "state-reference-v1.schema.json" },
+          "expected_model_ref": { "$ref": "stateful-inference-session-v1.schema.json#/$defs/model_ref" },
+          "target_worker_id": { "type": "string", "minLength": 1 },
+          "lease": { "$ref": "#/components/schemas/Lease" }
+        }
+      },
+      "AcquireLeaseRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_version", "session_id", "owner_id", "holder_id", "expected_state_version", "ttl_ms"],
+        "properties": {
+          "contract_version": { "const": "statepool-acquire-lease-request.v1" },
+          "session_id": { "type": "string", "minLength": 1 },
+          "owner_id": { "type": "string", "minLength": 1 },
+          "holder_id": { "type": "string", "minLength": 1 },
+          "expected_state_version": { "type": "integer", "minimum": 0 },
+          "ttl_ms": { "type": "integer", "minimum": 1000 }
+        }
+      },
+      "Lease": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_version", "lease_id", "session_id", "owner_id", "holder_id", "fencing_token", "expected_state_version", "expires_at_ms"],
+        "properties": {
+          "contract_version": { "const": "statepool-lease.v1" },
+          "lease_id": { "type": "string", "minLength": 1 },
+          "session_id": { "type": "string", "minLength": 1 },
+          "owner_id": { "type": "string", "minLength": 1 },
+          "holder_id": { "type": "string", "minLength": 1 },
+          "fencing_token": { "type": "integer", "minimum": 1 },
+          "expected_state_version": { "type": "integer", "minimum": 0 },
+          "expires_at_ms": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ReleaseLeaseRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_version", "lease_id", "holder_id", "fencing_token"],
+        "properties": {
+          "contract_version": { "const": "statepool-release-lease-request.v1" },
+          "lease_id": { "type": "string", "minLength": 1 },
+          "holder_id": { "type": "string", "minLength": 1 },
+          "fencing_token": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

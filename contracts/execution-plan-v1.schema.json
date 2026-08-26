@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/execution-plan-v1.schema.json",
+  "title": "StatePool Execution Planning Contract v1",
+  "oneOf": [
+    { "$ref": "#/$defs/plan_request" },
+    { "$ref": "#/$defs/execution_plan" }
+  ],
+  "$defs": {
+    "plan_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "request_id",
+        "session_id",
+        "owner_id",
+        "model_ref",
+        "privacy",
+        "latency_slo_ms",
+        "estimated_input_tokens",
+        "estimated_output_tokens"
+      ],
+      "properties": {
+        "contract_version": { "const": "statepool-plan-request.v1" },
+        "request_id": { "type": "string", "minLength": 1 },
+        "session_id": { "type": "string", "minLength": 1 },
+        "owner_id": { "type": "string", "minLength": 1 },
+        "model_ref": { "$ref": "stateful-inference-session-v1.schema.json#/$defs/model_ref" },
+        "privacy": { "enum": ["local_only", "hybrid", "cloud_allowed"] },
+        "latency_slo_ms": { "type": "integer", "minimum": 1 },
+        "max_cost": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["currency", "amount"],
+          "properties": {
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+            "amount": { "type": "number", "minimum": 0 }
+          }
+        },
+        "preferred_zone": { "type": ["string", "null"], "enum": ["local", "edge", "cloud", null] },
+        "state_ref": {
+          "oneOf": [
+            { "$ref": "state-reference-v1.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "estimated_input_tokens": { "type": "integer", "minimum": 0 },
+        "estimated_output_tokens": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "execution_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "decision_id",
+        "request_id",
+        "mode",
+        "state_action",
+        "reason_code",
+        "lease_required",
+        "fallback"
+      ],
+      "properties": {
+        "contract_version": { "const": "statepool-execution-plan.v1" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "request_id": { "type": "string", "minLength": 1 },
+        "mode": { "enum": ["local", "remote", "defer", "reject"] },
+        "worker_id": { "type": ["string", "null"], "minLength": 1 },
+        "endpoint": {
+          "oneOf": [
+            { "type": "string", "format": "uri" },
+            { "type": "null" }
+          ]
+        },
+        "state_action": {
+          "enum": ["none", "reuse_hot", "restore_warm", "restore_cold", "context_capsule", "transcript_reprefill"]
+        },
+        "reason_code": {
+          "enum": [
+            "plugin_disabled",
+            "privacy_local_only",
+            "state_affinity",
+            "local_within_slo",
+            "local_queue_exceeds_slo",
+            "cloud_lower_cost",
+            "cloud_capacity",
+            "no_compatible_worker",
+            "cost_limit",
+            "provider_unavailable"
+          ]
+        },
+        "lease_required": { "type": "boolean" },
+        "estimated_queue_ms": { "type": "number", "minimum": 0 },
+        "estimated_restore_ms": { "type": "number", "minimum": 0 },
+        "estimated_cost": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["currency", "amount"],
+          "properties": {
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+            "amount": { "type": "number", "minimum": 0 }
+          }
+        },
+        "fallback": { "enum": ["local", "context_capsule", "transcript_reprefill", "fail_closed"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "remote" } }, "required": ["mode"] },
+          "then": { "required": ["worker_id", "endpoint"] }
+        }
+      ]
+    }
+  }
+}
