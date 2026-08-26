@@ -57,7 +57,9 @@ rwkv_search = ["web/*"]
 
 [tool.ruff]
 target-version = "py310"
-extend-exclude = ["bench/baselines"]
+# Frozen benchmark/evidence bundles preserve the exact executed sources and
+# logs. Lint maintained runners under `bench/`, but do not rewrite artifacts.
+extend-exclude = ["bench/baselines", "bench/artifacts"]
 
 [tool.ruff.lint]
 # Keep CI focused on correctness checks. Opt into additional style rules in a
