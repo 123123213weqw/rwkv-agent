@@ -29,6 +29,7 @@ SCHEMA_FILES = (
     "state-reference-v1.schema.json",
     "execution-plan-v1.schema.json",
     "usage-record-v1.schema.json",
+    "state-lifecycle-v1.schema.json",
 )
 
 EXAMPLES = {
@@ -39,6 +40,13 @@ EXAMPLES = {
     "plan-request.json": "execution-plan-v1.schema.json",
     "execution-plan.json": "execution-plan-v1.schema.json",
     "usage-record.json": "usage-record-v1.schema.json",
+    "acquire-lease-request.json": "state-lifecycle-v1.schema.json",
+    "lease.json": "state-lifecycle-v1.schema.json",
+    "renew-lease-request.json": "state-lifecycle-v1.schema.json",
+    "release-lease-request.json": "state-lifecycle-v1.schema.json",
+    "snapshot-request.json": "state-lifecycle-v1.schema.json",
+    "restore-request.json": "state-lifecycle-v1.schema.json",
+    "restore-response.json": "state-lifecycle-v1.schema.json",
 }
 
 
@@ -84,6 +92,7 @@ def main() -> int:
         "/plugin/v1/states/snapshot",
         "/plugin/v1/states/restore",
         "/plugin/v1/leases/acquire",
+        "/plugin/v1/leases/renew",
         "/plugin/v1/leases/release",
     }
     missing = required_paths.difference(openapi.get("paths", {}))

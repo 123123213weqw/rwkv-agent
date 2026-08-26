@@ -163,7 +163,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SnapshotRequest" }
+              "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/snapshot_request" }
             }
           }
         },
@@ -188,7 +188,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RestoreRequest" }
+              "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/restore_request" }
             }
           }
         },
@@ -197,7 +197,7 @@
             "description": "State restored to a compatible Worker",
             "content": {
               "application/json": {
-                "schema": { "$ref": "state-reference-v1.schema.json" }
+                "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/restore_response" }
               }
             }
           },
@@ -213,7 +213,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/AcquireLeaseRequest" }
+              "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/acquire_lease_request" }
             }
           }
         },
@@ -222,7 +222,31 @@
             "description": "Single-writer lease",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Lease" }
+                "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/lease" }
+              }
+            }
+          },
+          "409": { "$ref": "#/components/responses/PluginError" }
+        }
+      }
+    },
+    "/plugin/v1/leases/renew": {
+      "post": {
+        "operationId": "renewLease",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/renew_lease_request" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Renewed single-writer lease",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/lease" }
               }
             }
           },
@@ -237,7 +261,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ReleaseLeaseRequest" }
+              "schema": { "$ref": "state-lifecycle-v1.schema.json#/$defs/release_lease_request" }
             }
           }
         },
@@ -287,68 +311,6 @@
           "status": { "enum": ["draining", "safe_to_stop", "deadline_exceeded"] },
           "active_requests": { "type": "integer", "minimum": 0 },
           "unpersisted_states": { "type": "integer", "minimum": 0 }
-        }
-      },
-      "SnapshotRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["contract_version", "state_ref", "target_tier", "lease"],
-        "properties": {
-          "contract_version": { "const": "statepool-snapshot-request.v1" },
-          "state_ref": { "$ref": "state-reference-v1.schema.json" },
-          "target_tier": { "enum": ["warm", "cold"] },
-          "lease": { "$ref": "#/components/schemas/Lease" }
-        }
-      },
-      "RestoreRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["contract_version", "state_ref", "expected_model_ref", "target_worker_id", "lease"],
-        "properties": {
-          "contract_version": { "const": "statepool-restore-request.v1" },
-          "state_ref": { "$ref": "state-reference-v1.schema.json" },
-          "expected_model_ref": { "$ref": "stateful-inference-session-v1.schema.json#/$defs/model_ref" },
-          "target_worker_id": { "type": "string", "minLength": 1 },
-          "lease": { "$ref": "#/components/schemas/Lease" }
-        }
-      },
-      "AcquireLeaseRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["contract_version", "session_id", "owner_id", "holder_id", "expected_state_version", "ttl_ms"],
-        "properties": {
-          "contract_version": { "const": "statepool-acquire-lease-request.v1" },
-          "session_id": { "type": "string", "minLength": 1 },
-          "owner_id": { "type": "string", "minLength": 1 },
-          "holder_id": { "type": "string", "minLength": 1 },
-          "expected_state_version": { "type": "integer", "minimum": 0 },
-          "ttl_ms": { "type": "integer", "minimum": 1000 }
-        }
-      },
-      "Lease": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["contract_version", "lease_id", "session_id", "owner_id", "holder_id", "fencing_token", "expected_state_version", "expires_at_ms"],
-        "properties": {
-          "contract_version": { "const": "statepool-lease.v1" },
-          "lease_id": { "type": "string", "minLength": 1 },
-          "session_id": { "type": "string", "minLength": 1 },
-          "owner_id": { "type": "string", "minLength": 1 },
-          "holder_id": { "type": "string", "minLength": 1 },
-          "fencing_token": { "type": "integer", "minimum": 1 },
-          "expected_state_version": { "type": "integer", "minimum": 0 },
-          "expires_at_ms": { "type": "integer", "minimum": 0 }
-        }
-      },
-      "ReleaseLeaseRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["contract_version", "lease_id", "holder_id", "fencing_token"],
-        "properties": {
-          "contract_version": { "const": "statepool-release-lease-request.v1" },
-          "lease_id": { "type": "string", "minLength": 1 },
-          "holder_id": { "type": "string", "minLength": 1 },
-          "fencing_token": { "type": "integer", "minimum": 1 }
         }
       }
     }

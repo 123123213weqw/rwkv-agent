@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::time::Duration;
 
 use clap::Parser;
@@ -13,6 +14,24 @@ struct Args {
     port: u16,
     #[arg(long, env = "RWKV_STATEPOOL_WORKER_TTL_SECONDS", default_value_t = 30)]
     worker_ttl_seconds: u64,
+    #[arg(
+        long,
+        env = "RWKV_STATEPOOL_LEASE_MAX_TTL_SECONDS",
+        default_value_t = 120
+    )]
+    lease_max_ttl_seconds: u64,
+    #[arg(
+        long,
+        env = "RWKV_STATEPOOL_MAX_STATE_BYTES",
+        default_value_t = 536_870_912
+    )]
+    max_state_bytes: u64,
+    #[arg(
+        long,
+        env = "RWKV_STATEPOOL_STATE_DIR",
+        default_value = "var/statepool/states"
+    )]
+    state_dir: PathBuf,
 }
 
 #[tokio::main]
@@ -23,6 +42,9 @@ async fn main() -> Result<(), String> {
         .map_err(|error| format!("invalid listen address: {error}"))?;
     let state = PluginState::new(PluginConfig {
         worker_ttl: Duration::from_secs(args.worker_ttl_seconds),
+        lease_max_ttl: Duration::from_secs(args.lease_max_ttl_seconds),
+        max_state_bytes: args.max_state_bytes,
+        state_dir: args.state_dir,
         ..PluginConfig::default()
     })?;
     let listener = tokio::net::TcpListener::bind(address)

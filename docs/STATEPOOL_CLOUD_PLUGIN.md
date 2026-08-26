@@ -12,6 +12,8 @@ rwkv-agent-server-rs
     -> rwkv-statepool-cloud-plugin :8130
       -> Worker directory
       -> privacy/model/state-aware placement
+      -> Lease + fencing + State version CAS
+      -> atomic LocalFS State store (development profile)
       -> drain admission
       -> FinOps metrics
 ```
@@ -42,7 +44,10 @@ Rust commands must be run on the remote build host under the repository
 rwkv-statepool-cloud-plugin \
   --host 127.0.0.1 \
   --port 8130 \
-  --worker-ttl-seconds 30
+  --worker-ttl-seconds 30 \
+  --lease-max-ttl-seconds 120 \
+  --max-state-bytes 536870912 \
+  --state-dir var/statepool/states
 ```
 
 Register at least one compatible Worker:
@@ -112,18 +117,49 @@ statepool_gpu_seconds_total
 statepool_prefill_tokens_avoided_total
 statepool_state_bytes_read_total
 statepool_state_bytes_written_total
+statepool_leases_acquired_total
+statepool_lease_conflicts_total
+statepool_snapshots_committed_total
+statepool_restores_completed_total
 ```
 
 The plugin stores at most 10,000 recent usage records in memory in this slice.
 Prometheus persistence and PostgreSQL metadata are later deployment gates.
 
+## Lease and LocalFS State lifecycle
+
+The development profile now implements the checked-in
+`state-lifecycle-v1.schema.json` contract:
+
+1. acquire exactly one writer Lease for `(session_id, owner_id,
+   expected_state_version)`;
+2. issue a monotonically increasing fencing token, including after expiry;
+3. upload a base64 snapshot to Warm/Cold storage;
+4. recompute SHA-256, publish the file with a temporary-file + `fsync` + atomic
+   rename sequence, then CAS the immutable State metadata;
+5. release the first Lease, acquire a Lease for the committed version and
+   restore only the current exact-model State;
+6. reject expired holders and stale fencing tokens.
+
+`POST /plugin/v1/leases/acquire`, `/renew`, `/release`,
+`/plugin/v1/states/snapshot` and `/restore` are implemented and covered by a
+round-trip test. Payload upload is intentionally a simple base64 development
+transport; production Workers will use an S3 presigned transfer adapter rather
+than proxying large State blobs through the controller.
+
+This profile's metadata is in memory and its immutable objects are on LocalFS.
+A plugin restart loses Lease/current-version metadata, so it is not a
+multi-replica or production durability claim.
+
 ## Deliberate non-claims
 
-The current plugin advertises only `placement`, `worker_registry`, `drain` and
-`finops`. It does not advertise `remote_state` or `leases` because the live
-RWKV HTTP provider still lacks verified snapshot/restore, S3 persistence and
-distributed fencing. A remote plan may select a compatible Worker for a newly
-opened State; it does not prove migration of an already-open State.
+The current plugin advertises `placement`, `worker_registry`, `leases`,
+`state_lifecycle`, `drain` and `finops`. `leases` and `state_lifecycle` are
+limited to the single-process development profile above. It does not advertise
+`remote_state`, because the live RWKV HTTP provider still lacks verified
+snapshot/restore, S3 persistence and distributed fencing. A remote plan may
+select a compatible Worker for a newly opened State; it does not prove
+migration of an already-open State.
 
 Exact cross-Worker continuation may be claimed only after:
 

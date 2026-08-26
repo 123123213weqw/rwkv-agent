@@ -1,11 +1,15 @@
 //! Out-of-process StatePool Cloud Plugin.
 //!
-//! The first service slice deliberately implements only protocol negotiation,
-//! a dynamic Worker directory, explainable placement and bounded in-memory
-//! FinOps counters. Snapshot persistence and distributed leases are separate
-//! gates and are never fabricated by this service.
+//! The local profile implements protocol negotiation, a dynamic Worker
+//! directory, explainable placement, single-writer Lease/fencing semantics,
+//! immutable LocalFS State snapshots and bounded in-memory FinOps counters.
+//! PostgreSQL and S3 adapters remain separate production gates.
+
+mod metadata;
+mod state_store;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -15,20 +19,37 @@ use axum::http::{HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use rwkv_statepool_plugin_api::{
-    EXECUTION_PLAN_CONTRACT_VERSION, ExecutionPlan, HandshakeRequest, HandshakeResponse, Money,
-    PLUGIN_CONTRACT_VERSION, PlanRequest, PrivacyClass, USAGE_RECORD_CONTRACT_VERSION, UsageRecord,
-    WorkerCapability, WorkerLifecycle, WorkerZone,
+    AcquireLeaseRequest, EXECUTION_PLAN_CONTRACT_VERSION, ExecutionPlan, HandshakeRequest,
+    HandshakeResponse, Lease, Money, PLUGIN_CONTRACT_VERSION, PlanRequest, PrivacyClass,
+    RESTORE_RESPONSE_CONTRACT_VERSION, ReleaseLeaseRequest, RenewLeaseRequest, RestoreStateRequest,
+    RestoreStateResponse, STATE_REFERENCE_CONTRACT_VERSION, SnapshotStateRequest, StateReference,
+    USAGE_RECORD_CONTRACT_VERSION, UsageRecord, WorkerCapability, WorkerLifecycle, WorkerZone,
 };
 use serde_json::{Value, json};
 use tokio::sync::RwLock;
 
-const CAPABILITIES: &[&str] = &["placement", "worker_registry", "drain", "finops"];
+use metadata::{InMemoryMetadataStore, MetadataError, MetadataErrorKind, MetadataStore};
+use state_store::{LocalFsStateStore, StateStore, sha256_checksum};
+
+const CAPABILITIES: &[&str] = &[
+    "placement",
+    "worker_registry",
+    "leases",
+    "state_lifecycle",
+    "drain",
+    "finops",
+];
 
 #[derive(Clone, Debug)]
 pub struct PluginConfig {
     pub plugin_version: String,
     pub worker_ttl: Duration,
+    pub lease_max_ttl: Duration,
+    pub max_state_bytes: u64,
+    pub state_dir: PathBuf,
 }
 
 impl Default for PluginConfig {
@@ -36,6 +57,9 @@ impl Default for PluginConfig {
         Self {
             plugin_version: env!("CARGO_PKG_VERSION").into(),
             worker_ttl: Duration::from_secs(30),
+            lease_max_ttl: Duration::from_secs(120),
+            max_state_bytes: 512 * 1024 * 1024,
+            state_dir: PathBuf::from("var/statepool/states"),
         }
     }
 }
@@ -53,6 +77,10 @@ struct Metrics {
     prefill_tokens_avoided: AtomicU64,
     state_bytes_read: AtomicU64,
     state_bytes_written: AtomicU64,
+    leases_acquired: AtomicU64,
+    lease_conflicts: AtomicU64,
+    snapshots_committed: AtomicU64,
+    restores_completed: AtomicU64,
 }
 
 #[derive(Clone)]
@@ -62,19 +90,31 @@ pub struct PluginState {
     usage: Arc<RwLock<Vec<UsageRecord>>>,
     metrics: Arc<Metrics>,
     decisions: Arc<AtomicU64>,
+    metadata: Arc<dyn MetadataStore>,
+    state_store: Arc<dyn StateStore>,
 }
 
 impl PluginState {
     pub fn new(config: PluginConfig) -> Result<Self, String> {
-        if config.plugin_version.trim().is_empty() || config.worker_ttl.is_zero() {
-            return Err("plugin version and Worker TTL must be positive".into());
+        if config.plugin_version.trim().is_empty()
+            || config.worker_ttl.is_zero()
+            || config.lease_max_ttl < Duration::from_secs(1)
+            || config.max_state_bytes == 0
+        {
+            return Err(
+                "plugin version, Worker/Lease TTL and max State bytes must be positive".into(),
+            );
         }
+        let state_store =
+            LocalFsStateStore::new(config.state_dir.clone()).map_err(|error| error.0)?;
         Ok(Self {
             config: Arc::new(config),
             workers: Arc::new(RwLock::new(HashMap::new())),
             usage: Arc::new(RwLock::new(Vec::new())),
             metrics: Arc::new(Metrics::default()),
             decisions: Arc::new(AtomicU64::new(1)),
+            metadata: Arc::new(InMemoryMetadataStore::default()),
+            state_store: Arc::new(state_store),
         })
     }
 
@@ -93,6 +133,11 @@ pub fn router(state: PluginState) -> Router {
         .route("/plugin/v1/handshake", post(handshake))
         .route("/plugin/v1/plan", post(plan))
         .route("/plugin/v1/usage", post(record_usage))
+        .route("/plugin/v1/leases/acquire", post(acquire_lease))
+        .route("/plugin/v1/leases/renew", post(renew_lease))
+        .route("/plugin/v1/leases/release", post(release_lease))
+        .route("/plugin/v1/states/snapshot", post(snapshot_state))
+        .route("/plugin/v1/states/restore", post(restore_state))
         .route("/plugin/v1/workers", get(list_workers))
         .route("/plugin/v1/workers/register", post(register_worker))
         .route(
@@ -124,8 +169,8 @@ async fn health(State(state): State<PluginState>) -> Json<Value> {
         "checked_at_ms":now_ms(),
         "dependencies":{
             "worker_registry":if ready > 0 {"ready"} else {"degraded"},
-            "metadata":"in_memory",
-            "object_store":"disabled"
+            "metadata":"in_memory_lease_cas",
+            "object_store":"localfs"
         }
     }))
 }
@@ -166,6 +211,276 @@ async fn handshake(
         plugin_version: state.config.plugin_version.clone(),
         capabilities: CAPABILITIES.iter().map(|value| (*value).into()).collect(),
     }))
+}
+
+async fn acquire_lease(
+    State(state): State<PluginState>,
+    Json(request): Json<AcquireLeaseRequest>,
+) -> Result<Json<Lease>, PluginError> {
+    request.validate().map_err(invalid_contract)?;
+    ensure_lease_ttl(&state, request.ttl_ms)?;
+    match state.metadata.acquire(&request, now_ms()).await {
+        Ok(lease) => {
+            state
+                .metrics
+                .leases_acquired
+                .fetch_add(1, Ordering::Relaxed);
+            Ok(Json(lease))
+        }
+        Err(error) => {
+            state
+                .metrics
+                .lease_conflicts
+                .fetch_add(1, Ordering::Relaxed);
+            Err(metadata_error(error))
+        }
+    }
+}
+
+async fn renew_lease(
+    State(state): State<PluginState>,
+    Json(request): Json<RenewLeaseRequest>,
+) -> Result<Json<Lease>, PluginError> {
+    request.validate().map_err(invalid_contract)?;
+    ensure_lease_ttl(&state, request.ttl_ms)?;
+    state
+        .metadata
+        .renew(&request, now_ms())
+        .await
+        .map(Json)
+        .map_err(metadata_error)
+}
+
+async fn release_lease(
+    State(state): State<PluginState>,
+    Json(request): Json<ReleaseLeaseRequest>,
+) -> Result<StatusCode, PluginError> {
+    request.validate().map_err(invalid_contract)?;
+    state
+        .metadata
+        .release(&request.lease, now_ms())
+        .await
+        .map_err(metadata_error)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn snapshot_state(
+    State(state): State<PluginState>,
+    Json(request): Json<SnapshotStateRequest>,
+) -> Result<Json<StateReference>, PluginError> {
+    request.validate().map_err(invalid_contract)?;
+    state
+        .metadata
+        .assert_lease(&request.lease, true, now_ms())
+        .await
+        .map_err(metadata_error)?;
+
+    let payload = BASE64.decode(&request.payload_base64).map_err(|error| {
+        PluginError::new(
+            StatusCode::BAD_REQUEST,
+            "invalid_state_payload",
+            format!("State payload is not canonical base64: {error}"),
+            false,
+        )
+    })?;
+    let size_bytes = u64::try_from(payload.len()).unwrap_or(u64::MAX);
+    if size_bytes == 0 || size_bytes > state.config.max_state_bytes {
+        return Err(PluginError::new(
+            StatusCode::PAYLOAD_TOO_LARGE,
+            "state_payload_too_large",
+            format!(
+                "State payload must be between 1 and {} bytes",
+                state.config.max_state_bytes
+            ),
+            false,
+        ));
+    }
+    let checksum = sha256_checksum(&payload);
+    if request
+        .expected_checksum
+        .as_ref()
+        .is_some_and(|expected| expected != &checksum)
+    {
+        return Err(PluginError::new(
+            StatusCode::CONFLICT,
+            "state_checksum_mismatch",
+            "Uploaded State does not match expected checksum",
+            false,
+        ));
+    }
+
+    let version = request.expected_state_version.saturating_add(1);
+    let identity_hash = sha256_checksum(
+        format!("{}\0{}", request.lease.owner_id, request.lease.session_id).as_bytes(),
+    );
+    let state_id = format!(
+        "state-v{version}-f{}-{}",
+        request.lease.fencing_token,
+        &checksum[7..23]
+    );
+    let object_key = format!(
+        "{}/v{version}-f{}-{}.state",
+        &identity_hash[7..39],
+        request.lease.fencing_token,
+        &checksum[7..23]
+    );
+    let stored = state
+        .state_store
+        .put_immutable(&object_key, &payload)
+        .await
+        .map_err(state_store_error)?;
+    let committed_at = now_ms();
+    let state_ref = StateReference {
+        contract_version: STATE_REFERENCE_CONTRACT_VERSION.into(),
+        state_id,
+        session_id: request.lease.session_id.clone(),
+        owner_id: request.lease.owner_id.clone(),
+        version,
+        fencing_token: Some(request.lease.fencing_token),
+        provider_mode: request.provider_mode,
+        model_ref: request.model_ref,
+        placement: request.target_tier,
+        worker_id: None,
+        object_uri: Some(stored.uri.clone()),
+        checksum: stored.checksum,
+        size_bytes: stored.size_bytes,
+        atomic: true,
+        created_at_ms: committed_at,
+        last_active_at_ms: committed_at,
+        encryption: None,
+    };
+    if let Err(error) = state
+        .metadata
+        .commit_state(
+            &request.lease,
+            request.expected_state_version,
+            state_ref.clone(),
+            committed_at,
+        )
+        .await
+    {
+        let _ = state.state_store.delete(&stored.uri).await;
+        return Err(metadata_error(error));
+    }
+    state
+        .metrics
+        .snapshots_committed
+        .fetch_add(1, Ordering::Relaxed);
+    state
+        .metrics
+        .state_bytes_written
+        .fetch_add(size_bytes, Ordering::Relaxed);
+    Ok(Json(state_ref))
+}
+
+async fn restore_state(
+    State(state): State<PluginState>,
+    Json(request): Json<RestoreStateRequest>,
+) -> Result<Json<RestoreStateResponse>, PluginError> {
+    request.validate().map_err(invalid_contract)?;
+    state
+        .metadata
+        .assert_lease(&request.lease, true, now_ms())
+        .await
+        .map_err(metadata_error)?;
+    let current = state
+        .metadata
+        .current_state(&request.state_ref.session_id, &request.state_ref.owner_id)
+        .await
+        .map_err(metadata_error)?;
+    if current != request.state_ref
+        || request.lease.session_id != current.session_id
+        || request.lease.owner_id != current.owner_id
+    {
+        return Err(PluginError::new(
+            StatusCode::CONFLICT,
+            "state_version_conflict",
+            "Restore reference is not the current committed State",
+            false,
+        ));
+    }
+    let uri = current.object_uri.as_deref().ok_or_else(|| {
+        PluginError::new(
+            StatusCode::CONFLICT,
+            "state_not_persisted",
+            "State reference has no persisted object URI",
+            false,
+        )
+    })?;
+    let payload = state
+        .state_store
+        .get(uri)
+        .await
+        .map_err(state_store_error)?;
+    if sha256_checksum(&payload) != current.checksum
+        || u64::try_from(payload.len()).unwrap_or(u64::MAX) != current.size_bytes
+    {
+        return Err(PluginError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "state_integrity_failure",
+            "Persisted State checksum or size does not match metadata",
+            false,
+        ));
+    }
+    state
+        .metrics
+        .restores_completed
+        .fetch_add(1, Ordering::Relaxed);
+    state
+        .metrics
+        .state_bytes_read
+        .fetch_add(current.size_bytes, Ordering::Relaxed);
+    Ok(Json(RestoreStateResponse {
+        contract_version: RESTORE_RESPONSE_CONTRACT_VERSION.into(),
+        state_ref: current,
+        payload_base64: BASE64.encode(payload),
+    }))
+}
+
+fn ensure_lease_ttl(state: &PluginState, ttl_ms: u64) -> Result<(), PluginError> {
+    if u128::from(ttl_ms) > state.config.lease_max_ttl.as_millis() {
+        return Err(PluginError::new(
+            StatusCode::BAD_REQUEST,
+            "invalid_request",
+            format!(
+                "ttl_ms exceeds configured maximum of {}",
+                state.config.lease_max_ttl.as_millis()
+            ),
+            false,
+        ));
+    }
+    Ok(())
+}
+
+fn invalid_contract(error: rwkv_statepool_plugin_api::ContractError) -> PluginError {
+    PluginError::new(
+        StatusCode::BAD_REQUEST,
+        "invalid_request",
+        error.to_string(),
+        false,
+    )
+}
+
+fn metadata_error(error: MetadataError) -> PluginError {
+    let status = match error.kind {
+        MetadataErrorKind::OwnerMismatch => StatusCode::FORBIDDEN,
+        MetadataErrorKind::NotFound => StatusCode::NOT_FOUND,
+        MetadataErrorKind::VersionConflict
+        | MetadataErrorKind::LeaseHeld
+        | MetadataErrorKind::LeaseExpired
+        | MetadataErrorKind::StaleFence
+        | MetadataErrorKind::StateConflict => StatusCode::CONFLICT,
+    };
+    PluginError::new(status, error.code(), error.message, false)
+}
+
+fn state_store_error(error: state_store::StateStoreError) -> PluginError {
+    PluginError::new(
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "state_store_failure",
+        error.0,
+        true,
+    )
 }
 
 async fn register_worker(
@@ -446,7 +761,11 @@ async fn metrics(State(state): State<PluginState>) -> Response {
             "statepool_gpu_seconds_total {}\n",
             "statepool_prefill_tokens_avoided_total {}\n",
             "statepool_state_bytes_read_total {}\n",
-            "statepool_state_bytes_written_total {}\n"
+            "statepool_state_bytes_written_total {}\n",
+            "statepool_leases_acquired_total {}\n",
+            "statepool_lease_conflicts_total {}\n",
+            "statepool_snapshots_committed_total {}\n",
+            "statepool_restores_completed_total {}\n"
         ),
         ready_workers,
         metrics.plan_requests.load(Ordering::Relaxed),
@@ -459,6 +778,10 @@ async fn metrics(State(state): State<PluginState>) -> Response {
         metrics.prefill_tokens_avoided.load(Ordering::Relaxed),
         metrics.state_bytes_read.load(Ordering::Relaxed),
         metrics.state_bytes_written.load(Ordering::Relaxed),
+        metrics.leases_acquired.load(Ordering::Relaxed),
+        metrics.lease_conflicts.load(Ordering::Relaxed),
+        metrics.snapshots_committed.load(Ordering::Relaxed),
+        metrics.restores_completed.load(Ordering::Relaxed),
     );
     let mut response = body.into_response();
     response.headers_mut().insert(
@@ -602,7 +925,10 @@ mod tests {
     use axum::body::{Body, to_bytes};
     use axum::http::Request;
     use rwkv_statepool_plugin_api::{
-        ModelRef, PLAN_REQUEST_CONTRACT_VERSION, WORKER_CAPABILITY_CONTRACT_VERSION,
+        ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION, AcquireLeaseRequest, Lease, ModelRef,
+        PLAN_REQUEST_CONTRACT_VERSION, RELEASE_LEASE_REQUEST_CONTRACT_VERSION,
+        RESTORE_REQUEST_CONTRACT_VERSION, SNAPSHOT_REQUEST_CONTRACT_VERSION,
+        STATE_REFERENCE_CONTRACT_VERSION, StateReference, WORKER_CAPABILITY_CONTRACT_VERSION,
         WorkerCapacity, WorkerDevice, WorkerPrice,
     };
     use tower::ServiceExt;
@@ -643,6 +969,17 @@ mod tests {
             }),
             labels: Default::default(),
             reported_at_ms: now_ms(),
+        }
+    }
+
+    fn test_config(name: &str) -> PluginConfig {
+        PluginConfig {
+            state_dir: std::env::temp_dir().join(format!(
+                "rwkv-statepool-{name}-{}-{}",
+                std::process::id(),
+                now_ms()
+            )),
+            ..PluginConfig::default()
         }
     }
 
@@ -779,5 +1116,133 @@ mod tests {
         )
         .await;
         assert_eq!(plan["mode"], "reject");
+    }
+
+    #[tokio::test]
+    async fn one_writer_and_monotonic_fencing_survive_lease_expiry() {
+        let metadata = InMemoryMetadataStore::default();
+        let request = AcquireLeaseRequest {
+            contract_version: ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION.into(),
+            session_id: "session".into(),
+            owner_id: "owner".into(),
+            holder_id: "holder-a".into(),
+            expected_state_version: 0,
+            ttl_ms: 1_000,
+        };
+        let first = metadata.acquire(&request, 10_000).await.unwrap();
+        let conflict = metadata.acquire(&request, 10_999).await.unwrap_err();
+        assert_eq!(conflict.kind, MetadataErrorKind::LeaseHeld);
+
+        let mut second_request = request;
+        second_request.holder_id = "holder-b".into();
+        let second = metadata.acquire(&second_request, 11_000).await.unwrap();
+        assert!(second.fencing_token > first.fencing_token);
+        let stale = metadata
+            .assert_lease(&first, true, 11_001)
+            .await
+            .unwrap_err();
+        assert_eq!(stale.kind, MetadataErrorKind::StaleFence);
+    }
+
+    #[tokio::test]
+    async fn snapshot_restore_round_trip_uses_cas_checksum_and_fencing() {
+        let config = test_config("round-trip");
+        let state_dir = config.state_dir.clone();
+        let app = router(PluginState::new(config).unwrap());
+        let acquire_body = json!({
+            "contract_version":ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION,
+            "session_id":"session",
+            "owner_id":"owner",
+            "holder_id":"worker-a/request-a",
+            "expected_state_version":0,
+            "ttl_ms":30000
+        });
+        let (status, lease_value) =
+            json_request(app.clone(), "/plugin/v1/leases/acquire", acquire_body).await;
+        assert_eq!(status, StatusCode::OK);
+        let first_lease: Lease = serde_json::from_value(lease_value.clone()).unwrap();
+
+        let payload = b"recurrent-state-v1";
+        let checksum = sha256_checksum(payload);
+        let (status, state_value) = json_request(
+            app.clone(),
+            "/plugin/v1/states/snapshot",
+            json!({
+                "contract_version":SNAPSHOT_REQUEST_CONTRACT_VERSION,
+                "provider_mode":"rwkv_recurrent",
+                "model_ref":model(),
+                "target_tier":"cold",
+                "lease":lease_value,
+                "expected_state_version":0,
+                "payload_base64":BASE64.encode(payload),
+                "expected_checksum":checksum
+            }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{state_value}");
+        let state_ref: StateReference = serde_json::from_value(state_value.clone()).unwrap();
+        assert_eq!(state_ref.contract_version, STATE_REFERENCE_CONTRACT_VERSION);
+        assert_eq!(state_ref.version, 1);
+        assert_eq!(state_ref.fencing_token, Some(first_lease.fencing_token));
+
+        let (status, _) = json_request(
+            app.clone(),
+            "/plugin/v1/leases/release",
+            json!({
+                "contract_version":RELEASE_LEASE_REQUEST_CONTRACT_VERSION,
+                "lease":first_lease
+            }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::NO_CONTENT);
+
+        let (status, restore_lease_value) = json_request(
+            app.clone(),
+            "/plugin/v1/leases/acquire",
+            json!({
+                "contract_version":ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION,
+                "session_id":"session",
+                "owner_id":"owner",
+                "holder_id":"worker-b/request-b",
+                "expected_state_version":1,
+                "ttl_ms":30000
+            }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        let restore_lease: Lease = serde_json::from_value(restore_lease_value.clone()).unwrap();
+        assert!(restore_lease.fencing_token > state_ref.fencing_token.unwrap());
+
+        let (status, restored) = json_request(
+            app.clone(),
+            "/plugin/v1/states/restore",
+            json!({
+                "contract_version":RESTORE_REQUEST_CONTRACT_VERSION,
+                "state_ref":state_value,
+                "expected_model_ref":model(),
+                "target_worker_id":"cloud-worker-b",
+                "lease":restore_lease_value
+            }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{restored}");
+        assert_eq!(restored["payload_base64"], BASE64.encode(payload));
+
+        let (_, stale) = json_request(
+            app,
+            "/plugin/v1/states/snapshot",
+            json!({
+                "contract_version":SNAPSHOT_REQUEST_CONTRACT_VERSION,
+                "provider_mode":"rwkv_recurrent",
+                "model_ref":model(),
+                "target_tier":"cold",
+                "lease":first_lease,
+                "expected_state_version":0,
+                "payload_base64":BASE64.encode(b"stale-writer")
+            }),
+        )
+        .await;
+        assert_eq!(stale["error"]["code"], "stale_fencing_token");
+        let _ = tokio::fs::remove_dir_all(state_dir).await;
     }
 }

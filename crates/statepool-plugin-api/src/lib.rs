@@ -13,6 +13,13 @@ pub const EXECUTION_PLAN_CONTRACT_VERSION: &str = "statepool-execution-plan.v1";
 pub const WORKER_CAPABILITY_CONTRACT_VERSION: &str = "statepool-worker-capability.v1";
 pub const STATE_REFERENCE_CONTRACT_VERSION: &str = "statepool-state-reference.v1";
 pub const USAGE_RECORD_CONTRACT_VERSION: &str = "statepool-usage-record.v1";
+pub const ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION: &str = "statepool-acquire-lease-request.v1";
+pub const RENEW_LEASE_REQUEST_CONTRACT_VERSION: &str = "statepool-renew-lease-request.v1";
+pub const RELEASE_LEASE_REQUEST_CONTRACT_VERSION: &str = "statepool-release-lease-request.v1";
+pub const LEASE_CONTRACT_VERSION: &str = "statepool-lease.v1";
+pub const SNAPSHOT_REQUEST_CONTRACT_VERSION: &str = "statepool-snapshot-request.v1";
+pub const RESTORE_REQUEST_CONTRACT_VERSION: &str = "statepool-restore-request.v1";
+pub const RESTORE_RESPONSE_CONTRACT_VERSION: &str = "statepool-restore-response.v1";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -249,9 +256,208 @@ pub struct StateReference {
 }
 
 impl StateReference {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != STATE_REFERENCE_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        if self.state_id.trim().is_empty()
+            || self.session_id.trim().is_empty()
+            || self.owner_id.trim().is_empty()
+            || self.provider_mode.trim().is_empty()
+            || self.checksum.trim().is_empty()
+            || !self.atomic
+        {
+            return Err(ContractError::Invalid(
+                "State identity, checksum and atomic marker are required".into(),
+            ));
+        }
+        if !self.checksum.starts_with("sha256:") || self.checksum.len() != 71 {
+            return Err(ContractError::Invalid(
+                "State checksum must use sha256:<64 lowercase hex characters>".into(),
+            ));
+        }
+        self.model_ref.validate()?;
+        Ok(())
+    }
+
     pub fn exact_restore_compatible(&self, expected: &ModelRef) -> bool {
         self.atomic && self.model_ref.exact_compatible(expected)
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AcquireLeaseRequest {
+    pub contract_version: String,
+    pub session_id: String,
+    pub owner_id: String,
+    pub holder_id: String,
+    pub expected_state_version: u64,
+    pub ttl_ms: u64,
+}
+
+impl AcquireLeaseRequest {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        if self.session_id.trim().is_empty()
+            || self.owner_id.trim().is_empty()
+            || self.holder_id.trim().is_empty()
+            || self.ttl_ms < 1_000
+        {
+            return Err(ContractError::Invalid(
+                "Lease identities and a ttl_ms of at least 1000 are required".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Lease {
+    pub contract_version: String,
+    pub lease_id: String,
+    pub session_id: String,
+    pub owner_id: String,
+    pub holder_id: String,
+    pub fencing_token: u64,
+    pub expected_state_version: u64,
+    pub expires_at_ms: u64,
+}
+
+impl Lease {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != LEASE_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        if self.lease_id.trim().is_empty()
+            || self.session_id.trim().is_empty()
+            || self.owner_id.trim().is_empty()
+            || self.holder_id.trim().is_empty()
+            || self.fencing_token == 0
+        {
+            return Err(ContractError::Invalid(
+                "Lease identity and positive fencing_token are required".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RenewLeaseRequest {
+    pub contract_version: String,
+    pub lease: Lease,
+    pub ttl_ms: u64,
+}
+
+impl RenewLeaseRequest {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != RENEW_LEASE_REQUEST_CONTRACT_VERSION || self.ttl_ms < 1_000 {
+            return Err(ContractError::Invalid(
+                "Renew contract and a ttl_ms of at least 1000 are required".into(),
+            ));
+        }
+        self.lease.validate()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ReleaseLeaseRequest {
+    pub contract_version: String,
+    pub lease: Lease,
+}
+
+impl ReleaseLeaseRequest {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != RELEASE_LEASE_REQUEST_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        self.lease.validate()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SnapshotStateRequest {
+    pub contract_version: String,
+    pub provider_mode: String,
+    pub model_ref: ModelRef,
+    pub target_tier: StatePlacement,
+    pub lease: Lease,
+    pub expected_state_version: u64,
+    pub payload_base64: String,
+    #[serde(default)]
+    pub expected_checksum: Option<String>,
+}
+
+impl SnapshotStateRequest {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != SNAPSHOT_REQUEST_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        if self.provider_mode.trim().is_empty() || self.payload_base64.is_empty() {
+            return Err(ContractError::Invalid(
+                "provider_mode and state payload are required".into(),
+            ));
+        }
+        if !matches!(
+            self.target_tier,
+            StatePlacement::Warm | StatePlacement::Cold
+        ) {
+            return Err(ContractError::Invalid(
+                "Snapshot target_tier must be warm or cold".into(),
+            ));
+        }
+        self.model_ref.validate()?;
+        self.lease.validate()?;
+        if self.expected_state_version != self.lease.expected_state_version {
+            return Err(ContractError::Invalid(
+                "Snapshot and Lease expected State versions differ".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RestoreStateRequest {
+    pub contract_version: String,
+    pub state_ref: StateReference,
+    pub expected_model_ref: ModelRef,
+    pub target_worker_id: String,
+    pub lease: Lease,
+}
+
+impl RestoreStateRequest {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != RESTORE_REQUEST_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        if self.target_worker_id.trim().is_empty() {
+            return Err(ContractError::Invalid(
+                "Restore target_worker_id is required".into(),
+            ));
+        }
+        self.state_ref.validate()?;
+        self.expected_model_ref.validate()?;
+        self.lease.validate()?;
+        if !self
+            .state_ref
+            .exact_restore_compatible(&self.expected_model_ref)
+        {
+            return Err(ContractError::Invalid(
+                "Raw State restore requires exact model identity and an atomic State".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RestoreStateResponse {
+    pub contract_version: String,
+    pub state_ref: StateReference,
+    pub payload_base64: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -469,6 +675,34 @@ mod tests {
             "../../../contracts/examples/statepool-plugin-v1/usage-record.json"
         ))
         .unwrap();
+        let acquire: AcquireLeaseRequest = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/acquire-lease-request.json"
+        ))
+        .unwrap();
+        let lease: Lease = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/lease.json"
+        ))
+        .unwrap();
+        let renew: RenewLeaseRequest = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/renew-lease-request.json"
+        ))
+        .unwrap();
+        let release: ReleaseLeaseRequest = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/release-lease-request.json"
+        ))
+        .unwrap();
+        let snapshot: SnapshotStateRequest = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/snapshot-request.json"
+        ))
+        .unwrap();
+        let restore: RestoreStateRequest = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/restore-request.json"
+        ))
+        .unwrap();
+        let restore_response: RestoreStateResponse = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/restore-response.json"
+        ))
+        .unwrap();
 
         assert_eq!(handshake_request.contract_version, PLUGIN_CONTRACT_VERSION);
         assert_eq!(handshake_response.plugin, "statepool-cloud");
@@ -477,5 +711,15 @@ mod tests {
         request.validate().unwrap();
         assert_eq!(plan.contract_version, EXECUTION_PLAN_CONTRACT_VERSION);
         assert_eq!(usage.contract_version, USAGE_RECORD_CONTRACT_VERSION);
+        acquire.validate().unwrap();
+        lease.validate().unwrap();
+        renew.validate().unwrap();
+        release.validate().unwrap();
+        snapshot.validate().unwrap();
+        restore.validate().unwrap();
+        assert_eq!(
+            restore_response.contract_version,
+            RESTORE_RESPONSE_CONTRACT_VERSION
+        );
     }
 }
