@@ -589,6 +589,8 @@ pub struct ExecutionPlan {
     #[serde(default)]
     pub worker_id: Option<String>,
     #[serde(default)]
+    pub worker_zone: Option<WorkerZone>,
+    #[serde(default)]
     pub endpoint: Option<String>,
     pub state_action: String,
     pub reason_code: String,
@@ -610,6 +612,7 @@ impl ExecutionPlan {
             request_id,
             mode: "local".into(),
             worker_id: None,
+            worker_zone: Some(WorkerZone::Local),
             endpoint: None,
             state_action: "none".into(),
             reason_code: reason_code.into(),
@@ -667,6 +670,74 @@ pub struct UsageRecord {
     pub metrics: UsageMetrics,
     #[serde(default)]
     pub error_code: Option<String>,
+}
+
+impl UsageRecord {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != USAGE_RECORD_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        if [
+            self.record_id.as_str(),
+            self.request_id.as_str(),
+            self.session_id.as_str(),
+            self.owner_id.as_str(),
+            self.worker_id.as_str(),
+            self.operation.as_str(),
+            self.outcome.as_str(),
+        ]
+        .iter()
+        .any(|value| value.trim().is_empty())
+            || !matches!(
+                self.operation.as_str(),
+                "create" | "continue" | "snapshot" | "restore" | "release" | "drain"
+            )
+            || !matches!(
+                self.outcome.as_str(),
+                "succeeded" | "failed" | "cancelled" | "unknown"
+            )
+            || self
+                .error_code
+                .as_deref()
+                .is_some_and(|value| value.trim().is_empty())
+            || self.finished_at_ms < self.started_at_ms
+            || !self.metrics.elapsed_ms.is_finite()
+            || self.metrics.elapsed_ms < 0.0
+            || !self.metrics.gpu_seconds.is_finite()
+            || self.metrics.gpu_seconds < 0.0
+            || self
+                .metrics
+                .queue_ms
+                .is_some_and(|value| !value.is_finite() || value < 0.0)
+            || self
+                .metrics
+                .restore_ms
+                .is_some_and(|value| !value.is_finite() || value < 0.0)
+            || self
+                .metrics
+                .snapshot_ms
+                .is_some_and(|value| !value.is_finite() || value < 0.0)
+        {
+            return Err(ContractError::Invalid(
+                "Usage identity, operation, outcome, timestamps or metrics are invalid".into(),
+            ));
+        }
+        if self.metrics.estimated_cost.as_ref().is_some_and(|cost| {
+            cost.currency.len() != 3
+                || !cost
+                    .currency
+                    .chars()
+                    .all(|value| value.is_ascii_uppercase())
+                || !cost.amount.is_finite()
+                || cost.amount < 0.0
+        }) {
+            return Err(ContractError::Invalid(
+                "Usage estimated cost must use an uppercase currency and non-negative amount"
+                    .into(),
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -793,6 +864,7 @@ mod tests {
         request.validate().unwrap();
         assert_eq!(plan.contract_version, EXECUTION_PLAN_CONTRACT_VERSION);
         assert_eq!(usage.contract_version, USAGE_RECORD_CONTRACT_VERSION);
+        usage.validate().unwrap();
         acquire.validate().unwrap();
         lease.validate().unwrap();
         renew.validate().unwrap();
@@ -800,6 +872,24 @@ mod tests {
         snapshot.validate().unwrap();
         restore.validate().unwrap();
         restore_response.validate().unwrap();
+    }
+
+    #[test]
+    fn usage_validation_rejects_unknown_enums_and_non_finite_metrics() {
+        let mut usage: UsageRecord = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/usage-record.json"
+        ))
+        .unwrap();
+        usage.operation = "infer".into();
+        assert!(usage.validate().is_err());
+
+        usage.operation = "continue".into();
+        usage.outcome = "maybe".into();
+        assert!(usage.validate().is_err());
+
+        usage.outcome = "succeeded".into();
+        usage.metrics.gpu_seconds = f64::NAN;
+        assert!(usage.validate().is_err());
     }
 
     #[test]

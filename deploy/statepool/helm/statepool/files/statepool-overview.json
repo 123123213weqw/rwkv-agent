@@ -63,13 +63,13 @@
     },
     {
       "type": "timeseries",
-      "title": "Placement Throughput",
+      "title": "Actual Inference Throughput by Zone",
       "id": 7,
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
       "targets": [
-        { "expr": "rate(statepool_local_plans_total[5m])", "legendFormat": "local", "refId": "A" },
-        { "expr": "rate(statepool_remote_plans_total[5m])", "legendFormat": "cloud/edge", "refId": "B" },
-        { "expr": "rate(statepool_rejected_plans_total[5m])", "legendFormat": "rejected", "refId": "C" }
+        { "expr": "rate(statepool_usage_requests_total{zone=\"local\"}[5m])", "legendFormat": "local", "refId": "A" },
+        { "expr": "rate(statepool_usage_requests_total{zone=\"edge\"}[5m])", "legendFormat": "edge", "refId": "B" },
+        { "expr": "rate(statepool_usage_requests_total{zone=\"cloud\"}[5m])", "legendFormat": "cloud", "refId": "C" }
       ],
       "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
     },
@@ -109,6 +109,16 @@
         { "expr": "rate(statepool_restores_completed_total[5m])", "legendFormat": "Restore", "refId": "D" }
       ],
       "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "State Restore Hit Ratio",
+      "description": "Warm/Cold/Hot state hits divided by state hits plus transcript re-prefill events; excludes first-turn creates.",
+      "id": 11,
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 20 },
+      "targets": [{ "expr": "(statepool_hot_state_hits_total + statepool_warm_state_hits_total + statepool_cold_state_hits_total) / clamp_min(statepool_hot_state_hits_total + statepool_warm_state_hits_total + statepool_cold_state_hits_total + statepool_transcript_reprefills_total, 1)", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "values": false } }
     }
   ],
   "refresh": "5s",
@@ -131,5 +141,5 @@
   "timezone": "browser",
   "title": "RWKV StatePool / Stateful Serverless Agent",
   "uid": "rwkv-statepool-overview",
-  "version": 1
+  "version": 2
 }

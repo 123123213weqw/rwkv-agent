@@ -17,9 +17,11 @@ use rwkv_statepool_plugin_api::{
     SNAPSHOT_REQUEST_CONTRACT_VERSION, SnapshotStateRequest,
 };
 pub use rwkv_statepool_plugin_api::{
-    ExecutionPlan, Lease as CloudLease, ModelRef as CloudModelRef, PrivacyClass,
-    RestoreStateResponse as CloudRestoreStateResponse, StatePlacement as CloudStatePlacement,
-    StateReference as CloudStateReference, WorkerZone,
+    ExecutionPlan, Lease as CloudLease, ModelRef as CloudModelRef, Money as CloudMoney,
+    PrivacyClass, RestoreStateResponse as CloudRestoreStateResponse,
+    StatePlacement as CloudStatePlacement, StateReference as CloudStateReference,
+    USAGE_RECORD_CONTRACT_VERSION as CLOUD_USAGE_RECORD_CONTRACT_VERSION,
+    UsageMetrics as CloudUsageMetrics, UsageRecord as CloudUsageRecord, WorkerZone,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -377,6 +379,21 @@ impl CloudPluginClient {
         self.state_lifecycle_enabled() && self.state.read().await.status == "ready"
     }
 
+    pub async fn plugin_ready(&self) -> bool {
+        self.config.enabled && self.state.read().await.status == "ready"
+    }
+
+    pub async fn finops_ready(&self) -> bool {
+        self.config.enabled && {
+            let state = self.state.read().await;
+            state.status == "ready"
+                && state
+                    .capabilities
+                    .iter()
+                    .any(|capability| capability == "finops")
+        }
+    }
+
     pub fn state_target_tier(&self) -> CloudStatePlacement {
         self.config.state_target_tier.clone()
     }
@@ -550,6 +567,31 @@ impl CloudPluginClient {
         Ok(response)
     }
 
+    pub async fn record_usage(&self, record: &CloudUsageRecord) -> Result<(), String> {
+        record.validate().map_err(|error| error.to_string())?;
+        if !self.finops_ready().await {
+            return Err("cloud plugin is not ready or does not advertise finops accounting".into());
+        }
+        let response = self
+            .http
+            .as_ref()
+            .expect("enabled cloud plugin has an HTTP client")
+            .post(format!("{}/plugin/v1/usage", self.config.endpoint))
+            .json(record)
+            .send()
+            .await
+            .map_err(|error| format!("cloud plugin usage accounting unavailable: {error}"))?;
+        let status = response.status();
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "cloud plugin usage accounting HTTP {status}: {}",
+                body.chars().take(500).collect::<String>()
+            ));
+        }
+        Ok(())
+    }
+
     async fn lifecycle_post<T: Serialize + ?Sized, R: DeserializeOwned>(
         &self,
         path: &str,
@@ -624,6 +666,11 @@ impl CloudPluginClient {
                 || plan.endpoint.as_deref().is_none_or(str::is_empty))
         {
             return Err("cloud plugin remote plan has no Worker or endpoint".into());
+        }
+        if plan.mode == "local" && (plan.worker_id.is_some() != plan.endpoint.is_some()) {
+            return Err(
+                "cloud plugin local plan must provide both Worker and endpoint or neither".into(),
+            );
         }
         if self.config.default_privacy == PrivacyClass::LocalOnly && plan.mode == "remote" {
             return Err("cloud plugin violated local_only privacy policy".into());
@@ -759,7 +806,7 @@ mod tests {
                 "contract_version":PLUGIN_CONTRACT_VERSION,
                 "plugin":"statepool-cloud",
                 "plugin_version":"test-lifecycle",
-                "capabilities":["placement","leases","state_lifecycle"]
+                "capabilities":["placement","leases","state_lifecycle","finops"]
             }))
         }
 
@@ -771,6 +818,7 @@ mod tests {
                 "request_id":request.request_id,
                 "mode":"remote",
                 "worker_id":"worker-test",
+                "worker_zone":"cloud",
                 "endpoint":"http://worker.test",
                 "state_action":if request.state_ref.is_some() {"restore"} else {"none"},
                 "reason_code":"state_affinity",
@@ -867,6 +915,15 @@ mod tests {
             })
         }
 
+        async fn usage(
+            AxumState(mock): AxumState<LifecycleMock>,
+            Json(record): Json<CloudUsageRecord>,
+        ) -> StatusCode {
+            record.validate().unwrap();
+            mock.events.lock().unwrap().push("usage".into());
+            StatusCode::ACCEPTED
+        }
+
         let mock = LifecycleMock::default();
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let address = listener.local_addr().unwrap();
@@ -878,6 +935,7 @@ mod tests {
             .route("/plugin/v1/leases/release", post(release))
             .route("/plugin/v1/states/snapshot", post(snapshot))
             .route("/plugin/v1/states/restore", post(restore))
+            .route("/plugin/v1/usage", post(usage))
             .with_state(mock.clone());
         tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
         (format!("http://{address}"), mock)
@@ -1025,6 +1083,13 @@ mod tests {
         assert_eq!(restored.payload_base64, "c3RhdGU=");
         plugin.release_lease(&lease1).await.unwrap();
 
+        let usage: CloudUsageRecord = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/usage-record.json"
+        ))
+        .unwrap();
+        assert!(plugin.finops_ready().await);
+        plugin.record_usage(&usage).await.unwrap();
+
         assert_eq!(
             *mock.events.lock().unwrap(),
             [
@@ -1034,7 +1099,8 @@ mod tests {
                 "release:0",
                 "acquire:1",
                 "restore",
-                "release:1"
+                "release:1",
+                "usage"
             ]
         );
     }
@@ -1085,6 +1151,7 @@ mod tests {
             request_id: "request".into(),
             mode: "remote".into(),
             worker_id: Some("worker".into()),
+            worker_zone: Some(WorkerZone::Cloud),
             endpoint: Some("http://worker".into()),
             state_action: "none".into(),
             reason_code: "cloud_capacity".into(),
@@ -1095,5 +1162,15 @@ mod tests {
             fallback: "local".into(),
         };
         assert!(plugin.validate_plan(&plan, "request").is_err());
+    }
+
+    #[test]
+    fn selected_local_endpoint_requires_a_worker_identity() {
+        let plugin = CloudPluginClient::new(enabled_config()).unwrap();
+        let mut plan = ExecutionPlan::local("request".into(), "local_within_slo");
+        plan.endpoint = Some("http://local-worker".into());
+        assert!(plugin.validate_plan(&plan, "request").is_err());
+        plan.worker_id = Some("local-worker".into());
+        assert!(plugin.validate_plan(&plan, "request").is_ok());
     }
 }

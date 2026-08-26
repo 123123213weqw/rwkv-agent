@@ -143,6 +143,7 @@ statepool_remote_plans_total
 statepool_rejected_plans_total
 statepool_worker_registrations_total
 statepool_usage_records_total
+statepool_usage_requests_total{zone="local|edge|cloud"}
 statepool_gpu_seconds_total
 statepool_prefill_tokens_avoided_total
 statepool_state_bytes_read_total
@@ -159,6 +160,33 @@ statepool_cold_state_hits_total
 statepool_transcript_reprefills_total
 statepool_estimated_cost_total{currency="CNY"}
 ```
+
+For every successful direct-chat inference, a Controller connected to a plugin
+that advertises `finops` submits a validated `UsageRecord`. Reporting is
+best-effort and happens after the answer and State safety decisions: a metrics
+timeout or HTTP failure is exposed as `trace.finops.status=report_failed` but
+never converts successful inference into a failed response. Plugins without
+the capability remain compatible and receive no usage request.
+
+Current measurement semantics are intentionally explicit:
+
+- `elapsed_ms`, `restore_ms` and `snapshot_ms` are Controller-observed wall
+  times. Restore includes durable read plus Sidecar import; snapshot includes
+  Sidecar export plus CAS commit.
+- `input_tokens` and `prefill_tokens_avoided` are character/4 estimates until
+  the provider exports tokenizer counters. Avoided prefill is reported only
+  when an existing recurrent Session State is reused.
+- `gpu_seconds` is Sidecar-reported model wall time treated as a one-active-GPU
+  proxy. It is **not** SM utilization, energy use or an nvidia-smi sample.
+- `queue_ms` and `estimated_cost` are the selected ExecutionPlan estimates,
+  not observed billing values.
+- `state_bytes_read_total` and `state_bytes_written_total` are counted by the
+  authoritative restore/snapshot endpoints. Usage records repeat the byte
+  values for per-turn attribution but do not increment those global counters
+  again.
+- `statepool_usage_requests_total` counts actual completed inference by Worker
+  zone; `local_plans_total` and `remote_plans_total` remain placement decisions
+  and therefore are not used as request-volume claims.
 
 The plugin stores at most 10,000 recent usage records in memory. Prometheus is
 the intended metrics persistence boundary. Session/Lease metadata can now use

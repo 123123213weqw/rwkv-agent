@@ -26,7 +26,7 @@ use rwkv_statepool_plugin_api::{
     HandshakeResponse, Lease, Money, PLUGIN_CONTRACT_VERSION, PlanRequest, PrivacyClass,
     RESTORE_RESPONSE_CONTRACT_VERSION, ReleaseLeaseRequest, RenewLeaseRequest, RestoreStateRequest,
     RestoreStateResponse, STATE_REFERENCE_CONTRACT_VERSION, SnapshotStateRequest, StateReference,
-    USAGE_RECORD_CONTRACT_VERSION, UsageRecord, WorkerCapability, WorkerLifecycle, WorkerZone,
+    UsageRecord, WorkerCapability, WorkerLifecycle, WorkerZone,
 };
 use serde_json::{Value, json};
 use tokio::sync::RwLock;
@@ -73,6 +73,9 @@ struct Metrics {
     rejected_plans: AtomicU64,
     worker_registrations: AtomicU64,
     usage_records: AtomicU64,
+    usage_local_requests: AtomicU64,
+    usage_edge_requests: AtomicU64,
+    usage_cloud_requests: AtomicU64,
     gpu_millis: AtomicU64,
     prefill_tokens_avoided: AtomicU64,
     state_bytes_read: AtomicU64,
@@ -726,6 +729,7 @@ async fn plan(
             request_id: request.request_id,
             mode: "reject".into(),
             worker_id: None,
+            worker_zone: None,
             endpoint: None,
             state_action: if request.state_ref.is_some() {
                 "transcript_reprefill".into()
@@ -789,6 +793,7 @@ async fn plan(
             request_id: request.request_id,
             mode: "reject".into(),
             worker_id: None,
+            worker_zone: None,
             endpoint: None,
             state_action: "none".into(),
             reason_code: "cost_limit".into(),
@@ -820,6 +825,7 @@ async fn plan(
         request_id: request.request_id,
         mode: mode.into(),
         worker_id: Some(worker.worker_id.clone()),
+        worker_zone: Some(worker.zone.clone()),
         endpoint: Some(worker.endpoint.clone()),
         state_action,
         reason_code: reason_code.into(),
@@ -835,19 +841,29 @@ async fn record_usage(
     State(state): State<PluginState>,
     Json(record): Json<UsageRecord>,
 ) -> Result<StatusCode, PluginError> {
-    if record.contract_version != USAGE_RECORD_CONTRACT_VERSION
-        || record.record_id.trim().is_empty()
-        || record.request_id.trim().is_empty()
-        || record.finished_at_ms < record.started_at_ms
-    {
+    if let Err(error) = record.validate() {
         return Err(PluginError::new(
             StatusCode::BAD_REQUEST,
             "invalid_request",
-            "invalid usage record",
+            error.to_string(),
             false,
         ));
     }
     state.metrics.usage_records.fetch_add(1, Ordering::Relaxed);
+    match &record.zone {
+        WorkerZone::Local => state
+            .metrics
+            .usage_local_requests
+            .fetch_add(1, Ordering::Relaxed),
+        WorkerZone::Edge => state
+            .metrics
+            .usage_edge_requests
+            .fetch_add(1, Ordering::Relaxed),
+        WorkerZone::Cloud => state
+            .metrics
+            .usage_cloud_requests
+            .fetch_add(1, Ordering::Relaxed),
+    };
     state.metrics.gpu_millis.fetch_add(
         (record.metrics.gpu_seconds.max(0.0) * 1000.0) as u64,
         Ordering::Relaxed,
@@ -856,14 +872,9 @@ async fn record_usage(
         .metrics
         .prefill_tokens_avoided
         .fetch_add(record.metrics.prefill_tokens_avoided, Ordering::Relaxed);
-    state
-        .metrics
-        .state_bytes_read
-        .fetch_add(record.metrics.state_bytes_read, Ordering::Relaxed);
-    state
-        .metrics
-        .state_bytes_written
-        .fetch_add(record.metrics.state_bytes_written, Ordering::Relaxed);
+    // Snapshot/restore endpoints are the authoritative byte counters. The
+    // Controller repeats those bytes in UsageRecord for per-turn attribution;
+    // adding them here would double-count every lifecycle operation.
     if let Some(cost) = &record.metrics.estimated_cost
         && cost.currency.len() == 3
         && cost
@@ -904,6 +915,10 @@ async fn metrics(State(state): State<PluginState>) -> Response {
             "statepool_rejected_plans_total {}\n",
             "statepool_worker_registrations_total {}\n",
             "statepool_usage_records_total {}\n",
+            "# TYPE statepool_usage_requests_total counter\n",
+            "statepool_usage_requests_total{{zone=\"local\"}} {}\n",
+            "statepool_usage_requests_total{{zone=\"edge\"}} {}\n",
+            "statepool_usage_requests_total{{zone=\"cloud\"}} {}\n",
             "statepool_gpu_seconds_total {}\n",
             "statepool_prefill_tokens_avoided_total {}\n",
             "statepool_state_bytes_read_total {}\n",
@@ -928,6 +943,9 @@ async fn metrics(State(state): State<PluginState>) -> Response {
         metrics.rejected_plans.load(Ordering::Relaxed),
         metrics.worker_registrations.load(Ordering::Relaxed),
         metrics.usage_records.load(Ordering::Relaxed),
+        metrics.usage_local_requests.load(Ordering::Relaxed),
+        metrics.usage_edge_requests.load(Ordering::Relaxed),
+        metrics.usage_cloud_requests.load(Ordering::Relaxed),
         metrics.gpu_millis.load(Ordering::Relaxed) as f64 / 1000.0,
         metrics.prefill_tokens_avoided.load(Ordering::Relaxed),
         metrics.state_bytes_read.load(Ordering::Relaxed),
@@ -1190,6 +1208,36 @@ mod tests {
         .await;
         assert_eq!(status, StatusCode::CONFLICT);
         assert_eq!(body["error"]["code"], "capability_missing");
+    }
+
+    #[tokio::test]
+    async fn usage_accounts_actual_zone_without_double_counting_lifecycle_bytes() {
+        let state = PluginState::new(PluginConfig::default()).unwrap();
+        let app = router(state.clone());
+        let usage: UsageRecord = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/usage-record.json"
+        ))
+        .unwrap();
+        let (status, _) = json_request(
+            app,
+            "/plugin/v1/usage",
+            serde_json::to_value(&usage).unwrap(),
+        )
+        .await;
+        assert_eq!(status, StatusCode::ACCEPTED);
+        assert_eq!(state.metrics.usage_records.load(Ordering::Relaxed), 1);
+        assert_eq!(
+            state.metrics.usage_cloud_requests.load(Ordering::Relaxed),
+            1
+        );
+        assert_eq!(state.metrics.gpu_millis.load(Ordering::Relaxed), 2_500);
+        assert_eq!(
+            state.metrics.prefill_tokens_avoided.load(Ordering::Relaxed),
+            4_096
+        );
+        assert_eq!(state.metrics.state_bytes_read.load(Ordering::Relaxed), 0);
+        assert_eq!(state.metrics.state_bytes_written.load(Ordering::Relaxed), 0);
+        assert_eq!(state.usage.read().await.as_slice(), &[usage]);
     }
 
     #[tokio::test]

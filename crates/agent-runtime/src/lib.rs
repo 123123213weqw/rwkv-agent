@@ -15,9 +15,10 @@ mod sidecar;
 mod task_ledger;
 
 pub use cloud_plugin::{
-    CloudLease, CloudModelRef, CloudPluginClient, CloudPluginConfig, CloudPluginFallback,
-    CloudRestoreStateResponse, CloudStatePlacement, CloudStateReference, ExecutionPlan,
-    PrivacyClass, WorkerZone,
+    CLOUD_USAGE_RECORD_CONTRACT_VERSION, CloudLease, CloudModelRef, CloudMoney, CloudPluginClient,
+    CloudPluginConfig, CloudPluginFallback, CloudRestoreStateResponse, CloudStatePlacement,
+    CloudStateReference, CloudUsageMetrics, CloudUsageRecord, ExecutionPlan, PrivacyClass,
+    WorkerZone,
 };
 pub use command::{CommandPolicy, SandboxedCommand};
 pub use data_client::DataPlaneClient;

@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rwkv_agent_core::{
     AgentEvent, AgentLoop, AgentRunRequest, AnswerDecision, ArgumentSpec, CancellationToken,
@@ -12,7 +12,9 @@ use serde_json::{Value, json};
 use tokio::sync::{Mutex, Notify, mpsc};
 
 use crate::cloud_plugin::{
-    CloudLease, CloudPluginClient, CloudPluginConfig, CloudPluginFallback, CloudStateReference,
+    CLOUD_USAGE_RECORD_CONTRACT_VERSION, CloudLease, CloudMoney, CloudPluginClient,
+    CloudPluginConfig, CloudPluginFallback, CloudStatePlacement, CloudStateReference,
+    CloudUsageMetrics, CloudUsageRecord, WorkerZone,
 };
 use crate::command::{CommandPolicy, SandboxedCommand};
 use crate::data_client::DataPlaneClient;
@@ -88,6 +90,8 @@ pub struct AgentService {
 #[derive(Clone, Debug)]
 struct CachedChatState {
     session_id: String,
+    worker_id: String,
+    worker_zone: WorkerZone,
     hot_state: Option<SidecarState>,
     state_ref: Option<CloudStateReference>,
     state_version: u64,
@@ -2474,10 +2478,27 @@ impl AgentService {
             self.release_chat_record(stale).await?;
         }
         let reused = cached.is_some();
+        let state_tier_before = cached.as_ref().and_then(|state| {
+            state
+                .state_ref
+                .as_ref()
+                .map(|state_ref| state_ref.placement.clone())
+                .or_else(|| state.hot_state.as_ref().map(|_| CloudStatePlacement::Hot))
+        });
         // Durable State owner identity must remain stable across turns. The
         // generic owner_id() intentionally adds a nonce for short-lived task
         // States and therefore cannot identify a persistent chat Session.
+        let usage_record_id = owner_id("usage", session_id);
         let owner_id = chat_owner_id(session_id);
+        let usage_started_at_ms = unix_time_ms();
+        let usage_started = Instant::now();
+        let mut usage_request_id = format!("direct-{usage_record_id}");
+        let mut usage_queue_ms = None;
+        let mut usage_restore_ms = None;
+        let mut usage_snapshot_ms = None;
+        let mut usage_state_bytes_read = 0;
+        let mut usage_state_bytes_written = 0;
+        let mut usage_estimated_cost: Option<CloudMoney> = None;
         let prefix = prompt::direct_prefix(&context);
         let estimated_input_tokens = ((prefix.chars().count() + 3) / 4)
             .try_into()
@@ -2552,16 +2573,19 @@ impl AgentService {
                     Ok(plan) => plan,
                     Err(error) => return Err(self.preserve_chat_record(cached, &error).await),
                 };
+                usage_request_id = plan.request_id.clone();
+                usage_queue_ms = plan.estimated_queue_ms;
+                usage_estimated_cost = plan.estimated_cost.clone();
                 placement_trace = serde_json::to_value(&plan)
                     .unwrap_or_else(|_| json!({"status":"serialization_error"}));
                 let endpoint = match plan.mode.as_str() {
-                    "remote" => match plan.remote_endpoint() {
+                    "local" | "remote" => match plan.endpoint.as_deref() {
                         Some(endpoint) => endpoint,
                         None => {
                             return Err(self
                                 .preserve_chat_record(
                                     cached,
-                                    "cloud plugin remote restore plan has no endpoint",
+                                    "cloud plugin committed State restore plan has no endpoint",
                                 )
                                 .await);
                         }
@@ -2586,9 +2610,7 @@ impl AgentService {
                         return Err(self
                             .preserve_chat_record(
                                 cached,
-                                &format!(
-                                    "committed State restore requires a remote Worker, got {mode}"
-                                ),
+                                &format!("committed State restore has unsupported mode {mode}"),
                             )
                             .await);
                     }
@@ -2604,6 +2626,13 @@ impl AgentService {
                             .await);
                     }
                 };
+                let worker_zone = plan.worker_zone.clone().unwrap_or_else(|| {
+                    if plan.mode == "local" {
+                        WorkerZone::Local
+                    } else {
+                        WorkerZone::Cloud
+                    }
+                });
                 let holder = format!("rwkv-agent/{}/restore", plan.decision_id);
                 let lease = match self
                     .cloud_plugin
@@ -2613,6 +2642,7 @@ impl AgentService {
                     Ok(lease) => lease,
                     Err(error) => return Err(self.preserve_chat_record(cached, &error).await),
                 };
+                let restore_started = Instant::now();
                 let restored = match self
                     .cloud_plugin
                     .read_state(state_ref.clone(), worker_id, &lease)
@@ -2651,6 +2681,8 @@ impl AgentService {
                         return Err(self.preserve_chat_record(cached, &error).await);
                     }
                 };
+                usage_restore_ms = Some(restore_started.elapsed().as_secs_f64() * 1000.0);
+                usage_state_bytes_read = state_ref.size_bytes;
                 placement_trace["lifecycle_status"] = json!("restored");
                 placement_trace["state_version"] = json!(state_ref.version);
                 debug_record(
@@ -2664,6 +2696,8 @@ impl AgentService {
                 .await;
                 cached.hot_state = Some(hot);
                 cached.active_lease = Some(lease);
+                cached.worker_id = worker_id.to_string();
+                cached.worker_zone = worker_zone;
                 cached
             } else {
                 return Err("chat State cache invariant violated: no hot or durable State".into());
@@ -2680,6 +2714,9 @@ impl AgentService {
                     self.config.direct_chat_max_tokens.into(),
                 )
                 .await?;
+            usage_request_id = plan.request_id.clone();
+            usage_queue_ms = plan.estimated_queue_ms;
+            usage_estimated_cost = plan.estimated_cost.clone();
             placement_trace = serde_json::to_value(&plan)
                 .unwrap_or_else(|_| json!({"status":"serialization_error"}));
             debug_record(
@@ -2693,7 +2730,10 @@ impl AgentService {
             .await;
 
             let mut selected_endpoint = match plan.mode.as_str() {
-                "local" => None,
+                // A real placement plugin may select a registered local/edge
+                // Worker and return its endpoint. Fallback Local plans leave
+                // endpoint empty and preserve the original round-robin path.
+                "local" => plan.endpoint.clone(),
                 "remote" => Some(
                     plan.remote_endpoint()
                         .ok_or_else(|| "cloud plugin remote plan has no endpoint".to_string())?
@@ -2703,6 +2743,17 @@ impl AgentService {
                 "reject" => return Err("cloud plugin rejected execution".into()),
                 mode => return Err(format!("cloud plugin returned unknown mode: {mode}")),
             };
+            let mut selected_worker_id = plan
+                .worker_id
+                .clone()
+                .unwrap_or_else(|| "local-sidecar".into());
+            let mut selected_worker_zone = plan.worker_zone.clone().unwrap_or_else(|| {
+                if plan.mode == "local" {
+                    WorkerZone::Local
+                } else {
+                    WorkerZone::Cloud
+                }
+            });
             let mut active_lease = None;
             if self.cloud_plugin.state_lifecycle_ready().await {
                 let holder = format!("rwkv-agent/{}/open", plan.decision_id);
@@ -2716,6 +2767,8 @@ impl AgentService {
                         if self.config.cloud_plugin.fallback == CloudPluginFallback::Local =>
                     {
                         selected_endpoint = None;
+                        selected_worker_id = "local-sidecar".into();
+                        selected_worker_zone = WorkerZone::Local;
                         placement_trace["lifecycle_status"] = json!("fallback_before_execution");
                         placement_trace["lifecycle_error"] = json!(error);
                     }
@@ -2757,6 +2810,8 @@ impl AgentService {
             .await;
             CachedChatState {
                 session_id: session_id.to_string(),
+                worker_id: selected_worker_id,
+                worker_zone: selected_worker_zone,
                 hot_state: Some(hot),
                 state_ref: None,
                 state_version: 0,
@@ -2774,6 +2829,10 @@ impl AgentService {
                 .await);
         }
         let input = prompt::direct_turn(message, reused, &state.stop_reason);
+        let input_tokens = ((input.chars().count() + 3) / 4)
+            .try_into()
+            .unwrap_or(u64::MAX)
+            .saturating_add(if reused { 0 } else { estimated_input_tokens });
         let stops = prompt::CHAT_STOPS
             .iter()
             .map(|value| (*value).to_string())
@@ -2921,7 +2980,9 @@ impl AgentService {
                     Err(error) => lifecycle_error = Some(format!("Lease renewal failed: {error}")),
                 }
                 let mut snapshot = None;
-                if lifecycle_error.is_none() {
+                let snapshot_started = Instant::now();
+                let snapshot_attempted = lifecycle_error.is_none();
+                if snapshot_attempted {
                     match (self.cloud_plugin.state_model_ref(), state.hot_state()) {
                         (Ok(model_ref), Ok(hot)) => {
                             match self.sidecar.snapshot(hot, &model_ref).await {
@@ -2948,7 +3009,11 @@ impl AgentService {
                         }
                     }
                 }
+                if snapshot_attempted {
+                    usage_snapshot_ms = Some(snapshot_started.elapsed().as_secs_f64() * 1000.0);
+                }
                 if let Some(state_ref) = committed {
+                    usage_state_bytes_written = state_ref.size_bytes;
                     state.state_version = state_ref.version;
                     state.state_ref = Some(state_ref.clone());
                     let hot = state.hot_state()?.clone();
@@ -3035,6 +3100,70 @@ impl AgentService {
             )
             .await;
         }
+        let state_tier_after = if safe_to_cache {
+            state
+                .state_ref
+                .as_ref()
+                .filter(|_| state.hot_state.is_none())
+                .map(|state_ref| state_ref.placement.clone())
+                .or_else(|| state.hot_state.as_ref().map(|_| CloudStatePlacement::Hot))
+        } else {
+            Some(CloudStatePlacement::Dropped)
+        };
+        let finished_at_ms = unix_time_ms().max(usage_started_at_ms);
+        let usage = CloudUsageRecord {
+            contract_version: CLOUD_USAGE_RECORD_CONTRACT_VERSION.into(),
+            record_id: usage_record_id,
+            request_id: usage_request_id,
+            session_id: session_id.into(),
+            owner_id: owner_id.clone(),
+            worker_id: state.worker_id.clone(),
+            zone: state.worker_zone.clone(),
+            operation: if reused { "continue" } else { "create" }.into(),
+            outcome: "succeeded".into(),
+            state_tier_before,
+            state_tier_after,
+            started_at_ms: usage_started_at_ms,
+            finished_at_ms,
+            metrics: CloudUsageMetrics {
+                elapsed_ms: usage_started.elapsed().as_secs_f64() * 1000.0,
+                queue_ms: usage_queue_ms,
+                restore_ms: usage_restore_ms,
+                snapshot_ms: usage_snapshot_ms,
+                input_tokens,
+                output_tokens: row.token_ids.len().try_into().unwrap_or(u64::MAX),
+                prefill_tokens_avoided: if reused { estimated_input_tokens } else { 0 },
+                // The Sidecar currently reports model wall time rather than
+                // hardware utilization; this is an explicitly documented
+                // one-active-GPU proxy until provider telemetry is plumbed.
+                gpu_seconds: row.elapsed_ms / 1000.0,
+                state_bytes_read: usage_state_bytes_read,
+                state_bytes_written: usage_state_bytes_written,
+                estimated_cost: usage_estimated_cost,
+            },
+            error_code: match persistence_status {
+                "blocked_hot" => Some("state_lifecycle_blocked".into()),
+                "durable_lease_pending" => Some("lease_release_pending".into()),
+                _ => None,
+            },
+        };
+        let (finops_status, finops_error) = if self.cloud_plugin.finops_ready().await {
+            match self.cloud_plugin.record_usage(&usage).await {
+                Ok(()) => ("accepted", String::new()),
+                Err(error) => ("report_failed", error),
+            }
+        } else {
+            ("not_available", String::new())
+        };
+        debug_record(
+            debug_trace,
+            "finops",
+            "statepool_cloud_plugin",
+            "usage_recorded",
+            stage_id,
+            || json!({"status":finops_status,"error":finops_error,"usage":usage}),
+        )
+        .await;
         Ok(json!({
             "status":"ok","session_id":session_id,"message":message,
             "route":{"mode":"direct","tool":null},"tool_result":null,"answer":answer,
@@ -3045,6 +3174,8 @@ impl AgentService {
                     "cache_reject_reason":if !generated_usable{"empty_or_incomplete_generation"}else if !safe_to_cache{"unsafe_stop_boundary"}else{""},"seen_tokens":row.seen_tokens}},
                 "answer_completion":{"stop":row.stop_reason,"output_tokens":row.token_ids.len(),"model_elapsed_ms":row.elapsed_ms,"reasoning_stripped":reasoning_stripped},
                 "placement":placement_trace,
+                "finops":{"status":finops_status,"error":finops_error,"record_id":usage.record_id,
+                    "gpu_seconds_source":"provider_model_wall_time_proxy"},
                 "elapsed_ms":started.elapsed().as_secs_f64()*1000.0,"control_plane":"rust",
             }
         }))
@@ -3496,6 +3627,15 @@ fn chat_owner_id(session_id: &str) -> String {
         .map(|byte| format!("{byte:02x}"))
         .collect::<String>();
     format!("chat-session-{stable}")
+}
+
+fn unix_time_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .try_into()
+        .unwrap_or(u64::MAX)
 }
 
 fn legacy_request_id(task_id: Option<&str>) -> String {

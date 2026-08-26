@@ -68,6 +68,7 @@
         "request_id": { "type": "string", "minLength": 1 },
         "mode": { "enum": ["local", "remote", "defer", "reject"] },
         "worker_id": { "type": ["string", "null"], "minLength": 1 },
+        "worker_zone": { "type": ["string", "null"], "enum": ["local", "edge", "cloud", null] },
         "endpoint": {
           "oneOf": [
             { "type": "string", "format": "uri" },
