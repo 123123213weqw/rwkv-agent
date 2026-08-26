@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+import threading
+
 import pytest
 
-from rwkv_agent.sidecar import _requires_worker_admission
+from rwkv_agent.sidecar import NativeG1I, _requires_worker_admission
 from rwkv_agent import statepool_drain
 from rwkv_agent.statepool_worker import (
     StatePoolWorkerAgent,
@@ -37,7 +40,12 @@ def settings() -> WorkerSettings:
     )
 
 
-def health(*, allocated: int = 2, busy: int = 0) -> dict:
+def health(
+    *,
+    allocated: int = 2,
+    busy: int = 0,
+    reconstructible: int = 0,
+) -> dict:
     return {
         "inference": {"waiting": 3, "prefilling": 1, "decoding": 1},
         "persistent_states": {
@@ -45,6 +53,7 @@ def health(*, allocated: int = 2, busy: int = 0) -> dict:
             "allocated": allocated,
             "free": 8 - allocated,
             "busy": busy,
+            "reconstructible": reconstructible,
             "batching": {"waiting": 2, "active_rows": 1},
         },
     }
@@ -128,6 +137,79 @@ def test_drain_rejects_new_admission_and_never_claims_dirty_state_safe() -> None
         },
     }
     assert agent.drain_status(deadline_ms=110_000)["status"] == "safe_to_stop"
+
+
+def test_reconstructible_system_root_does_not_block_safe_drain() -> None:
+    current = {"allocated": 2, "busy": 0, "reconstructible": 1}
+
+    agent = StatePoolWorkerAgent(
+        settings(),
+        lambda: health(**current),
+        clock=lambda: 100.0,
+        transport=lambda _url, _payload, _timeout: {"status": "draining"},
+    )
+    agent._lifecycle = "ready"
+    agent._registered = True
+
+    result = agent.begin_draining(timeout_seconds=10)
+    assert result["status"] == "draining"
+    assert result["unpersisted_states"] == 1
+
+    # The Controller snapshots and releases the only user/session State. The
+    # immutable tool-gate root remains hot but is safe to rebuild after scale-up.
+    current["allocated"] = 1
+    agent._health_provider = lambda: {
+        "inference": {"waiting": 0, "prefilling": 0, "decoding": 0},
+        "persistent_states": {
+            "capacity": 8,
+            "allocated": 1,
+            "free": 7,
+            "busy": 0,
+            "reconstructible": 1,
+            "batching": {"waiting": 0, "active_rows": 0},
+        },
+    }
+    assert agent.drain_status(deadline_ms=110_000) == {
+        "contract_version": "statepool-drain-status.v1",
+        "worker_id": "worker-a",
+        "status": "safe_to_stop",
+        "active_requests": 0,
+        "unpersisted_states": 0,
+    }
+
+
+def test_reconstructible_count_is_bounded_by_allocated_states() -> None:
+    agent = StatePoolWorkerAgent(
+        settings(),
+        lambda: health(allocated=1, reconstructible=99),
+    )
+    assert agent.capability()["capacity"]["unpersisted_state_slots"] == 0
+
+
+def test_sidecar_health_marks_only_available_tool_root_reconstructible() -> None:
+    runtime = NativeG1I.__new__(NativeG1I)
+    runtime._counter_lock = threading.Lock()
+    runtime.calls = 0
+    runtime.classify_calls = 0
+    runtime.gate_calls = 0
+    runtime.memory_gate_calls = 0
+    runtime._tool_gate_lock = threading.RLock()
+    runtime._tool_gate_root = {"state_id": "system-root"}
+    runtime._tool_gate_owner = "system-tool-gate-v1"
+    runtime._tool_gate_root_builds = 1
+    runtime._tool_gate_root_reuses = 0
+    runtime._tool_gate_forks = 0
+    runtime._tool_gate_failures = 0
+    runtime.engine = SimpleNamespace(health=lambda: {"waiting": 0})
+    runtime.states = SimpleNamespace(
+        has_state=lambda **_kwargs: True,
+        health=lambda: {"capacity": 8, "allocated": 1, "free": 7},
+    )
+
+    result = runtime.health()
+
+    assert result["tool_gate_state"]["root_available"] is True
+    assert result["persistent_states"]["reconstructible"] == 1
 
 
 def test_missing_registration_is_recreated_before_next_heartbeat() -> None:

@@ -7,7 +7,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import threading
 
-from scripts.statepool_live_lifecycle_demo import run
+from scripts import statepool_live_lifecycle_demo as lifecycle
+
+
+run = lifecycle.run
 
 
 MODEL_REF = {
@@ -161,3 +164,75 @@ def test_live_lifecycle_driver_composes_worker_and_plugin_contracts():
     assert Handler.events.index("/plugin/v1/states/snapshot") < Handler.events.index(
         "/v1/states/release"
     )
+
+
+def test_live_lifecycle_can_replace_worker_on_one_reused_endpoint(monkeypatch):
+    Handler.fencing = 0
+    Handler.events = []
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = f"http://127.0.0.1:{server.server_port}"
+    observed: dict[str, object] = {}
+
+    class FakeProcess:
+        pid = 4242
+
+        @staticmethod
+        def poll():
+            return None
+
+    def fake_popen(command, *, start_new_session):
+        observed["command"] = command
+        observed["start_new_session"] = start_new_session
+        return FakeProcess()
+
+    def fake_wait_for_down(worker_url, *, timeout_seconds):
+        observed["down"] = (worker_url, timeout_seconds)
+
+    monkeypatch.setattr(lifecycle.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(
+        lifecycle.subprocess,
+        "run",
+        lambda command, *, check: observed.update(
+            {"stop_command": command, "stop_check": check}
+        ),
+    )
+    monkeypatch.setattr(lifecycle, "wait_for_worker_down", fake_wait_for_down)
+    try:
+        result = run(
+            argparse.Namespace(
+                plugin_url=url,
+                source_worker_url=url,
+                target_worker_url=url,
+                source_worker_id="source",
+                target_worker_id="target",
+                session_id="session-restart",
+                owner_id="owner-restart",
+                prompt="prompt",
+                before_input="before",
+                after_input="after",
+                max_tokens=4,
+                lease_ttl_ms=30_000,
+                target_tier="cold",
+                source_stop_command="/usr/bin/true",
+                target_start_command="/opt/demo/start-worker target",
+                target_ready_timeout_seconds=5,
+                source_down_timeout_seconds=3,
+            )
+        )
+    finally:
+        server.shutdown()
+        thread.join()
+
+    assert result["status"] == "passed"
+    assert result["source_transition"] == "forcibly_stopped"
+    assert result["target_worker_started_by_driver"] is True
+    assert result["target_worker_process_pid"] == 4242
+    assert observed == {
+        "down": (url, 3.0),
+        "stop_command": ["/usr/bin/true"],
+        "stop_check": True,
+        "command": ["/opt/demo/start-worker", "target"],
+        "start_new_session": True,
+    }

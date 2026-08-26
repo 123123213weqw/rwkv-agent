@@ -477,6 +477,12 @@ class NativeG1I:
                 "failures": self._tool_gate_failures,
                 "mode": "persistent_root_fork",
             }
+        persistent_states = self.states.health()
+        # The immutable tool-gate root has no user/session data and is rebuilt
+        # from render_tool_gate_root() when a Worker starts. Expose it
+        # explicitly so StatePool drain does not mistake this reproducible
+        # system cache for a dirty user State that must be snapshotted.
+        persistent_states["reconstructible"] = int(tool_gate_root_available)
         return {
             "backend": BACKEND,
             "calls": calls,
@@ -485,7 +491,7 @@ class NativeG1I:
             "memory_gate_calls": memory_gate_calls,
             "tool_gate_state": tool_gate_metrics,
             "inference": self.engine.health(),
-            "persistent_states": self.states.health(),
+            "persistent_states": persistent_states,
         }
 
     def close(self) -> None:

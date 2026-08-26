@@ -1,10 +1,11 @@
 """Optional StatePool registration, heartbeat and conservative drain control.
 
 The Worker adapter is dormant unless ``RWKV_STATEPOOL_URL`` is configured.
-It deliberately treats every resident recurrent State as unpersisted: a Pod is
-never declared safe to stop merely because inference is idle.  The Controller
-must first snapshot and release those States through the fenced StatePool
-lifecycle, after which the next heartbeat can prove a zero dirty-State count.
+It deliberately treats every non-reconstructible resident recurrent State as
+unpersisted: a Pod is never declared safe to stop merely because inference is
+idle.  The Controller must first snapshot and release user States through the
+fenced StatePool lifecycle.  A Worker may explicitly identify immutable system
+roots that can be rebuilt at process startup; those do not block safe drain.
 """
 
 from __future__ import annotations
@@ -282,6 +283,11 @@ class StatePoolWorkerAgent:
         inference = health.get("inference") or {}
         batching = persistent.get("batching") or {}
         allocated = _as_non_negative_int(persistent.get("allocated"))
+        reconstructible = min(
+            allocated,
+            _as_non_negative_int(persistent.get("reconstructible")),
+        )
+        unpersisted = allocated - reconstructible
         free = _as_non_negative_int(persistent.get("free"))
         queue_depth = max(
             _as_non_negative_int(inference.get("waiting")),
@@ -324,9 +330,11 @@ class StatePoolWorkerAgent:
                 "max_batch": max_batch,
                 "queue_depth": queue_depth,
                 "running_requests": max(runtime_active, active_ingress),
-                # Conservative by construction: a resident State is dirty until
-                # Controller snapshot + Worker release makes it disappear.
-                "unpersisted_state_slots": allocated,
+                # Conservative by construction: only States explicitly marked
+                # reconstructible by the local runtime can be excluded. Every
+                # other resident State remains dirty until Controller snapshot
+                # + Worker release makes it disappear.
+                "unpersisted_state_slots": unpersisted,
             },
             "price": self.settings.price,
             "labels": dict(self.settings.labels),

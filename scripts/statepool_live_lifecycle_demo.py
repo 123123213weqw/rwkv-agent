@@ -88,8 +88,8 @@ def release_lease(plugin_url: str, lease: dict[str, Any]) -> None:
     )
 
 
-def exact_model_ref(worker_url: str) -> dict[str, str]:
-    health = request_json(worker_url, "/health", timeout=30.0)
+def exact_model_ref(worker_url: str, *, timeout: float = 30.0) -> dict[str, str]:
+    health = request_json(worker_url, "/health", timeout=timeout)
     value = health.get("model_ref")
     required = ("model_id", "revision", "tokenizer", "state_abi")
     if not isinstance(value, dict) or any(
@@ -97,6 +97,52 @@ def exact_model_ref(worker_url: str) -> dict[str, str]:
     ):
         raise DemoError(f"Worker {worker_url} does not report an exact model_ref")
     return {key: value[key] for key in required}
+
+
+def wait_for_exact_model_ref(
+    worker_url: str,
+    *,
+    timeout_seconds: float,
+) -> dict[str, str]:
+    deadline = time.monotonic() + timeout_seconds
+    last_error = "Worker has not started"
+    while time.monotonic() < deadline:
+        try:
+            return exact_model_ref(worker_url, timeout=2.0)
+        except DemoError as exc:
+            last_error = str(exc)
+            time.sleep(1.0)
+    raise DemoError(
+        f"Worker {worker_url} was not ready within {timeout_seconds}s: {last_error}"
+    )
+
+
+def wait_for_worker_down(worker_url: str, *, timeout_seconds: float) -> None:
+    """Prove an old process no longer owns a reused Worker endpoint."""
+
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        try:
+            exact_model_ref(worker_url, timeout=1.0)
+        except DemoError:
+            return
+        time.sleep(0.25)
+    raise DemoError(
+        f"Worker {worker_url} was still reachable {timeout_seconds}s after stop"
+    )
+
+
+def terminate_started_process(process: subprocess.Popen[Any]) -> None:
+    """Best-effort cleanup when a driver-started replacement cannot be used."""
+
+    if process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=10)
 
 
 def continue_state(
@@ -126,9 +172,20 @@ def continue_state(
 def run(args: argparse.Namespace) -> dict[str, Any]:
     started = time.perf_counter()
     timings: dict[str, float] = {}
+    target_start_command = getattr(args, "target_start_command", None)
+    target_ready_timeout_seconds = float(
+        getattr(args, "target_ready_timeout_seconds", 600.0)
+    )
+    source_down_timeout_seconds = float(
+        getattr(args, "source_down_timeout_seconds", 30.0)
+    )
     source_model = exact_model_ref(args.source_worker_url)
-    target_model = exact_model_ref(args.target_worker_url)
-    if source_model != target_model:
+    target_model = (
+        None
+        if target_start_command
+        else exact_model_ref(args.target_worker_url)
+    )
+    if target_model is not None and source_model != target_model:
         raise DemoError("source and target Workers have different exact model_ref values")
 
     lease = acquire_lease(
@@ -208,6 +265,39 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
     release_lease(args.plugin_url, lease)
 
+    target_process_pid = None
+    if target_start_command:
+        if args.source_worker_url.rstrip("/") == args.target_worker_url.rstrip("/"):
+            mark = time.perf_counter()
+            wait_for_worker_down(
+                args.source_worker_url,
+                timeout_seconds=source_down_timeout_seconds,
+            )
+            timings["source_worker_down_ms"] = (time.perf_counter() - mark) * 1000
+        command = shlex.split(target_start_command)
+        if not command:
+            raise DemoError("target start command is empty after parsing")
+        mark = time.perf_counter()
+        process = subprocess.Popen(command, start_new_session=True)
+        target_process_pid = process.pid
+        try:
+            target_model = wait_for_exact_model_ref(
+                args.target_worker_url,
+                timeout_seconds=target_ready_timeout_seconds,
+            )
+        except DemoError as exc:
+            exit_code = process.poll()
+            detail = f"; target start process exited {exit_code}" if exit_code is not None else ""
+            terminate_started_process(process)
+            raise DemoError(f"{exc}{detail}") from exc
+        timings["target_worker_ready_ms"] = (time.perf_counter() - mark) * 1000
+        if source_model != target_model:
+            terminate_started_process(process)
+            raise DemoError(
+                "source and post-restart target Workers have different exact model_ref values"
+            )
+    assert target_model is not None
+
     restore_lease = acquire_lease(
         args.plugin_url,
         session_id=args.session_id,
@@ -268,6 +358,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "owner_id": args.owner_id,
         "source_worker_id": args.source_worker_id,
         "target_worker_id": args.target_worker_id,
+        "target_worker_started_by_driver": bool(target_start_command),
+        "target_worker_process_pid": target_process_pid,
         "source_transition": source_transition,
         "source_state_id": source_state_id,
         "target_state_id": target_state_id,
@@ -297,10 +389,33 @@ def parse_args() -> argparse.Namespace:
         "--source-stop-command",
         help="explicit command run after commit to prove forced Worker loss",
     )
+    parser.add_argument(
+        "--target-start-command",
+        help=(
+            "optional command spawned after source loss; use it to start a fresh "
+            "compatible Worker when source and target share one GPU/endpoint"
+        ),
+    )
+    parser.add_argument(
+        "--target-ready-timeout-seconds",
+        type=float,
+        default=600.0,
+    )
+    parser.add_argument(
+        "--source-down-timeout-seconds",
+        type=float,
+        default=30.0,
+        help="time allowed to prove a stopped source released its reused endpoint",
+    )
     parser.add_argument("--output", default="-")
     args = parser.parse_args()
-    if args.max_tokens < 1 or args.lease_ttl_ms < 1000:
-        parser.error("max-tokens and lease-ttl-ms must be positive")
+    if (
+        args.max_tokens < 1
+        or args.lease_ttl_ms < 1000
+        or args.target_ready_timeout_seconds <= 0
+        or args.source_down_timeout_seconds <= 0
+    ):
+        parser.error("token, Lease and target-ready limits must be positive")
     return args
 
 

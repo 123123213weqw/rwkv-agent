@@ -14,7 +14,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use axum::extract::{Path, State};
+use axum::extract::{DefaultBodyLimit, Path, State};
 use axum::http::{HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
@@ -169,6 +169,11 @@ impl PluginState {
 }
 
 pub fn router(state: PluginState) -> Router {
+    // Snapshot bytes are base64 encoded inside JSON. Axum's 2 MiB default
+    // would reject every real RWKV recurrent State before our decoded-size,
+    // checksum and Lease/CAS validation ran. Raise the limit only on this
+    // route, with bounded allowance for base64 expansion and JSON metadata.
+    let snapshot_body_limit = encoded_snapshot_body_limit(state.config.max_state_bytes);
     Router::new()
         .route("/live", get(live))
         .route("/plugin/v1/health", get(health))
@@ -178,7 +183,10 @@ pub fn router(state: PluginState) -> Router {
         .route("/plugin/v1/leases/acquire", post(acquire_lease))
         .route("/plugin/v1/leases/renew", post(renew_lease))
         .route("/plugin/v1/leases/release", post(release_lease))
-        .route("/plugin/v1/states/snapshot", post(snapshot_state))
+        .route(
+            "/plugin/v1/states/snapshot",
+            post(snapshot_state).layer(DefaultBodyLimit::max(snapshot_body_limit)),
+        )
         .route("/plugin/v1/states/restore", post(restore_state))
         .route("/plugin/v1/workers", get(list_workers))
         .route("/plugin/v1/workers/register", post(register_worker))
@@ -189,6 +197,14 @@ pub fn router(state: PluginState) -> Router {
         .route("/plugin/v1/workers/{worker_id}/drain", post(drain_worker))
         .route("/metrics", get(metrics))
         .with_state(state)
+}
+
+fn encoded_snapshot_body_limit(max_state_bytes: u64) -> usize {
+    let encoded = max_state_bytes
+        .saturating_add(2)
+        .saturating_div(3)
+        .saturating_mul(4);
+    usize::try_from(encoded.saturating_add(1024 * 1024)).unwrap_or(usize::MAX)
 }
 
 async fn live() -> Json<Value> {
@@ -1488,8 +1504,10 @@ mod tests {
         assert_eq!(status, StatusCode::OK);
         let first_lease: Lease = serde_json::from_value(lease_value.clone()).unwrap();
 
-        let payload = b"recurrent-state-v1";
-        let checksum = sha256_checksum(payload);
+        // Exceed Axum's 2 MiB default so this round trip proves the
+        // snapshot-only body-limit override used by real recurrent States.
+        let payload = vec![0x5a; 2_100_000];
+        let checksum = sha256_checksum(&payload);
         let (status, state_value) = json_request(
             app.clone(),
             "/plugin/v1/states/snapshot",
@@ -1500,7 +1518,7 @@ mod tests {
                 "target_tier":"cold",
                 "lease":lease_value,
                 "expected_state_version":0,
-                "payload_base64":BASE64.encode(payload),
+                "payload_base64":BASE64.encode(&payload),
                 "expected_checksum":checksum
             }),
         )
@@ -1552,7 +1570,7 @@ mod tests {
         )
         .await;
         assert_eq!(status, StatusCode::OK, "{restored}");
-        assert_eq!(restored["payload_base64"], BASE64.encode(payload));
+        assert_eq!(restored["payload_base64"], BASE64.encode(&payload));
 
         let (_, stale) = json_request(
             app,
