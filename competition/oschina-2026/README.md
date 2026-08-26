@@ -10,8 +10,10 @@
 [`docs/RELATED_WORK.md`](../../docs/RELATED_WORK.md) 的 Claim Matrix 一致。
 
 - [`submission-summary.md`](submission-summary.md)：报名摘要与评分映射；
+- [`technical-whitepaper.md`](technical-whitepaper.md)：技术白皮书与证据边界；
 - [`architecture.md`](architecture.md)：一页架构与创新边界；
 - [`demo-script.md`](demo-script.md)：答辩演示脚本；
+- [`presentation-outline.md`](presentation-outline.md)：12 页答辩 PPT 结构；
 - [`evaluation-protocol.md`](evaluation-protocol.md)：A/B/C 可复现实验；
 - [`evidence-register.md`](evidence-register.md)：实测、估算、待测证据台账。
 
