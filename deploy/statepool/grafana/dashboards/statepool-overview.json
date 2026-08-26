@@ -119,6 +119,16 @@
       "targets": [{ "expr": "(statepool_hot_state_hits_total + statepool_warm_state_hits_total + statepool_cold_state_hits_total) / clamp_min(statepool_hot_state_hits_total + statepool_warm_state_hits_total + statepool_cold_state_hits_total + statepool_transcript_reprefills_total, 1)", "refId": "A" }],
       "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 }, "overrides": [] },
       "options": { "reduceOptions": { "calcs": ["lastNotNull"], "values": false } }
+    },
+    {
+      "type": "stat",
+      "title": "Reported GPU Busy Ratio (5m)",
+      "description": "Derived from reported GPU-seconds divided by the average Ready Worker count. This is an attributed busy-time ratio, not hardware SM utilization.",
+      "id": 12,
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 20 },
+      "targets": [{ "expr": "clamp_max(rate(statepool_gpu_seconds_total[5m]) / clamp_min(avg_over_time(statepool_ready_workers[5m]), 1), 1)", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "values": false } }
     }
   ],
   "refresh": "5s",
@@ -141,5 +151,5 @@
   "timezone": "browser",
   "title": "RWKV StatePool / Stateful Serverless Agent",
   "uid": "rwkv-statepool-overview",
-  "version": 2
+  "version": 3
 }
