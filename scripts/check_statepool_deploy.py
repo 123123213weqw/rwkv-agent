@@ -49,8 +49,12 @@ def main() -> int:
         raise AssertionError("In-memory Lease profile must remain single replica")
     if values["plugin"]["durable"]["enabled"]:
         raise AssertionError("PostgreSQL/S3 must remain opt-in")
-    if values["worker"]["enabled"] or values["autoscaling"]["enabled"]:
-        raise AssertionError("Worker and KEDA gates must default to disabled")
+    if (
+        values["controller"]["enabled"]
+        or values["worker"]["enabled"]
+        or values["autoscaling"]["enabled"]
+    ):
+        raise AssertionError("Controller, Worker and KEDA gates must default to disabled")
     if values["autoscaling"]["minReplicaCount"] != 0:
         raise AssertionError("KEDA profile must preserve scale-to-zero")
 
@@ -58,16 +62,36 @@ def main() -> int:
     for metric in ("statepool_pending_requests", "statepool_estimated_decode_seconds"):
         if metric not in keda:
             raise AssertionError(f"KEDA template missing metric {metric}")
+    for marker in ("idleReplicaCount: 0", "initialCooldownPeriod"):
+        if marker not in keda:
+            raise AssertionError(f"KEDA template missing safety marker {marker}")
     worker = (CHART / "templates" / "worker-deployment.yaml").read_text(encoding="utf-8")
     for marker in (
         "preStop",
         "rwkv-statepool-drain",
         "terminationGracePeriodSeconds",
         "RWKV_WORKER_HEARTBEAT_SECONDS",
+        "RWKV_WORKER_ENDPOINT",
         "POD_UID",
     ):
         if marker not in worker:
             raise AssertionError(f"Worker lifecycle template missing {marker}")
+    controller = (CHART / "templates" / "controller-deployment.yaml").read_text(
+        encoding="utf-8"
+    )
+    for marker in (
+        "--cloud-state-lifecycle",
+        "--cloud-state-target-tier",
+        "--cloud-lease-ttl-seconds",
+        "/ready",
+        "/live",
+        "replicaCount must remain 1",
+    ):
+        if marker not in controller:
+            raise AssertionError(f"Controller lifecycle template missing {marker}")
+    agent_command = services["agent"].get("command", [])
+    if "--cloud-state-lifecycle" not in agent_command:
+        raise AssertionError("Compose agent profile must exercise automatic State lifecycle")
 
     dashboard = json.loads(
         (DEPLOY / "grafana" / "dashboards" / "statepool-overview.json").read_text(

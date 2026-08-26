@@ -1,4 +1,4 @@
-{{- if .Values.plugin.persistence.enabled }}
+{{- if and .Values.plugin.persistence.enabled (not .Values.plugin.durable.enabled) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

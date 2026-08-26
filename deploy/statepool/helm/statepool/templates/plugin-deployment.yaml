@@ -1,3 +1,6 @@
+{{- if and (gt (int .Values.plugin.replicaCount) 1) (not .Values.plugin.durable.enabled) }}
+{{- fail "plugin.replicaCount > 1 requires PostgreSQL/S3 durable mode" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,10 +9,13 @@ metadata:
     {{- include "rwkv-statepool.labels" . | nindent 4 }}
     app.kubernetes.io/component: statepool-plugin
 spec:
-  # In-memory Lease metadata makes this development profile single-replica.
   replicas: {{ .Values.plugin.replicaCount }}
   strategy:
+    {{- if .Values.plugin.durable.enabled }}
+    type: RollingUpdate
+    {{- else }}
     type: Recreate
+    {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "rwkv-statepool.name" . }}
@@ -87,7 +93,7 @@ spec:
               mountPath: /tmp
       volumes:
         - name: state
-          {{- if .Values.plugin.persistence.enabled }}
+          {{- if and .Values.plugin.persistence.enabled (not .Values.plugin.durable.enabled) }}
           persistentVolumeClaim:
             claimName: {{ include "rwkv-statepool.fullname" . }}-state
           {{- else }}

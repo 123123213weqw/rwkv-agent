@@ -1,0 +1,86 @@
+{{- if .Values.controller.enabled }}
+{{- if ne (int .Values.controller.replicaCount) 1 }}
+{{- fail "controller.replicaCount must remain 1 until distributed Session admission is implemented" }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rwkv-statepool.fullname" . }}-controller
+  labels:
+    {{- include "rwkv-statepool.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-controller
+spec:
+  replicas: {{ .Values.controller.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "rwkv-statepool.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: agent-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "rwkv-statepool.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: agent-controller
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: controller
+          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}"
+          imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+          args:
+            - --host=0.0.0.0
+            - --port={{ .Values.controller.port }}
+            - --model-urls={{ required "controller.modelUrls is required" .Values.controller.modelUrls }}
+            - --data-plane-url={{ required "controller.dataPlaneUrl is required" .Values.controller.dataPlaneUrl }}
+            - --session-dir=/var/lib/rwkv-agent/sessions
+            - --cloud-plugin
+            - --cloud-plugin-url=http://{{ include "rwkv-statepool.fullname" . }}:{{ .Values.plugin.port }}
+            - --cloud-plugin-fallback={{ .Values.controller.cloudPlugin.fallback }}
+            - --cloud-plugin-privacy={{ .Values.controller.cloudPlugin.privacy }}
+            - --cloud-plugin-latency-slo-ms={{ .Values.controller.cloudPlugin.latencySloMs }}
+            - --cloud-plugin-preferred-zone={{ .Values.controller.cloudPlugin.preferredZone }}
+            - --cloud-model-id={{ required "controller.model.id is required" .Values.controller.model.id }}
+            - --cloud-model-revision={{ required "controller.model.revision is required" .Values.controller.model.revision }}
+            - --cloud-tokenizer={{ required "controller.model.tokenizer is required" .Values.controller.model.tokenizer }}
+            - --cloud-state-abi={{ required "controller.model.stateAbi is required" .Values.controller.model.stateAbi }}
+            {{- if .Values.controller.cloudPlugin.stateLifecycle }}
+            - --cloud-state-lifecycle
+            - --cloud-state-target-tier={{ .Values.controller.cloudPlugin.stateTargetTier }}
+            - --cloud-lease-ttl-seconds={{ .Values.controller.cloudPlugin.leaseTtlSeconds }}
+            - --cloud-lifecycle-timeout-seconds={{ .Values.controller.cloudPlugin.lifecycleTimeoutSeconds }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.controller.port }}
+          readinessProbe:
+            httpGet: { path: /ready, port: http }
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet: { path: /live, port: http }
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            {{- toYaml .Values.controller.resources | nindent 12 }}
+          volumeMounts:
+            - name: sessions
+              mountPath: /var/lib/rwkv-agent/sessions
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: sessions
+          {{- if .Values.controller.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "rwkv-statepool.fullname" . }}-controller-sessions
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: tmp
+          emptyDir: {}
+{{- end }}

@@ -12,7 +12,9 @@ spec:
     name: {{ include "rwkv-statepool.fullname" . }}-worker
   pollingInterval: {{ .Values.autoscaling.pollingInterval }}
   cooldownPeriod: {{ .Values.autoscaling.cooldownPeriod }}
+  initialCooldownPeriod: {{ .Values.autoscaling.initialCooldownPeriod }}
   minReplicaCount: {{ .Values.autoscaling.minReplicaCount }}
+  idleReplicaCount: 0
   maxReplicaCount: {{ .Values.autoscaling.maxReplicaCount }}
   advanced:
     restoreToOriginalReplicaCount: true

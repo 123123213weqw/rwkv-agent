@@ -1,0 +1,16 @@
+{{- if and .Values.controller.enabled .Values.controller.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "rwkv-statepool.fullname" . }}-controller-sessions
+  labels:
+    {{- include "rwkv-statepool.labels" . | nindent 4 }}
+spec:
+  accessModes: [ReadWriteOnce]
+  {{- if .Values.controller.persistence.storageClass }}
+  storageClassName: {{ .Values.controller.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.controller.persistence.size }}
+{{- end }}

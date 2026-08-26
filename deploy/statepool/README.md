@@ -45,7 +45,9 @@ already-running model Sidecar and data plane on the host:
 docker compose -f deploy/statepool/compose.yaml --profile agent up -d
 ```
 
-Replace the example immutable model revision before enabling it.
+Replace the example immutable model revision before enabling it. This profile
+enables the automatic Cold lifecycle, so each safe direct-chat turn commits
+through StatePool and releases its Worker-local State.
 
 The opt-in `cloud-lite` profile starts a second plugin on port `8131` backed by
 PostgreSQL Lease/CAS metadata and a MinIO S3 bucket:
@@ -83,6 +85,23 @@ For Cloud Lite, create one Kubernetes Secret containing `postgres-url`,
 bucket and region. The chart never renders credentials into values or a
 ConfigMap.
 
+The Controller is another explicit safety gate. Enable it only after replacing
+the model/data-plane endpoints and immutable model identity:
+
+```bash
+helm upgrade --install statepool deploy/statepool/helm/statepool \
+  --namespace rwkv-statepool --create-namespace \
+  --set controller.enabled=true \
+  --set controller.modelUrls=http://routing-sidecar.example:8118 \
+  --set controller.dataPlaneUrl=http://data-plane.example:8121 \
+  --set controller.model.revision=sha256:REPLACE_ME
+```
+
+It exposes `/live` and `/ready`, persists the transcript volume, enables the
+fenced Cold lifecycle, and points its plugin URL at the in-chart StatePool
+Service. The chart deliberately enforces one Controller replica because the
+local transcript lock is not yet a distributed request-admission boundary.
+
 `worker.enabled=false` and `autoscaling.enabled=false` are safety gates. The
 repository now contains the opt-in Sidecar adapter, but the example Worker
 image remains a deliberate placeholder. Enable it only after publishing an
@@ -90,8 +109,9 @@ image that packages the model runtime and these implemented interfaces:
 
 1. `statepool-worker-capability.v1` registration and TTL heartbeat;
 2. exact model/tokenizer/State ABI reporting;
-3. `/ready` and `/live`;
-4. `/usr/local/bin/rwkv-statepool-drain`, which stops admission and polls until
+3. a Pod-IP `RWKV_WORKER_ENDPOINT` reachable from the Controller;
+4. `/ready` and `/live`;
+5. `/usr/local/bin/rwkv-statepool-drain`, which stops admission and polls until
    in-flight work and dirty States are zero.
 
 The plugin treats a missing `unpersisted_state_slots` heartbeat as unknown and
@@ -133,6 +153,11 @@ enabled. It targets the upstream Prometheus scaler using:
 - `statepool_estimated_decode_seconds` for backlog-aware 1→N scaling;
 - `minReplicaCount: 0` and a five-minute cooldown for N→0.
 
+The Worker Deployment uses `replicas: 0` only while KEDA owns it; with
+autoscaling disabled it uses `worker.replicaCount`. `idleReplicaCount: 0`, an
+initial cooldown, a one-Pod-per-minute scale-down policy and the blocking
+preStop drain are rendered explicitly.
+
 KEDA itself is installed separately; the manifests were authored against
 [KEDA v2.20.1](https://github.com/kedacore/keda/releases/tag/v2.20.1).
 No KEDA source or Chart is vendored here.
@@ -141,6 +166,13 @@ The current pending metric is a bounded demand signal: a cloud-allowed plan
 miss increments it, and a compatible Worker registration clears it. A request
 that safely falls back locally is not replayed remotely. Thus scale-from-zero
 benefits subsequent requests and does not create ambiguous double execution.
+
+The current Agent still performs its semantic Tool Gate through
+`controller.modelUrls` before placement. An end-to-end 0→1 demo therefore
+needs an always-reachable routing Sidecar (which can be local/edge) or must
+drive the versioned placement endpoint directly. This limitation is explicit:
+the checked-in chart does not yet prove that the GPU Worker pool can be the
+only model endpoint at replica zero.
 
 ## Claim boundary
 

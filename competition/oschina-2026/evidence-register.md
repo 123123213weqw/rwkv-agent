@@ -23,6 +23,7 @@
 | E19 | Worker 注册/心跳/排空意图与安全停止 | 跨进程控制面实测 | 已验证（非 GPU、非 Kubernetes） | `evidence/statepool/worker-adapter-2026-08-27.md` |
 | E20 | Controller 自动 acquire→continue→snapshot→commit→release→restore | Rust mock 全路径测试 | 已验证（确定性 CPU/mock State，非 GPU） | `evidence/statepool/controller-lifecycle-2026-08-27.md`、`direct_chat_persists_releases_restores_and_advances_fenced_state` |
 | E21 | 提交状态不确定时禁止自动重复执行 | 故障注入测试 | 已验证 | `evidence/statepool/controller-lifecycle-2026-08-27.md`、`uncertain_lifecycle_commit_blocks_automatic_double_execution` |
+| E22 | Helm Controller/Worker/KEDA/多副本安全门 | Helm 3.19 + Compose 静态渲染 | 已验证（非 Kubernetes 实测） | `evidence/statepool/helm-controller-keda-2026-08-27.md` |
 
 规则：临时 `/tmp` 日志不算发布证据；正式提交前需要把去敏后的完整输出放入
 `bench/artifacts/`，填写 commit 和 checksum。
