@@ -66,9 +66,25 @@ def main() -> int:
     if len(dashboard.get("panels", [])) < 8:
         raise AssertionError("StatePool dashboard is missing required panels")
 
+    dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()
+    if not dockerignore or dockerignore[0] != "**":
+        raise AssertionError("Docker context must default-deny repository files")
+    for required_path in ("!Cargo.toml", "!Cargo.lock", "!crates/**", "!web/**"):
+        if required_path not in dockerignore:
+            raise AssertionError(f"Docker build allowlist missing {required_path}")
+
+    sbom = json.loads((ROOT / "sbom" / "statepool.cdx.json").read_text(encoding="utf-8"))
+    if sbom.get("bomFormat") != "CycloneDX" or sbom.get("specVersion") != "1.5":
+        raise AssertionError("StatePool SBOM must remain CycloneDX 1.5")
+    if len(sbom.get("components", [])) < 100:
+        raise AssertionError("StatePool SBOM is unexpectedly incomplete")
+    if any(component.get("version") == "latest" for component in sbom["components"]):
+        raise AssertionError("StatePool SBOM contains a mutable latest version")
+
     print(
         f"StatePool deploy assets valid: {len(services)} Compose services, "
-        f"{len(dashboard['panels'])} dashboard panels"
+        f"{len(dashboard['panels'])} dashboard panels, "
+        f"{len(sbom['components'])} SBOM components"
     )
     return 0
 

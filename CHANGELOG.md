@@ -4,6 +4,24 @@ All notable public changes are recorded here.
 
 ## Unreleased
 
+### Added
+
+- optional, disabled-by-default StatePool Cloud Plugin boundary with versioned
+  JSON Schema/OpenAPI contracts;
+- Worker registry, exact model/Tokenizer/State ABI placement, privacy zones,
+  single-process Lease/fencing/version CAS and atomic LocalFS State lifecycle;
+- State-aware Prometheus/FinOps metrics, conservative Worker drain admission,
+  Compose/Helm/KEDA/ServiceMonitor and Grafana development assets;
+- related-work, governance, roadmap, release checklist and competition evidence
+  materials with explicit implementation/measurement claim boundaries.
+
+### Known limitations
+
+- live RWKV Sidecar Snapshot/Restore, PostgreSQL distributed metadata, S3 Cold
+  State and a measured Kubernetes/KEDA GPU lifecycle remain unimplemented;
+- `owner_id` is not authentication and the plugin must not be exposed publicly;
+- LocalFS/in-memory State lifecycle is a single-replica development profile.
+
 ## 0.3.0-beta.2 - 2026-08-25
 
 ### Added

@@ -9,6 +9,9 @@ Requirements: Docker Engine with Compose v2. The repository `AGENTS.md` still
 applies: do not build Rust on the workstation. Build the image on an approved
 remote build machine, or use a published image when one is available.
 
+The Dockerfile's two targets were built and smoke-tested on `WZU_Server`; see
+[`evidence/statepool/remote-container-smoke-2026-08-26.md`](../../evidence/statepool/remote-container-smoke-2026-08-26.md).
+
 Validate the Compose model without starting or building anything:
 
 ```bash

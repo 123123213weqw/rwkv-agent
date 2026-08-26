@@ -11,6 +11,7 @@ Each release supports a bounded, evidence-backed compatibility window.
 | StatePool plugin API | `statepool-plugin.v1` | verified | schema examples and Rust contract tests |
 | Stateful inference session | `stateful-inference-session.v1` | verified for conformance provider | `crates/state-runtime/tests/contract.rs` |
 | Live RWKV snapshot/restore | not implemented | unsupported | `RwkvHttpProvider` returns `unsupported` |
+| StatePool container images | local remote build after `c0aa5ed` | build/smoke verified on 2026-08-26 | `evidence/statepool/remote-container-smoke-2026-08-26.md` |
 
 ## Optional infrastructure
 

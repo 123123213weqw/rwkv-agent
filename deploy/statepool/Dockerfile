@@ -3,6 +3,7 @@ FROM rust:1.95-bookworm AS build
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
+COPY web ./web
 RUN cargo build --locked --release \
     -p rwkv-statepool-cloud-plugin \
     -p rwkv-agent-server
