@@ -35,14 +35,21 @@ components:
     integration: optional_runtime
     purpose: Distributed Session metadata, leases, fencing and version CAS
     version: 17.6-bookworm
-    status: compose_preview_not_connected
+    status: adapter_implemented_postgres17_6_integration_verified
   - name: MinIO
     repository: https://github.com/minio/minio
     license: AGPL-3.0-only
     integration: separate_demo_service
     purpose: Development S3-compatible Cold State object storage
     version: RELEASE.2025-04-22T22-12-26Z
-    status: compose_preview_not_connected
+    status: adapter_implemented_container_integration_verified
+  - name: MinIO Client
+    repository: https://github.com/minio/mc
+    license: AGPL-3.0-only
+    integration: separate_demo_init_container
+    purpose: Create the local Cloud Lite demonstration bucket
+    version: RELEASE.2025-04-16T18-13-26Z
+    status: compose_bucket_initializer
   - name: Prometheus
     repository: https://github.com/prometheus/prometheus
     license: Apache-2.0

@@ -82,8 +82,8 @@ privacy-aware placement.
 | Compose, Helm, KEDA, ServiceMonitor and dashboard configuration | authored and statically validated |
 | Live RWKV Albatross Sidecar CPU export/import boundary | implemented and conformance-tested |
 | Live RWKV export/import across killed GPU Workers | not measured |
-| PostgreSQL distributed Lease/CAS | not implemented |
-| S3/MinIO Cold State adapter | not implemented |
+| PostgreSQL distributed Lease/CAS | implemented; two-client container integration passed |
+| S3/MinIO Cold State adapter | implemented; MinIO container integration passed |
 | Measured KEDA 0→1→N→0 with safe GPU drain | not measured |
 
 This table is the release claim boundary; competition material must not promote

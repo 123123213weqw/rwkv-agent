@@ -18,6 +18,19 @@ plugin:
     enabled: true
     size: 20Gi
     storageClass: ""
+  durable:
+    enabled: false
+    postgresSecret: { name: "", key: postgres-url }
+    s3Secret:
+      name: ""
+      accessKeyIdKey: access-key-id
+      secretAccessKeyKey: secret-access-key
+    s3:
+      bucket: ""
+      region: us-east-1
+      endpoint: ""
+      prefix: recurrent-state
+      allowHttp: false
 
 # The Worker template is disabled until the selected RWKV Sidecar image
 # implements Worker registration/heartbeat and the drain adapter contract.

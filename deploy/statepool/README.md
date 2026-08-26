@@ -47,9 +47,18 @@ docker compose -f deploy/statepool/compose.yaml --profile agent up -d
 
 Replace the example immutable model revision before enabling it.
 
-The `durable-adapters-preview` profile starts version-pinned PostgreSQL and
-MinIO services for adapter development. The current plugin does **not** connect
-to them; enabling this profile is not a durability or S3 claim.
+The opt-in `cloud-lite` profile starts a second plugin on port `8131` backed by
+PostgreSQL Lease/CAS metadata and a MinIO S3 bucket:
+
+```bash
+docker compose -f deploy/statepool/compose.yaml \
+  --profile cloud-lite up -d statepool-cloud-lite
+curl --fail http://127.0.0.1:8131/plugin/v1/health
+```
+
+The checked-in credentials are local-demo values only. PostgreSQL and S3
+adapters were exercised against real containers on `WZU_Server`; this does not
+yet constitute the live GPU Worker-kill result.
 
 ## Profile 2: Kubernetes development control plane
 
@@ -67,6 +76,12 @@ helm upgrade --install statepool deploy/statepool/helm/statepool \
   --set serviceMonitor.enabled=true \
   --set grafanaDashboard.enabled=true
 ```
+
+For Cloud Lite, create one Kubernetes Secret containing `postgres-url`,
+`access-key-id` and `secret-access-key`, then set
+`plugin.durable.enabled=true`, the Secret names, and the external S3 endpoint,
+bucket and region. The chart never renders credentials into values or a
+ConfigMap.
 
 `worker.enabled=false` and `autoscaling.enabled=false` are safety gates. Enable
 them only with a Worker image that implements:

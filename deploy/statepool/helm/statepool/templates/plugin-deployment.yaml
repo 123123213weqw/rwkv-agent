@@ -39,6 +39,34 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.plugin.port }}
+          {{- if .Values.plugin.durable.enabled }}
+          env:
+            - name: RWKV_STATEPOOL_POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "plugin.durable.postgresSecret.name is required" .Values.plugin.durable.postgresSecret.name }}
+                  key: {{ .Values.plugin.durable.postgresSecret.key }}
+            - name: RWKV_STATEPOOL_S3_BUCKET
+              value: {{ required "plugin.durable.s3.bucket is required" .Values.plugin.durable.s3.bucket | quote }}
+            - name: RWKV_STATEPOOL_S3_REGION
+              value: {{ .Values.plugin.durable.s3.region | quote }}
+            - name: RWKV_STATEPOOL_S3_ENDPOINT
+              value: {{ .Values.plugin.durable.s3.endpoint | quote }}
+            - name: RWKV_STATEPOOL_S3_PREFIX
+              value: {{ .Values.plugin.durable.s3.prefix | quote }}
+            - name: RWKV_STATEPOOL_S3_ALLOW_HTTP
+              value: {{ .Values.plugin.durable.s3.allowHttp | quote }}
+            - name: RWKV_STATEPOOL_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "plugin.durable.s3Secret.name is required" .Values.plugin.durable.s3Secret.name }}
+                  key: {{ .Values.plugin.durable.s3Secret.accessKeyIdKey }}
+            - name: RWKV_STATEPOOL_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.plugin.durable.s3Secret.name }}
+                  key: {{ .Values.plugin.durable.s3Secret.secretAccessKeyKey }}
+          {{- end }}
           readinessProbe:
             httpGet: { path: /plugin/v1/health, port: http }
             periodSeconds: 5

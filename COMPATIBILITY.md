@@ -23,8 +23,8 @@ deployment claim.
 |---|---|---|
 | Kubernetes | Deployment/Service/lifecycle hooks | Helm template authored; cluster test pending |
 | KEDA `2.20.1` | `ScaledObject` using StatePool Prometheus metrics | template authored; 0→1→N→0 test pending |
-| PostgreSQL `17.6-bookworm` | lease, fencing and State version CAS | Compose preview only; adapter not connected |
-| MinIO `RELEASE.2025-04-22T22-12-26Z` | immutable Cold State objects | Compose preview only; adapter not connected |
+| PostgreSQL `17.6-bookworm` | lease, fencing and State version CAS | adapter verified with two clients against exact 17.6 container on WZU_Server |
+| MinIO `RELEASE.2025-04-22T22-12-26Z` | immutable Cold State objects | adapter and real-container integration verified on WZU_Server |
 | Prometheus `3.11.3` / Grafana `13.1.0` | scrape and dashboard | configuration authored; runtime test pending |
 | AIBrix | optional gateway/route adapter | planned |
 | HAMi | optional resource annotations/profile | planned |

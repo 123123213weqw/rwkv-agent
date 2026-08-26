@@ -2,11 +2,11 @@
 //!
 //! The local profile implements protocol negotiation, a dynamic Worker
 //! directory, explainable placement, single-writer Lease/fencing semantics,
-//! immutable LocalFS State snapshots and bounded in-memory FinOps counters.
-//! PostgreSQL and S3 adapters remain separate production gates.
+//! immutable LocalFS/S3 State snapshots, optional PostgreSQL metadata and
+//! bounded in-memory FinOps counters. Local backends remain the default.
 
-mod metadata;
-mod state_store;
+pub mod metadata;
+pub mod state_store;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -99,6 +99,8 @@ pub struct PluginState {
     decisions: Arc<AtomicU64>,
     metadata: Arc<dyn MetadataStore>,
     state_store: Arc<dyn StateStore>,
+    metadata_backend: Arc<str>,
+    object_store_backend: Arc<str>,
 }
 
 impl PluginState {
@@ -114,6 +116,31 @@ impl PluginState {
         }
         let state_store =
             LocalFsStateStore::new(config.state_dir.clone()).map_err(|error| error.0)?;
+        Self::with_backends(
+            config,
+            Arc::new(InMemoryMetadataStore::default()),
+            Arc::new(state_store),
+            "in_memory_lease_cas",
+            "localfs",
+        )
+    }
+
+    pub fn with_backends(
+        config: PluginConfig,
+        metadata: Arc<dyn MetadataStore>,
+        state_store: Arc<dyn StateStore>,
+        metadata_backend: impl Into<Arc<str>>,
+        object_store_backend: impl Into<Arc<str>>,
+    ) -> Result<Self, String> {
+        if config.plugin_version.trim().is_empty()
+            || config.worker_ttl.is_zero()
+            || config.lease_max_ttl < Duration::from_secs(1)
+            || config.max_state_bytes == 0
+        {
+            return Err(
+                "plugin version, Worker/Lease TTL and max State bytes must be positive".into(),
+            );
+        }
         Ok(Self {
             config: Arc::new(config),
             workers: Arc::new(RwLock::new(HashMap::new())),
@@ -121,8 +148,10 @@ impl PluginState {
             estimated_cost_micros: Arc::new(RwLock::new(HashMap::new())),
             metrics: Arc::new(Metrics::default()),
             decisions: Arc::new(AtomicU64::new(1)),
-            metadata: Arc::new(InMemoryMetadataStore::default()),
-            state_store: Arc::new(state_store),
+            metadata,
+            state_store,
+            metadata_backend: metadata_backend.into(),
+            object_store_backend: object_store_backend.into(),
         })
     }
 
@@ -177,8 +206,8 @@ async fn health(State(state): State<PluginState>) -> Json<Value> {
         "checked_at_ms":now_ms(),
         "dependencies":{
             "worker_registry":if ready > 0 {"ready"} else {"degraded"},
-            "metadata":"in_memory_lease_cas",
-            "object_store":"localfs"
+            "metadata":state.metadata_backend.as_ref(),
+            "object_store":state.object_store_backend.as_ref()
         }
     }))
 }
@@ -478,6 +507,7 @@ fn metadata_error(error: MetadataError) -> PluginError {
         | MetadataErrorKind::LeaseExpired
         | MetadataErrorKind::StaleFence
         | MetadataErrorKind::StateConflict => StatusCode::CONFLICT,
+        MetadataErrorKind::BackendFailure => StatusCode::SERVICE_UNAVAILABLE,
     };
     PluginError::new(status, error.code(), error.message, false)
 }

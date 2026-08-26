@@ -28,6 +28,44 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  statepool-cloud-lite:
+    profiles: ["cloud-lite"]
+    build:
+      context: ../..
+      dockerfile: deploy/statepool/Dockerfile
+      target: statepool-plugin
+    image: rwkv-statepool-cloud-plugin:0.3.0-beta.2-dev
+    command:
+      - --host=0.0.0.0
+      - --port=8130
+      - --worker-ttl-seconds=30
+      - --lease-max-ttl-seconds=120
+      - --max-state-bytes=536870912
+    environment:
+      RWKV_STATEPOOL_POSTGRES_URL: postgresql://statepool:local-development-only@postgres:5432/statepool
+      RWKV_STATEPOOL_S3_BUCKET: rwkv-statepool
+      RWKV_STATEPOOL_S3_REGION: us-east-1
+      RWKV_STATEPOOL_S3_ENDPOINT: http://minio:9000
+      RWKV_STATEPOOL_S3_ACCESS_KEY_ID: statepool
+      RWKV_STATEPOOL_S3_SECRET_ACCESS_KEY: local-development-only-change-me
+      RWKV_STATEPOOL_S3_PREFIX: recurrent-state
+      RWKV_STATEPOOL_S3_ALLOW_HTTP: "true"
+    ports:
+      - "8131:8130"
+    depends_on:
+      postgres: { condition: service_healthy }
+      minio: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8130/live"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+
   agent:
     profiles: ["agent"]
     build:
@@ -97,11 +135,8 @@ services:
       - prometheus
     restart: unless-stopped
 
-  # These services are version-pinned integration targets for the next
-  # durable adapter gate. The current plugin does not connect to them and the
-  # profile is deliberately opt-in to avoid a false durability claim.
   postgres:
-    profiles: ["durable-adapters-preview"]
+    profiles: ["cloud-lite"]
     image: postgres:17.6-bookworm
     environment:
       POSTGRES_DB: statepool
@@ -116,7 +151,7 @@ services:
       retries: 12
 
   minio:
-    profiles: ["durable-adapters-preview"]
+    profiles: ["cloud-lite"]
     image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
     command: server /data --console-address :9001
     environment:
@@ -127,6 +162,23 @@ services:
       - "9001:9001"
     volumes:
       - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  minio-init:
+    profiles: ["cloud-lite"]
+    image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        mc alias set local http://minio:9000 statepool
+        local-development-only-change-me >/dev/null &&
+        mc mb --ignore-existing local/rwkv-statepool
 
 volumes:
   statepool-state: {}

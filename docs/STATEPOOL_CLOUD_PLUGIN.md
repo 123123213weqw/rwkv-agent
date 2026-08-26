@@ -130,8 +130,9 @@ statepool_transcript_reprefills_total
 statepool_estimated_cost_total{currency="CNY"}
 ```
 
-The plugin stores at most 10,000 recent usage records in memory in this slice.
-Prometheus persistence and PostgreSQL metadata are later deployment gates.
+The plugin stores at most 10,000 recent usage records in memory. Prometheus is
+the intended metrics persistence boundary. Session/Lease metadata can now use
+PostgreSQL while the local default remains in memory.
 
 ## Lease and LocalFS State lifecycle
 
@@ -154,9 +155,17 @@ round-trip test. Payload upload is intentionally a simple base64 development
 transport; production Workers will use an S3 presigned transfer adapter rather
 than proxying large State blobs through the controller.
 
-This profile's metadata is in memory and its immutable objects are on LocalFS.
+The default profile's metadata is in memory and its immutable objects are on LocalFS.
 A plugin restart loses Lease/current-version metadata, so it is not a
 multi-replica or production durability claim.
+
+The opt-in Cloud Lite backend implements the same `MetadataStore` and
+`StateStore` protocols using PostgreSQL JSONB rows locked by transactions and
+S3 conditional-create objects. Two independent PostgreSQL clients are covered
+by a one-writer/fencing/CAS integration test; the S3 adapter is covered against
+a real MinIO bucket for immutable put, idempotent retry, conflicting write,
+read and delete. These adapters preserve the plugin process boundary and do
+not embed either upstream project.
 
 ## Live RWKV Worker adapter
 
@@ -171,18 +180,20 @@ The source State must be released before restore, preventing an accidental
 second writer. `RwkvHttpProvider` implements the stateful-inference contract
 over these endpoints and retains the returned payload in Controller memory.
 This proves the live adapter boundary in deterministic CPU conformance tests;
-it does not by itself survive Controller loss. The next adapter step is to
-commit these exact bytes through the plugin Lease/CAS path instead of retaining
-them in the provider process. The HF recurrent backend fails closed for exact
-snapshot/restore in this release.
+it does not by itself survive Controller loss. The live lifecycle driver can
+commit the same bytes through the plugin Lease/CAS path and whichever
+LocalFS/S3 store the plugin selected; the ordinary Controller chat cache is not
+yet wired to invoke that lifecycle automatically, and exact live GPU bytes have
+not yet passed the S3 Worker-kill experiment. The HF recurrent backend fails
+closed for exact snapshot/restore in this release.
 
 ## Deliberate non-claims
 
 The current plugin advertises `placement`, `worker_registry`, `leases`,
 `state_lifecycle`, `drain` and `finops`. `leases` and `state_lifecycle` are
-limited to the single-process development profile above. It does not advertise
-`remote_state`, because the live adapter is not yet connected to S3 persistence
-and distributed fencing and has not passed the GPU Worker-kill experiment. A remote plan may
+available in local or PostgreSQL/S3 profiles. It does not advertise
+`remote_state`, because automatic Controller orchestration and the GPU
+Worker-kill experiment have not passed. A remote plan may
 select a compatible Worker for a newly opened State; it does not prove
 migration of an already-open State.
 
@@ -190,7 +201,7 @@ Exact cross-Worker continuation may be claimed only after:
 
 1. Sidecar export/import remains conformance-tested on the target GPU backend;
 2. checksum and exact model identity remain validated end to end;
-3. PostgreSQL lease/CAS and fencing tests pass;
+3. PostgreSQL lease/CAS and fencing tests continue to pass;
 4. a real Worker-kill restore benchmark passes.
 
 See the [current-state audit](STATEPOOL_CURRENT_STATE_AUDIT.md) and

@@ -2,6 +2,9 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use async_trait::async_trait;
+use object_store::aws::AmazonS3Builder;
+use object_store::path::Path as ObjectPath;
+use object_store::{ObjectStore as ObjectStoreClient, ObjectStoreExt, PutMode, PutOptions};
 use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
 
@@ -26,6 +29,176 @@ pub trait StateStore: Send + Sync {
     ) -> Result<StoredObject, StateStoreError>;
     async fn get(&self, uri: &str) -> Result<Vec<u8>, StateStoreError>;
     async fn delete(&self, uri: &str) -> Result<(), StateStoreError>;
+}
+
+#[derive(Clone, Debug)]
+pub struct S3StateStoreConfig {
+    pub bucket: String,
+    pub region: String,
+    pub endpoint: Option<String>,
+    pub access_key_id: Option<String>,
+    pub secret_access_key: Option<String>,
+    pub prefix: String,
+    pub allow_http: bool,
+}
+
+#[derive(Clone)]
+pub struct S3StateStore {
+    store: std::sync::Arc<dyn ObjectStoreClient>,
+    bucket: String,
+    prefix: String,
+}
+
+impl std::fmt::Debug for S3StateStore {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("S3StateStore")
+            .field("bucket", &self.bucket)
+            .field("prefix", &self.prefix)
+            .finish_non_exhaustive()
+    }
+}
+
+impl S3StateStore {
+    pub fn new(config: S3StateStoreConfig) -> Result<Self, StateStoreError> {
+        if config.bucket.trim().is_empty() || config.region.trim().is_empty() {
+            return Err(StateStoreError(
+                "S3 bucket and region must not be empty".into(),
+            ));
+        }
+        if config.access_key_id.is_some() != config.secret_access_key.is_some() {
+            return Err(StateStoreError(
+                "S3 access key and secret key must be configured together".into(),
+            ));
+        }
+        let mut builder = AmazonS3Builder::from_env()
+            .with_bucket_name(&config.bucket)
+            .with_region(&config.region)
+            .with_allow_http(config.allow_http)
+            .with_virtual_hosted_style_request(false);
+        if let Some(endpoint) = &config.endpoint {
+            builder = builder.with_endpoint(endpoint);
+        }
+        if let (Some(access), Some(secret)) = (&config.access_key_id, &config.secret_access_key) {
+            builder = builder
+                .with_access_key_id(access)
+                .with_secret_access_key(secret);
+        }
+        let store = builder
+            .build()
+            .map_err(|error| StateStoreError(format!("Build S3 State store: {error}")))?;
+        Ok(Self::from_store(
+            std::sync::Arc::new(store),
+            config.bucket,
+            config.prefix,
+        ))
+    }
+
+    fn from_store(
+        store: std::sync::Arc<dyn ObjectStoreClient>,
+        bucket: String,
+        prefix: String,
+    ) -> Self {
+        Self {
+            store,
+            bucket,
+            prefix: prefix.trim_matches('/').to_string(),
+        }
+    }
+
+    fn object_key(&self, key: &str) -> Result<String, StateStoreError> {
+        validate_object_key(key)?;
+        Ok(if self.prefix.is_empty() {
+            key.to_string()
+        } else {
+            format!("{}/{key}", self.prefix)
+        })
+    }
+
+    fn uri_key(&self, uri: &str) -> Result<String, StateStoreError> {
+        let prefix = format!("s3://{}/", self.bucket);
+        let key = uri.strip_prefix(&prefix).ok_or_else(|| {
+            StateStoreError("State URI is outside the configured S3 bucket".into())
+        })?;
+        validate_object_key(key)?;
+        if !self.prefix.is_empty()
+            && key != self.prefix
+            && !key.starts_with(&format!("{}/", self.prefix))
+        {
+            return Err(StateStoreError(
+                "State URI is outside the configured S3 prefix".into(),
+            ));
+        }
+        Ok(key.to_string())
+    }
+
+    async fn read_key(&self, key: &str) -> Result<Vec<u8>, StateStoreError> {
+        self.store
+            .get(&ObjectPath::from(key))
+            .await
+            .map_err(|error| StateStoreError(format!("Get S3 State object: {error}")))?
+            .bytes()
+            .await
+            .map(|bytes| bytes.to_vec())
+            .map_err(|error| StateStoreError(format!("Read S3 State object: {error}")))
+    }
+}
+
+#[async_trait]
+impl StateStore for S3StateStore {
+    async fn put_immutable(
+        &self,
+        key: &str,
+        payload: &[u8],
+    ) -> Result<StoredObject, StateStoreError> {
+        let key = self.object_key(key)?;
+        let path = ObjectPath::from(key.as_str());
+        let checksum = sha256_checksum(payload);
+        let result = self
+            .store
+            .put_opts(
+                &path,
+                payload.to_vec().into(),
+                PutOptions {
+                    mode: PutMode::Create,
+                    ..PutOptions::default()
+                },
+            )
+            .await;
+        if let Err(put_error) = result {
+            match self.read_key(&key).await {
+                Ok(existing) if sha256_checksum(&existing) == checksum => {}
+                Ok(_) => {
+                    return Err(StateStoreError(
+                        "Immutable S3 State key already contains different bytes".into(),
+                    ));
+                }
+                Err(_) => {
+                    return Err(StateStoreError(format!(
+                        "Create immutable S3 State object: {put_error}"
+                    )));
+                }
+            }
+        }
+        Ok(StoredObject {
+            uri: format!("s3://{}/{}", self.bucket, key),
+            checksum,
+            size_bytes: payload.len().try_into().unwrap_or(u64::MAX),
+        })
+    }
+
+    async fn get(&self, uri: &str) -> Result<Vec<u8>, StateStoreError> {
+        let key = self.uri_key(uri)?;
+        self.read_key(&key).await
+    }
+
+    async fn delete(&self, uri: &str) -> Result<(), StateStoreError> {
+        let key = self.uri_key(uri)?;
+        self.store
+            .delete(&ObjectPath::from(key))
+            .await
+            .map_err(|error| StateStoreError(format!("Delete S3 State object: {error}")))
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -63,6 +236,19 @@ impl LocalFsStateStore {
         }
         Ok(path)
     }
+}
+
+fn validate_object_key(key: &str) -> Result<(), StateStoreError> {
+    let key = Path::new(key);
+    if key.as_os_str().is_empty()
+        || key.is_absolute()
+        || key
+            .components()
+            .any(|component| !matches!(component, Component::Normal(_)))
+    {
+        return Err(StateStoreError("Unsafe State object key".into()));
+    }
+    Ok(())
 }
 
 #[async_trait]
@@ -149,4 +335,47 @@ fn stored_object(path: PathBuf, checksum: String, len: usize) -> StoredObject {
 
 pub fn sha256_checksum(payload: &[u8]) -> String {
     format!("sha256:{:x}", Sha256::digest(payload))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use object_store::memory::InMemory;
+
+    #[tokio::test]
+    async fn s3_adapter_preserves_immutable_keys_and_scoped_uris() {
+        let store = S3StateStore::from_store(
+            std::sync::Arc::new(InMemory::new()),
+            "state-bucket".into(),
+            "tenant-prefix".into(),
+        );
+        let first = store
+            .put_immutable("session/v1.state", b"state-one")
+            .await
+            .expect("first write");
+        assert_eq!(
+            first.uri,
+            "s3://state-bucket/tenant-prefix/session/v1.state"
+        );
+        assert_eq!(store.get(&first.uri).await.expect("read"), b"state-one");
+        let repeated = store
+            .put_immutable("session/v1.state", b"state-one")
+            .await
+            .expect("idempotent repeat");
+        assert_eq!(repeated, first);
+        let conflict = store
+            .put_immutable("session/v1.state", b"state-two")
+            .await
+            .expect_err("immutable conflict");
+        assert!(conflict.0.contains("different bytes"));
+        assert!(
+            store
+                .get("s3://other-bucket/tenant-prefix/session/v1.state")
+                .await
+                .is_err()
+        );
+        assert!(store.put_immutable("../escape", b"bad").await.is_err());
+        store.delete(&first.uri).await.expect("delete");
+        assert!(store.get(&first.uri).await.is_err());
+    }
 }

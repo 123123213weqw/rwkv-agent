@@ -24,21 +24,31 @@ def load_yaml(path: Path) -> dict:
 def main() -> int:
     compose = load_yaml(DEPLOY / "compose.yaml")
     services = compose.get("services", {})
-    required = {"statepool", "agent", "prometheus", "grafana", "postgres", "minio"}
+    required = {
+        "statepool",
+        "statepool-cloud-lite",
+        "agent",
+        "prometheus",
+        "grafana",
+        "postgres",
+        "minio",
+        "minio-init",
+    }
     if missing := required.difference(services):
         raise AssertionError(f"Compose services missing: {sorted(missing)}")
     for name, service in services.items():
         image = service.get("image", "")
         if image.endswith(":latest") or image == "latest":
             raise AssertionError(f"{name} uses a mutable latest image")
-    if "durable-adapters-preview" not in services["postgres"].get("profiles", []):
-        raise AssertionError("PostgreSQL must remain behind the preview profile")
-    if "durable-adapters-preview" not in services["minio"].get("profiles", []):
-        raise AssertionError("MinIO must remain behind the preview profile")
+    for name in ("statepool-cloud-lite", "postgres", "minio", "minio-init"):
+        if "cloud-lite" not in services[name].get("profiles", []):
+            raise AssertionError(f"{name} must remain behind the cloud-lite profile")
 
     values = load_yaml(CHART / "values.yaml")
     if values["plugin"]["replicaCount"] != 1:
         raise AssertionError("In-memory Lease profile must remain single replica")
+    if values["plugin"]["durable"]["enabled"]:
+        raise AssertionError("PostgreSQL/S3 must remain opt-in")
     if values["worker"]["enabled"] or values["autoscaling"]["enabled"]:
         raise AssertionError("Worker and KEDA gates must default to disabled")
     if values["autoscaling"]["minReplicaCount"] != 0:
