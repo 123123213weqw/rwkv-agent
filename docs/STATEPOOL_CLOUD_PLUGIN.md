@@ -90,6 +90,21 @@ rwkv-agent-server-rs \
   --cloud-state-abi rwkv7-g1i-fp16-v1
 ```
 
+The separately opt-in lifecycle transport adds:
+
+```text
+  --cloud-state-lifecycle \
+  --cloud-state-target-tier cold \
+  --cloud-lease-ttl-seconds 120 \
+  --cloud-lifecycle-timeout-seconds 180
+```
+
+Enabling it upgrades handshake requirements to include `leases` and
+`state_lifecycle`. The longer lifecycle timeout applies only to State payload
+transfers; placement keeps its short fail-fast timeout. A committed
+`StateReference` disables local fallback so a plugin outage cannot trigger a
+second execution from transcript.
+
 Equivalent `RWKV_AGENT_*` variables are documented in
 `docs/CONFIGURATION.md`.
 
@@ -192,7 +207,12 @@ The Albatross Sidecar exposes two exact-model Worker-local operations:
 
 The source State must be released before restore, preventing an accidental
 second writer. `RwkvHttpProvider` implements the stateful-inference contract
-over these endpoints and retains the returned payload in Controller memory.
+over these endpoints. The Rust Controller now also has typed,
+integrity-checking Sidecar snapshot/restore and fenced plugin
+acquire/renew/commit/read/release clients. Both transports validate model
+identity, owner, State version, checksum and atomicity at their respective
+trust boundaries. The live driver retains the returned payload in Controller
+memory.
 This proves the live adapter boundary in deterministic CPU conformance tests;
 it does not by itself survive Controller loss. The live lifecycle driver can
 commit the same bytes through the plugin Lease/CAS path and whichever

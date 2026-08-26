@@ -4,6 +4,7 @@ use std::sync::{
 };
 use std::time::Duration;
 
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use reqwest::Client;
 use rwkv_agent_core::{
     ModelOutput, OpenStateRequest, RunContext, StateContinueRequest, StateHandle, StateModel,
@@ -11,6 +12,8 @@ use rwkv_agent_core::{
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use tokio::sync::mpsc;
+
+use crate::cloud_plugin::CloudModelRef;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SidecarState {
@@ -23,6 +26,33 @@ pub struct SidecarState {
     pub branch: String,
     #[serde(default)]
     pub seen_tokens: u64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SidecarSnapshot {
+    pub checksum: String,
+    pub size_bytes: u64,
+    pub payload_base64: String,
+    pub seen_tokens: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct SidecarCheckpoint {
+    model_ref: CloudModelRef,
+    provider_mode: String,
+    placement: String,
+    checksum: String,
+    size_bytes: u64,
+    atomic: bool,
+    #[serde(default)]
+    seen_tokens: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct SidecarSnapshotResponse {
+    status: String,
+    checkpoint: SidecarCheckpoint,
+    payload_base64: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -437,6 +467,92 @@ impl SidecarClient {
         .await
     }
 
+    /// Exports an exact recurrent State into a portable, integrity-checked
+    /// CPU snapshot while leaving the hot source State resident.
+    pub async fn snapshot(
+        &self,
+        state: &SidecarState,
+        model_ref: &CloudModelRef,
+    ) -> Result<SidecarSnapshot, String> {
+        let value = self
+            .post_json(
+                format!(
+                    "{}/v1/states/{}/snapshot",
+                    state.home_url.trim_end_matches('/'),
+                    state.state_id
+                ),
+                json!({
+                    "owner_id": state.owner_id,
+                    "model_ref": model_ref,
+                    "target_tier": "cpu",
+                }),
+            )
+            .await?;
+        let response: SidecarSnapshotResponse = serde_json::from_value(value)
+            .map_err(|error| format!("sidecar invalid snapshot response: {error}"))?;
+        if response.status != "ok"
+            || response.checkpoint.model_ref != *model_ref
+            || response.checkpoint.provider_mode != "rwkv_recurrent"
+            || response.checkpoint.placement != "cpu"
+            || !response.checkpoint.atomic
+        {
+            return Err("sidecar snapshot identity or atomicity mismatch".into());
+        }
+        validate_snapshot_payload(
+            &response.checkpoint.checksum,
+            response.checkpoint.size_bytes,
+            &response.payload_base64,
+        )?;
+        Ok(SidecarSnapshot {
+            checksum: response.checkpoint.checksum,
+            size_bytes: response.checkpoint.size_bytes,
+            payload_base64: response.payload_base64,
+            seen_tokens: response.checkpoint.seen_tokens,
+        })
+    }
+
+    /// Imports a committed snapshot on the explicitly selected Worker. The
+    /// payload is verified locally before any Worker State is allocated.
+    pub async fn restore_at(
+        &self,
+        endpoint: &str,
+        owner_id: &str,
+        model_ref: &CloudModelRef,
+        checksum: &str,
+        payload_base64: &str,
+    ) -> Result<SidecarState, String> {
+        let endpoint = endpoint.trim().trim_end_matches('/').to_string();
+        if endpoint.is_empty() || owner_id.trim().is_empty() {
+            return Err("sidecar restore endpoint and owner must not be empty".into());
+        }
+        validate_snapshot_payload(checksum, 0, payload_base64)?;
+        let value = self
+            .post_json(
+                format!("{endpoint}/v1/states/restore"),
+                json!({
+                    "owner_id": owner_id,
+                    "model_ref": model_ref,
+                    "checksum": checksum,
+                    "payload_base64": payload_base64,
+                }),
+            )
+            .await?;
+        let state = value
+            .get("state")
+            .cloned()
+            .ok_or_else(|| "sidecar restore response has no state".to_string())?;
+        let mut parsed: SidecarState = serde_json::from_value(state)
+            .map_err(|error| format!("sidecar invalid restore response: {error}"))?;
+        if parsed.state_id.trim().is_empty()
+            || (!parsed.owner_id.is_empty() && parsed.owner_id != owner_id)
+        {
+            return Err("sidecar restored a mismatched State".into());
+        }
+        parsed.owner_id = owner_id.to_string();
+        parsed.home_url = endpoint;
+        Ok(parsed)
+    }
+
     pub async fn complete(
         &self,
         prompt: &str,
@@ -514,6 +630,38 @@ impl SidecarClient {
             _ => row.text.clone(),
         }
     }
+}
+
+fn validate_snapshot_payload(
+    checksum: &str,
+    expected_size_bytes: u64,
+    payload_base64: &str,
+) -> Result<(), String> {
+    if !checksum.starts_with("sha256:") || checksum.len() != 71 {
+        return Err("sidecar snapshot checksum must use sha256:<64 lowercase hex>".into());
+    }
+    let payload = BASE64_STANDARD
+        .decode(payload_base64)
+        .map_err(|error| format!("sidecar snapshot payload is not valid base64: {error}"))?;
+    if payload.is_empty() {
+        return Err("sidecar snapshot payload must not be empty".into());
+    }
+    if expected_size_bytes != 0 && payload.len() as u64 != expected_size_bytes {
+        return Err("sidecar snapshot payload size mismatch".into());
+    }
+    let digest = ring::digest::digest(&ring::digest::SHA256, &payload);
+    let actual = format!(
+        "sha256:{}",
+        digest
+            .as_ref()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    );
+    if actual != checksum {
+        return Err("sidecar snapshot payload checksum mismatch".into());
+    }
+    Ok(())
 }
 
 fn first_complete_tool_json(prefill: &str, generated: &str) -> Option<String> {
@@ -623,6 +771,7 @@ impl StateModel for SidecarClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{Json, Router, extract::State as AxumState, routing::post};
     use rwkv_agent_core::TOOL_CALL_JSON_PREFIX;
 
     fn row(text: &str, stop_reason: &str) -> BatchContinuation {
@@ -635,6 +784,135 @@ mod tests {
             seen_tokens: 0,
             elapsed_ms: 0.0,
         }
+    }
+
+    fn cloud_model_ref() -> CloudModelRef {
+        CloudModelRef {
+            model_id: "rwkv7".into(),
+            revision: "revision".into(),
+            tokenizer: "tokenizer".into(),
+            state_abi: "rwkv7-state-v1".into(),
+        }
+    }
+
+    #[derive(Clone)]
+    struct SnapshotMock {
+        model_ref: CloudModelRef,
+        checksum: String,
+        payload_base64: String,
+    }
+
+    async fn mock_snapshot_sidecar() -> (String, SnapshotMock) {
+        async fn snapshot(
+            AxumState(mock): AxumState<SnapshotMock>,
+            Json(request): Json<Value>,
+        ) -> Json<Value> {
+            assert_eq!(request["owner_id"], "owner");
+            assert_eq!(request["model_ref"], json!(mock.model_ref));
+            Json(json!({
+                "status":"ok",
+                "checkpoint":{
+                    "checkpoint_id":"checkpoint-test",
+                    "model_ref":mock.model_ref,
+                    "provider_mode":"rwkv_recurrent",
+                    "placement":"cpu",
+                    "checksum":mock.checksum,
+                    "size_bytes":16,
+                    "atomic":true,
+                    "seen_tokens":42
+                },
+                "payload_base64":mock.payload_base64,
+            }))
+        }
+
+        async fn restore(
+            AxumState(mock): AxumState<SnapshotMock>,
+            Json(request): Json<Value>,
+        ) -> Json<Value> {
+            assert_eq!(request["owner_id"], "owner");
+            assert_eq!(request["model_ref"], json!(mock.model_ref));
+            assert_eq!(request["checksum"], mock.checksum);
+            assert_eq!(request["payload_base64"], mock.payload_base64);
+            Json(json!({
+                "status":"ok",
+                "state":{
+                    "state_id":"restored-state",
+                    "owner_id":"owner",
+                    "branch":"restored",
+                    "seen_tokens":42
+                }
+            }))
+        }
+
+        let payload = b"snapshot-payload";
+        let digest = ring::digest::digest(&ring::digest::SHA256, payload);
+        let mock = SnapshotMock {
+            model_ref: cloud_model_ref(),
+            checksum: format!(
+                "sha256:{}",
+                digest
+                    .as_ref()
+                    .iter()
+                    .map(|byte| format!("{byte:02x}"))
+                    .collect::<String>()
+            ),
+            payload_base64: BASE64_STANDARD.encode(payload),
+        };
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let app = Router::new()
+            .route("/v1/states/{state_id}/snapshot", post(snapshot))
+            .route("/v1/states/restore", post(restore))
+            .with_state(mock.clone());
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        (format!("http://{address}"), mock)
+    }
+
+    #[tokio::test]
+    async fn snapshot_and_restore_validate_payload_and_model_identity() {
+        let (endpoint, mock) = mock_snapshot_sidecar().await;
+        let client = SidecarClient::new(vec![endpoint.clone()]).unwrap();
+        let state = SidecarState {
+            owner_id: "owner".into(),
+            state_id: "source-state".into(),
+            home_url: endpoint.clone(),
+            branch: "root".into(),
+            seen_tokens: 0,
+        };
+        let snapshot = client.snapshot(&state, &mock.model_ref).await.unwrap();
+        assert_eq!(snapshot.checksum, mock.checksum);
+        assert_eq!(snapshot.size_bytes, 16);
+        assert_eq!(snapshot.seen_tokens, 42);
+
+        let restored = client
+            .restore_at(
+                &endpoint,
+                "owner",
+                &mock.model_ref,
+                &snapshot.checksum,
+                &snapshot.payload_base64,
+            )
+            .await
+            .unwrap();
+        assert_eq!(restored.state_id, "restored-state");
+        assert_eq!(restored.owner_id, "owner");
+        assert_eq!(restored.home_url, endpoint);
+    }
+
+    #[tokio::test]
+    async fn restore_rejects_corrupt_payload_before_contacting_worker() {
+        let client = SidecarClient::new(vec!["http://127.0.0.1:1".into()]).unwrap();
+        let error = client
+            .restore_at(
+                "http://127.0.0.1:1",
+                "owner",
+                &cloud_model_ref(),
+                &format!("sha256:{}", "0".repeat(64)),
+                &BASE64_STANDARD.encode(b"not-the-expected-payload"),
+            )
+            .await
+            .unwrap_err();
+        assert!(error.contains("checksum mismatch"));
     }
 
     #[test]

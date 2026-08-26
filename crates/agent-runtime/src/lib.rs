@@ -15,7 +15,8 @@ mod sidecar;
 mod task_ledger;
 
 pub use cloud_plugin::{
-    CloudModelRef, CloudPluginClient, CloudPluginConfig, CloudPluginFallback, ExecutionPlan,
+    CloudLease, CloudModelRef, CloudPluginClient, CloudPluginConfig, CloudPluginFallback,
+    CloudRestoreStateResponse, CloudStatePlacement, CloudStateReference, ExecutionPlan,
     PrivacyClass, WorkerZone,
 };
 pub use command::{CommandPolicy, SandboxedCommand};
@@ -33,7 +34,7 @@ pub use rwkv_agent_core::{
 };
 pub use service::{AgentService, RuntimeConfig};
 pub use session::{Exchange, SessionStore};
-pub use sidecar::{BatchContinuation, GateDecision, SidecarClient, SidecarState};
+pub use sidecar::{BatchContinuation, GateDecision, SidecarClient, SidecarSnapshot, SidecarState};
 pub use task_ledger::{
     LEDGER_SCHEMA_VERSION, LedgerEvent, StageStatus, TaskLedger, TaskRecord, TaskStageRecord,
     TaskStatus,

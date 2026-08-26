@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use clap::Parser;
 use rwkv_agent_runtime::{
-    AgentService, CloudModelRef, CloudPluginConfig, CloudPluginFallback, CommandPolicy,
-    DebugTraceConfig, DebugTraceMode, PrivacyClass, RuntimeConfig, WorkerZone,
+    AgentService, CloudModelRef, CloudPluginConfig, CloudPluginFallback, CloudStatePlacement,
+    CommandPolicy, DebugTraceConfig, DebugTraceMode, PrivacyClass, RuntimeConfig, WorkerZone,
 };
 use rwkv_agent_server::router;
 
@@ -112,6 +112,30 @@ struct Args {
     cloud_tokenizer: Option<String>,
     #[arg(long, env = "RWKV_AGENT_CLOUD_STATE_ABI")]
     cloud_state_abi: Option<String>,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_STATE_LIFECYCLE",
+        default_value_t = false
+    )]
+    cloud_state_lifecycle: bool,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_STATE_TARGET_TIER",
+        default_value = "cold"
+    )]
+    cloud_state_target_tier: String,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_LEASE_TTL_SECONDS",
+        default_value_t = 120
+    )]
+    cloud_lease_ttl_seconds: u64,
+    #[arg(
+        long,
+        env = "RWKV_AGENT_CLOUD_LIFECYCLE_TIMEOUT_SECONDS",
+        default_value_t = 180
+    )]
+    cloud_lifecycle_timeout_seconds: u64,
     #[arg(long, env = "RWKV_AGENT_ENABLE_COMMAND", default_value_t = false)]
     enable_command: bool,
     #[arg(long, env = "RWKV_AGENT_COMMAND_WORKSPACE")]
@@ -153,6 +177,9 @@ async fn main() -> Result<(), String> {
         .cloud_plugin_preferred_zone
         .map(|value| value.parse::<WorkerZone>())
         .transpose()?;
+    let cloud_state_target_tier = args
+        .cloud_state_target_tier
+        .parse::<CloudStatePlacement>()?;
     let cloud_model_ref = match (
         args.cloud_model_id,
         args.cloud_model_revision,
@@ -200,6 +227,10 @@ async fn main() -> Result<(), String> {
             latency_slo: Duration::from_millis(args.cloud_plugin_latency_slo_ms),
             preferred_zone: cloud_plugin_preferred_zone,
             model_ref: cloud_model_ref,
+            state_lifecycle: args.cloud_state_lifecycle,
+            state_target_tier: cloud_state_target_tier,
+            lease_ttl: Duration::from_secs(args.cloud_lease_ttl_seconds),
+            lifecycle_timeout: Duration::from_secs(args.cloud_lifecycle_timeout_seconds),
             ..CloudPluginConfig::default()
         },
         command: CommandPolicy {

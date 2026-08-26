@@ -52,10 +52,21 @@ and requires no cloud dependencies.
 | `RWKV_AGENT_CLOUD_MODEL_REVISION` | unset | Immutable model revision; required when enabled |
 | `RWKV_AGENT_CLOUD_TOKENIZER` | unset | Exact tokenizer identity; required when enabled |
 | `RWKV_AGENT_CLOUD_STATE_ABI` | unset | Exact recurrent-State ABI; required when enabled |
+| `RWKV_AGENT_CLOUD_STATE_LIFECYCLE` | `false` | Enable fenced State lifecycle transport independently of placement |
+| `RWKV_AGENT_CLOUD_STATE_TARGET_TIER` | `cold` | Durable snapshot target: `warm` or `cold` |
+| `RWKV_AGENT_CLOUD_LEASE_TTL_SECONDS` | `120` | Writer Lease TTL used by lifecycle operations |
+| `RWKV_AGENT_CLOUD_LIFECYCLE_TIMEOUT_SECONDS` | `180` | Per-request snapshot/restore transfer timeout |
 
 All four model identity fields are an atomic configuration unit. Supplying
 only some of them is rejected at startup. `local_only` is enforced by the host
 even if a plugin incorrectly returns a remote plan.
+
+State lifecycle remains a second, default-off switch. When enabled, handshake
+requires both `leases` and `state_lifecycle`; lifecycle requests validate the
+complete model identity, State version, owner, fencing token and checksum.
+Placement failures may fall back only before a State has been committed. Once
+a request carries a committed `StateReference`, the host fails closed rather
+than silently re-prefilling and executing the same Session locally.
 
 See [STATEPOOL_CLOUD_PLUGIN.md](STATEPOOL_CLOUD_PLUGIN.md) for the protocol and
 current implementation boundary.

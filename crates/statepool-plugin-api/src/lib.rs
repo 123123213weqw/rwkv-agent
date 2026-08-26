@@ -238,6 +238,31 @@ pub enum StatePlacement {
     Dropped,
 }
 
+impl std::fmt::Display for StatePlacement {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::Hot => "hot",
+            Self::Warm => "warm",
+            Self::Cold => "cold",
+            Self::Dropped => "dropped",
+        })
+    }
+}
+
+impl std::str::FromStr for StatePlacement {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "hot" => Ok(Self::Hot),
+            "warm" => Ok(Self::Warm),
+            "cold" => Ok(Self::Cold),
+            "dropped" => Ok(Self::Dropped),
+            _ => Err("State placement must be hot, warm, cold or dropped".into()),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StateReference {
     pub contract_version: String,
@@ -423,6 +448,17 @@ impl SnapshotStateRequest {
                 "Snapshot and Lease expected State versions differ".into(),
             ));
         }
+        if self.expected_checksum.as_ref().is_some_and(|checksum| {
+            !checksum.starts_with("sha256:")
+                || checksum.len() != 71
+                || !checksum[7..]
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        }) {
+            return Err(ContractError::Invalid(
+                "Snapshot checksum must use sha256:<64 lowercase hex characters>".into(),
+            ));
+        }
         Ok(())
     }
 }
@@ -457,6 +493,14 @@ impl RestoreStateRequest {
                 "Raw State restore requires exact model identity and an atomic State".into(),
             ));
         }
+        if self.lease.session_id != self.state_ref.session_id
+            || self.lease.owner_id != self.state_ref.owner_id
+            || self.lease.expected_state_version != self.state_ref.version
+        {
+            return Err(ContractError::Invalid(
+                "Restore Lease must fence the requested Session, owner and State version".into(),
+            ));
+        }
         Ok(())
     }
 }
@@ -466,6 +510,21 @@ pub struct RestoreStateResponse {
     pub contract_version: String,
     pub state_ref: StateReference,
     pub payload_base64: String,
+}
+
+impl RestoreStateResponse {
+    pub fn validate(&self) -> Result<(), ContractError> {
+        if self.contract_version != RESTORE_RESPONSE_CONTRACT_VERSION {
+            return Err(ContractError::Version);
+        }
+        self.state_ref.validate()?;
+        if self.payload_base64.is_empty() {
+            return Err(ContractError::Invalid(
+                "Restore response payload_base64 must not be empty".into(),
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -503,6 +562,20 @@ impl PlanRequest {
             ));
         }
         self.model_ref.validate()?;
+        if let Some(state_ref) = &self.state_ref {
+            state_ref.validate()?;
+            if state_ref.session_id != self.session_id || state_ref.owner_id != self.owner_id {
+                return Err(ContractError::Invalid(
+                    "Planning State reference must belong to the requested Session and owner"
+                        .into(),
+                ));
+            }
+            if !state_ref.exact_restore_compatible(&self.model_ref) {
+                return Err(ContractError::Invalid(
+                    "Planning raw State requires exact model identity".into(),
+                ));
+            }
+        }
         Ok(())
     }
 }
@@ -726,9 +799,55 @@ mod tests {
         release.validate().unwrap();
         snapshot.validate().unwrap();
         restore.validate().unwrap();
-        assert_eq!(
-            restore_response.contract_version,
-            RESTORE_RESPONSE_CONTRACT_VERSION
+        restore_response.validate().unwrap();
+    }
+
+    #[test]
+    fn planning_state_must_match_session_owner_and_exact_model() {
+        let mut request: PlanRequest = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/plan-request.json"
+        ))
+        .unwrap();
+        let mut state: StateReference = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/state-reference.json"
+        ))
+        .unwrap();
+        state.owner_id = "different-owner".into();
+        request.state_ref = Some(state.clone());
+        assert!(
+            request
+                .validate()
+                .unwrap_err()
+                .to_string()
+                .contains("owner")
+        );
+
+        state.owner_id = request.owner_id.clone();
+        state.session_id = request.session_id.clone();
+        state.model_ref.revision = "different-revision".into();
+        request.state_ref = Some(state);
+        assert!(
+            request
+                .validate()
+                .unwrap_err()
+                .to_string()
+                .contains("exact model identity")
+        );
+    }
+
+    #[test]
+    fn restore_lease_must_fence_the_exact_state_version() {
+        let mut request: RestoreStateRequest = serde_json::from_str(include_str!(
+            "../../../contracts/examples/statepool-plugin-v1/restore-request.json"
+        ))
+        .unwrap();
+        request.lease.expected_state_version = request.state_ref.version.saturating_add(1);
+        assert!(
+            request
+                .validate()
+                .unwrap_err()
+                .to_string()
+                .contains("State version")
         );
     }
 }

@@ -4,16 +4,22 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
 use tokio::sync::RwLock;
 
 use rwkv_statepool_plugin_api::{
-    EXECUTION_PLAN_CONTRACT_VERSION, HandshakeRequest, HandshakeResponse,
-    PLAN_REQUEST_CONTRACT_VERSION, PLUGIN_CONTRACT_VERSION, PlanRequest,
+    ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION, AcquireLeaseRequest, EXECUTION_PLAN_CONTRACT_VERSION,
+    HandshakeRequest, HandshakeResponse, LEASE_CONTRACT_VERSION, PLAN_REQUEST_CONTRACT_VERSION,
+    PLUGIN_CONTRACT_VERSION, PlanRequest, RELEASE_LEASE_REQUEST_CONTRACT_VERSION,
+    RENEW_LEASE_REQUEST_CONTRACT_VERSION, RESTORE_REQUEST_CONTRACT_VERSION,
+    RESTORE_RESPONSE_CONTRACT_VERSION, ReleaseLeaseRequest, RenewLeaseRequest, RestoreStateRequest,
+    SNAPSHOT_REQUEST_CONTRACT_VERSION, SnapshotStateRequest,
 };
 pub use rwkv_statepool_plugin_api::{
-    ExecutionPlan, ModelRef as CloudModelRef, PrivacyClass, WorkerZone,
+    ExecutionPlan, Lease as CloudLease, ModelRef as CloudModelRef, PrivacyClass,
+    RestoreStateResponse as CloudRestoreStateResponse, StatePlacement as CloudStatePlacement,
+    StateReference as CloudStateReference, WorkerZone,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -56,6 +62,10 @@ pub struct CloudPluginConfig {
     pub preferred_zone: Option<WorkerZone>,
     pub model_ref: Option<CloudModelRef>,
     pub required_capabilities: Vec<String>,
+    pub state_lifecycle: bool,
+    pub state_target_tier: CloudStatePlacement,
+    pub lease_ttl: Duration,
+    pub lifecycle_timeout: Duration,
 }
 
 impl Default for CloudPluginConfig {
@@ -71,6 +81,10 @@ impl Default for CloudPluginConfig {
             preferred_zone: None,
             model_ref: None,
             required_capabilities: vec!["placement".into()],
+            state_lifecycle: false,
+            state_target_tier: CloudStatePlacement::Cold,
+            lease_ttl: Duration::from_secs(120),
+            lifecycle_timeout: Duration::from_secs(180),
         }
     }
 }
@@ -126,6 +140,18 @@ impl CloudPluginClient {
             {
                 return Err("cloud plugin required_capabilities must not be empty".into());
             }
+            if config.state_lifecycle
+                && (config.lease_ttl < Duration::from_secs(1)
+                    || config.lifecycle_timeout.is_zero()
+                    || !matches!(
+                        config.state_target_tier,
+                        CloudStatePlacement::Warm | CloudStatePlacement::Cold
+                    ))
+            {
+                return Err(
+                    "cloud State lifecycle requires a positive Lease TTL, lifecycle timeout and warm/cold target".into(),
+                );
+            }
         }
         let http = if config.enabled {
             Some(
@@ -170,6 +196,7 @@ impl CloudPluginClient {
     }
 
     async fn handshake(&self, host_version: &str) -> Result<(), String> {
+        let required_capabilities = self.effective_required_capabilities();
         let response = self
             .http
             .as_ref()
@@ -179,7 +206,7 @@ impl CloudPluginClient {
                 contract_version: PLUGIN_CONTRACT_VERSION.into(),
                 host: "rwkv-agent".into(),
                 host_version: host_version.into(),
-                required_capabilities: self.config.required_capabilities.clone(),
+                required_capabilities: required_capabilities.clone(),
             })
             .send()
             .await
@@ -196,9 +223,7 @@ impl CloudPluginClient {
             return Err("cloud plugin handshake contract or identity mismatch".into());
         }
         let capabilities = body.capabilities.iter().cloned().collect::<BTreeSet<_>>();
-        let missing = self
-            .config
-            .required_capabilities
+        let missing = required_capabilities
             .iter()
             .filter(|value| !capabilities.contains(*value))
             .cloned()
@@ -226,18 +251,43 @@ impl CloudPluginClient {
         estimated_input_tokens: u64,
         estimated_output_tokens: u64,
     ) -> Result<ExecutionPlan, String> {
+        self.plan_with_state(
+            session_id,
+            owner_id,
+            estimated_input_tokens,
+            estimated_output_tokens,
+            None,
+        )
+        .await
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn plan_with_state(
+        &self,
+        session_id: &str,
+        owner_id: &str,
+        estimated_input_tokens: u64,
+        estimated_output_tokens: u64,
+        state_ref: Option<CloudStateReference>,
+    ) -> Result<ExecutionPlan, String> {
+        let has_committed_state = state_ref.is_some();
         let request_id = format!(
             "plugin-{}-{:016x}",
             sanitize_id(session_id),
             self.request_counter.fetch_add(1, Ordering::Relaxed)
         );
         if !self.config.enabled {
-            return Ok(ExecutionPlan::local(request_id, "plugin_disabled"));
+            return if has_committed_state {
+                Err("cloud plugin is disabled; committed remote State exists, so local fallback is forbidden".into())
+            } else {
+                Ok(ExecutionPlan::local(request_id, "plugin_disabled"))
+            };
         }
         if self.state.read().await.status != "ready" {
-            return self.fallback_or_error(
+            return self.fallback_or_error_after_plan(
                 request_id,
                 "cloud plugin is not ready; no remote operation was started",
+                has_committed_state,
             );
         }
         let model_ref = self
@@ -245,38 +295,47 @@ impl CloudPluginClient {
             .model_ref
             .clone()
             .ok_or_else(|| "cloud plugin model_ref is unavailable".to_string())?;
+        let request = PlanRequest {
+            contract_version: PLAN_REQUEST_CONTRACT_VERSION.into(),
+            request_id: request_id.clone(),
+            session_id: session_id.into(),
+            owner_id: owner_id.into(),
+            model_ref,
+            privacy: self.config.default_privacy,
+            latency_slo_ms: self
+                .config
+                .latency_slo
+                .as_millis()
+                .try_into()
+                .unwrap_or(u64::MAX),
+            max_cost: None,
+            preferred_zone: self.config.preferred_zone.clone(),
+            state_ref,
+            estimated_input_tokens,
+            estimated_output_tokens,
+        };
+        if let Err(error) = request.validate() {
+            return self.fallback_or_error_after_plan(
+                request_id,
+                &format!("cloud plugin planning request is invalid: {error}"),
+                has_committed_state,
+            );
+        }
         let response = match self
             .http
             .as_ref()
             .expect("enabled cloud plugin has an HTTP client")
             .post(format!("{}/plugin/v1/plan", self.config.endpoint))
-            .json(&PlanRequest {
-                contract_version: PLAN_REQUEST_CONTRACT_VERSION.into(),
-                request_id: request_id.clone(),
-                session_id: session_id.into(),
-                owner_id: owner_id.into(),
-                model_ref,
-                privacy: self.config.default_privacy,
-                latency_slo_ms: self
-                    .config
-                    .latency_slo
-                    .as_millis()
-                    .try_into()
-                    .unwrap_or(u64::MAX),
-                max_cost: None,
-                preferred_zone: self.config.preferred_zone.clone(),
-                state_ref: None,
-                estimated_input_tokens,
-                estimated_output_tokens,
-            })
+            .json(&request)
             .send()
             .await
         {
             Ok(response) => response,
             Err(error) => {
-                return self.fallback_or_error(
+                return self.fallback_or_error_after_plan(
                     request_id,
                     &format!("cloud plugin planning unavailable: {error}"),
+                    has_committed_state,
                 );
             }
         };
@@ -284,25 +343,266 @@ impl CloudPluginClient {
         let plan = match response.json::<ExecutionPlan>().await {
             Ok(plan) => plan,
             Err(error) => {
-                return self.fallback_or_error(
+                return self.fallback_or_error_after_plan(
                     request_id,
                     &format!("cloud plugin planning invalid JSON: {error}"),
+                    has_committed_state,
                 );
             }
         };
         if !status.is_success() {
-            return self
-                .fallback_or_error(request_id, &format!("cloud plugin planning HTTP {status}"));
+            return self.fallback_or_error_after_plan(
+                request_id,
+                &format!("cloud plugin planning HTTP {status}"),
+                has_committed_state,
+            );
         }
         if let Err(error) = self.validate_plan(&plan, &request_id) {
-            return self.fallback_or_error(request_id, &error);
+            return self.fallback_or_error_after_plan(request_id, &error, has_committed_state);
         }
         if matches!(plan.mode.as_str(), "defer" | "reject")
             && self.config.fallback == CloudPluginFallback::Local
+            && !has_committed_state
         {
             return Ok(ExecutionPlan::local(request_id, &plan.reason_code));
         }
         Ok(plan)
+    }
+
+    pub fn state_lifecycle_enabled(&self) -> bool {
+        self.config.enabled && self.config.state_lifecycle
+    }
+
+    pub fn state_target_tier(&self) -> CloudStatePlacement {
+        self.config.state_target_tier.clone()
+    }
+
+    pub fn state_model_ref(&self) -> Result<CloudModelRef, String> {
+        self.lifecycle_model_ref()
+    }
+
+    pub async fn acquire_lease(
+        &self,
+        session_id: &str,
+        owner_id: &str,
+        holder_id: &str,
+        expected_state_version: u64,
+    ) -> Result<CloudLease, String> {
+        let ttl_ms = self
+            .config
+            .lease_ttl
+            .as_millis()
+            .try_into()
+            .unwrap_or(u64::MAX);
+        let request = AcquireLeaseRequest {
+            contract_version: ACQUIRE_LEASE_REQUEST_CONTRACT_VERSION.into(),
+            session_id: session_id.into(),
+            owner_id: owner_id.into(),
+            holder_id: holder_id.into(),
+            expected_state_version,
+            ttl_ms,
+        };
+        request.validate().map_err(|error| error.to_string())?;
+        let lease = self
+            .lifecycle_post::<_, CloudLease>("/plugin/v1/leases/acquire", &request)
+            .await?;
+        lease.validate().map_err(|error| error.to_string())?;
+        if lease.contract_version != LEASE_CONTRACT_VERSION
+            || lease.session_id != session_id
+            || lease.owner_id != owner_id
+            || lease.holder_id != holder_id
+            || lease.expected_state_version != expected_state_version
+        {
+            return Err("cloud plugin returned a mismatched Lease".into());
+        }
+        Ok(lease)
+    }
+
+    pub async fn renew_lease(&self, lease: &CloudLease) -> Result<CloudLease, String> {
+        let ttl_ms = self
+            .config
+            .lease_ttl
+            .as_millis()
+            .try_into()
+            .unwrap_or(u64::MAX);
+        let request = RenewLeaseRequest {
+            contract_version: RENEW_LEASE_REQUEST_CONTRACT_VERSION.into(),
+            lease: lease.clone(),
+            ttl_ms,
+        };
+        request.validate().map_err(|error| error.to_string())?;
+        let renewed = self
+            .lifecycle_post::<_, CloudLease>("/plugin/v1/leases/renew", &request)
+            .await?;
+        renewed.validate().map_err(|error| error.to_string())?;
+        if renewed.lease_id != lease.lease_id
+            || renewed.fencing_token != lease.fencing_token
+            || renewed.expected_state_version != lease.expected_state_version
+            || renewed.session_id != lease.session_id
+            || renewed.owner_id != lease.owner_id
+            || renewed.holder_id != lease.holder_id
+        {
+            return Err("cloud plugin renewed a different Lease".into());
+        }
+        Ok(renewed)
+    }
+
+    pub async fn release_lease(&self, lease: &CloudLease) -> Result<(), String> {
+        self.require_lifecycle_ready().await?;
+        let request = ReleaseLeaseRequest {
+            contract_version: RELEASE_LEASE_REQUEST_CONTRACT_VERSION.into(),
+            lease: lease.clone(),
+        };
+        request.validate().map_err(|error| error.to_string())?;
+        let response = self
+            .http
+            .as_ref()
+            .expect("enabled cloud plugin has an HTTP client")
+            .post(format!("{}/plugin/v1/leases/release", self.config.endpoint))
+            .json(&request)
+            .timeout(self.config.lifecycle_timeout)
+            .send()
+            .await
+            .map_err(|error| format!("cloud plugin Lease release unavailable: {error}"))?;
+        let status = response.status();
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "cloud plugin Lease release HTTP {status}: {}",
+                body.chars().take(500).collect::<String>()
+            ));
+        }
+        Ok(())
+    }
+
+    pub async fn commit_snapshot(
+        &self,
+        lease: &CloudLease,
+        payload_base64: String,
+        expected_checksum: String,
+    ) -> Result<CloudStateReference, String> {
+        let model_ref = self.lifecycle_model_ref()?;
+        let target_tier = self.config.state_target_tier.clone();
+        let request = SnapshotStateRequest {
+            contract_version: SNAPSHOT_REQUEST_CONTRACT_VERSION.into(),
+            provider_mode: "rwkv_recurrent".into(),
+            model_ref: model_ref.clone(),
+            target_tier: target_tier.clone(),
+            lease: lease.clone(),
+            expected_state_version: lease.expected_state_version,
+            payload_base64,
+            expected_checksum: Some(expected_checksum.clone()),
+        };
+        request.validate().map_err(|error| error.to_string())?;
+        let state_ref = self
+            .lifecycle_post::<_, CloudStateReference>("/plugin/v1/states/snapshot", &request)
+            .await?;
+        state_ref.validate().map_err(|error| error.to_string())?;
+        if state_ref.session_id != lease.session_id
+            || state_ref.owner_id != lease.owner_id
+            || state_ref.version != lease.expected_state_version.saturating_add(1)
+            || state_ref.fencing_token != Some(lease.fencing_token)
+            || state_ref.provider_mode != "rwkv_recurrent"
+            || state_ref.model_ref != model_ref
+            || state_ref.placement != target_tier
+            || state_ref.checksum != expected_checksum
+        {
+            return Err("cloud plugin committed a mismatched State reference".into());
+        }
+        Ok(state_ref)
+    }
+
+    pub async fn read_state(
+        &self,
+        state_ref: CloudStateReference,
+        worker_id: &str,
+        lease: &CloudLease,
+    ) -> Result<CloudRestoreStateResponse, String> {
+        state_ref.validate().map_err(|error| error.to_string())?;
+        lease.validate().map_err(|error| error.to_string())?;
+        if lease.session_id != state_ref.session_id
+            || lease.owner_id != state_ref.owner_id
+            || lease.expected_state_version != state_ref.version
+        {
+            return Err("cloud State restore Lease does not fence the requested State".into());
+        }
+        let request = RestoreStateRequest {
+            contract_version: RESTORE_REQUEST_CONTRACT_VERSION.into(),
+            state_ref: state_ref.clone(),
+            expected_model_ref: self.lifecycle_model_ref()?,
+            target_worker_id: worker_id.into(),
+            lease: lease.clone(),
+        };
+        request.validate().map_err(|error| error.to_string())?;
+        let response = self
+            .lifecycle_post::<_, CloudRestoreStateResponse>("/plugin/v1/states/restore", &request)
+            .await?;
+        response.validate().map_err(|error| error.to_string())?;
+        if response.contract_version != RESTORE_RESPONSE_CONTRACT_VERSION
+            || response.state_ref != state_ref
+        {
+            return Err("cloud plugin returned a mismatched State restore".into());
+        }
+        Ok(response)
+    }
+
+    async fn lifecycle_post<T: Serialize + ?Sized, R: DeserializeOwned>(
+        &self,
+        path: &str,
+        body: &T,
+    ) -> Result<R, String> {
+        self.require_lifecycle_ready().await?;
+        let response = self
+            .http
+            .as_ref()
+            .expect("enabled cloud plugin has an HTTP client")
+            .post(format!("{}{path}", self.config.endpoint))
+            .json(body)
+            .timeout(self.config.lifecycle_timeout)
+            .send()
+            .await
+            .map_err(|error| format!("cloud State lifecycle unavailable: {error}"))?;
+        let status = response.status();
+        if !status.is_success() {
+            let value = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "cloud State lifecycle HTTP {status}: {}",
+                value.chars().take(500).collect::<String>()
+            ));
+        }
+        response
+            .json::<R>()
+            .await
+            .map_err(|error| format!("cloud State lifecycle invalid JSON: {error}"))
+    }
+
+    async fn require_lifecycle_ready(&self) -> Result<(), String> {
+        if !self.state_lifecycle_enabled() {
+            return Err("cloud State lifecycle is disabled".into());
+        }
+        if self.state.read().await.status != "ready" {
+            return Err("cloud State lifecycle is not ready".into());
+        }
+        Ok(())
+    }
+
+    fn lifecycle_model_ref(&self) -> Result<CloudModelRef, String> {
+        self.config
+            .model_ref
+            .clone()
+            .ok_or_else(|| "cloud plugin model_ref is unavailable".into())
+    }
+
+    fn effective_required_capabilities(&self) -> Vec<String> {
+        let mut capabilities = self.config.required_capabilities.clone();
+        if self.config.state_lifecycle {
+            for capability in ["leases", "state_lifecycle"] {
+                if !capabilities.iter().any(|value| value == capability) {
+                    capabilities.push(capability.into());
+                }
+            }
+        }
+        capabilities
     }
 
     fn validate_plan(&self, plan: &ExecutionPlan, request_id: &str) -> Result<(), String> {
@@ -336,6 +636,21 @@ impl CloudPluginClient {
         }
     }
 
+    fn fallback_or_error_after_plan(
+        &self,
+        request_id: String,
+        error: &str,
+        has_committed_state: bool,
+    ) -> Result<ExecutionPlan, String> {
+        if has_committed_state {
+            Err(format!(
+                "{error}; committed remote State exists, so local fallback is forbidden"
+            ))
+        } else {
+            self.fallback_or_error(request_id, error)
+        }
+    }
+
     pub async fn readiness(&self) -> Value {
         let state = self.state.read().await;
         json!({
@@ -345,6 +660,10 @@ impl CloudPluginClient {
             "endpoint":if self.config.enabled {Some(self.config.endpoint.as_str())} else {None},
             "plugin_version":state.plugin_version,
             "capabilities":state.capabilities,
+            "state_lifecycle":self.config.state_lifecycle,
+            "state_target_tier":self.config.state_target_tier,
+            "lease_ttl_ms":self.config.lease_ttl.as_millis(),
+            "lifecycle_timeout_ms":self.config.lifecycle_timeout.as_millis(),
             "error":state.error,
         })
     }
@@ -378,7 +697,9 @@ fn sanitize_id(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{Json, Router, routing::post};
+    use std::sync::Mutex;
+
+    use axum::{Json, Router, extract::State as AxumState, http::StatusCode, routing::post};
 
     fn enabled_config() -> CloudPluginConfig {
         CloudPluginConfig {
@@ -392,6 +713,170 @@ mod tests {
             default_privacy: PrivacyClass::CloudAllowed,
             ..CloudPluginConfig::default()
         }
+    }
+
+    fn state_reference(version: u64, fencing_token: u64) -> CloudStateReference {
+        CloudStateReference {
+            contract_version: rwkv_statepool_plugin_api::STATE_REFERENCE_CONTRACT_VERSION.into(),
+            state_id: format!("state-{version}"),
+            session_id: "session".into(),
+            owner_id: "owner".into(),
+            version,
+            fencing_token: Some(fencing_token),
+            provider_mode: "rwkv_recurrent".into(),
+            model_ref: enabled_config().model_ref.unwrap(),
+            placement: CloudStatePlacement::Cold,
+            worker_id: None,
+            object_uri: Some(format!("s3://statepool/state-{version}")),
+            checksum: format!("sha256:{}", "a".repeat(64)),
+            size_bytes: 5,
+            atomic: true,
+            created_at_ms: 1,
+            last_active_at_ms: 1,
+            encryption: None,
+        }
+    }
+
+    #[derive(Clone, Default)]
+    struct LifecycleMock {
+        events: Arc<Mutex<Vec<String>>>,
+    }
+
+    async fn mock_lifecycle_plugin() -> (String, LifecycleMock) {
+        async fn handshake(Json(request): Json<HandshakeRequest>) -> Json<Value> {
+            assert!(request.required_capabilities.contains(&"placement".into()));
+            assert!(request.required_capabilities.contains(&"leases".into()));
+            assert!(
+                request
+                    .required_capabilities
+                    .contains(&"state_lifecycle".into())
+            );
+            Json(json!({
+                "contract_version":PLUGIN_CONTRACT_VERSION,
+                "plugin":"statepool-cloud",
+                "plugin_version":"test-lifecycle",
+                "capabilities":["placement","leases","state_lifecycle"]
+            }))
+        }
+
+        async fn plan(Json(request): Json<PlanRequest>) -> Json<Value> {
+            request.validate().unwrap();
+            Json(json!({
+                "contract_version":EXECUTION_PLAN_CONTRACT_VERSION,
+                "decision_id":"decision-lifecycle",
+                "request_id":request.request_id,
+                "mode":"remote",
+                "worker_id":"worker-test",
+                "endpoint":"http://worker.test",
+                "state_action":if request.state_ref.is_some() {"restore"} else {"none"},
+                "reason_code":"state_affinity",
+                "lease_required":true,
+                "estimated_queue_ms":1.0,
+                "estimated_restore_ms":1.0,
+                "estimated_cost":null,
+                "fallback":"fail_closed"
+            }))
+        }
+
+        async fn acquire(
+            AxumState(mock): AxumState<LifecycleMock>,
+            Json(request): Json<AcquireLeaseRequest>,
+        ) -> Json<CloudLease> {
+            request.validate().unwrap();
+            mock.events
+                .lock()
+                .unwrap()
+                .push(format!("acquire:{}", request.expected_state_version));
+            Json(CloudLease {
+                contract_version: LEASE_CONTRACT_VERSION.into(),
+                lease_id: format!("lease-{}", request.expected_state_version),
+                session_id: request.session_id,
+                owner_id: request.owner_id,
+                holder_id: request.holder_id,
+                fencing_token: request.expected_state_version + 1,
+                expected_state_version: request.expected_state_version,
+                expires_at_ms: 9_999_999_999_999,
+            })
+        }
+
+        async fn renew(
+            AxumState(mock): AxumState<LifecycleMock>,
+            Json(request): Json<RenewLeaseRequest>,
+        ) -> Json<CloudLease> {
+            request.validate().unwrap();
+            mock.events.lock().unwrap().push("renew".into());
+            let mut lease = request.lease;
+            lease.expires_at_ms += request.ttl_ms;
+            Json(lease)
+        }
+
+        async fn release(
+            AxumState(mock): AxumState<LifecycleMock>,
+            Json(request): Json<ReleaseLeaseRequest>,
+        ) -> StatusCode {
+            request.validate().unwrap();
+            mock.events
+                .lock()
+                .unwrap()
+                .push(format!("release:{}", request.lease.expected_state_version));
+            StatusCode::NO_CONTENT
+        }
+
+        async fn snapshot(
+            AxumState(mock): AxumState<LifecycleMock>,
+            Json(request): Json<SnapshotStateRequest>,
+        ) -> Json<CloudStateReference> {
+            request.validate().unwrap();
+            mock.events.lock().unwrap().push("snapshot".into());
+            Json(CloudStateReference {
+                contract_version: rwkv_statepool_plugin_api::STATE_REFERENCE_CONTRACT_VERSION
+                    .into(),
+                state_id: "state-1".into(),
+                session_id: request.lease.session_id,
+                owner_id: request.lease.owner_id,
+                version: request.expected_state_version + 1,
+                fencing_token: Some(request.lease.fencing_token),
+                provider_mode: request.provider_mode,
+                model_ref: request.model_ref,
+                placement: request.target_tier,
+                worker_id: None,
+                object_uri: Some("s3://statepool/state-1".into()),
+                checksum: request.expected_checksum.unwrap(),
+                size_bytes: 5,
+                atomic: true,
+                created_at_ms: 1,
+                last_active_at_ms: 1,
+                encryption: None,
+            })
+        }
+
+        async fn restore(
+            AxumState(mock): AxumState<LifecycleMock>,
+            Json(request): Json<RestoreStateRequest>,
+        ) -> Json<CloudRestoreStateResponse> {
+            request.validate().unwrap();
+            mock.events.lock().unwrap().push("restore".into());
+            Json(CloudRestoreStateResponse {
+                contract_version: RESTORE_RESPONSE_CONTRACT_VERSION.into(),
+                state_ref: request.state_ref,
+                payload_base64: "c3RhdGU=".into(),
+            })
+        }
+
+        let mock = LifecycleMock::default();
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let app = Router::new()
+            .route("/plugin/v1/handshake", post(handshake))
+            .route("/plugin/v1/plan", post(plan))
+            .route("/plugin/v1/leases/acquire", post(acquire))
+            .route("/plugin/v1/leases/renew", post(renew))
+            .route("/plugin/v1/leases/release", post(release))
+            .route("/plugin/v1/states/snapshot", post(snapshot))
+            .route("/plugin/v1/states/restore", post(restore))
+            .with_state(mock.clone());
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        (format!("http://{address}"), mock)
     }
 
     async fn mock_plugin() -> String {
@@ -490,6 +975,97 @@ mod tests {
         assert_eq!(plan.mode, "remote");
         assert_eq!(plan.worker_id.as_deref(), Some("worker-test"));
         assert_eq!(plan.remote_endpoint(), Some("http://worker.test"));
+    }
+
+    #[tokio::test]
+    async fn lifecycle_capabilities_and_fenced_operations_round_trip() {
+        let (endpoint, mock) = mock_lifecycle_plugin().await;
+        let plugin = CloudPluginClient::new(CloudPluginConfig {
+            endpoint,
+            state_lifecycle: true,
+            ..enabled_config()
+        })
+        .unwrap();
+        plugin.initialize("test-host").await.unwrap();
+        assert_eq!(plugin.readiness().await["status"], "ready");
+
+        let lease0 = plugin
+            .acquire_lease("session", "owner", "controller", 0)
+            .await
+            .unwrap();
+        let lease0 = plugin.renew_lease(&lease0).await.unwrap();
+        let state_ref = plugin
+            .commit_snapshot(
+                &lease0,
+                "c3RhdGU=".into(),
+                format!("sha256:{}", "a".repeat(64)),
+            )
+            .await
+            .unwrap();
+        plugin.release_lease(&lease0).await.unwrap();
+
+        let plan = plugin
+            .plan_with_state("session", "owner", 10, 20, Some(state_ref.clone()))
+            .await
+            .unwrap();
+        assert_eq!(plan.state_action, "restore");
+        let lease1 = plugin
+            .acquire_lease("session", "owner", "controller", state_ref.version)
+            .await
+            .unwrap();
+        let restored = plugin
+            .read_state(state_ref.clone(), "worker-test", &lease1)
+            .await
+            .unwrap();
+        assert_eq!(restored.state_ref, state_ref);
+        assert_eq!(restored.payload_base64, "c3RhdGU=");
+        plugin.release_lease(&lease1).await.unwrap();
+
+        assert_eq!(
+            *mock.events.lock().unwrap(),
+            [
+                "acquire:0",
+                "renew",
+                "snapshot",
+                "release:0",
+                "acquire:1",
+                "restore",
+                "release:1"
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn lifecycle_handshake_requires_lease_and_state_capabilities() {
+        let plugin = CloudPluginClient::new(CloudPluginConfig {
+            endpoint: mock_plugin().await,
+            state_lifecycle: true,
+            ..enabled_config()
+        })
+        .unwrap();
+        plugin.initialize("test-host").await.unwrap();
+        let readiness = plugin.readiness().await;
+        assert_eq!(readiness["status"], "degraded");
+        assert!(readiness["error"].as_str().unwrap().contains("leases"));
+    }
+
+    #[tokio::test]
+    async fn committed_state_never_falls_back_to_local_when_plugin_is_unavailable() {
+        let plugin = CloudPluginClient::new(CloudPluginConfig {
+            endpoint: "http://127.0.0.1:1".into(),
+            connect_timeout: Duration::from_millis(5),
+            request_timeout: Duration::from_millis(10),
+            fallback: CloudPluginFallback::Local,
+            state_lifecycle: true,
+            ..enabled_config()
+        })
+        .unwrap();
+        plugin.initialize("test-host").await.unwrap();
+        let error = plugin
+            .plan_with_state("session", "owner", 10, 20, Some(state_reference(1, 1)))
+            .await
+            .unwrap_err();
+        assert!(error.contains("local fallback is forbidden"));
     }
 
     #[test]
