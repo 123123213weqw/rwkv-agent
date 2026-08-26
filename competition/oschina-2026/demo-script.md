@@ -1,5 +1,10 @@
 # 8 分钟答辩演示脚本
 
+可执行协议驱动器为 `scripts/statepool_live_lifecycle_demo.py`。使用两个
+exact-model Sidecar，并把 JSON 输出归档到 `bench/artifacts/`；强制删除源
+Worker 时增加 `--source-stop-command 'docker kill <source-container>'`。普通
+release 运行不得标记为 Worker-kill 证据。
+
 ## 0:00–0:45：一句话和矛盾
 
 打开现有本地个人助手，连续对话两轮，展示同 Session State reuse。

@@ -83,6 +83,28 @@ will not report `safe_to_stop`. The Pod has a 180-second termination grace
 period and a preStop hook; scale-down is stabilized and limited to one Pod per
 minute.
 
+## Live two-Worker lifecycle client
+
+Once two exact-model Albatross Sidecars and the plugin are running, execute the
+real Worker and plugin protocols with:
+
+```bash
+python scripts/statepool_live_lifecycle_demo.py \
+  --plugin-url http://127.0.0.1:8130 \
+  --source-worker-url http://127.0.0.1:8118 \
+  --target-worker-url http://127.0.0.1:8218 \
+  --source-worker-id worker-v100-a \
+  --target-worker-id worker-v100-b \
+  --output bench/artifacts/statepool-live-lifecycle.json
+```
+
+The sequence is prefill → continue → acquire Lease → Sidecar snapshot →
+StatePool immutable commit/CAS → source release → new fenced Lease → StatePool
+restore → target Sidecar restore → continue → release. To make it a forced-loss
+experiment, pass `--source-stop-command 'docker kill rwkv-worker-a'`. It runs
+only after the StatePool commit succeeds. A run without that option is a
+lifecycle test, not Worker-kill evidence.
+
 ## KEDA integration
 
 The chart emits a KEDA `ScaledObject` only when both Worker and autoscaling are
