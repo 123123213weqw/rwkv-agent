@@ -1,9 +1,9 @@
 # StatePool Cloud Plugin — current-state audit
 
-Audit baseline: `main` at `0630910835827ed9591062be5b37d174e0bdbe6c`
-(`0.3.0-beta.2`). This file records the integration boundary before Cloud
-Plugin code is added. It is not a claim that cross-Worker migration already
-exists.
+Original audit baseline: `main` at
+`0630910835827ed9591062be5b37d174e0bdbe6c` (`0.3.0-beta.2`). The status below
+is updated through the 2026-08-27 Cloud Plugin development line; remaining
+gaps are retained explicitly rather than mixed with the original baseline.
 
 ## Existing control and data planes
 
@@ -81,7 +81,11 @@ and restore installs the tensors into a fresh slab slot. Unit and HTTP-provider
 tests cover snapshot, mandatory source release, restore and continuation. The
 opt-in Controller path now commits that payload through the plugin to the
 configured LocalFS or S3 store and caches the returned reference. The
-deterministic full-path test is **not yet** a real GPU cross-Worker-kill result.
+deterministic full-path test is complemented by a real RTX 4080
+forced-process-loss run: PostgreSQL/S3 commit, source PID termination, fresh
+exact-compatible Worker process, restore to a new GPU State ID, continuation
+and release all passed. Raw evidence is linked from
+[`evidence/statepool/real-gpu-worker-kill-2026-08-27.md`](../evidence/statepool/real-gpu-worker-kill-2026-08-27.md).
 The HF recurrent backend explicitly rejects exact snapshots until its cache
 constructor has an equivalent checked adapter.
 
@@ -123,16 +127,18 @@ The remaining gaps must be closed rather than hidden:
   fails, whereas a dynamic Worker pool needs per-Worker readiness;
 - default local selection remains round-robin; lifecycle restore placement is
   state-aware through the plugin;
-- Controller cache metrics do not yet measure restore time, transfer bytes,
-  GPU-seconds or cost;
-- Worker drain is implemented and cross-process tested, but KEDA/Kubernetes
-  0→1→N→0 has not been exercised;
-- no current GPU test kills a Worker and proves exact continuation on a second
-  compatible Worker.
+- Controller usage records now include observed restore/snapshot wall time,
+  exact State bytes, output/token estimates, a documented model-wall-time GPU
+  proxy, selected-plan queue/cost estimates and actual Worker zone; production
+  accelerator utilization and billing still require provider telemetry;
+- Worker drain is unit-, cross-process- and real-GPU preStop-tested, including
+  a rebuildable system root that does not mask dirty user State, but a live
+  Kubernetes/KEDA 0→1→N→0 cycle has not been exercised.
 
-Until those gaps are implemented and verified, the product must retain the
-documented transcript-reprefill fallback and must not claim measured
-cross-Worker State migration.
+The product must retain the documented transcript-reprefill fallback for
+incompatible or absent durable State. The measured migration claim is limited
+to an exact-compatible fresh Worker process on one physical RTX 4080; it is not
+a cross-model, simultaneous cross-node, or production-latency claim.
 
 ## Existing tests that protect compatibility
 

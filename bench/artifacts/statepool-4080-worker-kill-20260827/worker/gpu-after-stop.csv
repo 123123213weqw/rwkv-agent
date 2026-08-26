@@ -1,0 +1,2 @@
+timestamp, index, name, uuid, driver_version, memory.used [MiB], memory.total [MiB], utilization.gpu [%], power.draw [W]
+2026/08/27 02:11:47.322, 0, NVIDIA GeForce RTX 4080, GPU-7bed2c9a-80fc-1e9d-ca67-a8a9ee33d000, 595.84, 198 MiB, 16376 MiB, 70 %, 7.11 W

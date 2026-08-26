@@ -1,0 +1,14 @@
+4a6b1e8cefcf9b8fc799be98cd7d1402d2d0f0d1832593ba1b46c0549cfb9fd3  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/__pycache__/rwkv7_fast_v3a.cpython-312.pyc
+cf64f54229bf35242a1e06a6ffb918fd7df0636d2e620b107219a9e45cd2e715  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_fast_ops_fp16.cpp
+cfb7adab0b8c69733098f017f0d0357327c3058591738d43a564e25819df3e64  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_fast_ops_fp16.cu
+b58409dc38afbc91d1d25e01736c45076afaf729e63b568f24ac03c62db6fb5b  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_rows_cutlass.cpp
+e8ce151741d1edef78392b96efefcd020357423d6da9f4e9ab254e92ad410d88  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_rows_cutlass.cu
+f7365344b484e71a9e6a22bdc060df6a550d54d85f5f4033fc30284fa7e5b891  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_v3a_ops.cpp
+37f6019e47ff065bd326e45901cb01b37e2cc796a9954d4d61c92345b7434918  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_v3a_ops.cu
+b12921567b24ac3578cc91fc0e0f35e4788de6bc82d497af17bc242c59bd0f2d  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_wkv_deltalog_v3a.cpp
+b5c92eadd0eafb364abbdec4ae8d246cf76afcae1e2b80b44b784dad5654fa5c  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_wkv_deltalog_v3a.cu
+3e99e3f74b28e0fba259b6818055c503e2e874d4b83e10d2ca6736f968411b93  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_wkv_fp16_v2.cpp
+aab3e2a4bc589623fe165dbbb28439bc4e41ad28afa5dfbcfcc634ce31d202aa  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_wkv_fp16_v2.cu
+efb46dccae9c281bad32f28adfce66a365aab603163407f98af71aa39bf221e9  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_wkv_fp32_v2.cpp
+c5593f8e45a9a97cecddd75fefc03e9b52cbcbd7d9ac3c81d096e5ad64818cba  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/cuda/rwkv7_wkv_fp32_v2.cu
+404f409ce4fd538967de3fef0366ab6da8a7d5b682c62f262dc5022df0d5860a  /home/wzu/codex-build/albatross-fullmodel-ab-20260825/candidate/rwkv7_fast_v3a.py

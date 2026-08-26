@@ -42,9 +42,12 @@ local routing path is unchanged.
 - Compose/Helm/KEDA/observability assets: [`deploy/statepool/README.md`](deploy/statepool/README.md)
 - current implementation audit: [`docs/STATEPOOL_CURRENT_STATE_AUDIT.md`](docs/STATEPOOL_CURRENT_STATE_AUDIT.md)
 
-PostgreSQL/S3 adapters and a cross-plugin-restart byte lifecycle have passed
-real-container integration tests. The development line does not yet claim a
-real-GPU forced Worker-loss restore or measured KEDA scale-to-zero result.
+PostgreSQL/S3 adapters, a cross-plugin-restart byte lifecycle, and an
+exact-compatible real-GPU forced Worker-process-loss restore have passed. The
+raw RTX 4080 evidence is under
+[`bench/artifacts/statepool-4080-worker-kill-20260827/`](bench/artifacts/statepool-4080-worker-kill-20260827/README.md).
+The development line does not yet claim a measured live-Kubernetes/KEDA
+0→1→N→0 result or cross-model State migration.
 
 ## What you can verify
 

@@ -153,9 +153,11 @@ processes and are documented in `third_party/COMPONENTS.yaml`.
 The local product remains small and stable, plugin failures are isolated, and
 cloud components can evolve behind standard contracts. The trade-off is an
 extra network boundary and the need for explicit reconciliation after
-ambiguous failures. The Albatross Sidecar now passes CPU snapshot/restore
-conformance, but cross-Worker raw-State migration remains a non-claim until the
-distributed store/fencing path and real GPU Worker-kill experiment pass.
+ambiguous failures. The Albatross Sidecar passes CPU snapshot/restore
+conformance, distributed PostgreSQL/S3 fencing, and one real RTX 4080
+forced-Worker-process-loss restore. That evidence permits an exact-compatible
+fresh-process recovery claim only; cross-model, live multi-node rollout and
+production-latency claims remain out of scope until separately measured.
 
 ## Verification
 

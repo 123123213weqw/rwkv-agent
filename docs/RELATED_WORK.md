@@ -81,10 +81,11 @@ privacy-aware placement.
 | Atomic LocalFS snapshot/restore of generic State bytes | implemented and remotely tested |
 | Compose, Helm, KEDA, ServiceMonitor and dashboard configuration | authored and statically validated |
 | Live RWKV Albatross Sidecar CPU export/import boundary | implemented and conformance-tested |
-| Live RWKV export/import across killed GPU Workers | not measured |
+| Live RWKV export/import after forced Worker process loss | measured on one RTX 4080 with PostgreSQL/S3; fresh process on the same physical GPU |
 | PostgreSQL distributed Lease/CAS | implemented; two-client container integration passed |
 | S3/MinIO Cold State adapter | implemented; MinIO container integration passed |
-| Measured KEDA 0→1→N→0 with safe GPU drain | not measured |
+| Real GPU preStop safe-drain gate | measured after restore/release; rebuildable system root remained and dirty user State was zero |
+| Measured live-Kubernetes/KEDA 0→1→N→0 | not measured |
 
 This table is the release claim boundary; competition material must not promote
 an item from “not implemented/measured” without linked evidence.

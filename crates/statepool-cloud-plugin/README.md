@@ -14,12 +14,13 @@ provides:
 - Worker drain admission control;
 - bounded in-memory usage aggregation and Prometheus metrics.
 
-The local profile advertises `leases` and `state_lifecycle`. These capabilities
-describe real single-process semantics and generic binary State persistence;
-they do **not** claim durable PostgreSQL metadata, S3 persistence, a
-multi-replica distributed Lease service, or live RWKV Sidecar export/import.
-The service deliberately does not advertise `remote_state` until those gates
-are implemented and verified.
+The local and Cloud Lite profiles advertise `leases` and `state_lifecycle`.
+The LocalFS/InMemory profile covers local conformance; the PostgreSQL/S3
+profile provides transactionally fenced metadata and immutable object storage.
+An exact-compatible RTX 4080 forced-Worker-process-loss lifecycle has passed
+against the Cloud Lite profile. The service deliberately does not advertise
+the stronger reserved `remote_state` capability until Controller restart
+reconstruction and live multi-node rollout gates are implemented and verified.
 
 The normal Agent server does not start or contact this process unless
 `--cloud-plugin` is explicitly enabled.

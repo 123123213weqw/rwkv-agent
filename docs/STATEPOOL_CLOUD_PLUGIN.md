@@ -251,25 +251,28 @@ does not execute again automatically.
 
 The remaining recovery gap is Controller restart: durable bytes and metadata
 survive in PostgreSQL/S3, but the Controller-side current `StateReference`
-index is not yet reconstructed at startup. Exact live GPU bytes have also not
-yet passed the S3 Worker-kill experiment. The HF recurrent backend fails closed
-for exact snapshot/restore in this release.
+index is not yet reconstructed at startup. Exact Albatross GPU bytes have
+passed one S3 forced-Worker-process-loss experiment on an RTX 4080; see
+[`evidence/statepool/real-gpu-worker-kill-2026-08-27.md`](../evidence/statepool/real-gpu-worker-kill-2026-08-27.md).
+The HF recurrent backend still fails closed for exact snapshot/restore.
 
 ## Deliberate non-claims
 
 The current plugin advertises `placement`, `worker_registry`, `leases`,
 `state_lifecycle`, `drain` and `finops`. `leases` and `state_lifecycle` are
-available in local or PostgreSQL/S3 profiles. It does not advertise
-`remote_state`, because the real GPU Worker-kill experiment and Controller
-restart reconstruction have not passed. The automatic mock/CPU lifecycle is
-conformance evidence, not a measured production GPU migration claim.
+available in local or PostgreSQL/S3 profiles. It does not advertise the
+stronger reserved `remote_state` capability because Controller restart
+reconstruction and a live multi-node rollout have not passed. Mock/CPU
+lifecycles remain conformance evidence; the separate RTX 4080 run is measured
+process-loss recovery, not a production latency or cross-node claim.
 
-Exact cross-Worker continuation may be claimed only after:
+The exact-compatible process-loss claim is backed by:
 
 1. Sidecar export/import remains conformance-tested on the target GPU backend;
 2. checksum and exact model identity remain validated end to end;
 3. PostgreSQL lease/CAS and fencing tests continue to pass;
-4. a real Worker-kill restore benchmark passes.
+4. a real Worker-kill restore benchmark with raw PID, GPU, PostgreSQL, MinIO
+   and preStop-drain evidence.
 
 See the [current-state audit](STATEPOOL_CURRENT_STATE_AUDIT.md) and
 [ADR 0002](adr/0002-statepool-cloud-plugin-boundary.md).

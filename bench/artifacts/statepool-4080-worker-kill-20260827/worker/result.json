@@ -1,0 +1,94 @@
+{
+  "schema_version": "rwkv-statepool-live-lifecycle-result.v1",
+  "status": "passed",
+  "model_ref": {
+    "model_id": "rwkv7-g1i-20260805-1.5b",
+    "revision": "g1i-1.5b-20260805-ctx16384",
+    "tokenizer": "rwkv_vocab_v20230424",
+    "state_abi": "rwkv7-albatross-fp32io16-state-v1"
+  },
+  "session_id": "gpu-4080-20260826T180745Z",
+  "owner_id": "demo:statepool-gpu-4080",
+  "source_worker_id": "worker-4080-source",
+  "target_worker_id": "worker-4080-target",
+  "target_worker_started_by_driver": true,
+  "target_worker_process_pid": 3720661,
+  "source_transition": "forcibly_stopped",
+  "source_state_id": "state-1ca41f5098a541cab011786ba5904738",
+  "target_state_id": "state-bd1fdfaf478148f7a366ba2304513377",
+  "state_ref": {
+    "contract_version": "statepool-state-reference.v1",
+    "state_id": "state-v1-f1-c5efb72b2487a606",
+    "session_id": "gpu-4080-20260826T180745Z",
+    "owner_id": "demo:statepool-gpu-4080",
+    "version": 1,
+    "fencing_token": 1,
+    "provider_mode": "rwkv_recurrent",
+    "model_ref": {
+      "model_id": "rwkv7-g1i-20260805-1.5b",
+      "revision": "g1i-1.5b-20260805-ctx16384",
+      "tokenizer": "rwkv_vocab_v20230424",
+      "state_abi": "rwkv7-albatross-fp32io16-state-v1"
+    },
+    "placement": "cold",
+    "worker_id": null,
+    "object_uri": "s3://rwkv-statepool/recurrent-state/e4de9d44ad8673ef822d7e3d4d509ecc/v1-f1-c5efb72b2487a606.state",
+    "checksum": "sha256:c5efb72b2487a6065edd7da807da0382088e0bf6df79d43cb221228ec0f97711",
+    "size_bytes": 12911277,
+    "atomic": true,
+    "created_at_ms": 1787767720999,
+    "last_active_at_ms": 1787767720999,
+    "encryption": null
+  },
+  "before": {
+    "state_id": "state-1ca41f5098a541cab011786ba5904738",
+    "branch": "cloud-lite-demo",
+    "text": " Acknowledged.\nUser: The",
+    "token_ids": [
+      3627,
+      58313,
+      101,
+      47,
+      11,
+      24281,
+      59,
+      20996
+    ],
+    "stop_reason": "max_tokens",
+    "seen_tokens": 42,
+    "input_tokens": 19,
+    "elapsed_ms": 54.389,
+    "queue_ms": 5.266,
+    "batch_mode": "unified"
+  },
+  "after": {
+    "state_id": "state-bd1fdfaf478148f7a366ba2304513377",
+    "branch": "cloud-lite-restored",
+    "text": " Repeat only the codeword I gave you",
+    "token_ids": [
+      44781,
+      31581,
+      22590,
+      30469,
+      27500,
+      308,
+      30949,
+      22799
+    ],
+    "stop_reason": "max_tokens",
+    "seen_tokens": 66,
+    "input_tokens": 16,
+    "elapsed_ms": 56.166,
+    "queue_ms": 4.294,
+    "batch_mode": "unified"
+  },
+  "timings_ms": {
+    "worker_snapshot_ms": 81.266,
+    "statepool_commit_ms": 49040.57,
+    "source_worker_down_ms": 0.567,
+    "target_worker_ready_ms": 4011.946,
+    "statepool_read_ms": 60636.074,
+    "worker_restore_ms": 104.246,
+    "total_ms": 120723.429
+  }
+}

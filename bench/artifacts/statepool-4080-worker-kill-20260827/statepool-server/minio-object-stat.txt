@@ -1,0 +1,7 @@
+Name      : v1-f1-c5efb72b2487a606.state
+Date      : 2026-08-26 18:08:40 UTC
+Size      : 12 MiB
+ETag      : 6d897df757ecec2c273f6e662111747a
+Type      : file
+Metadata  :
+  Content-Type: binary/octet-stream
