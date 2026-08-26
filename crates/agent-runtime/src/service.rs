@@ -2500,7 +2500,10 @@ impl AgentService {
         let mut usage_state_bytes_written = 0;
         let mut usage_estimated_cost: Option<CloudMoney> = None;
         let prefix = prompt::direct_prefix(&context);
-        let estimated_input_tokens = ((prefix.chars().count() + 3) / 4)
+        let estimated_input_tokens = prefix
+            .chars()
+            .count()
+            .div_ceil(4)
             .try_into()
             .unwrap_or(u64::MAX);
         let mut placement_trace = json!({
@@ -2829,7 +2832,10 @@ impl AgentService {
                 .await);
         }
         let input = prompt::direct_turn(message, reused, &state.stop_reason);
-        let input_tokens = ((input.chars().count() + 3) / 4)
+        let input_tokens = input
+            .chars()
+            .count()
+            .div_ceil(4)
             .try_into()
             .unwrap_or(u64::MAX)
             .saturating_add(if reused { 0 } else { estimated_input_tokens });
