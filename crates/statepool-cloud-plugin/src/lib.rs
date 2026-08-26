@@ -93,6 +93,7 @@ struct Metrics {
 pub struct PluginState {
     config: Arc<PluginConfig>,
     workers: Arc<RwLock<HashMap<String, WorkerCapability>>>,
+    drain_deadlines: Arc<RwLock<HashMap<String, u64>>>,
     usage: Arc<RwLock<Vec<UsageRecord>>>,
     estimated_cost_micros: Arc<RwLock<HashMap<String, u64>>>,
     metrics: Arc<Metrics>,
@@ -144,6 +145,7 @@ impl PluginState {
         Ok(Self {
             config: Arc::new(config),
             workers: Arc::new(RwLock::new(HashMap::new())),
+            drain_deadlines: Arc::new(RwLock::new(HashMap::new())),
             usage: Arc::new(RwLock::new(Vec::new())),
             estimated_cost_micros: Arc::new(RwLock::new(HashMap::new())),
             metrics: Arc::new(Metrics::default()),
@@ -539,6 +541,10 @@ async fn register_worker(
         .write()
         .await
         .insert(worker_id.clone(), worker);
+    // Explicit registration starts a new Worker incarnation. A stale drain
+    // intent from a previous Pod with the same stable identity must not leak
+    // into the replacement after the orchestrator has recreated it.
+    state.drain_deadlines.write().await.remove(&worker_id);
     state
         .metrics
         .worker_registrations
@@ -556,7 +562,7 @@ async fn register_worker(
 async fn heartbeat_worker(
     Path(worker_id): Path<String>,
     State(state): State<PluginState>,
-    Json(worker): Json<WorkerCapability>,
+    Json(mut worker): Json<WorkerCapability>,
 ) -> Result<Json<Value>, PluginError> {
     if worker_id != worker.worker_id {
         return Err(PluginError::new(
@@ -574,6 +580,12 @@ async fn heartbeat_worker(
             false,
         )
     })?;
+    let deadline = state.drain_deadlines.read().await.get(&worker_id).copied();
+    if deadline.is_some() {
+        // The control-plane drain decision is sticky. A heartbeat assembled
+        // just before the drain request cannot accidentally reopen admission.
+        worker.lifecycle = WorkerLifecycle::Draining;
+    }
     let mut workers = state.workers.write().await;
     if !workers.contains_key(&worker_id) {
         return Err(PluginError::new(
@@ -583,8 +595,14 @@ async fn heartbeat_worker(
             false,
         ));
     }
-    workers.insert(worker_id.clone(), worker);
-    Ok(Json(json!({"status":"ok","worker_id":worker_id})))
+    let drain_status = deadline.map(|deadline| worker_drain_status(&worker, deadline, now_ms()));
+    workers.insert(worker_id.clone(), worker.clone());
+    Ok(Json(json!({
+        "status":"ok",
+        "worker_id":worker_id,
+        "lifecycle":worker.lifecycle,
+        "drain_status":drain_status
+    })))
 }
 
 async fn list_workers(State(state): State<PluginState>) -> Json<Value> {
@@ -617,28 +635,53 @@ async fn drain_worker(
             false,
         ));
     }
-    let mut workers = state.workers.write().await;
-    let worker = workers.get_mut(&worker_id).ok_or_else(|| {
-        PluginError::new(
+    let deadline = request["deadline_ms"]
+        .as_u64()
+        .expect("validated drain deadline");
+    if !state.workers.read().await.contains_key(&worker_id) {
+        return Err(PluginError::new(
             StatusCode::NOT_FOUND,
             "invalid_request",
             "unknown Worker",
             false,
-        )
-    })?;
+        ));
+    }
+    state
+        .drain_deadlines
+        .write()
+        .await
+        .insert(worker_id.clone(), deadline);
+    let mut workers = state.workers.write().await;
+    let worker = workers
+        .get_mut(&worker_id)
+        .expect("Worker cannot disappear from the in-memory registry");
     worker.lifecycle = WorkerLifecycle::Draining;
+    Ok(Json(worker_drain_status(worker, deadline, now_ms())))
+}
+
+fn worker_drain_status(worker: &WorkerCapability, deadline_ms: u64, checked_at_ms: u64) -> Value {
     let unpersisted_states = worker
         .capacity
         .unpersisted_state_slots
         .unwrap_or(worker.capacity.state_slots);
-    let safe = worker.capacity.running_requests == 0 && unpersisted_states == 0;
-    Ok(Json(json!({
+    let active_requests = worker
+        .capacity
+        .running_requests
+        .saturating_add(worker.capacity.queue_depth);
+    let safe = active_requests == 0 && unpersisted_states == 0;
+    json!({
         "contract_version":"statepool-drain-status.v1",
-        "worker_id":worker_id,
-        "status":if safe {"safe_to_stop"} else {"draining"},
-        "active_requests":worker.capacity.running_requests,
+        "worker_id":worker.worker_id,
+        "status":if safe {
+            "safe_to_stop"
+        } else if checked_at_ms >= deadline_ms {
+            "deadline_exceeded"
+        } else {
+            "draining"
+        },
+        "active_requests":active_requests,
         "unpersisted_states":unpersisted_states
-    })))
+    })
 }
 
 async fn plan(
@@ -1221,7 +1264,7 @@ mod tests {
         let (status, body) = json_request(
             app.clone(),
             "/plugin/v1/workers/cloud-worker/drain",
-            json!({"contract_version":"statepool-drain-request.v1","deadline_ms":1000}),
+            json!({"contract_version":"statepool-drain-request.v1","deadline_ms":now_ms() + 10_000}),
         )
         .await;
         assert_eq!(status, StatusCode::OK);
@@ -1258,14 +1301,51 @@ mod tests {
             .insert("cloud-worker".into(), unknown);
         let app = router(state);
         let (status, body) = json_request(
-            app,
+            app.clone(),
             "/plugin/v1/workers/cloud-worker/drain",
-            json!({"contract_version":"statepool-drain-request.v1","deadline_ms":1000}),
+            json!({"contract_version":"statepool-drain-request.v1","deadline_ms":now_ms() + 10_000}),
         )
         .await;
         assert_eq!(status, StatusCode::OK);
         assert_eq!(body["status"], "draining");
         assert_eq!(body["unpersisted_states"], 32);
+
+        let mut stale_ready = worker(WorkerZone::Cloud);
+        stale_ready.capacity.unpersisted_state_slots = None;
+        stale_ready.reported_at_ms = now_ms();
+        let (status, heartbeat) = json_request(
+            app,
+            "/plugin/v1/workers/cloud-worker/heartbeat",
+            serde_json::to_value(stale_ready).unwrap(),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(heartbeat["lifecycle"], "draining");
+        assert_eq!(heartbeat["drain_status"]["status"], "draining");
+    }
+
+    #[tokio::test]
+    async fn drain_deadline_expires_loudly_when_work_or_dirty_state_remains() {
+        let state = PluginState::new(PluginConfig::default()).unwrap();
+        let mut busy = worker(WorkerZone::Cloud);
+        busy.capacity.running_requests = 1;
+        busy.capacity.unpersisted_state_slots = Some(2);
+        state
+            .workers
+            .write()
+            .await
+            .insert("cloud-worker".into(), busy);
+        let app = router(state);
+        let (status, body) = json_request(
+            app,
+            "/plugin/v1/workers/cloud-worker/drain",
+            json!({"contract_version":"statepool-drain-request.v1","deadline_ms":1}),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(body["status"], "deadline_exceeded");
+        assert_eq!(body["active_requests"], 1);
+        assert_eq!(body["unpersisted_states"], 2);
     }
 
     #[tokio::test]

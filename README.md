@@ -31,8 +31,9 @@ The architecture and operating contract are documented in [`docs/PROJECT_SPECIFI
 
 The `codex/statepool-cloud-plugin` development line adds a separate,
 versioned HTTP plugin for exact-model Worker placement, local/edge/cloud policy,
-single-writer Lease/fencing, State version CAS, atomic development snapshots,
-safe-drain admission and State-aware FinOps metrics. It is disabled by default:
+single-writer Lease/fencing, State version CAS, LocalFS or PostgreSQL/S3-backed
+snapshots, Worker registration/heartbeat, safe-drain admission and State-aware
+FinOps metrics. It is disabled by default:
 without `--cloud-plugin`, no plugin client is constructed and the existing
 local routing path is unchanged.
 
@@ -41,8 +42,9 @@ local routing path is unchanged.
 - Compose/Helm/KEDA/observability assets: [`deploy/statepool/README.md`](deploy/statepool/README.md)
 - current implementation audit: [`docs/STATEPOOL_CURRENT_STATE_AUDIT.md`](docs/STATEPOOL_CURRENT_STATE_AUDIT.md)
 
-The development profile does not yet claim live cross-Worker RWKV restore,
-PostgreSQL durability, S3 storage or a measured KEDA scale-to-zero result.
+PostgreSQL/S3 adapters and a cross-plugin-restart byte lifecycle have passed
+real-container integration tests. The development line does not yet claim a
+real-GPU forced Worker-loss restore or measured KEDA scale-to-zero result.
 
 ## What you can verify
 

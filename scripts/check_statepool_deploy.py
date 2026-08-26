@@ -59,7 +59,13 @@ def main() -> int:
         if metric not in keda:
             raise AssertionError(f"KEDA template missing metric {metric}")
     worker = (CHART / "templates" / "worker-deployment.yaml").read_text(encoding="utf-8")
-    for marker in ("preStop", "statepool-drain", "terminationGracePeriodSeconds"):
+    for marker in (
+        "preStop",
+        "rwkv-statepool-drain",
+        "terminationGracePeriodSeconds",
+        "RWKV_WORKER_HEARTBEAT_SECONDS",
+        "POD_UID",
+    ):
         if marker not in worker:
             raise AssertionError(f"Worker lifecycle template missing {marker}")
 

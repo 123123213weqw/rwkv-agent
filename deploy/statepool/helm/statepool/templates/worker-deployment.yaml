@@ -35,9 +35,16 @@ spec:
           env:
             - name: POD_NAME
               valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            - name: POD_UID
+              valueFrom: { fieldRef: { fieldPath: metadata.uid } }
+            - name: POD_NAMESPACE
+              valueFrom: { fieldRef: { fieldPath: metadata.namespace } }
+            - name: NODE_NAME
+              valueFrom: { fieldRef: { fieldPath: spec.nodeName } }
             - name: POD_IP
               valueFrom: { fieldRef: { fieldPath: status.podIP } }
             - { name: RWKV_STATEPOOL_URL, value: "http://{{ include "rwkv-statepool.fullname" . }}:{{ .Values.plugin.port }}" }
+            - { name: RWKV_WORKER_PORT, value: {{ .Values.worker.port | quote }} }
             - { name: RWKV_WORKER_ZONE, value: {{ .Values.worker.zone | quote }} }
             - { name: RWKV_WORKER_MODEL_ID, value: {{ .Values.worker.model.id | quote }} }
             - { name: RWKV_WORKER_MODEL_REVISION, value: {{ .Values.worker.model.revision | quote }} }
@@ -45,6 +52,11 @@ spec:
             - { name: RWKV_WORKER_STATE_ABI, value: {{ .Values.worker.model.stateAbi | quote }} }
             - { name: RWKV_WORKER_STATE_SLOTS, value: {{ .Values.worker.stateSlots | quote }} }
             - { name: RWKV_WORKER_MAX_BATCH, value: {{ .Values.worker.maxBatch | quote }} }
+            - { name: RWKV_WORKER_HEARTBEAT_SECONDS, value: {{ .Values.worker.heartbeatSeconds | quote }} }
+            - { name: RWKV_WORKER_DEVICE_VENDOR, value: {{ .Values.worker.device.vendor | quote }} }
+            - { name: RWKV_WORKER_DEVICE_MODEL, value: {{ .Values.worker.device.model | quote }} }
+            - { name: RWKV_WORKER_DEVICE_RUNTIME, value: {{ .Values.worker.device.runtime | quote }} }
+            - { name: RWKV_WORKER_DEVICE_MEMORY_BYTES, value: {{ .Values.worker.device.memoryBytes | quote }} }
             - { name: RWKV_WORKER_PRICE_CURRENCY, value: {{ .Values.worker.price.currency | quote }} }
             - { name: RWKV_WORKER_PRICE_PER_GPU_HOUR, value: {{ .Values.worker.price.perGpuHour | quote }} }
           ports:
@@ -65,7 +77,7 @@ spec:
             preStop:
               exec:
                 command:
-                  - /opt/rwkv/bin/statepool-drain
+                  - /usr/local/bin/rwkv-statepool-drain
                   - --deadline-seconds={{ sub .Values.worker.terminationGracePeriodSeconds 10 }}
           securityContext:
             allowPrivilegeEscalation: false

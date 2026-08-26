@@ -49,6 +49,12 @@ worker:
   zone: cloud
   stateSlots: 32
   maxBatch: 32
+  heartbeatSeconds: 5
+  device:
+    vendor: NVIDIA
+    model: replace-with-node-gpu-model
+    runtime: CUDA
+    memoryBytes: 0
   price:
     currency: CNY
     perGpuHour: "2.8"

@@ -298,7 +298,11 @@
         "required": ["contract_version", "deadline_ms"],
         "properties": {
           "contract_version": { "const": "statepool-drain-request.v1" },
-          "deadline_ms": { "type": "integer", "minimum": 1 }
+          "deadline_ms": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Absolute Unix epoch deadline in milliseconds; unsafe work after this point is reported as deadline_exceeded."
+          }
         }
       },
       "DrainStatus": {

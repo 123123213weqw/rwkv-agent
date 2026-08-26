@@ -47,6 +47,7 @@ rwkv-search = "rwkv_search.cli:main"
 rwkv-agent-server = "rwkv_agent.server:main"
 rwkv-agent-data-plane = "rwkv_agent.data_server:main"
 rwkv-g1i-sidecar = "rwkv_agent.sidecar:main"
+rwkv-statepool-drain = "rwkv_agent.statepool_drain:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

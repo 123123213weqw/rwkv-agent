@@ -83,20 +83,24 @@ For Cloud Lite, create one Kubernetes Secret containing `postgres-url`,
 bucket and region. The chart never renders credentials into values or a
 ConfigMap.
 
-`worker.enabled=false` and `autoscaling.enabled=false` are safety gates. Enable
-them only with a Worker image that implements:
+`worker.enabled=false` and `autoscaling.enabled=false` are safety gates. The
+repository now contains the opt-in Sidecar adapter, but the example Worker
+image remains a deliberate placeholder. Enable it only after publishing an
+image that packages the model runtime and these implemented interfaces:
 
 1. `statepool-worker-capability.v1` registration and TTL heartbeat;
 2. exact model/tokenizer/State ABI reporting;
 3. `/ready` and `/live`;
-4. `/opt/rwkv/bin/statepool-drain`, which stops admission, waits for in-flight
-   requests, snapshots every dirty State under a fenced Lease, reports
-   `unpersisted_state_slots=0`, and exits successfully only then.
+4. `/usr/local/bin/rwkv-statepool-drain`, which stops admission and polls until
+   in-flight work and dirty States are zero.
 
 The plugin treats a missing `unpersisted_state_slots` heartbeat as unknown and
 will not report `safe_to_stop`. The Pod has a 180-second termination grace
 period and a preStop hook; scale-down is stabilized and limited to one Pod per
-minute.
+minute. The drain client does not invent durability: the Controller must
+snapshot each resident State through StatePool Lease/CAS and release it while
+snapshot/release maintenance endpoints remain admitted. If that does not
+happen before the deadline, preStop exits non-zero.
 
 ## Live two-Worker lifecycle client
 

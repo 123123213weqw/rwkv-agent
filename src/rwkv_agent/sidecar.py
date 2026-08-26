@@ -26,6 +26,7 @@ from .routing import (
     render_tool_gate_turn,
 )
 from .state_runtime import PersistentStateRuntime
+from .statepool_worker import StatePoolWorkerAgent, WorkerSettings
 
 
 MODEL_PATH = os.getenv(
@@ -493,13 +494,56 @@ class NativeG1I:
 
 
 service: NativeG1I | None = None
+worker_agent: StatePoolWorkerAgent | None = None
+
+
+def _requires_worker_admission(path: str) -> bool:
+    """Return whether a POST can begin or mutate inference work.
+
+    Snapshot and release remain available while draining so the Controller can
+    make every resident State durable and free its slot. Control-plane routes
+    likewise remain reachable for polling.
+    """
+
+    if not path.startswith("/v1/"):
+        return False
+    if path.startswith("/v1/statepool/") or path == "/v1/states/release":
+        return False
+    if path.startswith("/v1/states/") and path.endswith("/snapshot"):
+        return False
+    return True
 
 
 def create_app():
     from fastapi import FastAPI, HTTPException
-    from fastapi.responses import StreamingResponse
+    from fastapi.responses import JSONResponse, StreamingResponse
 
     app = FastAPI(title="RWKV G1I continuous-batch sidecar", version="0.4.0")
+
+    @app.middleware("http")
+    async def statepool_admission(request, call_next):
+        agent = worker_agent
+        admitted = False
+        if (
+            agent is not None
+            and request.method == "POST"
+            and _requires_worker_admission(request.url.path)
+        ):
+            admitted = agent.enter_request()
+            if not admitted:
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "error": "statepool_worker_draining",
+                        "message": "Worker is draining and rejects new inference",
+                    },
+                    headers={"Retry-After": "1"},
+                )
+        try:
+            return await call_next(request)
+        finally:
+            if admitted and agent is not None:
+                agent.exit_request()
 
     def model_ref() -> dict[str, str]:
         return {
@@ -516,15 +560,34 @@ def create_app():
 
     @app.on_event("startup")
     def startup() -> None:
-        global service
+        global service, worker_agent
         service = NativeG1I()
+        settings = WorkerSettings.from_environment()
+        if settings is not None:
+            worker_agent = StatePoolWorkerAgent(settings, service.health)
+            worker_agent.start()
 
     @app.on_event("shutdown")
     def shutdown() -> None:
-        global service
+        global service, worker_agent
+        if worker_agent is not None:
+            worker_agent.stop()
+            worker_agent = None
         if service is not None:
             service.close()
             service = None
+
+    @app.get("/live")
+    def live() -> dict[str, Any]:
+        return {"status": "live"}
+
+    @app.get("/ready")
+    def ready():
+        if service is None:
+            raise HTTPException(503, "loading")
+        if worker_agent is not None and not worker_agent.ready():
+            raise HTTPException(503, "StatePool Worker is not registered or is draining")
+        return {"status": "ready"}
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -541,7 +604,36 @@ def create_app():
             "pipeline_devices": list(PIPELINE_DEVICES),
             **runtime,
             "cuda_visible_devices": os.getenv("CUDA_VISIBLE_DEVICES", ""),
+            "statepool_worker": (
+                worker_agent.status()
+                if worker_agent is not None
+                else {"enabled": False, "ready": True}
+            ),
         }
+
+    @app.get("/v1/statepool/worker")
+    def statepool_worker() -> dict[str, Any]:
+        if worker_agent is None:
+            raise HTTPException(404, "StatePool Worker adapter is disabled")
+        return {
+            "status": worker_agent.status(),
+            "capability": worker_agent.capability(),
+        }
+
+    @app.post("/v1/statepool/drain")
+    def statepool_drain(payload: dict[str, Any]) -> dict[str, Any]:
+        if worker_agent is None:
+            raise HTTPException(404, "StatePool Worker adapter is disabled")
+        timeout_seconds = float(payload.get("timeout_seconds", 120))
+        if timeout_seconds <= 0 or timeout_seconds > 3600:
+            raise HTTPException(422, "timeout_seconds must be in (0, 3600]")
+        return worker_agent.begin_draining(timeout_seconds=timeout_seconds)
+
+    @app.get("/v1/statepool/drain")
+    def statepool_drain_status() -> dict[str, Any]:
+        if worker_agent is None:
+            raise HTTPException(404, "StatePool Worker adapter is disabled")
+        return worker_agent.drain_status()
 
     @app.get("/v1/models")
     def models() -> dict[str, Any]:

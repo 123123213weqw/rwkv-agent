@@ -22,6 +22,7 @@ deployment claim.
 | Component | Intended interface | Status |
 |---|---|---|
 | Kubernetes | Deployment/Service/lifecycle hooks | Helm template authored; cluster test pending |
+| RWKV Sidecar Worker adapter | `statepool-worker-capability.v1`, TTL heartbeat, readiness and drain | implementation/unit tests verified; real GPU Pod test pending |
 | KEDA `2.20.1` | `ScaledObject` using StatePool Prometheus metrics | template authored; 0→1→N→0 test pending |
 | PostgreSQL `17.6-bookworm` | lease, fencing and State version CAS | adapter verified with two clients against exact 17.6 container on WZU_Server |
 | MinIO `RELEASE.2025-04-22T22-12-26Z` | immutable Cold State objects | adapter and real-container integration verified on WZU_Server |

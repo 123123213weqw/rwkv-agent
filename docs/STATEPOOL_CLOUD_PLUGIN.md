@@ -11,9 +11,11 @@ rwkv-agent-server-rs
   -> versioned plugin-v1 HTTP boundary
     -> rwkv-statepool-cloud-plugin :8130
       -> Worker directory
+      <- Sidecar Worker registration / TTL heartbeat
       -> privacy/model/state-aware placement
       -> Lease + fencing + State version CAS
-      -> atomic LocalFS State store (development profile)
+      -> atomic LocalFS or S3 State store
+      -> in-memory or PostgreSQL metadata
       -> drain admission
       -> FinOps metrics
 ```
@@ -61,6 +63,18 @@ The request schema and a complete example are:
 
 - `contracts/worker-capability-v1.schema.json`;
 - `contracts/examples/statepool-plugin-v1/worker.json`.
+
+The Python Sidecar performs this automatically only when
+`RWKV_STATEPOOL_URL` is non-empty. It reports its exact model identity, device,
+State capacity, queue/running load and resident-State count. With the variable
+unset, no registration thread or drain admission middleware is activated.
+
+During drain, new inference/prefill/restore requests receive HTTP 503 while
+snapshot and release remain available. Every resident State is conservatively
+reported as `unpersisted_state_slots`; therefore the preStop client cannot
+claim `safe_to_stop` until the Controller has committed each State under a
+fenced Lease and released it from the Worker. A deadline with remaining work
+returns `deadline_exceeded` instead of silently allowing dirty termination.
 
 Then start the Agent server with a complete model identity:
 

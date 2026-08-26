@@ -20,6 +20,7 @@
 | E16 | Albatross CPU snapshot→release→restore→continue | 自动测试 | 已验证 | `tests/test_state_runtime.py::test_safe_snapshot_release_restore_continue_roundtrip`、`crates/state-runtime/tests/rwkv_http.rs` |
 | E17 | V100/4080 远程环境与模型可用性探测 | 环境清单，非性能证据 | 已记录 | `evidence/statepool/gpu-environment-probe-2026-08-26.md` |
 | E18 | Cloud Lite PostgreSQL+MinIO 跨插件重启恢复 | 真实 Compose 服务闭环 | 已验证（通用 State bytes，非 GPU） | `evidence/statepool/cloud-lite-compose-restart-2026-08-27.txt` |
+| E19 | Worker 注册/心跳/排空意图与安全停止 | 跨进程控制面实测 | 已验证（非 GPU、非 Kubernetes） | `evidence/statepool/worker-adapter-2026-08-27.md` |
 
 规则：临时 `/tmp` 日志不算发布证据；正式提交前需要把去敏后的完整输出放入
 `bench/artifacts/`，填写 commit 和 checksum。

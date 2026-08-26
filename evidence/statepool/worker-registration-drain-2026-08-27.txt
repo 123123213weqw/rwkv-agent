@@ -1,0 +1,12 @@
+# StatePool Worker registration/heartbeat/drain smoke — 2026-08-27
+# Host: WZU_Server; control-plane test only (no GPU inference)
+# Plugin: target/debug/rwkv-statepool-cloud-plugin
+# Command: PYTHONPATH=src python3 scripts/statepool_worker_smoke.py --plugin-url http://127.0.0.1:18317
+{
+  "clean_drain_status": "safe_to_stop",
+  "dirty_drain_status": "draining",
+  "new_admission_after_drain": false,
+  "registered_lifecycle": "ready",
+  "schema_version": "rwkv-statepool-worker-smoke.v1",
+  "status": "passed"
+}
