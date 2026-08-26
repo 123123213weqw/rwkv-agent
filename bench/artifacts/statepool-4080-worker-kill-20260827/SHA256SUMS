@@ -1,7 +1,7 @@
 b88e9267b6d71675f184c6069bb1639f5e28c7c75d9009f503a19a6a141d67b8  ./README.md
 24689e2d61655e457a6034fb59201e6bd829bbeb657ef2567bc667c423ba6703  ./statepool-server/captured-at.txt
 b114758b07c9bcd679590ae3e15e05405c97a075a2bf7f494b8a72e803d27333  ./statepool-server/cargo-check.log
-3d79c5e5138c867a468ca6fb59c5b21078fd6fef28f7ff1d2c06d1f62fb74336  ./statepool-server/cargo-test.log
+0b7f48213c3b127aa16ebf3e8fa1ee009459e27272121e1d3ccbe6fdbf226aab  ./statepool-server/cargo-test.log
 9ad32c0501c1f064241a7df1b47f35bcb37b6551da5de42b01c7ddab037c812f  ./statepool-server/docker-compose-ps.txt
 ba7a103935a0a732fb907a183c8df7c687306f476314fb632854ac35a4c2f507  ./statepool-server/minio-object-stat.txt
 efe71d67cfd7e345621e1d4f8e8d06e8d87af9a473d26d2bef8f953709db3c41  ./statepool-server/plugin-binary-sha256.txt
@@ -11,11 +11,11 @@ ea57bb0bebc5fe399d8f9c045c6cb6e7b0c16d1811994671a5d5a8db93237405  ./statepool-se
 8c99d337b1c935d677dcd762b8937262be6ea7216675dc6e3b3a7dee949b311a  ./statepool-server/plugin-workers.json
 33dae2ef21fcf0685b7e2f10f0cb38e764675c735b34554e3848daf242788850  ./statepool-server/postgres-schema.txt
 93af9dd04d2d42db398ce861ace5cfb51d44f789eb07967ac513ca7f1723a888  ./statepool-server/postgres-session.txt
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./statepool-server/statepool-plugin.log
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b  ./statepool-server/statepool-plugin.log
 9b30516c823a63b81d347af91b3207afda239be0014c1713268b7100fa0fd356  ./worker/albatross-runtime-sha256.txt
 0b722613b4b67f1bf5ddbae925d4a8d7465a3b109b6fa719ec82624e07e3065f  ./worker/completed-at.txt
 d22d4e3404cb06b0b24aa5decac3bd453173b597837361d701d36d57dcb5f970  ./worker/drain-status.json
-78f6f05555c4044a0f48bd72addb682beabe5075021821ec01fe72f2399e5ed6  ./worker/driver-and-target.log
+c2c82ac356f7e03fe2006e6e8f5d1cdec5cf2ce9683c7b7e874a338a06741325  ./worker/driver-and-target.log
 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa  ./worker/driver.exit-code
 5f4dd17cfb28bb84fcaddd3c30fadd4e1df22b10b16dd954bfd8d464ec92ab2e  ./worker/driver.stdout.log
 55d77f46d831caf19a986a836c2ab7570b5b6e8cb06244309ffc22d822629c80  ./worker/gpu-after-lifecycle.csv
@@ -45,7 +45,7 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./worker/prest
 20874c74db17f25231dcd84d1ffdf6e5156b5aaad38542fb5f979ad19f1be387  ./worker/software-versions.txt
 9edc05076fb5a5921c7e8ffe2cc79cc5d711d9612e138d09572f76df4530d870  ./worker/source-process-status.txt
 3712b0033e7320f6789761a1792478d04a513993d6cc16622af6363f146fbdb6  ./worker/source-sha256.txt
-132eb2fef66887dc3a53b2289741f5cbbe30f15d8020e30a27933ef6416f50e0  ./worker/source.log
+316423a708137985c335ca20a180ba1f405a6ea8b2e084a54f996274a5f14c69  ./worker/source.log
 e72d024cd2dfc23d3a34be41720374a967c6429f0ff9adb0b4d34c789d4d5e95  ./worker/source.pid
 fdf78a6ca4054541a2288f758db83f187965c17e00cf82e72181991af728f140  ./worker/start-worker.sh
 1d53222f7dada6c59b030635da2ced6a60119de75197e73483849eabf95a636f  ./worker/started-at.txt
