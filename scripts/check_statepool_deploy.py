@@ -49,6 +49,11 @@ def main() -> int:
         raise AssertionError("In-memory Lease profile must remain single replica")
     if values["plugin"]["durable"]["enabled"]:
         raise AssertionError("PostgreSQL/S3 must remain opt-in")
+    max_state_bytes = values["plugin"].get("maxStateBytes")
+    if not isinstance(max_state_bytes, str) or not max_state_bytes.isdecimal():
+        raise AssertionError(
+            "Helm maxStateBytes must be a decimal string to prevent float rendering"
+        )
     if (
         values["controller"]["enabled"]
         or values["worker"]["enabled"]

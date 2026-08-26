@@ -10,7 +10,10 @@ plugin:
   port: 8130
   workerTtlSeconds: 30
   leaseMaxTtlSeconds: 120
-  maxStateBytes: 536870912
+  # Keep large byte counts as decimal strings. Helm/YAML otherwise coerces
+  # this value through float64 and can render an invalid `5.36870912e+08`
+  # command-line argument.
+  maxStateBytes: "536870912"
   resources:
     requests: { cpu: 100m, memory: 128Mi }
     limits: { cpu: "1", memory: 512Mi }
