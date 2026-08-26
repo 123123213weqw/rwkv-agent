@@ -1,0 +1,83 @@
+nameOverride: ""
+fullnameOverride: ""
+
+plugin:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/123123213weqw/rwkv-statepool-cloud-plugin
+    tag: 0.3.0-beta.2-dev
+    pullPolicy: IfNotPresent
+  port: 8130
+  workerTtlSeconds: 30
+  leaseMaxTtlSeconds: 120
+  maxStateBytes: 536870912
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: "1", memory: 512Mi }
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: ""
+
+# The Worker template is disabled until the selected RWKV Sidecar image
+# implements Worker registration/heartbeat and the drain adapter contract.
+worker:
+  enabled: false
+  image:
+    repository: replace.example/rwkv-statepool-worker
+    tag: replace-with-immutable-tag
+    pullPolicy: IfNotPresent
+  port: 18118
+  model:
+    id: rwkv7-g1i-preview4922-13.3b
+    revision: replace-with-immutable-model-revision
+    tokenizer: rwkv-world-v20230424
+    stateAbi: rwkv7-g1i-fp16-v1
+  zone: cloud
+  stateSlots: 32
+  maxBatch: 32
+  price:
+    currency: CNY
+    perGpuHour: "2.8"
+  resources:
+    requests:
+      nvidia.com/gpu: "1"
+      cpu: "2"
+      memory: 8Gi
+    limits:
+      nvidia.com/gpu: "1"
+      cpu: "8"
+      memory: 32Gi
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  terminationGracePeriodSeconds: 180
+
+autoscaling:
+  enabled: false
+  minReplicaCount: 0
+  maxReplicaCount: 8
+  pollingInterval: 5
+  cooldownPeriod: 300
+  pendingRequestsTarget: "1"
+  decodeSecondsTarget: "30"
+  prometheusServerAddress: http://prometheus-operated.monitoring.svc.cluster.local:9090
+
+serviceMonitor:
+  enabled: false
+  interval: 5s
+  labels: {}
+
+grafanaDashboard:
+  enabled: false
+  labels:
+    grafana_dashboard: "1"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault

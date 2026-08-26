@@ -23,7 +23,8 @@
     "free_state_slots": 28,
     "max_batch": 32,
     "queue_depth": 2,
-    "running_requests": 2
+    "running_requests": 2,
+    "unpersisted_state_slots": 1
   },
   "price": {
     "currency": "CNY",

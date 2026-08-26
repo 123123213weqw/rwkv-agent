@@ -9,13 +9,14 @@ components:
     license: Apache-2.0
     integration: optional_runtime
     purpose: Pod lifecycle, node placement, health and service discovery
-    status: planned
+    status: helm_manifest_authored_not_cluster_verified
   - name: KEDA
     repository: https://github.com/kedacore/keda
     license: Apache-2.0
     integration: optional_runtime
     purpose: Event and Prometheus driven Worker autoscaling and scale-to-zero
-    status: planned
+    version: 2.20.1
+    status: scaledobject_authored_not_cluster_verified
   - name: AIBrix
     repository: https://github.com/vllm-project/aibrix
     license: Apache-2.0
@@ -33,25 +34,29 @@ components:
     license: PostgreSQL
     integration: optional_runtime
     purpose: Distributed Session metadata, leases, fencing and version CAS
-    status: planned
+    version: 17.6-bookworm
+    status: compose_preview_not_connected
   - name: MinIO
     repository: https://github.com/minio/minio
     license: AGPL-3.0-only
     integration: separate_demo_service
     purpose: Development S3-compatible Cold State object storage
-    status: planned
+    version: RELEASE.2025-04-22T22-12-26Z
+    status: compose_preview_not_connected
   - name: Prometheus
     repository: https://github.com/prometheus/prometheus
     license: Apache-2.0
     integration: optional_runtime
     purpose: StatePool and GPU time-series metrics
-    status: planned
+    version: 3.11.3
+    status: compose_and_servicemonitor_authored_not_runtime_verified
   - name: Grafana
     repository: https://github.com/grafana/grafana
     license: AGPL-3.0-only
     integration: separate_optional_service
     purpose: FinOps and State lifecycle dashboards
-    status: planned
+    version: 13.1.0
+    status: provisioned_dashboard_authored_not_runtime_verified
   - name: NVIDIA DCGM Exporter
     repository: https://github.com/NVIDIA/dcgm-exporter
     license: Apache-2.0

@@ -81,6 +81,12 @@ struct Metrics {
     lease_conflicts: AtomicU64,
     snapshots_committed: AtomicU64,
     restores_completed: AtomicU64,
+    pending_requests: AtomicU64,
+    estimated_decode_millis: AtomicU64,
+    hot_state_hits: AtomicU64,
+    warm_state_hits: AtomicU64,
+    cold_state_hits: AtomicU64,
+    transcript_reprefills: AtomicU64,
 }
 
 #[derive(Clone)]
@@ -88,6 +94,7 @@ pub struct PluginState {
     config: Arc<PluginConfig>,
     workers: Arc<RwLock<HashMap<String, WorkerCapability>>>,
     usage: Arc<RwLock<Vec<UsageRecord>>>,
+    estimated_cost_micros: Arc<RwLock<HashMap<String, u64>>>,
     metrics: Arc<Metrics>,
     decisions: Arc<AtomicU64>,
     metadata: Arc<dyn MetadataStore>,
@@ -111,6 +118,7 @@ impl PluginState {
             config: Arc::new(config),
             workers: Arc::new(RwLock::new(HashMap::new())),
             usage: Arc::new(RwLock::new(Vec::new())),
+            estimated_cost_micros: Arc::new(RwLock::new(HashMap::new())),
             metrics: Arc::new(Metrics::default()),
             decisions: Arc::new(AtomicU64::new(1)),
             metadata: Arc::new(InMemoryMetadataStore::default()),
@@ -505,6 +513,13 @@ async fn register_worker(
         .metrics
         .worker_registrations
         .fetch_add(1, Ordering::Relaxed);
+    // Registration resolves the transient scale-from-zero demand signal.
+    // Ongoing load remains represented by Worker heartbeat queue depth.
+    state.metrics.pending_requests.store(0, Ordering::Relaxed);
+    state
+        .metrics
+        .estimated_decode_millis
+        .store(0, Ordering::Relaxed);
     Ok(Json(json!({"status":"ok","worker_id":worker_id})))
 }
 
@@ -582,13 +597,17 @@ async fn drain_worker(
         )
     })?;
     worker.lifecycle = WorkerLifecycle::Draining;
-    let safe = worker.capacity.running_requests == 0;
+    let unpersisted_states = worker
+        .capacity
+        .unpersisted_state_slots
+        .unwrap_or(worker.capacity.state_slots);
+    let safe = worker.capacity.running_requests == 0 && unpersisted_states == 0;
     Ok(Json(json!({
         "contract_version":"statepool-drain-status.v1",
         "worker_id":worker_id,
         "status":if safe {"safe_to_stop"} else {"draining"},
         "active_requests":worker.capacity.running_requests,
-        "unpersisted_states":0
+        "unpersisted_states":unpersisted_states
     })))
 }
 
@@ -614,6 +633,19 @@ async fn plan(
         .collect::<Vec<_>>();
 
     if candidates.is_empty() {
+        if request.privacy == PrivacyClass::CloudAllowed {
+            let _ = state.metrics.pending_requests.fetch_update(
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+                |value| Some(value.saturating_add(1).min(10_000)),
+            );
+            let estimated_decode_ms = request.estimated_output_tokens.saturating_mul(50);
+            let _ = state.metrics.estimated_decode_millis.fetch_update(
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+                |value| Some(value.saturating_add(estimated_decode_ms).min(86_400_000)),
+            );
+        }
         state.metrics.rejected_plans.fetch_add(1, Ordering::Relaxed);
         return Ok(Json(ExecutionPlan {
             contract_version: EXECUTION_PLAN_CONTRACT_VERSION.into(),
@@ -642,7 +674,34 @@ async fn plan(
             .then_with(|| left.worker_id.cmp(&right.worker_id))
     });
     let worker = candidates[0];
+    let _ = state.metrics.pending_requests.fetch_update(
+        Ordering::Relaxed,
+        Ordering::Relaxed,
+        |value| Some(value.saturating_sub(1)),
+    );
+    let estimated_decode_ms = request.estimated_output_tokens.saturating_mul(50);
+    let _ = state.metrics.estimated_decode_millis.fetch_update(
+        Ordering::Relaxed,
+        Ordering::Relaxed,
+        |value| Some(value.saturating_sub(estimated_decode_ms)),
+    );
     let (state_action, restore_ms, affinity) = state_action(worker, &request);
+    match state_action.as_str() {
+        "reuse_hot" => state.metrics.hot_state_hits.fetch_add(1, Ordering::Relaxed),
+        "restore_warm" => state
+            .metrics
+            .warm_state_hits
+            .fetch_add(1, Ordering::Relaxed),
+        "restore_cold" => state
+            .metrics
+            .cold_state_hits
+            .fetch_add(1, Ordering::Relaxed),
+        "transcript_reprefill" => state
+            .metrics
+            .transcript_reprefills
+            .fetch_add(1, Ordering::Relaxed),
+        _ => 0,
+    };
     let estimated_cost = estimate_cost(worker, &request);
     if request
         .max_cost
@@ -732,6 +791,20 @@ async fn record_usage(
         .metrics
         .state_bytes_written
         .fetch_add(record.metrics.state_bytes_written, Ordering::Relaxed);
+    if let Some(cost) = &record.metrics.estimated_cost
+        && cost.currency.len() == 3
+        && cost
+            .currency
+            .chars()
+            .all(|value| value.is_ascii_uppercase())
+        && cost.amount.is_finite()
+        && cost.amount >= 0.0
+    {
+        let micros = (cost.amount * 1_000_000.0).min(u64::MAX as f64) as u64;
+        let mut totals = state.estimated_cost_micros.write().await;
+        let total = totals.entry(cost.currency.clone()).or_default();
+        *total = total.saturating_add(micros);
+    }
     let mut usage = state.usage.write().await;
     if usage.len() >= 10_000 {
         usage.remove(0);
@@ -747,7 +820,7 @@ async fn metrics(State(state): State<PluginState>) -> Response {
         .values()
         .filter(|worker| worker.lifecycle == WorkerLifecycle::Ready && !stale(worker, &state))
         .count();
-    let body = format!(
+    let mut body = format!(
         concat!(
             "# TYPE statepool_ready_workers gauge\n",
             "statepool_ready_workers {}\n",
@@ -765,7 +838,15 @@ async fn metrics(State(state): State<PluginState>) -> Response {
             "statepool_leases_acquired_total {}\n",
             "statepool_lease_conflicts_total {}\n",
             "statepool_snapshots_committed_total {}\n",
-            "statepool_restores_completed_total {}\n"
+            "statepool_restores_completed_total {}\n",
+            "# TYPE statepool_pending_requests gauge\n",
+            "statepool_pending_requests {}\n",
+            "# TYPE statepool_estimated_decode_seconds gauge\n",
+            "statepool_estimated_decode_seconds {}\n",
+            "statepool_hot_state_hits_total {}\n",
+            "statepool_warm_state_hits_total {}\n",
+            "statepool_cold_state_hits_total {}\n",
+            "statepool_transcript_reprefills_total {}\n"
         ),
         ready_workers,
         metrics.plan_requests.load(Ordering::Relaxed),
@@ -782,7 +863,23 @@ async fn metrics(State(state): State<PluginState>) -> Response {
         metrics.lease_conflicts.load(Ordering::Relaxed),
         metrics.snapshots_committed.load(Ordering::Relaxed),
         metrics.restores_completed.load(Ordering::Relaxed),
+        metrics.pending_requests.load(Ordering::Relaxed),
+        metrics.estimated_decode_millis.load(Ordering::Relaxed) as f64 / 1000.0,
+        metrics.hot_state_hits.load(Ordering::Relaxed),
+        metrics.warm_state_hits.load(Ordering::Relaxed),
+        metrics.cold_state_hits.load(Ordering::Relaxed),
+        metrics.transcript_reprefills.load(Ordering::Relaxed),
     );
+    body.push_str("# TYPE statepool_estimated_cost_total counter\n");
+    let costs = state.estimated_cost_micros.read().await;
+    let mut currencies = costs.iter().collect::<Vec<_>>();
+    currencies.sort_by_key(|(currency, _)| *currency);
+    for (currency, micros) in currencies {
+        body.push_str(&format!(
+            "statepool_estimated_cost_total{{currency=\"{currency}\"}} {}\n",
+            *micros as f64 / 1_000_000.0
+        ));
+    }
     let mut response = body.into_response();
     response.headers_mut().insert(
         header::CONTENT_TYPE,
@@ -962,6 +1059,7 @@ mod tests {
                 max_batch: 32,
                 queue_depth: 0,
                 running_requests: 0,
+                unpersisted_state_slots: Some(0),
             },
             price: Some(WorkerPrice {
                 currency: "CNY".into(),
@@ -1116,6 +1214,76 @@ mod tests {
         )
         .await;
         assert_eq!(plan["mode"], "reject");
+    }
+
+    #[tokio::test]
+    async fn drain_requires_an_explicit_zero_dirty_state_heartbeat() {
+        let state = PluginState::new(PluginConfig::default()).unwrap();
+        let mut unknown = worker(WorkerZone::Cloud);
+        unknown.capacity.unpersisted_state_slots = None;
+        state
+            .workers
+            .write()
+            .await
+            .insert("cloud-worker".into(), unknown);
+        let app = router(state);
+        let (status, body) = json_request(
+            app,
+            "/plugin/v1/workers/cloud-worker/drain",
+            json!({"contract_version":"statepool-drain-request.v1","deadline_ms":1000}),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(body["status"], "draining");
+        assert_eq!(body["unpersisted_states"], 32);
+    }
+
+    #[tokio::test]
+    async fn cloud_plan_miss_exposes_and_registration_clears_scale_signal() {
+        let state = PluginState::new(PluginConfig::default()).unwrap();
+        let app = router(state.clone());
+        let (status, body) = json_request(
+            app.clone(),
+            "/plugin/v1/plan",
+            json!({
+                "contract_version":PLAN_REQUEST_CONTRACT_VERSION,
+                "request_id":"scale-request",
+                "session_id":"session",
+                "owner_id":"owner",
+                "model_ref":model(),
+                "privacy":"cloud_allowed",
+                "latency_slo_ms":5000,
+                "estimated_input_tokens":128,
+                "estimated_output_tokens":64
+            }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(body["mode"], "reject");
+        assert_eq!(state.metrics.pending_requests.load(Ordering::Relaxed), 1);
+        assert_eq!(
+            state
+                .metrics
+                .estimated_decode_millis
+                .load(Ordering::Relaxed),
+            3_200
+        );
+
+        let (status, _) = json_request(
+            app,
+            "/plugin/v1/workers/register",
+            serde_json::to_value(worker(WorkerZone::Cloud)).unwrap(),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(state.metrics.pending_requests.load(Ordering::Relaxed), 0);
+        assert_eq!(
+            state
+                .metrics
+                .estimated_decode_millis
+                .load(Ordering::Relaxed),
+            0
+        );
     }
 
     #[tokio::test]

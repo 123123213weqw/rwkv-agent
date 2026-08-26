@@ -161,6 +161,10 @@ pub struct WorkerCapacity {
     pub max_batch: u32,
     pub queue_depth: u32,
     pub running_requests: u32,
+    /// `None` means the Worker has not proved persistence readiness and must
+    /// not be declared safe to stop by the control plane.
+    #[serde(default)]
+    pub unpersisted_state_slots: Option<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -200,6 +204,10 @@ impl WorkerCapability {
             || self.capacity.state_slots == 0
             || self.capacity.max_batch == 0
             || self.capacity.free_state_slots > self.capacity.state_slots
+            || self
+                .capacity
+                .unpersisted_state_slots
+                .is_some_and(|value| value > self.capacity.state_slots)
         {
             return Err(ContractError::Invalid(
                 "Worker model and capacity values are invalid".into(),
@@ -636,6 +644,7 @@ mod tests {
                 max_batch: 8,
                 queue_depth: 0,
                 running_requests: 0,
+                unpersisted_state_slots: Some(0),
             },
             price: None,
             labels: Default::default(),

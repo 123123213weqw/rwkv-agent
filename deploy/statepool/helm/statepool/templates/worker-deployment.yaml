@@ -1,0 +1,87 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rwkv-statepool.fullname" . }}-worker
+  labels:
+    {{- include "rwkv-statepool.labels" . | nindent 4 }}
+    app.kubernetes.io/component: inference-worker
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "rwkv-statepool.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: inference-worker
+  template:
+    metadata:
+      annotations:
+        checksum/statepool-worker-contract: "statepool-worker-capability.v1"
+        {{- with .Values.worker.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ include "rwkv-statepool.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: inference-worker
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          env:
+            - name: POD_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            - name: POD_IP
+              valueFrom: { fieldRef: { fieldPath: status.podIP } }
+            - { name: RWKV_STATEPOOL_URL, value: "http://{{ include "rwkv-statepool.fullname" . }}:{{ .Values.plugin.port }}" }
+            - { name: RWKV_WORKER_ZONE, value: {{ .Values.worker.zone | quote }} }
+            - { name: RWKV_WORKER_MODEL_ID, value: {{ .Values.worker.model.id | quote }} }
+            - { name: RWKV_WORKER_MODEL_REVISION, value: {{ .Values.worker.model.revision | quote }} }
+            - { name: RWKV_WORKER_TOKENIZER, value: {{ .Values.worker.model.tokenizer | quote }} }
+            - { name: RWKV_WORKER_STATE_ABI, value: {{ .Values.worker.model.stateAbi | quote }} }
+            - { name: RWKV_WORKER_STATE_SLOTS, value: {{ .Values.worker.stateSlots | quote }} }
+            - { name: RWKV_WORKER_MAX_BATCH, value: {{ .Values.worker.maxBatch | quote }} }
+            - { name: RWKV_WORKER_PRICE_CURRENCY, value: {{ .Values.worker.price.currency | quote }} }
+            - { name: RWKV_WORKER_PRICE_PER_GPU_HOUR, value: {{ .Values.worker.price.perGpuHour | quote }} }
+          ports:
+            - name: inference
+              containerPort: {{ .Values.worker.port }}
+          readinessProbe:
+            httpGet: { path: /ready, port: inference }
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet: { path: /live, port: inference }
+            periodSeconds: 10
+          # The chosen Worker image must implement this adapter. It stops
+          # admission, waits for in-flight requests, snapshots every dirty
+          # State under a fenced Lease, heartbeats unpersisted_state_slots=0,
+          # then returns success. A timeout makes Pod termination fail loudly.
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /opt/rwkv/bin/statepool-drain
+                  - --deadline-seconds={{ sub .Values.worker.terminationGracePeriodSeconds 10 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+      {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

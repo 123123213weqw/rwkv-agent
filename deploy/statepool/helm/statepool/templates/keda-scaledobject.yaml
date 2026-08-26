@@ -1,0 +1,44 @@
+{{- if and .Values.worker.enabled .Values.autoscaling.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "rwkv-statepool.fullname" . }}-worker
+  labels:
+    {{- include "rwkv-statepool.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "rwkv-statepool.fullname" . }}-worker
+  pollingInterval: {{ .Values.autoscaling.pollingInterval }}
+  cooldownPeriod: {{ .Values.autoscaling.cooldownPeriod }}
+  minReplicaCount: {{ .Values.autoscaling.minReplicaCount }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicaCount }}
+  advanced:
+    restoreToOriginalReplicaCount: true
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.autoscaling.cooldownPeriod }}
+          policies:
+            - { type: Pods, value: 1, periodSeconds: 60 }
+  triggers:
+    - type: prometheus
+      metricType: AverageValue
+      metadata:
+        serverAddress: {{ .Values.autoscaling.prometheusServerAddress | quote }}
+        metricName: rwkv_statepool_pending_requests
+        query: sum(statepool_pending_requests)
+        threshold: {{ .Values.autoscaling.pendingRequestsTarget | quote }}
+        activationThreshold: "0"
+        ignoreNullValues: "false"
+    - type: prometheus
+      metricType: AverageValue
+      metadata:
+        serverAddress: {{ .Values.autoscaling.prometheusServerAddress | quote }}
+        metricName: rwkv_statepool_estimated_decode_seconds
+        query: sum(statepool_estimated_decode_seconds)
+        threshold: {{ .Values.autoscaling.decodeSecondsTarget | quote }}
+        activationThreshold: "0"
+        ignoreNullValues: "false"
+{{- end }}

@@ -1,0 +1,136 @@
+name: rwkv-statepool
+
+services:
+  statepool:
+    build:
+      context: ../..
+      dockerfile: deploy/statepool/Dockerfile
+      target: statepool-plugin
+    image: rwkv-statepool-cloud-plugin:0.3.0-beta.2-dev
+    command:
+      - --worker-ttl-seconds=30
+      - --lease-max-ttl-seconds=120
+      - --max-state-bytes=536870912
+    ports:
+      - "8130:8130"
+    volumes:
+      - statepool-state:/var/lib/statepool/states
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8130/live"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+      start_period: 2s
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  agent:
+    profiles: ["agent"]
+    build:
+      context: ../..
+      dockerfile: deploy/statepool/Dockerfile
+      target: agent-controller
+    image: rwkv-agent-controller:0.3.0-beta.2-dev
+    command:
+      - --host=0.0.0.0
+      - --port=18120
+      - --model-urls=http://host.docker.internal:18118
+      - --data-plane-url=http://host.docker.internal:18121
+      - --cloud-plugin
+      - --cloud-plugin-url=http://statepool:8130
+      - --cloud-plugin-fallback=local
+      - --cloud-plugin-privacy=cloud_allowed
+      - --cloud-model-id=rwkv7-g1i-preview4922-13.3b
+      - --cloud-model-revision=replace-with-immutable-model-revision
+      - --cloud-tokenizer=rwkv-world-v20230424
+      - --cloud-state-abi=rwkv7-g1i-fp16-v1
+    ports:
+      - "18120:18120"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      statepool:
+        condition: service_healthy
+    volumes:
+      - agent-session:/var/lib/rwkv-agent/sessions
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  prometheus:
+    image: prom/prometheus:v3.11.3
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      statepool:
+        condition: service_healthy
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # These services are version-pinned integration targets for the next
+  # durable adapter gate. The current plugin does not connect to them and the
+  # profile is deliberately opt-in to avoid a false durability claim.
+  postgres:
+    profiles: ["durable-adapters-preview"]
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_DB: statepool
+      POSTGRES_USER: statepool
+      POSTGRES_PASSWORD: local-development-only
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U statepool -d statepool"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  minio:
+    profiles: ["durable-adapters-preview"]
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: statepool
+      MINIO_ROOT_PASSWORD: local-development-only-change-me
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  statepool-state: {}
+  agent-session: {}
+  prometheus-data: {}
+  grafana-data: {}
+  postgres-data: {}
+  minio-data: {}

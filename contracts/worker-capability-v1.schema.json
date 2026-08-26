@@ -46,7 +46,8 @@
         "free_state_slots": { "type": "integer", "minimum": 0 },
         "max_batch": { "type": "integer", "minimum": 1 },
         "queue_depth": { "type": "integer", "minimum": 0 },
-        "running_requests": { "type": "integer", "minimum": 0 }
+        "running_requests": { "type": "integer", "minimum": 0 },
+        "unpersisted_state_slots": { "type": ["integer", "null"], "minimum": 0 }
       }
     },
     "price": {

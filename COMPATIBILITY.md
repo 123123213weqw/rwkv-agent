@@ -14,16 +14,17 @@ Each release supports a bounded, evidence-backed compatibility window.
 
 ## Optional infrastructure
 
-The following integrations are planned and are **not yet verified**. Versions
-and image digests will be pinned only when their deployment tests are added.
+The following integrations remain **not runtime verified**. Exact versions are
+pinned where manifests now exist; a pinned version alone is not a verified
+deployment claim.
 
 | Component | Intended interface | Status |
 |---|---|---|
-| Kubernetes | Deployment/Service/lifecycle hooks | planned |
-| KEDA | `ScaledObject` using StatePool Prometheus metrics | planned |
-| PostgreSQL | lease, fencing and State version CAS | planned |
-| S3/MinIO | immutable Cold State objects | planned |
-| Prometheus/Grafana | scrape and dashboard | planned |
+| Kubernetes | Deployment/Service/lifecycle hooks | Helm template authored; cluster test pending |
+| KEDA `2.20.1` | `ScaledObject` using StatePool Prometheus metrics | template authored; 0→1→N→0 test pending |
+| PostgreSQL `17.6-bookworm` | lease, fencing and State version CAS | Compose preview only; adapter not connected |
+| MinIO `RELEASE.2025-04-22T22-12-26Z` | immutable Cold State objects | Compose preview only; adapter not connected |
+| Prometheus `3.11.3` / Grafana `13.1.0` | scrape and dashboard | configuration authored; runtime test pending |
 | AIBrix | optional gateway/route adapter | planned |
 | HAMi | optional resource annotations/profile | planned |
 

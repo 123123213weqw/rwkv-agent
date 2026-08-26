@@ -121,6 +121,13 @@ statepool_leases_acquired_total
 statepool_lease_conflicts_total
 statepool_snapshots_committed_total
 statepool_restores_completed_total
+statepool_pending_requests
+statepool_estimated_decode_seconds
+statepool_hot_state_hits_total
+statepool_warm_state_hits_total
+statepool_cold_state_hits_total
+statepool_transcript_reprefills_total
+statepool_estimated_cost_total{currency="CNY"}
 ```
 
 The plugin stores at most 10,000 recent usage records in memory in this slice.
@@ -170,3 +177,6 @@ Exact cross-Worker continuation may be claimed only after:
 
 See the [current-state audit](STATEPOOL_CURRENT_STATE_AUDIT.md) and
 [ADR 0002](adr/0002-statepool-cloud-plugin-boundary.md).
+
+Deployment profiles, KEDA gating and the provisioned Grafana dashboard are in
+[`deploy/statepool/README.md`](../deploy/statepool/README.md).
