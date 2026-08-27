@@ -5,7 +5,6 @@ import threading
 
 import pytest
 
-from rwkv_agent.sidecar import NativeG1I, _requires_worker_admission
 from rwkv_agent import statepool_drain
 from rwkv_agent.statepool_worker import (
     StatePoolWorkerAgent,
@@ -194,6 +193,9 @@ def test_reconstructible_count_is_bounded_by_allocated_states() -> None:
 
 
 def test_sidecar_health_marks_only_available_tool_root_reconstructible() -> None:
+    pytest.importorskip("torch")
+    from rwkv_agent.sidecar import NativeG1I
+
     runtime = NativeG1I.__new__(NativeG1I)
     runtime._counter_lock = threading.Lock()
     runtime.calls = 0
@@ -238,6 +240,9 @@ def test_missing_registration_is_recreated_before_next_heartbeat() -> None:
 
 
 def test_drain_route_keeps_snapshot_and_release_available() -> None:
+    pytest.importorskip("torch")
+    from rwkv_agent.sidecar import _requires_worker_admission
+
     assert _requires_worker_admission("/v1/states/prefill")
     assert _requires_worker_admission("/v1/states/batch_continue")
     assert _requires_worker_admission("/v1/states/restore")
