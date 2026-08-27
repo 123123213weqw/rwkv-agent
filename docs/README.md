@@ -10,8 +10,6 @@
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md): Doctor-led failure diagnosis
 - [KNOWN_ISSUES.md](KNOWN_ISSUES.md): defects, limits and stable-release gates
 - [RELEASE.md](RELEASE.md): maintainer audit, clean-install and publish checklist
-- [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md): StatePool compatibility, claims and supply-chain release gate
-- [OPENAI_WORKER_ADAPTER.md](OPENAI_WORKER_ADAPTER.md): optional vLLM/OpenAI-compatible Worker, affinity and non-portable-State boundary
 
 ## Architecture and evaluation
 
@@ -19,9 +17,7 @@
 - [RWKV_AGENT.md](RWKV_AGENT.md): Agent, tools, state and HTTP behavior
 - [STATE_NATIVE_AGENT.md](STATE_NATIVE_AGENT.md): recurrent-state research design
 - [STATEPOOL_CLOUD_PLUGIN.md](STATEPOOL_CLOUD_PLUGIN.md): optional cloud plugin contract, compatibility and current limits
-- [STATEPOOL_CURRENT_STATE_AUDIT.md](STATEPOOL_CURRENT_STATE_AUDIT.md): pre-integration audit and evidence boundary
-- [RELATED_WORK.md](RELATED_WORK.md): HAMi/AIBrix/KServe/KEDA and baseline non-overlap
-- [RWKV_STATEPOOL_STORY.md](RWKV_STATEPOOL_STORY.md): RWKV history, application wedge and cloud narrative
+- [statepool-cloud](https://github.com/123123213weqw/statepool-cloud): independent cloud control plane, deployment, adapters and evidence
 - [SCHEDULER.md](SCHEDULER.md): state pool and continuous batching
 - [AGENT_BENCHMARK.md](AGENT_BENCHMARK.md): fixed evaluation methodology
 - [AGENT_UNIFIED_REGRESSION.md](AGENT_UNIFIED_REGRESSION.md): 200-case regression

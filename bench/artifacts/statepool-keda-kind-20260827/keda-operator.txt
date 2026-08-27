@@ -1,2 +1,0 @@
-2026-08-26T18:47:34Z	INFO	scaleexecutor	Successfully updated ScaleTarget	{"scaledobject.Name": "statepool-worker", "scaledObject.Namespace": "statepool-keda", "scaleTarget.Name": "statepool-worker", "Original Replicas Count": 0, "New Replicas Count": 1}
-2026-08-26T18:48:02Z	INFO	scaleexecutor	Successfully set ScaleTarget replicas count to ScaledObject idleReplicaCount	{"scaledobject.Name": "statepool-worker", "scaledObject.Namespace": "statepool-keda", "scaleTarget.Name": "statepool-worker", "Original Replicas Count": 3, "New Replicas Count": 0}

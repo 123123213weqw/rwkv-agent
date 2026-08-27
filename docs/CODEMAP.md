@@ -24,7 +24,6 @@ map answers only where code lives.
 | Retrieval/Evidence data plane | Active | `src/rwkv_agent/data_plane.py` |
 | Python data-plane HTTP process | Active | `src/rwkv_agent/data_server.py` |
 | Python compatibility Controller | Compatibility | `src/rwkv_agent/controller.py` |
-| OpenAI-compatible/vLLM Worker adapter | Optional cloud inference adapter | `src/rwkv_agent/openai_worker.py` |
 | CUDA Sidecar | Active | `src/rwkv_agent/sidecar.py` |
 | Unified recurrent scheduler | Active | `src/rwkv7_scheduler/` |
 | Shared inference contracts | Active | `src/rwkv_runtime/` |

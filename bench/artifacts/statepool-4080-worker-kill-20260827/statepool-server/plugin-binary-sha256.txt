@@ -1,1 +1,0 @@
-18893ac60984dbe1f4e5c3efa3e2c32f90de2e2de680bb5b344fa610ee27990b  /usr/local/bin/rwkv-statepool-cloud-plugin

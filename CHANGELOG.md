@@ -6,29 +6,18 @@ All notable public changes are recorded here.
 
 ### Added
 
-- optional, disabled-by-default StatePool Cloud Plugin boundary with versioned
+- optional, disabled-by-default StatePool Cloud client boundary with versioned
   JSON Schema/OpenAPI contracts;
 - Worker registry, exact model/Tokenizer/State ABI placement, privacy zones,
-  single-process Lease/fencing/version CAS and atomic LocalFS State lifecycle;
-- State-aware Prometheus/FinOps metrics, conservative Worker drain admission,
-  Compose/Helm/KEDA/ServiceMonitor and Grafana development assets;
-- related-work, governance, roadmap, release checklist and competition evidence
-  materials with explicit implementation/measurement claim boundaries.
-- live Albatross RWKV snapshot/restore, PostgreSQL/S3 Cloud Lite durability,
-  exact-compatible RTX 4080 Worker-process-loss recovery, Controller lifecycle
-  and FinOps integration;
-- measured kind/Kubernetes 1.34 + KEDA 2.20.1 control-plane 0→1→3→0 cycle with
-  three safe simulated-Worker preStop results.
-- reproducible 100-Session A/B/C FinOps replay that keeps simulated outputs
-  separate from measured KEDA, RTX 4080 and contract-correctness inputs.
+  Lease/fencing client and native RWKV State lifecycle;
+- native Worker registration, heartbeat and conservative drain admission;
+- independent [`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud)
+  product boundary for cloud control plane, deployment and FinOps evidence.
 
 ### Known limitations
 
-- Controller startup reconstruction of the current durable State index,
-  authenticated multi-tenant exposure, and a real GPU Pod 0→1→N→0 lifecycle
-  remain unimplemented;
-- `owner_id` is not authentication and the plugin must not be exposed publicly;
-- LocalFS/in-memory State lifecycle is a single-replica development profile.
+- `owner_id` is not authentication; external plugin endpoints must not be
+  exposed publicly without a trusted identity boundary.
 
 ## 0.3.0-beta.2 - 2026-08-25
 

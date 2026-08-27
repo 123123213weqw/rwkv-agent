@@ -1,5 +1,0 @@
-Python 3.9.6
-Python 3.12.13
-uv 0.11.32 (3010295ae 2026-07-23 aarch64-apple-darwin)
-ruff 0.15.22
-git version 2.50.1 (Apple Git-155)

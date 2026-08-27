@@ -1,5 +1,0 @@
-NAME                                    IMAGE                                              COMMAND                  SERVICE                CREATED          STATUS                      PORTS
-rwkv-statepool-minio-1                  quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z   "/usr/bin/docker-ent…"   minio                  33 minutes ago   Up 33 minutes (healthy)     0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
-rwkv-statepool-minio-init-1             quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z      "/bin/sh -c 'mc alia…"   minio-init             33 minutes ago   Exited (0) 23 minutes ago
-rwkv-statepool-postgres-1               postgres:17.6-bookworm                             "docker-entrypoint.s…"   postgres               33 minutes ago   Up 33 minutes (healthy)     5432/tcp
-rwkv-statepool-statepool-cloud-lite-1   rwkv-statepool-cloud-plugin:0.3.0-beta.2-dev       "/usr/local/bin/rwkv…"   statepool-cloud-lite   23 minutes ago   Up 23 minutes (healthy)     0.0.0.0:8131->8130/tcp, [::]:8131->8130/tcp

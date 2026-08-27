@@ -1,9 +1,0 @@
-usage: statepool_drain.py [-h] [--worker-url WORKER_URL]
-                          [--deadline-seconds DEADLINE_SECONDS]
-                          [--poll-seconds POLL_SECONDS]
-
-options:
-  -h, --help            show this help message and exit
-  --worker-url WORKER_URL
-  --deadline-seconds DEADLINE_SECONDS
-  --poll-seconds POLL_SECONDS

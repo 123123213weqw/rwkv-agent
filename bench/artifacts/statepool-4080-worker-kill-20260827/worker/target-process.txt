@@ -1,2 +1,0 @@
-UID          PID    PPID  C STIME TTY          TIME CMD
-wzu      3720661       1 15 02:08 ?        00:00:15 /home/wzu/anaconda3/bin/python -m rwkv_agent.sidecar --host 127.0.0.1 --port 18218

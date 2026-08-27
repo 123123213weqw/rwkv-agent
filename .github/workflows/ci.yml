@@ -23,11 +23,8 @@ jobs:
           python -m pip install -e '.[realtime,segment,dev]' fastapi uvicorn ruff==0.15.22 build jsonschema pyyaml
       - name: Public release audit
         run: python scripts/check_public_release.py
-      - name: StatePool contracts and deploy assets
-        run: |
-          python scripts/check_statepool_contracts.py
-          python scripts/check_statepool_deploy.py
-          docker compose -f deploy/statepool/compose.yaml config --quiet
+      - name: StatePool client contracts
+        run: python scripts/check_statepool_contracts.py
       - name: Lint
         run: ruff check src bench benchmarks tests scripts
       - name: Test

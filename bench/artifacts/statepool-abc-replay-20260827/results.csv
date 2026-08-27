@@ -1,4 +1,0 @@
-scenario,label,classification,sessions,workers_at_peak,allocated_gpu_seconds,gpu_hours_per_100_sessions,modeled_idle_gpu_minutes,repeated_prefill_tokens,prefill_tokens_avoided_vs_stateless,state_bytes_written,state_bytes_read,eligible_continue_state_hit_rate,estimated_gpu_cost_cny
-A,sticky_worker,simulation_replay,100,13,5460.0,1.516667,65.0,0,51200,0,0,1.0,3.033333
-B,stateless_reprefill,simulation_replay,100,13,2994.758,0.831877,17.6813,51200,0,0,0,0.0,1.663754
-C,statepool,simulation_replay,100,13,2994.758,0.831877,17.6813,0,51200,2582255400,1291127700,1.0,1.663754

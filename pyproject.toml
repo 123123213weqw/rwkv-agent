@@ -48,7 +48,6 @@ rwkv-agent-server = "rwkv_agent.server:main"
 rwkv-agent-data-plane = "rwkv_agent.data_server:main"
 rwkv-g1i-sidecar = "rwkv_agent.sidecar:main"
 rwkv-statepool-drain = "rwkv_agent.statepool_drain:main"
-rwkv-openai-worker = "rwkv_agent.openai_worker:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

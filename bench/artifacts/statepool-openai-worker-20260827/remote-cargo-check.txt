@@ -1,5 +1,0 @@
-    Checking rwkv-statepool-plugin-api v0.3.0-beta.2 (/home/data/wangyue/repos/codex-build/rwkv-agent/crates/statepool-plugin-api)
-    Checking rwkv-agent-runtime v0.3.0-beta.2 (/home/data/wangyue/repos/codex-build/rwkv-agent/crates/agent-runtime)
-    Checking rwkv-statepool-cloud-plugin v0.3.0-beta.2 (/home/data/wangyue/repos/codex-build/rwkv-agent/crates/statepool-cloud-plugin)
-    Checking rwkv-agent-server v0.3.0-beta.2 (/home/data/wangyue/repos/codex-build/rwkv-agent/crates/agent-server)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.39s

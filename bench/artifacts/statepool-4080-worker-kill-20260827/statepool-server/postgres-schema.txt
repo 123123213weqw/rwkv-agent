@@ -1,9 +1,0 @@
-                                       Table "public.statepool_sessions"
-    Column     |  Type  | Collation | Nullable | Default | Storage  | Compression | Stats target | Description
----------------+--------+-----------+----------+---------+----------+-------------+--------------+-------------
- session_id    | text   |           | not null |         | extended |             |              |
- record        | jsonb  |           | not null |         | extended |             |              |
- updated_at_ms | bigint |           | not null |         | plain    |             |              |
-Indexes:
-    "statepool_sessions_pkey" PRIMARY KEY, btree (session_id)
-Access method: heap

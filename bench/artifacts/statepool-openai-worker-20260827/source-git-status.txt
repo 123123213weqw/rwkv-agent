@@ -1,2 +1,0 @@
-?? bench/artifacts/statepool-final-audit-20260827/
-?? bench/artifacts/statepool-openai-worker-20260827/

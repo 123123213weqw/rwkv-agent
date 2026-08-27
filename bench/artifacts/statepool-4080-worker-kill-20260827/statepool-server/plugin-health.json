@@ -1,1 +1,0 @@
-{"checked_at_ms":1787767875756,"contract_version":"statepool-plugin.v1","dependencies":{"metadata":"postgresql_lease_cas","object_store":"s3","worker_registry":"degraded"},"status":"degraded"}

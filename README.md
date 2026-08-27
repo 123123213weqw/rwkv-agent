@@ -27,45 +27,23 @@ production-deployment claim. See
 
 The architecture and operating contract are documented in [`docs/PROJECT_SPECIFICATION.md`](docs/PROJECT_SPECIFICATION.md).
 
-## Optional StatePool Cloud Plugin
+## Optional StatePool Cloud integration
 
-The `codex/statepool-cloud-plugin` development line adds a separate,
-versioned HTTP plugin for exact-model Worker placement, local/edge/cloud policy,
-single-writer Lease/fencing, State version CAS, LocalFS or PostgreSQL/S3-backed
-snapshots, Worker registration/heartbeat, safe-drain admission and State-aware
-FinOps metrics. It is disabled by default:
-without `--cloud-plugin`, no plugin client is constructed and the existing
-local routing path is unchanged.
+This repository contains only the disabled-by-default StatePool **client and
+native RWKV Worker interface**. Without `--cloud-plugin`, no plugin client is
+constructed and the existing local routing path is unchanged. Wire types,
+JSON Schema and OpenAPI stay here so each `rwkv-agent` release can declare an
+exact client compatibility window.
 
-- architecture and claim boundary: [`docs/STATEPOOL_CLOUD_PLUGIN.md`](docs/STATEPOOL_CLOUD_PLUGIN.md)
-- schemas/OpenAPI: [`contracts/statepool-plugin-v1.openapi.json`](contracts/statepool-plugin-v1.openapi.json)
-- Compose/Helm/KEDA/observability assets: [`deploy/statepool/README.md`](deploy/statepool/README.md)
-- current implementation audit: [`docs/STATEPOOL_CURRENT_STATE_AUDIT.md`](docs/STATEPOOL_CURRENT_STATE_AUDIT.md)
+The independently released
+[`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud) repository
+owns the cloud control plane, PostgreSQL/S3 backends, OpenAI/vLLM adapter,
+Compose/Helm/KEDA deployment, FinOps benchmarks and competition evidence.
+No cloud control-plane source or upstream inference engine is vendored here.
 
-The same Worker registry now accepts a separate, opt-in
-`rwkv-openai-worker` adapter for vLLM or another OpenAI-compatible server. This
-does **not** turn Transformer KV into RWKV State: RWKV reports
-`native_export`, while the adapter reports `affinity_only`, replays the
-transcript and uses same-Worker routing only as a cache hint. No vLLM source is
-vendored, forked or copied into this repository. See
-[`docs/OPENAI_WORKER_ADAPTER.md`](docs/OPENAI_WORKER_ADAPTER.md).
-
-PostgreSQL/S3 adapters, a cross-plugin-restart byte lifecycle, and an
-exact-compatible real-GPU forced Worker-process-loss restore have passed. The
-raw RTX 4080 evidence is under
-[`bench/artifacts/statepool-4080-worker-kill-20260827/`](bench/artifacts/statepool-4080-worker-kill-20260827/README.md).
-The Kubernetes/KEDA control plane has also completed a measured 0→1→3→0 kind
-cycle with three safe simulated-Worker preStop results; see
-[`bench/artifacts/statepool-keda-kind-20260827/`](bench/artifacts/statepool-keda-kind-20260827/README.md).
-That run performs no model inference. The project does not claim a GPU Pod
-cycle, production scaling SLO, or cross-model State migration.
-
-An explicitly labelled 100-Session A/B/C capacity replay combines the archived
-KEDA timing, one measured RTX 4080 State size and frozen contract-correctness
-runs. Under its published assumptions, StatePool uses 45.151% fewer modeled
-allocated GPU-hours than Sticky and avoids 51,200 repeated Prefill tokens versus
-Stateless; it is a simulation, not a live 100-Session GPU benchmark. See
-[`bench/artifacts/statepool-abc-replay-20260827/`](bench/artifacts/statepool-abc-replay-20260827/README.md).
+- client configuration: [`docs/STATEPOOL_CLOUD_PLUGIN.md`](docs/STATEPOOL_CLOUD_PLUGIN.md)
+- client schemas/OpenAPI: [`contracts/statepool-plugin-v1.openapi.json`](contracts/statepool-plugin-v1.openapi.json)
+- cloud product and deployment: [`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud)
 
 ## What you can verify
 
