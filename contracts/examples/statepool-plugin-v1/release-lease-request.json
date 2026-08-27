@@ -1,0 +1,13 @@
+{
+  "contract_version": "statepool-release-lease-request.v1",
+  "lease": {
+    "contract_version": "statepool-lease.v1",
+    "lease_id": "lease-assistant-001-10",
+    "session_id": "assistant-001",
+    "owner_id": "session:assistant-001",
+    "holder_id": "worker-v100-01/request-001",
+    "fencing_token": 10,
+    "expected_state_version": 42,
+    "expires_at_ms": 1787753079000
+  }
+}

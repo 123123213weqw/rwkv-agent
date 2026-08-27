@@ -16,6 +16,8 @@
 - [ARCHITECTURE.md](ARCHITECTURE.md): system layers and resource boundaries
 - [RWKV_AGENT.md](RWKV_AGENT.md): Agent, tools, state and HTTP behavior
 - [STATE_NATIVE_AGENT.md](STATE_NATIVE_AGENT.md): recurrent-state research design
+- [STATEPOOL_CLOUD_PLUGIN.md](STATEPOOL_CLOUD_PLUGIN.md): optional cloud plugin contract, compatibility and current limits
+- [statepool-cloud](https://github.com/123123213weqw/statepool-cloud): independent cloud control plane, deployment, adapters and evidence
 - [SCHEDULER.md](SCHEDULER.md): state pool and continuous batching
 - [AGENT_BENCHMARK.md](AGENT_BENCHMARK.md): fixed evaluation methodology
 - [AGENT_UNIFIED_REGRESSION.md](AGENT_UNIFIED_REGRESSION.md): 200-case regression

@@ -1,0 +1,6 @@
+{
+  "contract_version": "statepool-plugin.v1",
+  "plugin": "statepool-cloud",
+  "plugin_version": "0.1.0",
+  "capabilities": ["placement", "worker_registry", "state_lifecycle", "leases", "drain", "finops"]
+}

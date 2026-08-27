@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/plugin-v1.schema.json",
+  "title": "StatePool Cloud Plugin Host Contract v1",
+  "oneOf": [
+    { "$ref": "#/$defs/handshake_request" },
+    { "$ref": "#/$defs/handshake_response" },
+    { "$ref": "#/$defs/health_response" },
+    { "$ref": "#/$defs/error_response" }
+  ],
+  "$defs": {
+    "capability": {
+      "enum": [
+        "placement",
+        "worker_registry",
+        "state_lifecycle",
+        "remote_state",
+        "leases",
+        "drain",
+        "finops"
+      ]
+    },
+    "handshake_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "host", "host_version", "required_capabilities"],
+      "properties": {
+        "contract_version": { "const": "statepool-plugin.v1" },
+        "host": { "const": "rwkv-agent" },
+        "host_version": { "type": "string", "minLength": 1 },
+        "required_capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/capability" }
+        }
+      }
+    },
+    "handshake_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "plugin", "plugin_version", "capabilities"],
+      "properties": {
+        "contract_version": { "const": "statepool-plugin.v1" },
+        "plugin": { "const": "statepool-cloud" },
+        "plugin_version": { "type": "string", "minLength": 1 },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/capability" }
+        }
+      }
+    },
+    "health_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "status", "checked_at_ms"],
+      "properties": {
+        "contract_version": { "const": "statepool-plugin.v1" },
+        "status": { "enum": ["ready", "degraded", "unavailable"] },
+        "checked_at_ms": { "type": "integer", "minimum": 0 },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": { "enum": ["ready", "degraded", "unavailable", "disabled"] }
+        }
+      }
+    },
+    "error_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "status", "error"],
+      "properties": {
+        "contract_version": { "const": "statepool-plugin.v1" },
+        "status": { "const": "error" },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message", "retryable", "execution_state"],
+          "properties": {
+            "code": {
+              "enum": [
+                "invalid_request",
+                "contract_version",
+                "capability_missing",
+                "unavailable",
+                "no_compatible_worker",
+                "lease_conflict",
+                "stale_fencing_token",
+                "model_mismatch",
+                "checksum_failure",
+                "ambiguous_completion",
+                "internal"
+              ]
+            },
+            "message": { "type": "string", "minLength": 1 },
+            "retryable": { "type": "boolean" },
+            "execution_state": { "enum": ["not_started", "lease_acquired", "provider_sent", "committed", "unknown"] }
+          }
+        }
+      }
+    }
+  }
+}

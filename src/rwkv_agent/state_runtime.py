@@ -8,6 +8,7 @@ a group when the turn finishes.
 
 from __future__ import annotations
 
+import hashlib
 import threading
 import time
 from typing import Any, Callable, Sequence
@@ -15,6 +16,11 @@ from typing import Any, Callable, Sequence
 from rwkv_runtime.classification import finite_label_scores
 from rwkv_runtime.decode import append_greedy_token, decode_text_stops
 from rwkv_runtime.protocols import SchedulerProtocol, TokenizerProtocol
+from rwkv_runtime.state_snapshot import (
+    DEFAULT_MAX_SNAPSHOT_BYTES,
+    decode_state_snapshot,
+    encode_state_snapshot,
+)
 
 from .persistent_state import PersistentState, PersistentStateRegistry
 from .state_batching import StateContinuationItem
@@ -34,6 +40,7 @@ class PersistentStateRuntime:
         ttl_seconds: float = 120.0,
         clock: Callable[[], float] = time.monotonic,
         decode_engine: Any | None = None,
+        max_snapshot_bytes: int = DEFAULT_MAX_SNAPSHOT_BYTES,
     ) -> None:
         if context_limit < 1:
             raise ValueError("context_limit must be positive")
@@ -49,6 +56,9 @@ class PersistentStateRuntime:
         self.ttl_seconds = float(ttl_seconds)
         self._clock = clock
         self.decode_engine = decode_engine
+        self.max_snapshot_bytes = int(max_snapshot_bytes)
+        if self.max_snapshot_bytes < 1:
+            raise ValueError("max_snapshot_bytes must be positive")
         self.registry = PersistentStateRegistry(
             scheduler=scheduler,
             capacity=self.capacity,
@@ -65,6 +75,9 @@ class PersistentStateRuntime:
             "continued": 0,
             "classified": 0,
             "released": 0,
+            "snapshots": 0,
+            "restores": 0,
+            "snapshot_bytes": 0,
             "expired": 0,
             "failed": 0,
         }
@@ -201,6 +214,103 @@ class PersistentStateRuntime:
             if touch:
                 record.last_used_at = self._clock()
             return True
+
+    def snapshot(
+        self,
+        *,
+        owner_id: str,
+        state_id: str,
+    ) -> dict[str, Any]:
+        """Create a safe CPU snapshot while retaining the hot source State."""
+
+        owner = self.registry.clean_owner(owner_id)
+        with self._lock:
+            self._cleanup_expired_locked()
+            record = self.registry.require(state_id, owner)
+            self._ensure_available([record])
+            try:
+                manifest, tensors = self.scheduler.export_state(record.state_id)
+                manifest = {
+                    **manifest,
+                    "owner_id": owner,
+                    "source_state_id": record.state_id,
+                    "branch": record.branch,
+                    "parent_state_id": record.parent_state_id,
+                }
+                payload = encode_state_snapshot(manifest=manifest, tensors=tensors)
+                if len(payload) > self.max_snapshot_bytes:
+                    raise ValueError("snapshot exceeds configured byte limit")
+            except Exception:
+                self._metrics["failed"] += 1
+                raise
+            record.last_used_at = self._clock()
+            checksum = hashlib.sha256(payload).hexdigest()
+            self._metrics["snapshots"] += 1
+            self._metrics["snapshot_bytes"] += len(payload)
+            return {
+                "payload": payload,
+                "checksum": f"sha256:{checksum}",
+                "size_bytes": len(payload),
+                "seen_tokens": int(manifest["seen_tokens"]),
+                "branch": record.branch,
+            }
+
+    def restore(
+        self,
+        *,
+        owner_id: str,
+        payload: bytes,
+        branch: str | None = None,
+    ) -> dict[str, Any]:
+        """Restore an exact snapshot as a fresh owner-bound State identity."""
+
+        owner = self.registry.clean_owner(owner_id)
+        with self._lock:
+            self._cleanup_expired_locked()
+            self.registry.ensure_capacity(1)
+            try:
+                manifest, tensors = decode_state_snapshot(
+                    payload,
+                    max_bytes=self.max_snapshot_bytes,
+                )
+                if manifest.get("owner_id") != owner:
+                    raise PermissionError("snapshot owner mismatch")
+                source_state_id = str(manifest.get("source_state_id") or "")
+                if not source_state_id:
+                    raise ValueError("snapshot source_state_id is missing")
+                try:
+                    self.registry.require(source_state_id, owner)
+                except KeyError:
+                    pass
+                else:
+                    raise RuntimeError(
+                        "snapshot source remains live; release it before restore"
+                    )
+                state_id = self.registry.new_state_id()
+                self.scheduler.import_state(state_id, manifest, tensors)
+            except Exception:
+                self._metrics["failed"] += 1
+                raise
+            now = self._clock()
+            restored_branch = str(
+                branch if branch is not None else manifest.get("branch") or "restored"
+            )[:80]
+            record = PersistentState(
+                state_id=state_id,
+                owner_id=owner,
+                parent_state_id=None,
+                branch=restored_branch,
+                created_at=now,
+                last_used_at=now,
+            )
+            try:
+                self.registry.add(record)
+            except Exception:
+                self.scheduler.release(state_id)
+                raise
+            self._metrics["restores"] += 1
+            request = self.scheduler.request(state_id)
+            return self._describe(record, request.seen_tokens)
 
     def prefill(
         self,

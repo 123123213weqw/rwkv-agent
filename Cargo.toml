@@ -5,6 +5,7 @@ members = [
     "crates/agent-runtime",
     "crates/agent-server",
     "crates/state-runtime",
+    "crates/statepool-plugin-api",
 ]
 default-members = [
     "crates/agent-cli",
@@ -12,6 +13,7 @@ default-members = [
     "crates/agent-runtime",
     "crates/agent-server",
     "crates/state-runtime",
+    "crates/statepool-plugin-api",
 ]
 resolver = "3"
 
