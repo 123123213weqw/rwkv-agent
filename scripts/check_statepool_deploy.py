@@ -28,6 +28,7 @@ def main() -> int:
         "statepool",
         "statepool-cloud-lite",
         "agent",
+        "openai-worker",
         "prometheus",
         "grafana",
         "postgres",
@@ -43,6 +44,12 @@ def main() -> int:
     for name in ("statepool-cloud-lite", "postgres", "minio", "minio-init"):
         if "cloud-lite" not in services[name].get("profiles", []):
             raise AssertionError(f"{name} must remain behind the cloud-lite profile")
+    if "openai-worker" not in services["openai-worker"].get("profiles", []):
+        raise AssertionError("OpenAI-compatible adapter must remain opt-in")
+    if services["openai-worker"].get("build", {}).get("target") != (
+        "openai-worker-adapter"
+    ):
+        raise AssertionError("Compose must build the standalone adapter target")
 
     values = load_yaml(CHART / "values.yaml")
     if values["plugin"]["replicaCount"] != 1:
@@ -78,9 +85,17 @@ def main() -> int:
         "RWKV_WORKER_HEARTBEAT_SECONDS",
         "RWKV_WORKER_ENDPOINT",
         "POD_UID",
+        "RWKV_OPENAI_UPSTREAM_URL",
+        "affinity_only",
+        "rwkv_agent.statepool_drain",
     ):
         if marker not in worker:
             raise AssertionError(f"Worker lifecycle template missing {marker}")
+    openai_values = load_yaml(CHART / "values-openai-worker.yaml")
+    if openai_values["worker"]["protocol"] != "openai_compatible":
+        raise AssertionError("OpenAI Worker overlay must select openai_compatible")
+    if openai_values["worker"]["model"]["stateAbi"] != "context-replay.v1":
+        raise AssertionError("OpenAI Worker overlay must not claim a native State ABI")
     controller = (CHART / "templates" / "controller-deployment.yaml").read_text(
         encoding="utf-8"
     )
@@ -114,7 +129,13 @@ def main() -> int:
     dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()
     if not dockerignore or dockerignore[0] != "**":
         raise AssertionError("Docker context must default-deny repository files")
-    for required_path in ("!Cargo.toml", "!Cargo.lock", "!crates/**", "!web/**"):
+    for required_path in (
+        "!Cargo.toml",
+        "!Cargo.lock",
+        "!src/**",
+        "!crates/**",
+        "!web/**",
+    ):
         if required_path not in dockerignore:
             raise AssertionError(f"Docker build allowlist missing {required_path}")
 

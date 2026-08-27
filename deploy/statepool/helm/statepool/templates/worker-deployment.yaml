@@ -1,4 +1,7 @@
 {{- if .Values.worker.enabled }}
+{{- if and (eq .Values.worker.protocol "openai_compatible") (not .Values.worker.openaiCompatible.upstreamUrl) }}
+{{- fail "worker.openaiCompatible.upstreamUrl is required for protocol=openai_compatible" }}
+{{- end }}
 {{- if and .Values.autoscaling.enabled (lt (int .Values.worker.terminationGracePeriodSeconds) 20) }}
 {{- fail "worker.terminationGracePeriodSeconds must be at least 20 when autoscaling is enabled" }}
 {{- end }}
@@ -20,6 +23,7 @@ spec:
     metadata:
       annotations:
         checksum/statepool-worker-contract: "statepool-worker-capability.v1"
+        statepool.rwkv-agent.dev/state-mode: {{ ternary "affinity_only" "native_export" (eq .Values.worker.protocol "openai_compatible") | quote }}
         {{- with .Values.worker.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -48,6 +52,7 @@ spec:
               valueFrom: { fieldRef: { fieldPath: status.podIP } }
             - { name: RWKV_STATEPOOL_URL, value: "http://{{ include "rwkv-statepool.fullname" . }}:{{ .Values.plugin.port }}" }
             - { name: RWKV_WORKER_PORT, value: {{ .Values.worker.port | quote }} }
+            - { name: RWKV_OPENAI_WORKER_PORT, value: {{ .Values.worker.port | quote }} }
             - { name: RWKV_WORKER_ENDPOINT, value: "http://$(POD_IP):{{ .Values.worker.port }}" }
             - { name: RWKV_WORKER_ZONE, value: {{ .Values.worker.zone | quote }} }
             - { name: RWKV_WORKER_MODEL_ID, value: {{ .Values.worker.model.id | quote }} }
@@ -63,6 +68,24 @@ spec:
             - { name: RWKV_WORKER_DEVICE_MEMORY_BYTES, value: {{ .Values.worker.device.memoryBytes | quote }} }
             - { name: RWKV_WORKER_PRICE_CURRENCY, value: {{ .Values.worker.price.currency | quote }} }
             - { name: RWKV_WORKER_PRICE_PER_GPU_HOUR, value: {{ .Values.worker.price.perGpuHour | quote }} }
+            {{- if eq .Values.worker.protocol "openai_compatible" }}
+            - { name: RWKV_OPENAI_UPSTREAM_URL, value: {{ .Values.worker.openaiCompatible.upstreamUrl | quote }} }
+            - { name: RWKV_OPENAI_UPSTREAM_MODEL, value: {{ .Values.worker.openaiCompatible.upstreamModel | quote }} }
+            {{- with .Values.worker.openaiCompatible.upstreamApiKeySecret.name }}
+            - name: RWKV_OPENAI_UPSTREAM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ . | quote }}
+                  key: {{ $.Values.worker.openaiCompatible.upstreamApiKeySecret.key | quote }}
+            {{- end }}
+            {{- with .Values.worker.openaiCompatible.ingressApiKeySecret.name }}
+            - name: RWKV_OPENAI_WORKER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ . | quote }}
+                  key: {{ $.Values.worker.openaiCompatible.ingressApiKeySecret.key | quote }}
+            {{- end }}
+            {{- end }}
           ports:
             - name: inference
               containerPort: {{ .Values.worker.port }}
@@ -73,21 +96,31 @@ spec:
           livenessProbe:
             httpGet: { path: /live, port: inference }
             periodSeconds: 10
-          # The chosen Worker image must implement this adapter. It stops
-          # admission, waits for in-flight requests, snapshots every dirty
-          # State under a fenced Lease, heartbeats unpersisted_state_slots=0,
-          # then returns success. A timeout makes Pod termination fail loudly.
+          # Drain stops admission and waits for in-flight work. Native RWKV
+          # also waits for every dirty State to be fenced and snapshotted;
+          # affinity-only adapters own no portable State.
           lifecycle:
             preStop:
               exec:
                 command:
+                  {{- if eq .Values.worker.protocol "openai_compatible" }}
+                  - python
+                  - -m
+                  - rwkv_agent.statepool_drain
+                  - --worker-url=http://127.0.0.1:{{ .Values.worker.port }}
+                  {{- else }}
                   - /usr/local/bin/rwkv-statepool-drain
+                  {{- end }}
                   - --deadline-seconds={{ sub .Values.worker.terminationGracePeriodSeconds 10 }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities: { drop: ["ALL"] }
           resources:
+            {{- if eq .Values.worker.protocol "openai_compatible" }}
+            {{- toYaml .Values.worker.openaiCompatible.resources | nindent 12 }}
+            {{- else }}
             {{- toYaml .Values.worker.resources | nindent 12 }}
+            {{- end }}
       {{- with .Values.worker.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

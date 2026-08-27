@@ -26,6 +26,13 @@
     "running_requests": 2,
     "unpersisted_state_slots": 1
   },
+  "state_capability": {
+    "mode": "native_export",
+    "affinity": true,
+    "snapshot": true,
+    "restore": true,
+    "portable_across_workers": true
+  },
   "price": {
     "currency": "CNY",
     "per_gpu_hour": 2.8

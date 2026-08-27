@@ -49,6 +49,25 @@ Replace the example immutable model revision before enabling it. This profile
 enables the automatic Cold lifecycle, so each safe direct-chat turn commits
 through StatePool and releases its Worker-local State.
 
+The independent `openai-worker` profile builds only this repository's thin
+adapter and connects to an already-running vLLM/OpenAI-compatible server. It
+does not clone, fork or package vLLM:
+
+```bash
+export STATEPOOL_OPENAI_UPSTREAM_URL=http://host.docker.internal:8000
+export STATEPOOL_OPENAI_MODEL_REVISION=sha256:REPLACE_ME
+export STATEPOOL_OPENAI_TOKENIZER=REPLACE_WITH_IMMUTABLE_TOKENIZER_REVISION
+docker compose -f deploy/statepool/compose.yaml \
+  --profile openai-worker up -d statepool openai-worker
+```
+
+The example advertises `qwen3.5-9b-vllm` as a logical model and rewrites it to
+`Qwen/Qwen3.5-9B` upstream. Those names are a candidate profile, not live-model
+evidence. Replace the immutable revision/tokenizer placeholders and run the
+model/GPU evidence gate before calling it certified. This adapter reports
+`affinity_only`: transcript replay is mandatory and Transformer KV is never
+sent to StatePool.
+
 The opt-in `cloud-lite` profile starts a second plugin on port `8131` backed by
 PostgreSQL Lease/CAS metadata and a MinIO S3 bucket:
 
@@ -69,6 +88,17 @@ The Helm chart defaults to one LocalFS/in-memory plugin replica and no Worker:
 ```bash
 helm template demo deploy/statepool/helm/statepool
 ```
+
+Render the optional external-vLLM adapter overlay with:
+
+```bash
+helm template demo deploy/statepool/helm/statepool \
+  -f deploy/statepool/helm/statepool/values-openai-worker.yaml
+```
+
+The overlay is a CPU proxy/registration Pod; the upstream vLLM deployment
+owns its GPU lifecycle. Do not enable the chart's KEDA Worker scaler for this
+topology because scaling the proxy does not scale the external engine.
 
 For observability with Prometheus Operator/Grafana sidecar discovery:
 

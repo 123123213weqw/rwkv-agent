@@ -107,6 +107,48 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  openai-worker:
+    profiles: ["openai-worker"]
+    build:
+      context: ../..
+      dockerfile: deploy/statepool/Dockerfile
+      target: openai-worker-adapter
+    image: rwkv-openai-worker-adapter:0.3.0-beta.2-dev
+    environment:
+      RWKV_STATEPOOL_URL: http://statepool:8130
+      RWKV_WORKER_ID: openai-worker-01
+      RWKV_WORKER_ENDPOINT: http://openai-worker:8128
+      RWKV_WORKER_ZONE: cloud
+      RWKV_WORKER_MODEL_ID: ${STATEPOOL_OPENAI_MODEL_ID:-qwen3.5-9b-vllm}
+      RWKV_WORKER_MODEL_REVISION: ${STATEPOOL_OPENAI_MODEL_REVISION:-replace-with-immutable-model-revision}
+      RWKV_WORKER_TOKENIZER: ${STATEPOOL_OPENAI_TOKENIZER:-replace-with-immutable-tokenizer-revision}
+      RWKV_WORKER_STATE_ABI: context-replay.v1
+      RWKV_WORKER_STATE_SLOTS: ${STATEPOOL_OPENAI_MAX_BATCH:-16}
+      RWKV_WORKER_MAX_BATCH: ${STATEPOOL_OPENAI_MAX_BATCH:-16}
+      RWKV_WORKER_DEVICE_VENDOR: ${STATEPOOL_OPENAI_DEVICE_VENDOR:-NVIDIA}
+      RWKV_WORKER_DEVICE_MODEL: ${STATEPOOL_OPENAI_DEVICE_MODEL:-operator-managed-upstream}
+      RWKV_WORKER_DEVICE_RUNTIME: ${STATEPOOL_OPENAI_DEVICE_RUNTIME:-vLLM}
+      RWKV_OPENAI_UPSTREAM_URL: ${STATEPOOL_OPENAI_UPSTREAM_URL:-http://host.docker.internal:8000}
+      RWKV_OPENAI_UPSTREAM_MODEL: ${STATEPOOL_OPENAI_UPSTREAM_MODEL:-Qwen/Qwen3.5-9B}
+      RWKV_OPENAI_UPSTREAM_API_KEY: ${STATEPOOL_OPENAI_UPSTREAM_API_KEY:-}
+      RWKV_OPENAI_WORKER_API_KEY: ${STATEPOOL_OPENAI_WORKER_API_KEY:-}
+    ports:
+      - "8128:8128"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      statepool:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8128/ready', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+
   prometheus:
     image: prom/prometheus:v3.11.3
     command:

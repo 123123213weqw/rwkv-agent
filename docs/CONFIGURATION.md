@@ -71,6 +71,28 @@ than silently re-prefilling and executing the same Session locally.
 See [STATEPOOL_CLOUD_PLUGIN.md](STATEPOOL_CLOUD_PLUGIN.md) for the protocol and
 current implementation boundary.
 
+### Optional OpenAI-compatible Worker process
+
+`rwkv-openai-worker` reuses the `RWKV_STATEPOOL_URL` and `RWKV_WORKER_*`
+identity/capacity variables in [`.env.example`](../.env.example). Set
+`RWKV_WORKER_STATE_ABI=context-replay.v1`, then configure:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `RWKV_OPENAI_UPSTREAM_URL` | required | Existing vLLM/OpenAI-compatible base URL |
+| `RWKV_OPENAI_UPSTREAM_MODEL` | logical model ID | Model name sent to the upstream |
+| `RWKV_OPENAI_UPSTREAM_API_KEY` | unset | Upstream Bearer credential |
+| `RWKV_OPENAI_WORKER_API_KEY` | unset | Optional ingress Bearer credential |
+| `RWKV_OPENAI_WORKER_HOST` | `0.0.0.0` | Adapter listen host |
+| `RWKV_OPENAI_WORKER_PORT` | `8128` | Adapter listen port |
+| `RWKV_OPENAI_HEALTH_INTERVAL_SECONDS` | `5` | Upstream `/health` probe interval |
+| `RWKV_OPENAI_UPSTREAM_TIMEOUT_SECONDS` | `300` | Inference proxy timeout |
+| `RWKV_OPENAI_QUEUE_TIMEOUT_SECONDS` | `30` | Admission wait before HTTP 503 |
+| `RWKV_OPENAI_MAX_REQUEST_BYTES` | `16777216` | JSON body limit |
+
+The adapter reports `affinity_only`; no environment switch can promote it to
+`native_export`.
+
 Use [`.env.example`](../.env.example) as the source of truth. Never place API
 keys in JSON config or command-line arguments.
 

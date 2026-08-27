@@ -42,6 +42,14 @@ local routing path is unchanged.
 - Compose/Helm/KEDA/observability assets: [`deploy/statepool/README.md`](deploy/statepool/README.md)
 - current implementation audit: [`docs/STATEPOOL_CURRENT_STATE_AUDIT.md`](docs/STATEPOOL_CURRENT_STATE_AUDIT.md)
 
+The same Worker registry now accepts a separate, opt-in
+`rwkv-openai-worker` adapter for vLLM or another OpenAI-compatible server. This
+does **not** turn Transformer KV into RWKV State: RWKV reports
+`native_export`, while the adapter reports `affinity_only`, replays the
+transcript and uses same-Worker routing only as a cache hint. No vLLM source is
+vendored, forked or copied into this repository. See
+[`docs/OPENAI_WORKER_ADAPTER.md`](docs/OPENAI_WORKER_ADAPTER.md).
+
 PostgreSQL/S3 adapters, a cross-plugin-restart byte lifecycle, and an
 exact-compatible real-GPU forced Worker-process-loss restore have passed. The
 raw RTX 4080 evidence is under

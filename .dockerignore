@@ -3,5 +3,7 @@
 !Cargo.lock
 !crates/
 !crates/**
+!src/
+!src/**
 !web/
 !web/**

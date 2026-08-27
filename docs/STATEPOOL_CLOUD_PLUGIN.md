@@ -76,6 +76,19 @@ claim `safe_to_stop` until the Controller has committed each State under a
 fenced Lease and released it from the Worker. A deadline with remaining work
 returns `deadline_exceeded` instead of silently allowing dirty termination.
 
+Every Worker also declares one explicit State mode:
+
+| Mode | Same-Worker hint | Transcript replay | Raw snapshot/restore |
+|---|---:|---:|---:|
+| `replay_only` | no | yes | no |
+| `affinity_only` | yes | yes | no |
+| `native_export` | yes | no when exact State is available | yes |
+
+Omitting the new field retains the original v1 RWKV interpretation,
+`native_export`. This is a backward-compatibility default, not a rule that an
+arbitrary OpenAI-compatible Worker may rely on. Such adapters must report
+their mode explicitly.
+
 Then start the Agent server with a complete model identity:
 
 ```text
@@ -255,6 +268,32 @@ index is not yet reconstructed at startup. Exact Albatross GPU bytes have
 passed one S3 forced-Worker-process-loss experiment on an RTX 4080; see
 [`evidence/statepool/real-gpu-worker-kill-2026-08-27.md`](../evidence/statepool/real-gpu-worker-kill-2026-08-27.md).
 The HF recurrent backend still fails closed for exact snapshot/restore.
+
+## OpenAI-compatible/vLLM Worker adapter
+
+`rwkv-openai-worker` is a separate standard-library proxy and Worker agent. It
+can be placed in front of an already managed vLLM or another compatible
+upstream. It provides `/live`, `/ready`, `/health`, OpenAI `/v1/*` forwarding,
+StatePool heartbeat, capacity reporting and drain admission. It rewrites the
+logical registered model name to one configured upstream served-model name.
+
+The adapter always registers `affinity_only`: it returns
+`X-StatePool-Worker-Id`, and the next placement may supply that value as
+`affinity_worker_id`. StatePool will prefer it but still returns
+`transcript_reprefill` for a State reference and `lease_required=false`. Warm
+or Cold State restore is never selected for this Worker.
+
+The direct demonstration path is:
+
+```text
+StatePool plan -> selected adapter endpoint -> OpenAI chat completion
+```
+
+Run it with `scripts/statepool_openai_client.py`. This is currently independent
+of the native Agent Controller's recurrent Sidecar protocol; it adds a usable
+multi-model cloud route without changing the existing chat/tool pipeline.
+Cross-model handoff carries a transcript or future Context Capsule, never raw
+RWKV State or Transformer KV.
 
 ## Deliberate non-claims
 

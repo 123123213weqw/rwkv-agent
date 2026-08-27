@@ -24,6 +24,19 @@ components:
     integration: optional_adapter
     purpose: Optional Envoy gateway and inference-aware routing integration
     status: planned
+  - name: vLLM
+    repository: https://github.com/vllm-project/vllm
+    license: Apache-2.0
+    integration: external_openai_compatible_runtime
+    purpose: Broad Transformer model serving behind the optional affinity-only Worker adapter
+    status: adapter_conformance_verified_with_fake_upstream_real_runtime_pending
+  - name: Albatross
+    repository: https://github.com/BlinkDL/Albatross
+    license: Apache-2.0
+    integration: external_model_runtime
+    purpose: Optimized RWKV CUDA kernels and native recurrent State execution
+    version: faster3a_2607
+    status: rtx4080_process_loss_snapshot_restore_verified
   - name: HAMi
     repository: https://github.com/Project-HAMi/HAMi
     license: Apache-2.0
@@ -64,7 +77,7 @@ components:
     integration: separate_optional_service
     purpose: FinOps and State lifecycle dashboards
     version: 13.1.0
-    status: provisioned_dashboard_authored_not_runtime_verified
+    status: provisioned_dashboard_runtime_and_query_review_verified
   - name: NVIDIA DCGM Exporter
     repository: https://github.com/NVIDIA/dcgm-exporter
     license: Apache-2.0

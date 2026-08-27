@@ -67,6 +67,13 @@ changing the product identity:
 - upstream cloud-native projects: Kubernetes/KEDA/HAMi/AIBrix/Prometheus rather
   than in-repository replacements.
 
+Other models strengthen rather than dilute this story. An optional vLLM or
+OpenAI-compatible Worker handles broad Transformer/model coverage; it replays
+the transcript and uses only a same-Worker cache hint. RWKV remains the route
+with a bounded, portable recurrent State and therefore demonstrates the deeper
+scale-to-zero lifecycle. The product is one assistant control plane with
+different truthful State capabilities, not one invented inference engine.
+
 ## 5. Application and market wedge
 
 The initial wedge is not generic stateless chat. It is a workload with all four

@@ -1,0 +1,24 @@
+# Example overlay for an independently managed vLLM/OpenAI-compatible server.
+# The immutable model and tokenizer revisions remain operator-supplied gates.
+worker:
+  enabled: true
+  protocol: openai_compatible
+  image:
+    repository: ghcr.io/123123213weqw/rwkv-openai-worker-adapter
+    tag: 0.3.0-beta.2-dev
+  port: 8128
+  model:
+    id: qwen3.5-9b-vllm
+    revision: replace-with-immutable-model-revision
+    tokenizer: replace-with-immutable-tokenizer-revision
+    stateAbi: context-replay.v1
+  stateSlots: 16
+  maxBatch: 16
+  device:
+    vendor: NVIDIA
+    model: operator-managed-upstream
+    runtime: vLLM
+    memoryBytes: 0
+  openaiCompatible:
+    upstreamUrl: http://vllm.example.svc.cluster.local:8000
+    upstreamModel: Qwen/Qwen3.5-9B

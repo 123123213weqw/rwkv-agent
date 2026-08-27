@@ -11,6 +11,7 @@
 - [KNOWN_ISSUES.md](KNOWN_ISSUES.md): defects, limits and stable-release gates
 - [RELEASE.md](RELEASE.md): maintainer audit, clean-install and publish checklist
 - [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md): StatePool compatibility, claims and supply-chain release gate
+- [OPENAI_WORKER_ADAPTER.md](OPENAI_WORKER_ADAPTER.md): optional vLLM/OpenAI-compatible Worker, affinity and non-portable-State boundary
 
 ## Architecture and evaluation
 

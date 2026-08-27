@@ -39,6 +39,11 @@
           }
         },
         "preferred_zone": { "type": ["string", "null"], "enum": ["local", "edge", "cloud", null] },
+        "affinity_worker_id": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "Non-authoritative same-Worker cache hint; never a portable State or restore authorization."
+        },
         "state_ref": {
           "oneOf": [
             { "$ref": "state-reference-v1.schema.json" },

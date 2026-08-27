@@ -173,6 +173,90 @@ pub struct WorkerPrice {
     pub per_gpu_hour: f64,
 }
 
+/// Describes what a Worker can do with model-runtime state.
+///
+/// This is deliberately separate from API/model compatibility. An
+/// OpenAI-compatible backend can serve an exact `ModelRef` without exposing a
+/// portable KV/recurrent State representation.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StateCapabilityMode {
+    /// Re-send the transcript/context on every placement; do not prefer the
+    /// Worker that handled the previous request.
+    ReplayOnly,
+    /// Re-send the transcript/context, but prefer the same Worker so an
+    /// implementation-owned prefix cache may help. No raw State migration is
+    /// claimed.
+    AffinityOnly,
+    /// The Worker supports the versioned snapshot/restore lifecycle and raw
+    /// State can move between exact-compatible Workers.
+    #[default]
+    NativeExport,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StateCapability {
+    pub mode: StateCapabilityMode,
+    pub affinity: bool,
+    pub snapshot: bool,
+    pub restore: bool,
+    pub portable_across_workers: bool,
+}
+
+impl StateCapability {
+    pub const fn replay_only() -> Self {
+        Self {
+            mode: StateCapabilityMode::ReplayOnly,
+            affinity: false,
+            snapshot: false,
+            restore: false,
+            portable_across_workers: false,
+        }
+    }
+
+    pub const fn affinity_only() -> Self {
+        Self {
+            mode: StateCapabilityMode::AffinityOnly,
+            affinity: true,
+            snapshot: false,
+            restore: false,
+            portable_across_workers: false,
+        }
+    }
+
+    pub const fn native_export() -> Self {
+        Self {
+            mode: StateCapabilityMode::NativeExport,
+            affinity: true,
+            snapshot: true,
+            restore: true,
+            portable_across_workers: true,
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), ContractError> {
+        let canonical = match self.mode {
+            StateCapabilityMode::ReplayOnly => Self::replay_only(),
+            StateCapabilityMode::AffinityOnly => Self::affinity_only(),
+            StateCapabilityMode::NativeExport => Self::native_export(),
+        };
+        if *self != canonical {
+            return Err(ContractError::Invalid(
+                "state_capability flags must match its declared mode".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+impl Default for StateCapability {
+    fn default() -> Self {
+        // v1 Worker payloads predate the explicit field and were exclusively
+        // RWKV native-State Workers. Preserve their exact behavior.
+        Self::native_export()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct WorkerCapability {
     pub contract_version: String,
@@ -183,6 +267,10 @@ pub struct WorkerCapability {
     pub models: Vec<ModelRef>,
     pub device: WorkerDevice,
     pub capacity: WorkerCapacity,
+    /// Optional on the wire for backward compatibility with the original v1
+    /// RWKV-only contract. Missing means `native_export`.
+    #[serde(default)]
+    pub state_capability: StateCapability,
     #[serde(default)]
     pub price: Option<WorkerPrice>,
     #[serde(default)]
@@ -216,6 +304,7 @@ impl WorkerCapability {
         for model in &self.models {
             model.validate()?;
         }
+        self.state_capability.validate()?;
         Ok(())
     }
 
@@ -540,6 +629,11 @@ pub struct PlanRequest {
     pub max_cost: Option<Money>,
     #[serde(default)]
     pub preferred_zone: Option<WorkerZone>,
+    /// A non-authoritative affinity hint for runtimes whose cache is useful
+    /// only on the same Worker. It is not a raw State reference and never
+    /// authorizes snapshot/restore.
+    #[serde(default)]
+    pub affinity_worker_id: Option<String>,
     #[serde(default)]
     pub state_ref: Option<StateReference>,
     pub estimated_input_tokens: u64,
@@ -562,6 +656,15 @@ impl PlanRequest {
             ));
         }
         self.model_ref.validate()?;
+        if self
+            .affinity_worker_id
+            .as_ref()
+            .is_some_and(|value| value.trim().is_empty())
+        {
+            return Err(ContractError::Invalid(
+                "affinity_worker_id must not be empty when provided".into(),
+            ));
+        }
         if let Some(state_ref) = &self.state_ref {
             state_ref.validate()?;
             if state_ref.session_id != self.session_id || state_ref.owner_id != self.owner_id {
@@ -790,12 +893,45 @@ mod tests {
                 running_requests: 0,
                 unpersisted_state_slots: Some(0),
             },
+            state_capability: StateCapability::native_export(),
             price: None,
             labels: Default::default(),
             reported_at_ms: 1,
         };
         assert!(worker.supports(&model("a")));
         assert!(!worker.supports(&model("b")));
+    }
+
+    #[test]
+    fn legacy_worker_payload_defaults_to_native_export() {
+        let value = serde_json::json!({
+            "contract_version": WORKER_CAPABILITY_CONTRACT_VERSION,
+            "worker_id": "legacy-rwkv",
+            "zone": "cloud",
+            "endpoint": "http://worker",
+            "lifecycle": "ready",
+            "models": [model("a")],
+            "device": {"vendor":"nvidia","model":"v100","memory_bytes":32},
+            "capacity": {
+                "state_slots":8,
+                "free_state_slots":8,
+                "max_batch":8,
+                "queue_depth":0,
+                "running_requests":0,
+                "unpersisted_state_slots":0
+            },
+            "reported_at_ms":1
+        });
+        let worker: WorkerCapability = serde_json::from_value(value).unwrap();
+        assert_eq!(worker.state_capability, StateCapability::native_export());
+        worker.validate().unwrap();
+    }
+
+    #[test]
+    fn state_capability_rejects_incoherent_flags() {
+        let mut capability = StateCapability::affinity_only();
+        capability.portable_across_workers = true;
+        assert!(capability.validate().is_err());
     }
 
     #[test]

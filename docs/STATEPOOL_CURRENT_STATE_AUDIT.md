@@ -93,6 +93,14 @@ The v1 stateful inference contract remains unchanged. Cloud-specific location,
 version, lease and cost data are defined by separate StatePool plugin-v1
 contracts so existing consumers are not broken.
 
+The Worker capability now makes State semantics explicit without changing the
+contract version. Original RWKV payloads that omit the field retain
+`native_export`; new Workers choose `replay_only`, `affinity_only` or
+`native_export`. The standalone OpenAI-compatible adapter always emits
+`affinity_only`, so API/model support cannot be mistaken for raw KV
+portability. It is conformance-tested with a fake upstream; a live vLLM/model
+run is not yet claimed.
+
 ## Safe plugin seams
 
 The minimum-intrusion seams are:
@@ -132,8 +140,9 @@ The remaining gaps must be closed rather than hidden:
   proxy, selected-plan queue/cost estimates and actual Worker zone; production
   accelerator utilization and billing still require provider telemetry;
 - Worker drain is unit-, cross-process- and real-GPU preStop-tested, including
-  a rebuildable system root that does not mask dirty user State, but a live
-  Kubernetes/KEDA 0→1→N→0 cycle has not been exercised.
+  a rebuildable system root that does not mask dirty user State. A separate
+  kind/KEDA control-plane run completed 0→1→3→0 with three protocol-faithful
+  simulated Workers; it remains explicitly separate from the GPU evidence.
 
 The product must retain the documented transcript-reprefill fallback for
 incompatible or absent durable State. The measured migration claim is limited
@@ -160,8 +169,8 @@ they do not compile Rust.
 ## Integration decision
 
 The Cloud Plugin will be an optional, out-of-process service using a versioned
-HTTP/JSON contract. Kubernetes, KEDA, S3-compatible storage, PostgreSQL,
-Prometheus, Grafana, AIBrix and HAMi remain independently deployed systems.
+HTTP/JSON contract. Kubernetes, KEDA, S3-compatible storage, PostgreSQL, vLLM,
+Albatross, Prometheus, Grafana, AIBrix and HAMi remain independently deployed systems.
 Only adapters, deployment profiles, dashboards and a tested compatibility
 matrix enter this repository.
 

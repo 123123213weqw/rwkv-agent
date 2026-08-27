@@ -51,8 +51,9 @@ The plugin owns only:
 Kubernetes owns Pod/node placement. KEDA owns replica count. HAMi, when
 installed, owns GPU slicing and isolation. S3 owns checkpoint objects.
 PostgreSQL owns distributed metadata. Prometheus/Grafana own telemetry storage
-and visualization. AIBrix, when enabled, owns gateway concerns. None of these
-systems becomes a source copy inside `rwkv-agent`.
+and visualization. AIBrix, when enabled, owns gateway concerns. vLLM or another
+OpenAI-compatible upstream owns Transformer execution and its internal KV or
+prefix cache. None of these systems becomes a source copy inside `rwkv-agent`.
 
 ### Contract and compatibility
 
@@ -85,6 +86,16 @@ family similarity, parameter count or a shared tokenizer is not sufficient.
 When exact compatibility is unavailable, the plan must select
 `context_capsule` or `transcript_reprefill`. It must never label this fallback
 as raw-State migration.
+
+Workers declare one canonical capability:
+
+- `replay_only`: replay context and ignore same-Worker cache affinity;
+- `affinity_only`: replay context but prefer the last Worker as a cache hint;
+- `native_export`: exact-compatible snapshot/restore is available.
+
+API compatibility and model support do not imply `native_export`. The
+OpenAI-compatible adapter is fixed to `affinity_only`; its Worker hint does not
+create a State object, restore Lease or cross-Worker KV transfer.
 
 ### Single-writer consistency
 

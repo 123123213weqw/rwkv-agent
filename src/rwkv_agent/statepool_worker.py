@@ -23,6 +23,13 @@ from urllib.request import Request, urlopen
 
 WORKER_CONTRACT_VERSION = "statepool-worker-capability.v1"
 DRAIN_REQUEST_VERSION = "statepool-drain-request.v1"
+NATIVE_EXPORT_STATE_CAPABILITY = {
+    "mode": "native_export",
+    "affinity": True,
+    "snapshot": True,
+    "restore": True,
+    "portable_across_workers": True,
+}
 
 
 class WorkerConfigurationError(ValueError):
@@ -44,6 +51,9 @@ class WorkerSettings:
     device_model: str = "unknown"
     device_runtime: str = ""
     device_memory_bytes: int = 0
+    state_capability: dict[str, Any] = field(
+        default_factory=lambda: dict(NATIVE_EXPORT_STATE_CAPABILITY)
+    )
     price: dict[str, Any] | None = None
     labels: dict[str, str] = field(default_factory=dict)
 
@@ -162,17 +172,26 @@ class StatePoolWorkerAgent:
     def enabled(self) -> bool:
         return True
 
-    def start(self) -> None:
+    def start(self, *, ready: bool = True) -> None:
         with self._lock:
             if self._thread is not None:
                 return
-            self._lifecycle = "ready"
+            self._lifecycle = "ready" if ready else "starting"
             self._thread = threading.Thread(
                 target=self._run,
                 name="statepool-worker-heartbeat",
                 daemon=True,
             )
             self._thread.start()
+
+    def set_available(self, available: bool) -> None:
+        """Publish backend availability without overriding drain/offline state."""
+
+        with self._lock:
+            if self._lifecycle in {"draining", "offline"}:
+                return
+            self._lifecycle = "ready" if available else "starting"
+        self._wake.set()
 
     def heartbeat_once(self) -> dict[str, Any]:
         """Synchronously publish one capability update (tests/probes/preStop)."""
@@ -336,6 +355,10 @@ class StatePoolWorkerAgent:
                 # + Worker release makes it disappear.
                 "unpersisted_state_slots": unpersisted,
             },
+            # The native RWKV sidecar implements the versioned snapshot and
+            # restore protocol. Generic OpenAI-compatible adapters report a
+            # different mode and never inherit this claim.
+            "state_capability": dict(self.settings.state_capability),
             "price": self.settings.price,
             "labels": dict(self.settings.labels),
             "reported_at_ms": int(self._clock() * 1000),

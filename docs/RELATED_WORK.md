@@ -30,12 +30,18 @@ tokenizer and State ABI, plus checksum and version/fencing validation.
 |---|---|---|---|
 | [HAMi](https://github.com/Project-HAMi/HAMi) | heterogeneous accelerator sharing, isolation and device-aware Kubernetes placement | optional Worker resource annotations/profile | Session State location, exact State ABI, restore cost and dirty-State drain constraints |
 | [AIBrix](https://github.com/vllm-project/aibrix) | cloud-native GenAI gateway, autoscaling, multi-engine serving, routing and KV-oriented infrastructure | future optional gateway/route adapter | long-lived RWKV recurrent State ownership, Lease/fencing and Hot/Warm/Cold lifecycle |
+| [vLLM](https://github.com/vllm-project/vllm) | high-throughput OpenAI-compatible serving across its supported model families | implemented optional HTTP Worker adapter; engine remains an external deployment | exact StatePool model identity, local/edge/cloud placement, affinity hint and drain contract without claiming KV migration |
 | [KServe](https://kserve.github.io/website/) | standardized predictive/generative model serving, rollout/routing and scale-to-zero | future optional `InferenceService`/gateway profile | State-safe scale-down and restore semantics for a personal Agent Session |
 | [KEDA](https://keda.sh/docs/2.20/concepts/scaling-deployments/) | generic event-driven 0↔1 and HPA-backed 1↔N scaling | Prometheus scaler over StatePool metrics | State-aware demand/backlog metrics and a drain gate; KEDA remains the scaler |
 | Prometheus/Grafana | time-series storage, PromQL and visualization | scrape endpoint and provisioned dashboard | domain metrics: State tier events, restoration, avoided Prefill, GPU seconds and estimated cost |
 | PostgreSQL/S3 | durable transactions and immutable object storage | implemented MetadataStore/StateStore adapters | schema, CAS/fencing rules, exact compatibility and lifecycle policy |
 | Sticky Worker baseline | simplest State reuse with no transfer | benchmark baseline A | ability to release an idle Worker after a safe snapshot |
 | Stateless re-prefill baseline | any compatible Worker can serve from transcript | benchmark baseline B and incompatibility fallback | avoid repeated Prefill while retaining Worker elasticity |
+
+The Worker contract explicitly distinguishes `replay_only`, `affinity_only`
+and `native_export`. vLLM is integrated as `affinity_only`; the same-Worker
+hint may help an engine-owned prefix cache, but StatePool still requests
+transcript replay and never calls the recurrent State restore lifecycle.
 
 HAMi became a CNCF Incubating project in July 2026
 ([CNCF project page](https://www.cncf.io/projects/hami/)). That validates the
@@ -79,6 +85,7 @@ privacy-aware placement.
 |---|---|
 | Optional process boundary, default local behavior unchanged | implemented and regression-tested |
 | Worker registry and explainable placement | implemented in the development plugin |
+| OpenAI-compatible/vLLM Worker adapter | protocol conformance implemented and tested with a fake upstream; live vLLM/model/GPU evidence pending |
 | Single-process Lease/fencing/CAS | implemented and remotely tested |
 | Atomic LocalFS snapshot/restore of generic State bytes | implemented and remotely tested |
 | Compose, Helm, KEDA, ServiceMonitor and dashboard configuration | authored and statically validated |

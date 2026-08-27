@@ -312,6 +312,7 @@ impl CloudPluginClient {
                 .unwrap_or(u64::MAX),
             max_cost: None,
             preferred_zone: self.config.preferred_zone.clone(),
+            affinity_worker_id: None,
             state_ref,
             estimated_input_tokens,
             estimated_output_tokens,

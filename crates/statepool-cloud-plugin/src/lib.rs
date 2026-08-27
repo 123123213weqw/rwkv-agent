@@ -25,8 +25,9 @@ use rwkv_statepool_plugin_api::{
     AcquireLeaseRequest, EXECUTION_PLAN_CONTRACT_VERSION, ExecutionPlan, HandshakeRequest,
     HandshakeResponse, Lease, Money, PLUGIN_CONTRACT_VERSION, PlanRequest, PrivacyClass,
     RESTORE_RESPONSE_CONTRACT_VERSION, ReleaseLeaseRequest, RenewLeaseRequest, RestoreStateRequest,
-    RestoreStateResponse, STATE_REFERENCE_CONTRACT_VERSION, SnapshotStateRequest, StateReference,
-    UsageRecord, WorkerCapability, WorkerLifecycle, WorkerZone,
+    RestoreStateResponse, STATE_REFERENCE_CONTRACT_VERSION, SnapshotStateRequest,
+    StateCapabilityMode, StateReference, UsageRecord, WorkerCapability, WorkerLifecycle,
+    WorkerZone,
 };
 use serde_json::{Value, json};
 use tokio::sync::RwLock;
@@ -779,6 +780,10 @@ async fn plan(
         |value| Some(value.saturating_sub(estimated_decode_ms)),
     );
     let (state_action, restore_ms, affinity) = state_action(worker, &request);
+    let lease_required = matches!(
+        state_action.as_str(),
+        "reuse_hot" | "restore_warm" | "restore_cold"
+    );
     match state_action.as_str() {
         "reuse_hot" => state.metrics.hot_state_hits.fetch_add(1, Ordering::Relaxed),
         "restore_warm" => state
@@ -845,7 +850,7 @@ async fn plan(
         endpoint: Some(worker.endpoint.clone()),
         state_action,
         reason_code: reason_code.into(),
-        lease_required: request.state_ref.is_some(),
+        lease_required,
         estimated_queue_ms: Some(worker.capacity.queue_depth as f64 * 1000.0),
         estimated_restore_ms: restore_ms,
         estimated_cost,
@@ -1014,11 +1019,7 @@ fn stale(worker: &WorkerCapability, state: &PluginState) -> bool {
 }
 
 fn score(worker: &WorkerCapability, request: &PlanRequest) -> f64 {
-    let affinity = request
-        .state_ref
-        .as_ref()
-        .and_then(|state| state.worker_id.as_deref())
-        == Some(worker.worker_id.as_str());
+    let affinity = has_worker_affinity(worker, request);
     let affinity_penalty = if affinity { 0.0 } else { 10_000.0 };
     let zone_penalty = if request.preferred_zone.as_ref() == Some(&worker.zone) {
         0.0
@@ -1036,11 +1037,24 @@ fn score(worker: &WorkerCapability, request: &PlanRequest) -> f64 {
 }
 
 fn state_action(worker: &WorkerCapability, request: &PlanRequest) -> (String, Option<f64>, bool) {
+    let affinity = has_worker_affinity(worker, request);
     let Some(state) = &request.state_ref else {
-        return ("none".into(), Some(0.0), false);
+        return ("none".into(), Some(0.0), affinity);
     };
     if !state.exact_restore_compatible(&request.model_ref) {
         return ("transcript_reprefill".into(), None, false);
+    }
+    match worker.state_capability.mode {
+        StateCapabilityMode::ReplayOnly => {
+            return ("transcript_reprefill".into(), None, false);
+        }
+        StateCapabilityMode::AffinityOnly => {
+            // Same-Worker placement can benefit an upstream-owned prefix
+            // cache, but the caller still replays the transcript. Never label
+            // this as raw State reuse and never acquire a restore Lease.
+            return ("transcript_reprefill".into(), None, affinity);
+        }
+        StateCapabilityMode::NativeExport => {}
     }
     match state.placement {
         rwkv_statepool_plugin_api::StatePlacement::Hot
@@ -1058,6 +1072,15 @@ fn state_action(worker: &WorkerCapability, request: &PlanRequest) -> (String, Op
         }
         _ => ("transcript_reprefill".into(), None, false),
     }
+}
+
+fn has_worker_affinity(worker: &WorkerCapability, request: &PlanRequest) -> bool {
+    worker.state_capability.affinity
+        && (request.affinity_worker_id.as_deref() == Some(worker.worker_id.as_str())
+            || request.state_ref.as_ref().is_some_and(|state| {
+                state.placement == rwkv_statepool_plugin_api::StatePlacement::Hot
+                    && state.worker_id.as_deref() == Some(worker.worker_id.as_str())
+            }))
 }
 
 fn estimate_cost(worker: &WorkerCapability, request: &PlanRequest) -> Option<Money> {
@@ -1168,6 +1191,7 @@ mod tests {
                 running_requests: 0,
                 unpersisted_state_slots: Some(0),
             },
+            state_capability: rwkv_statepool_plugin_api::StateCapability::native_export(),
             price: Some(WorkerPrice {
                 currency: "CNY".into(),
                 per_gpu_hour: 2.8,
@@ -1175,6 +1199,109 @@ mod tests {
             labels: Default::default(),
             reported_at_ms: now_ms(),
         }
+    }
+
+    fn state_ref(placement: rwkv_statepool_plugin_api::StatePlacement) -> StateReference {
+        StateReference {
+            contract_version: STATE_REFERENCE_CONTRACT_VERSION.into(),
+            state_id: "state".into(),
+            session_id: "session".into(),
+            owner_id: "owner".into(),
+            version: 1,
+            fencing_token: Some(1),
+            provider_mode: "test".into(),
+            model_ref: model(),
+            placement,
+            worker_id: Some("cloud-worker".into()),
+            object_uri: None,
+            checksum: format!("sha256:{}", "0".repeat(64)),
+            size_bytes: 1_000_000,
+            atomic: true,
+            created_at_ms: 1,
+            last_active_at_ms: 1,
+            encryption: None,
+        }
+    }
+
+    fn plan_request(state_ref: StateReference) -> PlanRequest {
+        PlanRequest {
+            contract_version: PLAN_REQUEST_CONTRACT_VERSION.into(),
+            request_id: "request".into(),
+            session_id: "session".into(),
+            owner_id: "owner".into(),
+            model_ref: model(),
+            privacy: PrivacyClass::CloudAllowed,
+            latency_slo_ms: 5_000,
+            max_cost: None,
+            preferred_zone: None,
+            affinity_worker_id: None,
+            state_ref: Some(state_ref),
+            estimated_input_tokens: 128,
+            estimated_output_tokens: 64,
+        }
+    }
+
+    #[test]
+    fn state_capability_modes_never_overclaim_portable_state() {
+        let mut candidate = worker(WorkerZone::Cloud);
+        let hot = plan_request(state_ref(rwkv_statepool_plugin_api::StatePlacement::Hot));
+
+        candidate.state_capability = rwkv_statepool_plugin_api::StateCapability::native_export();
+        assert_eq!(
+            state_action(&candidate, &hot),
+            ("reuse_hot".into(), Some(0.0), true)
+        );
+
+        candidate.state_capability = rwkv_statepool_plugin_api::StateCapability::affinity_only();
+        assert_eq!(
+            state_action(&candidate, &hot),
+            ("transcript_reprefill".into(), None, true)
+        );
+
+        candidate.state_capability = rwkv_statepool_plugin_api::StateCapability::replay_only();
+        assert_eq!(
+            state_action(&candidate, &hot),
+            ("transcript_reprefill".into(), None, false)
+        );
+    }
+
+    #[test]
+    fn only_native_export_restores_warm_state() {
+        let mut candidate = worker(WorkerZone::Cloud);
+        let warm = plan_request(state_ref(rwkv_statepool_plugin_api::StatePlacement::Warm));
+        assert_eq!(state_action(&candidate, &warm).0, "restore_warm");
+
+        candidate.state_capability = rwkv_statepool_plugin_api::StateCapability::affinity_only();
+        assert_eq!(
+            state_action(&candidate, &warm),
+            ("transcript_reprefill".into(), None, false)
+        );
+    }
+
+    #[test]
+    fn affinity_hint_works_without_fabricating_a_state_reference() {
+        let mut candidate = worker(WorkerZone::Cloud);
+        candidate.state_capability = rwkv_statepool_plugin_api::StateCapability::affinity_only();
+        let request = PlanRequest {
+            contract_version: PLAN_REQUEST_CONTRACT_VERSION.into(),
+            request_id: "request".into(),
+            session_id: "session".into(),
+            owner_id: "owner".into(),
+            model_ref: model(),
+            privacy: PrivacyClass::CloudAllowed,
+            latency_slo_ms: 5_000,
+            max_cost: None,
+            preferred_zone: None,
+            affinity_worker_id: Some("cloud-worker".into()),
+            state_ref: None,
+            estimated_input_tokens: 128,
+            estimated_output_tokens: 64,
+        };
+        assert_eq!(
+            state_action(&candidate, &request),
+            ("none".into(), Some(0.0), true)
+        );
+        assert!(score(&candidate, &request) < 10_000.0);
     }
 
     fn test_config(name: &str) -> PluginConfig {
@@ -1284,6 +1411,43 @@ mod tests {
         assert_eq!(status, StatusCode::OK);
         assert_eq!(body["mode"], "remote");
         assert_eq!(body["worker_id"], "cloud-worker");
+    }
+
+    #[tokio::test]
+    async fn affinity_only_plan_replays_context_without_a_restore_lease() {
+        let state = PluginState::new(PluginConfig::default()).unwrap();
+        let mut affinity_worker = worker(WorkerZone::Cloud);
+        affinity_worker.state_capability =
+            rwkv_statepool_plugin_api::StateCapability::affinity_only();
+        state
+            .workers
+            .write()
+            .await
+            .insert("cloud-worker".into(), affinity_worker);
+        let app = router(state);
+        let (status, body) = json_request(
+            app,
+            "/plugin/v1/plan",
+            json!({
+                "contract_version":PLAN_REQUEST_CONTRACT_VERSION,
+                "request_id":"request",
+                "session_id":"session",
+                "owner_id":"owner",
+                "model_ref":model(),
+                "privacy":"cloud_allowed",
+                "latency_slo_ms":5000,
+                "affinity_worker_id":"cloud-worker",
+                "state_ref":state_ref(rwkv_statepool_plugin_api::StatePlacement::Hot),
+                "estimated_input_tokens":128,
+                "estimated_output_tokens":64
+            }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(body["worker_id"], "cloud-worker");
+        assert_eq!(body["reason_code"], "state_affinity");
+        assert_eq!(body["state_action"], "transcript_reprefill");
+        assert_eq!(body["lease_required"], false);
     }
 
     #[tokio::test]

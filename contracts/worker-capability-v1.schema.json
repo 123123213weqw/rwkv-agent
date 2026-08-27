@@ -50,6 +50,47 @@
         "unpersisted_state_slots": { "type": ["integer", "null"], "minimum": 0 }
       }
     },
+    "state_capability": {
+      "description": "Model-runtime State semantics. Optional for backward compatibility; omitted v1 RWKV Workers mean native_export.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "affinity", "snapshot", "restore", "portable_across_workers"],
+          "properties": {
+            "mode": { "const": "replay_only" },
+            "affinity": { "const": false },
+            "snapshot": { "const": false },
+            "restore": { "const": false },
+            "portable_across_workers": { "const": false }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "affinity", "snapshot", "restore", "portable_across_workers"],
+          "properties": {
+            "mode": { "const": "affinity_only" },
+            "affinity": { "const": true },
+            "snapshot": { "const": false },
+            "restore": { "const": false },
+            "portable_across_workers": { "const": false }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "affinity", "snapshot", "restore", "portable_across_workers"],
+          "properties": {
+            "mode": { "const": "native_export" },
+            "affinity": { "const": true },
+            "snapshot": { "const": true },
+            "restore": { "const": true },
+            "portable_across_workers": { "const": true }
+          }
+        }
+      ]
+    },
     "price": {
       "type": ["object", "null"],
       "additionalProperties": false,

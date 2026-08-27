@@ -71,6 +71,9 @@ controller:
 # until it is packaged together with the selected model runtime and weights.
 worker:
   enabled: false
+  # rwkv_native preserves portable recurrent State. openai_compatible uses
+  # transcript replay plus a same-Worker affinity hint; it never migrates KV.
+  protocol: rwkv_native
   replicaCount: 1
   image:
     repository: replace.example/rwkv-statepool-worker
@@ -108,6 +111,14 @@ worker:
   tolerations: []
   affinity: {}
   terminationGracePeriodSeconds: 180
+  openaiCompatible:
+    upstreamUrl: ""
+    upstreamModel: ""
+    upstreamApiKeySecret: { name: "", key: api-key }
+    ingressApiKeySecret: { name: "", key: api-key }
+    resources:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits: { cpu: "1", memory: 512Mi }
 
 autoscaling:
   enabled: false

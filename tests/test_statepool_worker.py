@@ -90,6 +90,13 @@ def test_capability_reports_real_load_and_conservative_dirty_states() -> None:
     capability = agent.capability()
     assert capability["models"] == [MODEL_REF]
     assert capability["device"]["model"] == "V100"
+    assert capability["state_capability"] == {
+        "mode": "native_export",
+        "affinity": True,
+        "snapshot": True,
+        "restore": True,
+        "portable_across_workers": True,
+    }
     assert capability["capacity"] == {
         "state_slots": 8,
         "free_state_slots": 6,
