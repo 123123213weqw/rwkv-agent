@@ -1,0 +1,5 @@
+date=2026-08-27T00:42:21Z
+host=wangyues-MacBook-Air.local
+python=Python 3.12.13
+uv=uv 0.11.32 (3010295ae 2026-07-23 aarch64-apple-darwin)
+docker=Docker version 29.3.1, build c2be9cc

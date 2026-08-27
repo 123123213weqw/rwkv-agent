@@ -83,6 +83,7 @@
 | HAMi | GPU sharing | State dirty/drain/restore cost |
 | KEDA | 副本数 | pending/decode State metrics |
 | AIBrix/KServe | gateway/serving | recurrent State ownership |
+| vLLM | 广泛模型推理 | affinity-only Worker 契约；不谎称 KV 迁移 |
 | PostgreSQL/S3 | 事务/对象 | fencing/CAS/ABI rules |
 
 页脚：无 vendoring，无必须维护的上游 Fork。
@@ -91,7 +92,8 @@
 
 - MIT、SBOM、第三方 license、ADR、Schema/OpenAPI、Issue/PR、兼容矩阵
 - 已完成：真实 GPU process recovery + KEDA control plane + Cloud Lite
-- 下一门：发布 GPU Worker image，完成一个拓扑内的 GPU Pod 和 live A/B/C
+- 已完成：OpenAI-compatible Adapter 协议闭环，可接现成 vLLM
+- 下一门：固定 vLLM/模型 revision 做真实 GPU 认证，并完成一个拓扑内的 GPU Pod 和 live A/B/C
 - 收尾：**State 长期属于用户，GPU 只在需要时出现。**
 
 ## 视觉规则

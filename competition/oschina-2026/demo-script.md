@@ -71,9 +71,13 @@ State I/O、Lease conflict、分币种 estimated cost。
 
 ## 7:15–8:00：为什么不是拼装
 
-HAMi 管 GPU，KEDA 管副本，AIBrix/KServe 管通用 serving，S3/PostgreSQL 管
-存储；本项目不 Fork 它们。本项目贡献的是长期 Agent State 的 ABI、Lease、
-Lifecycle、Placement 和 benchmark。
+HAMi 管 GPU，KEDA 管副本，AIBrix/KServe 管通用 serving，vLLM 管广泛模型
+推理，S3/PostgreSQL 管存储；本项目不 Fork 它们。本项目贡献的是长期 Agent
+State 的 ABI、Lease、Lifecycle、Placement 和 benchmark。
+
+可选展示 20 秒：同一 Registry 中 RWKV Worker 为 `native_export`，OpenAI
+Adapter 为 `affinity_only`。两者都能被 Placement，但后者明确 replay
+Transcript 且 `lease_required=false`，证明“多模型支持”没有偷换成 KV 迁移。
 
 收尾：**未来不是每人常驻一张卡，而是每人拥有一个可恢复、可迁移、可计费的
 AI State。**

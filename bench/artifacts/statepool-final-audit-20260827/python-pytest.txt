@@ -1,0 +1,53 @@
+..................................................................... [  8%]
+............................................. [ 14%]
+........................................................................ [ 23%]
+........................................................................ [ 32%]
+................................s..s.................................... [ 41%]
+........................................................................ [ 50%]
+........................................................................ [ 60%]
+................................................................. [ 68%]
+.........................s.....ss....ss................................. [ 77%]
+.................................................................................................................................................................s................                        [100%]
+=============================== warnings summary ===============================
+src/rwkv_agent/sidecar.py:567
+tests/test_state_runtime.py::PersistentStateRuntimeTests::test_sidecar_snapshot_restore_transport_enforces_identity
+  /Users/wangyue/Documents/vllmsp/rwkv-agent/src/rwkv_agent/sidecar.py:567: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4675
+.venv/lib/python3.12/site-packages/fastapi/applications.py:4675
+tests/test_state_runtime.py::PersistentStateRuntimeTests::test_sidecar_snapshot_restore_transport_enforces_identity
+tests/test_state_runtime.py::PersistentStateRuntimeTests::test_sidecar_snapshot_restore_transport_enforces_identity
+  /Users/wangyue/Documents/vllmsp/rwkv-agent/.venv/lib/python3.12/site-packages/fastapi/applications.py:4675: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+src/rwkv_agent/sidecar.py:576
+tests/test_state_runtime.py::PersistentStateRuntimeTests::test_sidecar_snapshot_restore_transport_enforces_identity
+  /Users/wangyue/Documents/vllmsp/rwkv-agent/src/rwkv_agent/sidecar.py:576: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+
+tests/test_realtime_search.py::RealtimeSearchTests::test_force_ipv4_configures_the_shared_aiohttp_connector
+  /Users/wangyue/Documents/vllmsp/rwkv-agent/.venv/lib/python3.12/site-packages/aiohttp/connector.py:988: DeprecationWarning: enable_cleanup_closed ignored because https://github.com/python/cpython/pull/118960 is fixed in Python version sys.version_info(major=3, minor=12, micro=13, releaselevel='final', serial=0)
+    super().__init__(
+
+tests/test_state_runtime.py::PersistentStateRuntimeTests::test_sidecar_snapshot_restore_transport_enforces_identity
+  /Users/wangyue/Documents/vllmsp/rwkv-agent/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+781 passed, 8 skipped, 10 warnings, 52 subtests passed in 12.17s

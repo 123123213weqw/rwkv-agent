@@ -1,0 +1,243 @@
+---
+# Source: rwkv-statepool/templates/plugin-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo-rwkv-statepool-state
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+# Source: rwkv-statepool/templates/plugin-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-rwkv-statepool
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: statepool-plugin
+spec:
+  selector:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/component: statepool-plugin
+  ports:
+    - name: http
+      port: 8130
+      targetPort: http
+---
+# Source: rwkv-statepool/templates/worker-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-rwkv-statepool-worker
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: inference-worker
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/component: inference-worker
+  ports:
+    - name: inference
+      port: 8128
+      targetPort: inference
+---
+# Source: rwkv-statepool/templates/plugin-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-rwkv-statepool
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: statepool-plugin
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rwkv-statepool
+      app.kubernetes.io/instance: demo
+      app.kubernetes.io/component: statepool-plugin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rwkv-statepool
+        app.kubernetes.io/instance: demo
+        app.kubernetes.io/component: statepool-plugin
+    spec:
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: statepool-plugin
+          image: "ghcr.io/123123213weqw/rwkv-statepool-cloud-plugin:0.3.0-beta.2-dev"
+          imagePullPolicy: IfNotPresent
+          args:
+            - --host=0.0.0.0
+            - --port=8130
+            - --worker-ttl-seconds=30
+            - --lease-max-ttl-seconds=120
+            - --max-state-bytes=536870912
+            - --state-dir=/var/lib/statepool/states
+          ports:
+            - name: http
+              containerPort: 8130
+          readinessProbe:
+            httpGet: { path: /plugin/v1/health, port: http }
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet: { path: /live, port: http }
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: state
+              mountPath: /var/lib/statepool/states
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: state
+          persistentVolumeClaim:
+            claimName: demo-rwkv-statepool-state
+        - name: tmp
+          emptyDir: {}
+---
+# Source: rwkv-statepool/templates/worker-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-rwkv-statepool-worker
+  labels:
+    app.kubernetes.io/name: rwkv-statepool
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "0.3.0-beta.2"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: inference-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rwkv-statepool
+      app.kubernetes.io/instance: demo
+      app.kubernetes.io/component: inference-worker
+  template:
+    metadata:
+      annotations:
+        checksum/statepool-worker-contract: "statepool-worker-capability.v1"
+        statepool.rwkv-agent.dev/state-mode: "affinity_only"
+      labels:
+        app.kubernetes.io/name: rwkv-statepool
+        app.kubernetes.io/instance: demo
+        app.kubernetes.io/component: inference-worker
+    spec:
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 180
+      containers:
+        - name: worker
+          image: "ghcr.io/123123213weqw/rwkv-openai-worker-adapter:0.3.0-beta.2-dev"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POD_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            - name: POD_UID
+              valueFrom: { fieldRef: { fieldPath: metadata.uid } }
+            - name: POD_NAMESPACE
+              valueFrom: { fieldRef: { fieldPath: metadata.namespace } }
+            - name: NODE_NAME
+              valueFrom: { fieldRef: { fieldPath: spec.nodeName } }
+            - name: POD_IP
+              valueFrom: { fieldRef: { fieldPath: status.podIP } }
+            - { name: RWKV_STATEPOOL_URL, value: "http://demo-rwkv-statepool:8130" }
+            - { name: RWKV_WORKER_PORT, value: "8128" }
+            - { name: RWKV_OPENAI_WORKER_PORT, value: "8128" }
+            - { name: RWKV_WORKER_ENDPOINT, value: "http://$(POD_IP):8128" }
+            - { name: RWKV_WORKER_ZONE, value: "cloud" }
+            - { name: RWKV_WORKER_MODEL_ID, value: "qwen3.5-9b-vllm" }
+            - { name: RWKV_WORKER_MODEL_REVISION, value: "replace-with-immutable-model-revision" }
+            - { name: RWKV_WORKER_TOKENIZER, value: "replace-with-immutable-tokenizer-revision" }
+            - { name: RWKV_WORKER_STATE_ABI, value: "context-replay.v1" }
+            - { name: RWKV_WORKER_STATE_SLOTS, value: "16" }
+            - { name: RWKV_WORKER_MAX_BATCH, value: "16" }
+            - { name: RWKV_WORKER_HEARTBEAT_SECONDS, value: "5" }
+            - { name: RWKV_WORKER_DEVICE_VENDOR, value: "NVIDIA" }
+            - { name: RWKV_WORKER_DEVICE_MODEL, value: "operator-managed-upstream" }
+            - { name: RWKV_WORKER_DEVICE_RUNTIME, value: "vLLM" }
+            - { name: RWKV_WORKER_DEVICE_MEMORY_BYTES, value: "0" }
+            - { name: RWKV_WORKER_PRICE_CURRENCY, value: "CNY" }
+            - { name: RWKV_WORKER_PRICE_PER_GPU_HOUR, value: "2.8" }
+            - { name: RWKV_OPENAI_UPSTREAM_URL, value: "http://vllm.example.svc.cluster.local:8000" }
+            - { name: RWKV_OPENAI_UPSTREAM_MODEL, value: "Qwen/Qwen3.5-9B" }
+          ports:
+            - name: inference
+              containerPort: 8128
+          readinessProbe:
+            httpGet: { path: /ready, port: inference }
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet: { path: /live, port: inference }
+            periodSeconds: 10
+          # Drain stops admission and waits for in-flight work. Native RWKV
+          # also waits for every dirty State to be fenced and snapshotted;
+          # affinity-only adapters own no portable State.
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - python
+                  - -m
+                  - rwkv_agent.statepool_drain
+                  - --worker-url=http://127.0.0.1:8128
+                  - --deadline-seconds=170
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

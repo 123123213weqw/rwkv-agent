@@ -1,0 +1,5 @@
+audited_source_commit=c6af47d25fb50abbdc387e9fcc1d97fdd57f04ae
+tracked_worktree_diff=clean
+index=clean
+untracked_evidence=bench/artifacts/statepool-final-audit-20260827/
+The untracked audit directory was created after the audited source commit.

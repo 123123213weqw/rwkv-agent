@@ -37,6 +37,12 @@ StatePool 只允许 `model_id + immutable revision + tokenizer + state_abi`
 完全相同时迁移原始 State；不兼容时必须显式走 Context Capsule 或
 Transcript re-prefill。
 
+Worker 同时声明 `replay_only`、`affinity_only` 或 `native_export`。因此可以
+通过薄 Adapter 使用现成 vLLM/OpenAI-compatible 上游，而不把“API 能调用”
+错误升级成“KV 可以跨 Worker 迁移”。当前 Adapter 固定为 `affinity_only`：
+保留 Transcript replay，只把上一 Worker 当 cache hint；RWKV 才进入精确
+Snapshot/Restore 路径。
+
 ## 2. 用户场景与市场切口
 
 最适合的场景同时满足四个条件：同一用户反复返回、历史计算值得保留、流量有

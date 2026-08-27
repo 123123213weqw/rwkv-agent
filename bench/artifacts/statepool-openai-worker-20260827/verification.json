@@ -1,0 +1,31 @@
+{
+  "schema_version": "statepool-openai-worker-audit.v1",
+  "date": "2026-08-27",
+  "source_commit": "f914222f3d7b7b6068534af238c435fb77411e77",
+  "python": {
+    "passed": 787,
+    "skipped": 8,
+    "subtests_passed": 52
+  },
+  "rust": {
+    "host": "WZU_Server",
+    "workspace_test": "passed",
+    "workspace_check": "passed",
+    "workspace_clippy_deny_warnings": "passed",
+    "durable_adapter_tests_ignored_without_secrets": 2,
+    "local_compilation": false
+  },
+  "deployment": {
+    "compose_config": "passed",
+    "helm_default": "rendered",
+    "helm_openai_overlay": "rendered",
+    "adapter_image_import": "passed",
+    "adapter_image_id": "sha256:fafc9a17812723bb06c1b9389ad68863c2c7f76e9c6945427e4769acf87083fb"
+  },
+  "claim_boundary": {
+    "openai_protocol_adapter": "conformance_verified_with_fake_upstream",
+    "live_vllm_model_gpu": "not_run",
+    "transformer_kv_migration": "not_supported",
+    "qwen35_profile": "candidate_not_certified"
+  }
+}

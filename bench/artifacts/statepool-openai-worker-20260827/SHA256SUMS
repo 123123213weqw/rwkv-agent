@@ -1,0 +1,16 @@
+f0ae17423a4995e07f3ae999a9ccd569294260708d1131bc2c8eb60779204feb  ./README.md
+17b686290f6f0717094e8a42e5464d60d51d2248a780994c0de5691e53ee6e57  ./local-static-audit.txt
+8e1ac3bded77e4e553b319f17663caf408fa02b63b5ee1eac499a67c4c13a11f  ./local-versions.txt
+491b7244090975511f97ae7fb71ea51f1011721e7741a1f85fca4b259c93a567  ./python-pytest.txt
+8f11432787d7b52d48b98c2585018b619dd41f9b7dd4269702442fd06a25e3af  ./remote-cargo-check.txt
+70ae24e657bc4e5ed4d24da8891fe3406bd3a5338217f02688571be049be1b71  ./remote-cargo-clippy.txt
+98c31bb4da853fc62620ba976bc0e11ffb52357451793d626ff2a048099043b5  ./remote-cargo-test.txt
+3977edf6ecc51e793d13a45b1dee68331500cbb0920d2645f462be75fafbd849  ./remote-docker-build.txt
+1e1546fdd480422580158d080050ee29d63c5ffc00d594247598445a2b26dc71  ./remote-docker-drain-help.txt
+fb0d7620e5ea57fb4fc5f30d10945b9abdde6164ed5b0b0742723123d76a4183  ./remote-docker-import.txt
+1ef144e4e36d37cbb2d90757fbaa6648b667f88317a1556b97520b3f3f5efa62  ./remote-helm-default.yaml
+ec956ff5b8ab164d94cb8313d8bac338e9514552c782e8487f8c4f7ca22c5e1d  ./remote-helm-openai-worker.yaml
+33668cdabf1d8217a07efbcce6d9a79c70f086e611e7e2f7aa8c243a9bf93fdc  ./remote-versions.txt
+733e298039d9bde537456aa75fea211dd03cba45163ef2d0bc1abf8001a11742  ./source-git-commit.txt
+4d910fb91bbe1558c92ff57b4dbe9c29d49aaecfc59c85851b2ae79df134af41  ./source-git-status.txt
+47c515d2dc1c31004da76b7d8cc08bcd37faa7d093ccb0d4b25f2f65815a1b72  ./verification.json

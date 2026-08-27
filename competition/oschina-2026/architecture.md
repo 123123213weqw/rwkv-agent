@@ -12,6 +12,8 @@ flowchart LR
     P --> F["FinOps Meter"]
     R --> EW["Laptop / Edge Worker"]
     R --> CW["Elastic Cloud GPU Worker"]
+    R --> OW["OpenAI-compatible Adapter"]
+    OW --> V["External vLLM / model server"]
     L -. "Cloud Lite" .-> PG["PostgreSQL"]
     SM -. "Cloud Lite" .-> S3["S3 / MinIO"]
     F --> PR["Prometheus / Grafana"]
@@ -43,8 +45,13 @@ State。原始 State 只进入明确启用的 StateStore 路径。
 | 事件驱动扩缩容 | KEDA |
 | GPU 分片/异构资源 | HAMi（可选） |
 | 网关/通用推理平台 | AIBrix/KServe（可选） |
+| Transformer 多模型推理 | vLLM/OpenAI-compatible 上游（可选） |
 | 元数据事务 | PostgreSQL |
 | Cold 对象 | S3/MinIO |
 | 时序与可视化 | Prometheus/Grafana |
 
 项目只维护 State-aware glue 和可验证契约。
+
+RWKV Worker 声明 `native_export`；OpenAI Adapter 固定声明
+`affinity_only`。两条路线共享 Placement/Worker lifecycle，但只有前者进入
+原始 State 的 Lease/Snapshot/Restore。

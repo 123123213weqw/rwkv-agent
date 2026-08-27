@@ -1,0 +1,9 @@
+$ .venv/bin/python scripts/generate_statepool_sbom.py /tmp/statepool-final-cargo-metadata.json /tmp/statepool-final.cdx.json --revision codex-statepool-cloud-plugin --timestamp 2026-08-27T00:00:00Z
+Wrote /tmp/statepool-final.cdx.json: 400 components
+
+$ cmp sbom/statepool.cdx.json /tmp/statepool-final.cdx.json
+PASS: byte-for-byte match
+
+$ shasum -a 256 sbom/statepool.cdx.json /tmp/statepool-final.cdx.json
+27d91175ebac52a64c30eb10aed74fc8b7730851772bca08fc7cc6acb2736d80  sbom/statepool.cdx.json
+27d91175ebac52a64c30eb10aed74fc8b7730851772bca08fc7cc6acb2736d80  /tmp/statepool-final.cdx.json

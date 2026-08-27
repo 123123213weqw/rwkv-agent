@@ -1,0 +1,7 @@
+captured_at_utc=2026-08-26T19:24:50Z
+host=wzu-SYS-4029GP-TRT
+Linux wzu-SYS-4029GP-TRT 6.8.0-136-generic #136~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul  3 16:29:11 UTC  x86_64 x86_64 x86_64 GNU/Linux
+rustc 1.95.0 (59807616e 2026-04-14)
+cargo 1.95.0 (f2d3ce0bd 2026-03-21)
+v3.18.6+gb76a950
+Docker Compose version v2.40.3

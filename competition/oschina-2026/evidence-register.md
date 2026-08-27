@@ -3,8 +3,8 @@
 | ID | 能力/结论 | 类型 | 当前状态 | 证据 |
 |---|---|---|---|---|
 | E01 | 插件关闭时不构造 HTTP Client并走原路径 | 自动测试 | 已验证 | `cloud_plugin::tests::disabled_plugin_never_builds_http_and_returns_original_local_path` |
-| E02 | 完整 Workspace Rust 检查 | 远程命令 | 已验证 | WZU_Server `cargo check --workspace --all-targets`，2026-08-26 |
-| E03 | Runtime 71、mock 17、plugin 11、API 6 等完整 Workspace 回归 | 远程测试 | 已验证 | `bench/artifacts/statepool-4080-worker-kill-20260827/statepool-server/cargo-test.log` |
+| E02 | 完整 Workspace Rust 检查 | 远程命令 | 已验证 | WZU_Server `cargo check --workspace --all-targets`，2026-08-27，见 E23 bundle |
+| E03 | Runtime 71、mock 17、plugin 15、API 8 等完整 Workspace 回归 | 远程测试 | 已验证 | `bench/artifacts/statepool-openai-worker-20260827/remote-cargo-test.txt` |
 | E04 | StatePool lifecycle、wire、Lease、Worker drain 回归 | 远程测试 | 已验证 | 同 E03 |
 | E05 | Snapshot/Restore bytes、checksum、CAS、stale fence | 自动测试 | 已验证 | `snapshot_restore_round_trip_uses_cas_checksum_and_fencing` |
 | E06 | 两个容器目标 release build、live/metrics/help smoke | 远程容器 | 已验证 | `evidence/statepool/remote-container-smoke-2026-08-26.md` |
@@ -24,6 +24,7 @@
 | E20 | Controller 自动 acquire→continue→snapshot→commit→release→restore | Rust mock 全路径测试 | 已验证（确定性 CPU/mock State，非 GPU） | `evidence/statepool/controller-lifecycle-2026-08-27.md`、`direct_chat_persists_releases_restores_and_advances_fenced_state` |
 | E21 | 提交状态不确定时禁止自动重复执行 | 故障注入测试 | 已验证 | `evidence/statepool/controller-lifecycle-2026-08-27.md`、`uncertain_lifecycle_commit_blocks_automatic_double_execution` |
 | E22 | Helm Controller/Worker/KEDA/多副本安全门 | Helm 3.19 + Compose 静态渲染 | 已验证（非 Kubernetes 实测） | `evidence/statepool/helm-controller-keda-2026-08-27.md` |
+| E23 | OpenAI-compatible/vLLM Adapter、三种 State capability、affinity/drain | fake upstream + 远程 Rust/OCI/Helm 审计 | Adapter 已验证；live vLLM/model/GPU 未运行 | `evidence/statepool/openai-worker-adapter-2026-08-27.md`、`bench/artifacts/statepool-openai-worker-20260827/` |
 
 规则：临时 `/tmp` 日志不算发布证据；正式提交前需要把去敏后的完整输出放入
 `bench/artifacts/`，填写 commit 和 checksum。

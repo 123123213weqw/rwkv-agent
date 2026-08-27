@@ -11,6 +11,11 @@ token、不可变 Snapshot、版本 CAS 和安全 Drain 防止双写；通过 KE
 Prometheus/Grafana、可选 HAMi/AIBrix 适配实现弹性与 FinOps。核心主张是：
 **助手常驻，但 GPU 不必常驻。**
 
+为避免把项目锁死在单一模型，Worker 契约同时定义 `replay_only`、
+`affinity_only`、`native_export`：RWKV 走可迁移 recurrent State；现成
+vLLM/OpenAI-compatible 上游通过可选 Adapter 接入，走 transcript replay 和
+同 Worker cache hint，绝不把 Transformer KV 冒充可迁移 State。
+
 ## 痛点
 
 长期个人 Agent 的请求稀疏但上下文有价值。Sticky Worker 让 GPU 在用户离开
@@ -44,6 +49,8 @@ rwkv-agent Controller (plugin disabled by default)
 4. Drain 的安全条件包含在途请求为 0 且脏 State 明确为 0；
 5. FinOps 统计 GPU-seconds、Prefill tokens avoided、State I/O、命中层级和
    分币种估算费用。
+6. API/model support 与 State portability 分层声明；跨模型只能传 Transcript
+   或 Context Capsule，不能迁移原始 State/KV。
 
 ## 场景落地（30%）
 
@@ -58,6 +65,10 @@ State I/O 和估算费用，并在每行标记 `simulation_replay`。按公开�
 减少 45.151% modeled GPU-hours，相比 B 避免 51,200 Prefill tokens。该结果不是
 live 100 Session GPU benchmark，后续可用同协议实测替换。
 
+独立 `rwkv-openai-worker` 已完成 fake-upstream 协议闭环、健康门、模型名映射、
+StatePool 心跳、affinity header 和安全排空；vLLM 与候选 Qwen3.5 模型尚未做
+真实 GPU 运行，因此只算 Adapter 落地，不算模型认证数据。
+
 ## 开源治理（20%）
 
 - 主仓库 MIT；第三方组件不 vendoring、不 Fork；
@@ -70,8 +81,8 @@ live 100 Session GPU benchmark，后续可用同协议实测替换。
 
 维护对象限定为 State/session contract、Placement、Lifecycle、FinOps 和适配器
 接口，而非维护 Kubernetes/KEDA/HAMi/AIBrix Fork。Roadmap 以证据门槛推进：
-LocalFS 单进程 → PostgreSQL/S3 Cloud Lite → 真实 KEDA GPU 闭环 → 可选
-AIBrix/HAMi 集成。
+LocalFS 单进程 → PostgreSQL/S3 Cloud Lite → vLLM 候选模型实测 → 真实 KEDA
+GPU 闭环 → 可选 AIBrix/HAMi 集成。
 
 ## 当前诚实边界
 

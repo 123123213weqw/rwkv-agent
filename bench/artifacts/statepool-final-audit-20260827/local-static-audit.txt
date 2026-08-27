@@ -1,0 +1,14 @@
+$ cargo fmt --all -- --check
+PASS: cargo fmt (format only; no local Rust compilation)
+
+$ uv run --locked --extra dev ruff check src bench benchmarks tests scripts
+All checks passed!
+
+$ uv run --with jsonschema python scripts/check_statepool_contracts.py
+StatePool contracts valid: 7 schemas, 14 examples, 12 API paths
+
+$ uv run --with pyyaml python scripts/check_statepool_deploy.py
+StatePool deploy assets valid: 8 Compose services, 12 dashboard panels, 400 SBOM components
+
+$ .venv/bin/python scripts/check_public_release.py
+Public release audit passed: Python 0.3.0b2, Rust 0.3.0-beta.2, 622 public text files scanned.
