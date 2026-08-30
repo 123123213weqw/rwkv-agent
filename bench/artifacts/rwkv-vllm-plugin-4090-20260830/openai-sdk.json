@@ -1,0 +1,45 @@
+{
+  "openai_version": "1.65.1",
+  "sync": {
+    "id": "chatcmpl-c37a3c28c9f64b9aac760ca64c4226f9",
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": " Hello! How can I assist you today",
+          "refusal": null,
+          "role": "assistant",
+          "audio": null,
+          "function_call": null,
+          "tool_calls": [],
+          "reasoning_content": null
+        },
+        "stop_reason": null
+      }
+    ],
+    "created": 1788056690,
+    "model": "rwkv7-1.5b-vllm",
+    "object": "chat.completion",
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 8,
+      "prompt_tokens": 9,
+      "total_tokens": 17,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "prompt_logprobs": null
+  },
+  "stream_text": " Hello! How can I assist you today",
+  "stream_usage": {
+    "completion_tokens": 8,
+    "prompt_tokens": 9,
+    "total_tokens": 17,
+    "completion_tokens_details": null,
+    "prompt_tokens_details": null
+  },
+  "chunk_count": 10
+}

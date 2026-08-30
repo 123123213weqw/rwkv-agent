@@ -1,0 +1,7 @@
+{
+  "match": true,
+  "prompt": "User: Explain the sky in one sentence.\n\nAssistant:",
+  "max_tokens": 16,
+  "vllm": " The sky is the vast expanse of atmosphere above Earth's surface, primarily composed",
+  "hf": " The sky is the vast expanse of atmosphere above Earth's surface, primarily composed"
+}

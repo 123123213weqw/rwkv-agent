@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rwkv7-vllm-plugin"
+version = "0.1.0"
+description = "Out-of-tree RWKV-7 recurrent model adapter for vLLM 0.7.x"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+    "vllm>=0.7.3,<0.8",
+    "transformers>=4.49,<5",
+]
+
+[project.entry-points."vllm.general_plugins"]
+rwkv7 = "vllm_rwkv7.plugin:register"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vllm_rwkv7 = ["rwkv_chat.jinja"]

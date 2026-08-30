@@ -1,0 +1,46 @@
+{
+  "cancelled": 8,
+  "all_post_cancel_ok": true,
+  "post_cancel_results": [
+    {
+      "status": 200,
+      "elapsed_ms": 8682.395,
+      "completion_tokens": 4
+    },
+    {
+      "status": 200,
+      "elapsed_ms": 8681.782,
+      "completion_tokens": 4
+    },
+    {
+      "status": 200,
+      "elapsed_ms": 8682.053,
+      "completion_tokens": 4
+    },
+    {
+      "status": 200,
+      "elapsed_ms": 8681.89,
+      "completion_tokens": 4
+    },
+    {
+      "status": 200,
+      "elapsed_ms": 8681.864,
+      "completion_tokens": 4
+    },
+    {
+      "status": 200,
+      "elapsed_ms": 8681.465,
+      "completion_tokens": 4
+    },
+    {
+      "status": 200,
+      "elapsed_ms": 8680.698,
+      "completion_tokens": 4
+    },
+    {
+      "status": 200,
+      "elapsed_ms": 8681.017,
+      "completion_tokens": 4
+    }
+  ]
+}

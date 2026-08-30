@@ -26,11 +26,13 @@ jobs:
       - name: StatePool client contracts
         run: python scripts/check_statepool_contracts.py
       - name: Lint
-        run: ruff check src bench benchmarks tests scripts
+        run: ruff check src bench benchmarks tests scripts integrations
       - name: Test
         run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src:. python -m pytest -q
       - name: Build package
-        run: python -m build
+        run: |
+          python -m build
+          python -m build integrations/vllm_rwkv7
 
   rust:
     runs-on: ubuntu-latest
@@ -57,3 +59,4 @@ jobs:
           bash -n cli/install.sh cli/package-release.sh cli/tests/install_smoke.sh
           cli/scripts/rwkv cli/scripts/rwkv-agent-service
           deploy/agent/start_g1i_sidecars.sh deploy/agent/stop_g1i_sidecars.sh
+          deploy/agent/start_vllm_rwkv7.sh deploy/agent/stop_vllm_rwkv7.sh

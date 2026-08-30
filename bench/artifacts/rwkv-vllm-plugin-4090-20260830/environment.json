@@ -1,0 +1,42 @@
+{
+  "captured_at": "2026-08-30T02:24:13Z",
+  "platform": "Linux-5.15.0-128-generic-x86_64-with-glibc2.35",
+  "vllm": {
+    "version": "0.7.3"
+  },
+  "models": {
+    "object": "list",
+    "data": [
+      {
+        "id": "rwkv7-1.5b-vllm",
+        "object": "model",
+        "created": 1788056639,
+        "owned_by": "vllm",
+        "root": "/home/ubuntu/codex-run/models/rwkv7_15b_hf",
+        "parent": null,
+        "max_model_len": 2048,
+        "permission": [
+          {
+            "id": "modelperm-69b8a7779d3242e099d56c2aa75b1612",
+            "object": "model_permission",
+            "created": 1788056639,
+            "allow_create_engine": false,
+            "allow_sampling": true,
+            "allow_logprobs": true,
+            "allow_search_indices": false,
+            "allow_view": true,
+            "allow_fine_tuning": false,
+            "organization": "*",
+            "group": null,
+            "is_blocking": false
+          }
+        ]
+      }
+    ]
+  },
+  "gpu": "NVIDIA GeForce RTX 4090, 550.142, 24564 MiB, 4349 MiB, 16 %",
+  "compute_apps": "155268, /home/ubuntu/codex-run/venvs/rwkv-stateserve/bin/python, 4342 MiB",
+  "adapter_sha256": "2bd059fbbd7b6e692db0a467e4ddaa8f0b220f37b4328c99a1a730f517c77c9c",
+  "plugin_sha256": "45056ac23482f4642c1fc9172ddcd68c99a6a1cc6e7f0682c757ba780be4e4fe",
+  "chat_template_sha256": "0b3a6fa9cab122f2a2ad4052e37ee4e99e8f7da0777446d348945e9b7a3d8d14"
+}
