@@ -34,19 +34,26 @@ realtime = [
     "brotli>=1.1",
 ]
 browser = ["playwright>=1.50"]
-model = ["torch", "transformers", "safetensors"]
-agent = ["fastapi>=0.115", "uvicorn>=0.34", "torch>=2.5", "safetensors>=0.5"]
+model = ["torch", "transformers", "safetensors", "accelerate>=0.26"]
+agent = [
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    "torch>=2.5",
+    "safetensors>=0.5",
+    "accelerate>=0.26",
+]
 retrieval = ["sentence-transformers", "faiss-cpu"]
 segment = ["jieba>=0.42.1"]
 analysis = ["jieba>=0.42.1"]
 indexing = ["pyarrow>=14", "opencc-python-reimplemented>=0.1.7"]
-dev = ["pytest>=7", "tomli>=2; python_version < '3.11'"]
+dev = ["pytest>=7", "httpx2", "tomli>=2; python_version < '3.11'"]
 
 [project.scripts]
 rwkv-search = "rwkv_search.cli:main"
 rwkv-agent-server = "rwkv_agent.server:main"
 rwkv-agent-data-plane = "rwkv_agent.data_server:main"
 rwkv-g1i-sidecar = "rwkv_agent.sidecar:main"
+rwkv-stateserve = "rwkv_agent.sidecar:main"
 rwkv-statepool-drain = "rwkv_agent.statepool_drain:main"
 
 [tool.setuptools.packages.find]

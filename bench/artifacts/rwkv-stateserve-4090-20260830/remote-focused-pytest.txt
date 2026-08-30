@@ -1,0 +1,40 @@
+.......................                                                  [100%]
+=============================== warnings summary ===============================
+src/rwkv_agent/sidecar.py:787
+tests/test_openai_compat.py::test_chat_completions_non_stream_is_openai_compatible
+tests/test_openai_compat.py::test_chat_completions_stream_uses_sse_and_usage_chunk
+tests/test_openai_compat.py::test_completions_supports_stream_and_standard_usage
+tests/test_openai_compat.py::test_chat_endpoint_rejects_silently_unsupported_sampling
+  /home/ubuntu/codex-build/rwkv-agent-state-serve/src/rwkv_agent/sidecar.py:787: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    @app.on_event("startup")
+
+../../miniforge3/lib/python3.12/site-packages/fastapi/applications.py:4495: 2 warnings
+tests/test_openai_compat.py: 8 warnings
+  /home/ubuntu/miniforge3/lib/python3.12/site-packages/fastapi/applications.py:4495: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    return self.router.on_event(event_type)
+
+src/rwkv_agent/sidecar.py:796
+tests/test_openai_compat.py::test_chat_completions_non_stream_is_openai_compatible
+tests/test_openai_compat.py::test_chat_completions_stream_uses_sse_and_usage_chunk
+tests/test_openai_compat.py::test_completions_supports_stream_and_standard_usage
+tests/test_openai_compat.py::test_chat_endpoint_rejects_silently_unsupported_sampling
+  /home/ubuntu/codex-build/rwkv-agent-state-serve/src/rwkv_agent/sidecar.py:796: DeprecationWarning:
+          on_event is deprecated, use lifespan event handlers instead.
+
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+    @app.on_event("shutdown")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+23 passed, 20 warnings in 3.24s

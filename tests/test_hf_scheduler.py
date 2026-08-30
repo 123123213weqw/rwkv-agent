@@ -46,6 +46,51 @@ class FakeCache:
         )
 
 
+class FakeCanonicalCache:
+    """Shape-compatible stand-in for the published RWKV7Cache 0.10 API."""
+
+    def __init__(
+        self,
+        recurrent_state,
+        attention_shift,
+        ffn_shift,
+        *,
+        seen_tokens: int = 0,
+    ):
+        self.recurrent_state = recurrent_state
+        self.attention_shift = attention_shift
+        self.ffn_shift = ffn_shift
+        self.seen_tokens = int(seen_tokens)
+
+    def __iter__(self):
+        return iter(
+            zip(
+                self.recurrent_state,
+                self.attention_shift,
+                self.ffn_shift,
+                strict=True,
+            )
+        )
+
+    def clone(self):
+        return type(self)(
+            [value.clone() for value in self.recurrent_state],
+            [value.clone() for value in self.attention_shift],
+            [value.clone() for value in self.ffn_shift],
+            seen_tokens=self.seen_tokens,
+        )
+
+    def select_batch(self, indices, *, inplace=False):
+        del inplace
+        indices = indices.to(dtype=torch.long)
+        return type(self)(
+            [value.index_select(0, indices) for value in self.recurrent_state],
+            [value.index_select(0, indices) for value in self.attention_shift],
+            [value.index_select(0, indices) for value in self.ffn_shift],
+            seen_tokens=self.seen_tokens,
+        )
+
+
 class FakeHFModel:
     """Small deterministic recurrent model with the Native cache shape."""
 
@@ -91,9 +136,60 @@ class FakeHFModel:
         return SimpleNamespace(logits=logits, past_key_values=cache)
 
 
+class FakeCanonicalHFModel(FakeHFModel):
+    def __call__(
+        self,
+        *,
+        input_ids,
+        attention_mask,
+        past_key_values,
+        use_cache,
+        logits_to_keep,
+        return_dict,
+    ):
+        assert use_cache and logits_to_keep == 1 and return_dict
+        batch, width = input_ids.shape
+        if past_key_values is None:
+            value = torch.zeros(batch, dtype=torch.long)
+            seen = 0
+        else:
+            value = past_key_values.recurrent_state[0][:, 0].to(dtype=torch.long)
+            seen = int(past_key_values.seen_tokens)
+        mask = attention_mask if attention_mask is not None else torch.ones_like(input_ids)
+        for index in range(width):
+            advanced = (value * 31 + input_ids[:, index] + 1) % self.vocab_size
+            value = torch.where(mask[:, index].bool(), advanced, value)
+        logits = torch.full((batch, 1, self.vocab_size), -1000.0)
+        logits[torch.arange(batch), 0, value] = 10.0
+        encoded = value.view(batch, 1).float()
+        cache = FakeCanonicalCache(
+            [encoded],
+            [encoded + 1],
+            [encoded + 2],
+            seen_tokens=seen + width,
+        )
+        self.calls.append((batch, width, tuple(mask.sum(dim=1).tolist())))
+        self.returned_caches.append(cache)
+        return SimpleNamespace(logits=logits, past_key_values=cache)
+
+
 def make_scheduler(*, capacity=8, max_batch=4, chunk=2):
     return HFRecurrentScheduler(
         FakeHFModel(),
+        config=SchedulerConfig(
+            prefill_chunk_size=chunk,
+            max_batch_size=max_batch,
+            max_queue_size=capacity,
+            max_input_tokens=64,
+        ),
+        device="cpu",
+        capacity=capacity,
+    )
+
+
+def make_canonical_scheduler(*, capacity=8, max_batch=4, chunk=2):
+    return HFRecurrentScheduler(
+        FakeCanonicalHFModel(),
         config=SchedulerConfig(
             prefill_chunk_size=chunk,
             max_batch_size=max_batch,
@@ -171,6 +267,20 @@ class HFRecurrentSchedulerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             scheduler.install_continuations([("a", [4]), ("a", [5])])
         self.assertEqual(scheduler.request("a").remaining, 0)
+
+    def test_canonical_010_cache_batches_and_reports_memory(self):
+        scheduler = make_canonical_scheduler()
+        scheduler.admit("a", [1, 2, 3])
+        scheduler.admit("b", [7, 8])
+        scheduler.prefill(["a", "b"])
+        scheduler.continue_many([("a", [4]), ("b", [9])])
+
+        self.assertIsInstance(
+            scheduler.request("a").cache,
+            FakeCanonicalCache,
+        )
+        self.assertGreater(scheduler.metrics()["pool"]["slab_bytes"], 0)
+        self.assertEqual(scheduler.metrics()["shape_counts"]["B2T1"], 1)
 
 
 if __name__ == "__main__":

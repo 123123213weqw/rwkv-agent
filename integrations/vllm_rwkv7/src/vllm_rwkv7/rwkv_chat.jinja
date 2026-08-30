@@ -1,0 +1,13 @@
+{%- for message in messages %}
+{%- if message['role'] == 'system' or message['role'] == 'developer' %}
+{{ 'System: ' + message['content'] + '\n\n' }}
+{%- elif message['role'] == 'user' %}
+{{ 'User: ' + message['content'] + '\n\n' }}
+{%- elif message['role'] == 'assistant' %}
+{{ 'Assistant: ' + message['content'] + '\n\n' }}
+{%- else %}
+{{ raise_exception('RWKV chat template supports system, developer, user and assistant roles') }}
+{%- endif %}
+{%- endfor %}
+{%- if add_generation_prompt %}{{ 'Assistant:' }}{% endif %}
+

@@ -173,6 +173,11 @@ The correct claim is **“100 independent tasks · physical concurrency 32”**,
 
 ## Quick evaluation path
 
+For applications that already speak the OpenAI/vLLM HTTP protocol, see
+[`docs/RWKV_STATESERVE_OPENAI.md`](docs/RWKV_STATESERVE_OPENAI.md).  The same
+RWKV-native scheduler now exposes synchronous and SSE-streaming
+`/v1/chat/completions` without changing the State-native Agent APIs.
+
 With the AMD services already configured:
 
 ```bash
@@ -270,6 +275,7 @@ src/rwkv7_scheduler/    ROCm recurrent cache scheduler and State pool
 src/rwkv_agent/         Sidecar, data plane, routing, long text, retrieval
 demos/                  100-independent-State Agent demonstration
 benchmarks/             State scaling, reuse, routing, and Agent regressions
+integrations/vllm_rwkv7/ out-of-tree RWKV-7 adapter for vLLM 0.7.x
 web/                    Claude Code/Codex-inspired local UI and task wall
 docs/                   architecture, setup, benchmark, and specification
 ```

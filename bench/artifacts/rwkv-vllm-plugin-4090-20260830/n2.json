@@ -1,0 +1,43 @@
+{
+  "status": 200,
+  "elapsed_ms": 1305.277,
+  "request": {
+    "model": "rwkv7-1.5b-vllm",
+    "prompt": "User: Name a color.\n\nAssistant:",
+    "temperature": 0.8,
+    "top_p": 0.9,
+    "n": 2,
+    "seed": 42,
+    "max_tokens": 8
+  },
+  "response": {
+    "id": "cmpl-de43a59a226e4106b33c6c940dd8685d",
+    "object": "text_completion",
+    "created": 1788056644,
+    "model": "rwkv7-1.5b-vllm",
+    "choices": [
+      {
+        "index": 0,
+        "text": " Sure! Here are a few examples:",
+        "logprobs": null,
+        "finish_reason": "length",
+        "stop_reason": null,
+        "prompt_logprobs": null
+      },
+      {
+        "index": 1,
+        "text": " \"Hello, I am Qwen,",
+        "logprobs": null,
+        "finish_reason": "length",
+        "stop_reason": null,
+        "prompt_logprobs": null
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 10,
+      "total_tokens": 26,
+      "completion_tokens": 16,
+      "prompt_tokens_details": null
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "status": 200,
+  "elapsed_ms": 1764.636,
+  "request": {
+    "model": "rwkv7-1.5b-vllm",
+    "prompt": "User: Introduce RWKV in one sentence.\n\nAssistant:",
+    "temperature": 0,
+    "max_tokens": 24
+  },
+  "response": {
+    "id": "cmpl-e64a9db83b114de1a49b04f51b09283a",
+    "object": "text_completion",
+    "created": 1788056639,
+    "model": "rwkv7-1.5b-vllm",
+    "choices": [
+      {
+        "index": 0,
+        "text": " RWKV is a helpful assistant that can assist with various tasks.",
+        "logprobs": null,
+        "finish_reason": "stop",
+        "stop_reason": null,
+        "prompt_logprobs": null
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 14,
+      "total_tokens": 28,
+      "completion_tokens": 14,
+      "prompt_tokens_details": null
+    }
+  }
+}

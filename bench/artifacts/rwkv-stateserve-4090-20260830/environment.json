@@ -1,0 +1,105 @@
+{
+  "captured_at": "2026-08-30T09:53:00+08:00",
+  "host": "deepseek-r1-32gb-100m",
+  "os": "Linux-5.15.0-128-generic-x86_64-with-glibc2.35",
+  "python": "3.12.8",
+  "torch": "2.5.1+cu124",
+  "torch_cuda": "12.4",
+  "transformers": "4.49.0",
+  "accelerate": "1.14.0",
+  "fastapi": "0.115.7",
+  "uvicorn": "0.30.6",
+  "safetensors": "0.5.3",
+  "openai_sdk": "1.65.1",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "compute_capability": [
+    8,
+    9
+  ],
+  "model": {
+    "manifest_version": 1,
+    "model_id": "wangyue114514/rwkv7-g1g-1.5b-hf",
+    "layout": "pypi-thin",
+    "source": {
+      "repository": "BlinkDL/rwkv7-g1",
+      "revision": "41251fab280e3fba70a3fc49e843f3a034d49d33",
+      "filename": "rwkv7-g1g-1.5b-20260526-ctx8192.pth",
+      "size_bytes": 3055444605,
+      "sha256": "441f70b096ad62442b5c33128bfe717c5d8529915c45a9709d4482016e8a0482"
+    },
+    "weights": {
+      "format": "safetensors",
+      "layout": "sharded",
+      "index_filename": "model.safetensors.index.json",
+      "dtype": "float16",
+      "parameter_count": 1527404544,
+      "total_tensor_bytes": 3054809088,
+      "source_single_file_conversion": {
+        "size_bytes": 3054894144,
+        "sha256": "d580d0c687d4e7e6c86985c61418712fc2904189575ac1b4cf199845497b9c23"
+      },
+      "shards": [
+        {
+          "filename": "model-00001-of-00006.safetensors",
+          "size_bytes": 536871136,
+          "sha256": "530dd965276394902d5c58d6a44af9e052de14e8aa22d52a11953a4e1a6be8b9"
+        },
+        {
+          "filename": "model-00002-of-00006.safetensors",
+          "size_bytes": 535467904,
+          "sha256": "73c10bbcdcf9c4a3724a90777e8e2d82344b908809a3d5b7b15a57285a5702bf"
+        },
+        {
+          "filename": "model-00003-of-00006.safetensors",
+          "size_bytes": 533087464,
+          "sha256": "d20b7c7985403c982010051b81975c2c0339770b53dcbcc75b5527a217d0d429"
+        },
+        {
+          "filename": "model-00004-of-00006.safetensors",
+          "size_bytes": 533611968,
+          "sha256": "2fef3af3922d2d6fccdc698c0b89c34c9fe75e1332fc2bb7aa665724d48d8f1e"
+        },
+        {
+          "filename": "model-00005-of-00006.safetensors",
+          "size_bytes": 533907568,
+          "sha256": "7387a29f20bf881f8a6000597fe048accce61011550fdf32d7a16ea9a80d5bb9"
+        },
+        {
+          "filename": "model-00006-of-00006.safetensors",
+          "size_bytes": 381946672,
+          "sha256": "9e9c24811fdfefc970f861337eb823ad4c0d71a08fb87fc0eb9aae8d5890df57"
+        }
+      ]
+    },
+    "runtime": {
+      "package": "rwkv7-hf",
+      "version": "0.7.0",
+      "pypi_wheel_sha256": "afca18967d30fdb0d6e0775001a8b328a7b52a7e01314caaf185d7fe12dd0f49",
+      "source_repository": "rwkv-rs/hf-adapter",
+      "release_tag": "v0.7.0",
+      "release_commit": "aff3982f68aeccd9b75b6d7cce8ad77e6df37145"
+    },
+    "validation": {
+      "status": "passed",
+      "python": "3.11.15",
+      "torch": "2.13.0",
+      "transformers": "5.15.0",
+      "missing_keys": 0,
+      "unexpected_keys": 0,
+      "mismatched_keys": 0,
+      "parameter_count_loaded": 1527404544,
+      "forward_logits_shape": [
+        1,
+        1,
+        65536
+      ],
+      "forward_all_finite": true
+    }
+  },
+  "source_files": {
+    "src/rwkv_agent/sidecar.py": "sha256:f36b6248462722ad07b95d051570c10b3a08d9fb415eff7b02ceb6d5d07297bf",
+    "src/rwkv_agent/openai_compat.py": "sha256:69651b76bf4dd53a096092f283f745e0edfdcb90d1d62da33542637d5c5e981c",
+    "src/rwkv_agent/batching.py": "sha256:ee904f01fdceb75be6125048655b698c11412020c6c9a5720f3da00a17130f12",
+    "src/rwkv7_scheduler/hf_scheduler.py": "sha256:2597c52ab4eca97577825081c3afff41be4045e9ae4b40cb3f3b6ed8edc7059e"
+  }
+}

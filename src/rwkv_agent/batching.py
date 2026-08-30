@@ -117,6 +117,7 @@ class ContinuousBatchEngine:
         stops: Sequence[str],
         max_tokens: int,
         prefix_token_ids: Sequence[int] = (),
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> dict[str, Any]:
         if not prompt:
             raise ValueError("prompt must not be empty")
@@ -132,6 +133,7 @@ class ContinuousBatchEngine:
                 ),
                 stops=tuple(str(value) for value in stops if value),
                 max_tokens=int(max_tokens),
+                event_sink=event_sink,
             )
         )
 

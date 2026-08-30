@@ -29,14 +29,43 @@ def _tensor_bytes(value: torch.Tensor) -> int:
     return int(value.numel()) * int(value.element_size())
 
 
+def _cache_components(
+    cache: Any,
+) -> tuple[
+    Sequence[torch.Tensor | None],
+    Sequence[torch.Tensor | None],
+    Sequence[torch.Tensor | None],
+    torch.Tensor | None,
+]:
+    """Return both the 0.10 canonical and legacy 0.9 cache layouts."""
+
+    if all(
+        hasattr(cache, name)
+        for name in ("recurrent_state", "attention_shift", "ffn_shift")
+    ):
+        return (
+            cache.recurrent_state,
+            cache.attention_shift,
+            cache.ffn_shift,
+            None,
+        )
+    values = tuple(cache)
+    if len(values) != 4:
+        raise TypeError(
+            "RWKV HF cache must expose canonical recurrent fields or four legacy components"
+        )
+    return values[0], values[1], values[2], values[3]
+
+
 def _cache_bytes(cache: Any) -> int:
     if cache is None:
         return 0
-    state, xpa, xpf, v_first = tuple(cache)
+    state, xpa, xpf, v_first = _cache_components(cache)
     return sum(
         _tensor_bytes(value)
         for values in (state, xpa, xpf)
         for value in (values or [])
+        if value is not None
     ) + (0 if v_first is None else _tensor_bytes(v_first))
 
 
@@ -53,11 +82,26 @@ def _new_cache_like(
     state: list[torch.Tensor],
     xpa: list[torch.Tensor],
     xpf: list[torch.Tensor],
-    v_first: torch.Tensor,
+    v_first: torch.Tensor | None,
     *,
     seen_tokens: int,
 ) -> Any:
     cache_type = type(prototype)
+    if all(
+        hasattr(prototype, name)
+        for name in ("recurrent_state", "attention_shift", "ffn_shift")
+    ):
+        try:
+            return cache_type(
+                state,
+                xpa,
+                xpf,
+                seen_tokens=int(seen_tokens),
+            )
+        except TypeError:
+            return _set_cache_seen(cache_type(state, xpa, xpf), seen_tokens)
+    if v_first is None:
+        raise TypeError("legacy RWKV HF cache requires v_first")
     try:
         return cache_type(
             state,
@@ -76,9 +120,7 @@ def _new_cache_like(
 def _concat_caches(caches: Sequence[Any]) -> Any:
     if not caches or any(cache is None for cache in caches):
         raise ValueError("batched continuation requires initialized caches")
-    values = [tuple(cache) for cache in caches]
-    if any(len(parts) != 4 for parts in values):
-        raise TypeError("RWKV HF cache must expose four recurrent components")
+    values = [_cache_components(cache) for cache in caches]
     layer_counts = {
         (len(parts[0]), len(parts[1]), len(parts[2]))
         for parts in values
@@ -88,7 +130,13 @@ def _concat_caches(caches: Sequence[Any]) -> Any:
     state = [torch.cat(items, dim=0) for items in zip(*(parts[0] for parts in values), strict=True)]
     xpa = [torch.cat(items, dim=0) for items in zip(*(parts[1] for parts in values), strict=True)]
     xpf = [torch.cat(items, dim=0) for items in zip(*(parts[2] for parts in values), strict=True)]
-    v_first = torch.cat([parts[3] for parts in values], dim=0)
+    legacy_values = [parts[3] for parts in values]
+    if all(value is None for value in legacy_values):
+        v_first = None
+    elif any(value is None for value in legacy_values):
+        raise ValueError("RWKV HF caches mix canonical and legacy layouts")
+    else:
+        v_first = torch.cat(legacy_values, dim=0)  # type: ignore[arg-type]
     return _new_cache_like(
         caches[0],
         state,
@@ -104,13 +152,17 @@ def _select_cache_row(cache: Any, row: int, seen_tokens: int) -> Any:
     if hasattr(cache, "select_batch"):
         selected = cache.select_batch(index, inplace=False)
         return _set_cache_seen(selected, seen_tokens)
-    state, xpa, xpf, v_first = tuple(cache)
+    state, xpa, xpf, v_first = _cache_components(cache)
     selected = _new_cache_like(
         cache,
-        [value[int(row) : int(row) + 1].clone() for value in state],
-        [value[int(row) : int(row) + 1].clone() for value in xpa],
-        [value[int(row) : int(row) + 1].clone() for value in xpf],
-        v_first[int(row) : int(row) + 1].clone(),
+        [value[int(row) : int(row) + 1].clone() for value in state if value is not None],
+        [value[int(row) : int(row) + 1].clone() for value in xpa if value is not None],
+        [value[int(row) : int(row) + 1].clone() for value in xpf if value is not None],
+        (
+            None
+            if v_first is None
+            else v_first[int(row) : int(row) + 1].clone()
+        ),
         seen_tokens=seen_tokens,
     )
     return selected
