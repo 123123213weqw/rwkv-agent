@@ -14,13 +14,6 @@ import time
 from typing import Any, Callable, Mapping, Sequence
 import uuid
 
-from rwkv7_scheduler import (
-    AlbatrossChunkScheduler,
-    AlbatrossStatePool,
-    HFRecurrentScheduler,
-    SchedulerConfig,
-)
-
 from .batching import ContinuousBatchEngine
 from .openai_compat import (
     completion_usage,
@@ -206,6 +199,12 @@ class NativeG1I:
         return root, False
 
     def _load_albatross(self) -> None:
+        from rwkv7_scheduler import (
+            AlbatrossChunkScheduler,
+            AlbatrossStatePool,
+            SchedulerConfig,
+        )
+
         runtime = str(Path(RUNTIME_DIR).resolve())
         if runtime not in sys.path:
             sys.path.insert(0, runtime)
@@ -249,6 +248,7 @@ class NativeG1I:
     def _load_hf_recurrent(self) -> None:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
+        from rwkv7_scheduler import HFRecurrentScheduler, SchedulerConfig
 
         if HF_DTYPE not in {"fp16", "bf16"}:
             raise ValueError("G1I_HF_DTYPE must be fp16 or bf16")
