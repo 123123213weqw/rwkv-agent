@@ -173,6 +173,11 @@ The correct claim is **“100 independent tasks · physical concurrency 32”**,
 
 ## Quick evaluation path
 
+For applications that already speak the OpenAI/vLLM HTTP protocol, see
+[`docs/RWKV_STATESERVE_OPENAI.md`](docs/RWKV_STATESERVE_OPENAI.md).  The same
+RWKV-native scheduler now exposes synchronous and SSE-streaming
+`/v1/chat/completions` without changing the State-native Agent APIs.
+
 With the AMD services already configured:
 
 ```bash

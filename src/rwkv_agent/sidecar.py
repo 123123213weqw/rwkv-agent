@@ -11,7 +11,8 @@ import queue
 import sys
 import threading
 import time
-from typing import Any, Sequence
+from typing import Any, Callable, Mapping, Sequence
+import uuid
 
 from rwkv7_scheduler import (
     AlbatrossChunkScheduler,
@@ -21,6 +22,13 @@ from rwkv7_scheduler import (
 )
 
 from .batching import ContinuousBatchEngine
+from .openai_compat import (
+    completion_usage,
+    normalize_stops,
+    openai_finish_reason,
+    render_chat_prompt,
+    sse_data,
+)
 from .routing import (
     render_tool_gate_root,
     render_tool_gate_turn,
@@ -244,7 +252,11 @@ class NativeG1I:
 
         if HF_DTYPE not in {"fp16", "bf16"}:
             raise ValueError("G1I_HF_DTYPE must be fp16 or bf16")
-        model_path = Path(HF_MODEL_PATH).resolve()
+        # Keep a deployment-provided symlink name intact.  Transformers 4.x
+        # derives a Python package name from the final directory component;
+        # resolving a safe ``rwkv7_01b_hf`` symlink back to a hyphenated model
+        # directory produces an invalid dynamic-module import path.
+        model_path = Path(HF_MODEL_PATH).expanduser().absolute()
         if not model_path.is_dir():
             raise FileNotFoundError(
                 f"G1I_HF_MODEL_PATH is not a directory: {model_path}"
@@ -259,7 +271,10 @@ class NativeG1I:
             model_path,
             trust_remote_code=True,
             local_files_only=True,
-            dtype=dtype,
+            # ``torch_dtype`` works on the pinned Transformers 4.x runtime as
+            # well as newer releases.  Passing the newer ``dtype`` alias into
+            # 4.x is treated as a config field and fails JSON serialization.
+            torch_dtype=dtype,
             low_cpu_mem_usage=True,
         ).to("cuda").eval()
         self.torch = torch
@@ -285,6 +300,7 @@ class NativeG1I:
         max_tokens: int,
         prefix_token_ids: Sequence[int] = (),
         prefill_chunk_size: int = PREFILL_CHUNK_SIZE,
+        event_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> dict[str, Any]:
         if prefill_chunk_size != PREFILL_CHUNK_SIZE:
             raise ValueError(
@@ -295,6 +311,7 @@ class NativeG1I:
             stops=stops,
             max_tokens=max_tokens,
             prefix_token_ids=prefix_token_ids,
+            event_sink=event_sink,
         )
         result["prefill_chunk_size"] = PREFILL_CHUNK_SIZE
         with self._counter_lock:
@@ -524,7 +541,7 @@ def create_app():
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import JSONResponse, StreamingResponse
 
-    app = FastAPI(title="RWKV G1I continuous-batch sidecar", version="0.4.0")
+    app = FastAPI(title="RWKV StateServe", version="0.4.0")
 
     @app.middleware("http")
     async def statepool_admission(request, call_next):
@@ -546,9 +563,25 @@ def create_app():
                     headers={"Retry-After": "1"},
                 )
         try:
-            return await call_next(request)
+            response = await call_next(request)
+            if admitted and agent is not None and hasattr(response, "body_iterator"):
+                original_body = response.body_iterator
+
+                async def release_after_body():
+                    nonlocal admitted
+                    try:
+                        async for chunk in original_body:
+                            yield chunk
+                    finally:
+                        if admitted:
+                            admitted = False
+                            agent.exit_request()
+
+                response.body_iterator = release_after_body()
+            return response
         finally:
             if admitted and agent is not None:
+                admitted = False
                 agent.exit_request()
 
     def model_ref() -> dict[str, str]:
@@ -563,6 +596,193 @@ def create_app():
         supplied = payload.get("model_ref")
         if supplied != model_ref():
             raise HTTPException(409, "exact State model_ref mismatch")
+
+    def generation_options(
+        payload: Mapping[str, Any],
+        *,
+        chat: bool,
+    ) -> tuple[list[str], int, bool, bool]:
+        requested_model = payload.get("model")
+        if requested_model is not None and requested_model != MODEL_ID:
+            raise HTTPException(404, f"model {requested_model!r} is not available")
+        for name, expected in (("n", 1), ("best_of", 1)):
+            value = payload.get(name, expected)
+            if isinstance(value, bool) or not isinstance(value, int) or value != expected:
+                raise HTTPException(422, f"{name} must be {expected}")
+        temperature = payload.get("temperature", 0)
+        if isinstance(temperature, bool) or not isinstance(temperature, (int, float)):
+            raise HTTPException(422, "temperature must be numeric")
+        if float(temperature) != 0.0:
+            raise HTTPException(
+                422,
+                "this RWKV serving profile currently supports greedy temperature=0 only",
+            )
+        top_p = payload.get("top_p", 1)
+        if isinstance(top_p, bool) or not isinstance(top_p, (int, float)):
+            raise HTTPException(422, "top_p must be numeric")
+        if float(top_p) != 1.0:
+            raise HTTPException(
+                422,
+                "this RWKV serving profile currently supports top_p=1 only",
+            )
+        if payload.get("logprobs") not in (None, False):
+            raise HTTPException(422, "logprobs are not supported")
+        if payload.get("echo") not in (None, False):
+            raise HTTPException(422, "echo is not supported")
+        for field in ("tools", "tool_choice", "functions", "function_call"):
+            if payload.get(field) is not None:
+                raise HTTPException(
+                    422,
+                    f"{field} is not supported by the base inference endpoint",
+                )
+        max_tokens_value = payload.get("max_completion_tokens")
+        if max_tokens_value is None:
+            max_tokens_value = payload.get("max_tokens", 192)
+        if isinstance(max_tokens_value, bool) or not isinstance(max_tokens_value, int):
+            raise HTTPException(422, "max_tokens must be an integer")
+        if max_tokens_value < 1 or max_tokens_value > 1024:
+            raise HTTPException(422, "max_tokens out of range")
+        stream = payload.get("stream", False)
+        if not isinstance(stream, bool):
+            raise HTTPException(422, "stream must be boolean")
+        stream_options = payload.get("stream_options")
+        if stream_options is not None and not isinstance(stream_options, Mapping):
+            raise HTTPException(422, "stream_options must be an object")
+        include_usage = False
+        if stream_options is not None:
+            include_usage = stream_options.get("include_usage", False)
+            if not isinstance(include_usage, bool):
+                raise HTTPException(
+                    422,
+                    "stream_options.include_usage must be boolean",
+                )
+        try:
+            stops = normalize_stops(payload.get("stop"), chat=chat)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return stops, max_tokens_value, stream, include_usage
+
+    def stream_completion(
+        *,
+        prompt: str,
+        stops: Sequence[str],
+        max_tokens: int,
+        request_id: str,
+        created: int,
+        chat: bool,
+        include_usage: bool,
+        prefix_token_ids: Sequence[int] = (),
+    ) -> StreamingResponse:
+        def chunk(delta: str, finish_reason: str | None = None) -> dict[str, Any]:
+            choice: dict[str, Any] = {
+                "index": 0,
+                "finish_reason": finish_reason,
+            }
+            if chat:
+                choice["delta"] = {"content": delta} if delta else {}
+            else:
+                choice["text"] = delta
+            return {
+                "id": request_id,
+                "object": (
+                    "chat.completion.chunk" if chat else "text_completion"
+                ),
+                "created": created,
+                "model": MODEL_ID,
+                "choices": [choice],
+            }
+
+        def body():
+            events: queue.Queue[dict[str, Any] | None] = queue.Queue()
+
+            def emit(event: dict[str, Any]) -> None:
+                events.put(event)
+
+            def run() -> None:
+                try:
+                    assert service is not None
+                    result = service.complete(
+                        prompt,
+                        stops,
+                        max_tokens,
+                        prefix_token_ids,
+                        PREFILL_CHUNK_SIZE,
+                        event_sink=emit,
+                    )
+                    events.put({"type": "done", "result": result})
+                except Exception as exc:
+                    events.put(
+                        {
+                            "type": "error",
+                            "error": {
+                                "message": str(exc),
+                                "type": type(exc).__name__,
+                            },
+                        }
+                    )
+                finally:
+                    events.put(None)
+
+            if chat:
+                role = chunk("")
+                role["choices"][0]["delta"] = {"role": "assistant"}
+                yield sse_data(role)
+            threading.Thread(
+                target=run,
+                name="rwkv-openai-stream",
+                daemon=True,
+            ).start()
+            emitted = ""
+            while True:
+                event = events.get()
+                if event is None:
+                    return
+                if event.get("type") == "delta":
+                    text = str(event.get("text") or "")
+                    if text.startswith(emitted):
+                        delta = text[len(emitted) :]
+                        emitted = text
+                        if delta:
+                            yield sse_data(chunk(delta))
+                    continue
+                if event.get("type") == "error":
+                    yield "event: error\n" + sse_data({"error": event["error"]})
+                    yield sse_data("[DONE]")
+                    return
+                if event.get("type") != "done":
+                    continue
+                result = event["result"]
+                final_text = str(result.get("text") or "")
+                if final_text.startswith(emitted):
+                    delta = final_text[len(emitted) :]
+                    if delta:
+                        yield sse_data(chunk(delta))
+                yield sse_data(
+                    chunk("", openai_finish_reason(result.get("stop_reason")))
+                )
+                if include_usage:
+                    yield sse_data(
+                        {
+                            "id": request_id,
+                            "object": (
+                                "chat.completion.chunk"
+                                if chat
+                                else "text_completion"
+                            ),
+                            "created": created,
+                            "model": MODEL_ID,
+                            "choices": [],
+                            "usage": completion_usage(result),
+                        }
+                    )
+                yield sse_data("[DONE]")
+                return
+
+        return StreamingResponse(
+            body(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        )
 
     @app.on_event("startup")
     def startup() -> None:
@@ -702,22 +922,16 @@ def create_app():
         return service.route_memory(message, threshold)
 
     @app.post("/v1/completions")
-    def completions(payload: dict[str, Any]) -> dict[str, Any]:
+    def completions(payload: dict[str, Any]):
         if service is None:
             raise HTTPException(503, "loading")
         prompt = payload.get("prompt")
-        stop = payload.get("stop", [])
-        max_tokens = int(payload.get("max_tokens", 192))
         if not isinstance(prompt, str) or not prompt:
             raise HTTPException(422, "prompt must be non-empty string")
-        if isinstance(stop, str):
-            stop = [stop]
-        if not isinstance(stop, list) or not all(
-            isinstance(item, str) for item in stop
-        ):
-            raise HTTPException(422, "stop must be string array")
-        if max_tokens < 1 or max_tokens > 1024:
-            raise HTTPException(422, "max_tokens out of range")
+        stop, max_tokens, stream, include_usage = generation_options(
+            payload,
+            chat=False,
+        )
         prefix = payload.get("prefix_token_ids", [])
         if (
             not isinstance(prefix, list)
@@ -741,6 +955,19 @@ def create_app():
                 422,
                 f"prefill_chunk_size is fixed at {PREFILL_CHUNK_SIZE}",
             )
+        created = int(time.time())
+        request_id = "cmpl-rwkv-" + uuid.uuid4().hex
+        if stream:
+            return stream_completion(
+                prompt=prompt,
+                stops=stop,
+                max_tokens=max_tokens,
+                request_id=request_id,
+                created=created,
+                chat=False,
+                include_usage=include_usage,
+                prefix_token_ids=prefix,
+            )
         try:
             result = service.complete(
                 prompt,
@@ -753,17 +980,76 @@ def create_app():
             raise HTTPException(503, str(exc)) from exc
         result["prefix_token_ids"] = prefix
         return {
-            "id": f"g1i-{int(time.time() * 1000)}",
+            "id": request_id,
             "object": "text_completion",
+            "created": created,
             "model": MODEL_ID,
             "choices": [
                 {
                     "index": 0,
                     "text": result["text"],
-                    "finish_reason": result["stop_reason"],
+                    "finish_reason": openai_finish_reason(result["stop_reason"]),
                 }
             ],
+            "usage": completion_usage(result),
             "g1i": result,
+        }
+
+    @app.post("/v1/chat/completions")
+    def chat_completions(payload: dict[str, Any]):
+        if service is None:
+            raise HTTPException(503, "loading")
+        try:
+            prompt = render_chat_prompt(payload.get("messages"))
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        stop, max_tokens, stream, include_usage = generation_options(
+            payload,
+            chat=True,
+        )
+        created = int(time.time())
+        request_id = "chatcmpl-rwkv-" + uuid.uuid4().hex
+        if stream:
+            return stream_completion(
+                prompt=prompt,
+                stops=stop,
+                max_tokens=max_tokens,
+                request_id=request_id,
+                created=created,
+                chat=True,
+                include_usage=include_usage,
+            )
+        try:
+            result = service.complete(
+                prompt,
+                stop,
+                max_tokens,
+                (),
+                PREFILL_CHUNK_SIZE,
+            )
+        except (TimeoutError, RuntimeError) as exc:
+            raise HTTPException(503, str(exc)) from exc
+        return {
+            "id": request_id,
+            "object": "chat.completion",
+            "created": created,
+            "model": MODEL_ID,
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": result["text"],
+                    },
+                    "finish_reason": openai_finish_reason(result["stop_reason"]),
+                }
+            ],
+            "usage": completion_usage(result),
+            "rwkv": {
+                "batch_mode": result.get("batch_mode"),
+                "elapsed_ms": result.get("elapsed_ms"),
+                "queue_ms": result.get("queue_ms"),
+            },
         }
 
     def state_error(exc: Exception) -> None:

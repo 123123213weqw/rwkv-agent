@@ -1,0 +1,23 @@
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"role":"assistant"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":" Hello"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":"!"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":" How"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":" can"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":" I"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":" assist"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":" you"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":null,"delta":{"content":" today"}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[{"index":0,"finish_reason":"length","delta":{}}]}
+
+data: {"id":"chatcmpl-rwkv-38671afda7984e429b6e844521cdd21b","object":"chat.completion.chunk","created":1788054216,"model":"rwkv7-g1g-1.5b-hf","choices":[],"usage":{"prompt_tokens":12,"completion_tokens":8,"total_tokens":20}}
+
+data: [DONE]
