@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import threading
+from types import SimpleNamespace
 import unittest
 
 import pytest
@@ -299,6 +300,116 @@ class PersistentStateRuntimeTests(unittest.TestCase):
         )
         with self.assertRaises(RuntimeError):
             runtime.prefill(owner_id="turn-b", prompt="def")
+
+    def test_safe_snapshot_release_restore_continue_roundtrip(self) -> None:
+        scheduler, runtime = self.make_runtime()
+        root = runtime.prefill(owner_id="turn-a", prompt="abc", branch="primary")
+        snapshot = runtime.snapshot(
+            owner_id="turn-a",
+            state_id=root["state_id"],
+        )
+        self.assertTrue(snapshot["checksum"].startswith("sha256:"))
+        self.assertEqual(snapshot["size_bytes"], len(snapshot["payload"]))
+        with self.assertRaisesRegex(RuntimeError, "source remains live"):
+            runtime.restore(owner_id="turn-a", payload=snapshot["payload"])
+        with self.assertRaises(PermissionError):
+            runtime.restore(owner_id="turn-b", payload=snapshot["payload"])
+
+        original = runtime.continue_many(
+            owner_id="turn-a",
+            items=[{"state_id": root["state_id"], "input": "de"}],
+            stops=[],
+            max_tokens=3,
+        )[0]
+        runtime.release(owner_id="turn-a", state_ids=[root["state_id"]])
+        self.assertEqual(scheduler.pool.allocated, 0)
+
+        restored = runtime.restore(
+            owner_id="turn-a",
+            payload=snapshot["payload"],
+        )
+        self.assertNotEqual(restored["state_id"], root["state_id"])
+        self.assertEqual(restored["branch"], "primary")
+        resumed = runtime.continue_many(
+            owner_id="turn-a",
+            items=[{"state_id": restored["state_id"], "input": "de"}],
+            stops=[],
+            max_tokens=3,
+        )[0]
+        self.assertEqual(resumed["token_ids"], original["token_ids"])
+        self.assertEqual(resumed["text"], original["text"])
+        self.assertEqual(runtime.health()["metrics"]["snapshots"], 1)
+        self.assertEqual(runtime.health()["metrics"]["restores"], 1)
+
+    def test_snapshot_rejects_corruption_without_allocating_state(self) -> None:
+        scheduler, runtime = self.make_runtime()
+        root = runtime.prefill(owner_id="turn-a", prompt="abc")
+        snapshot = runtime.snapshot(owner_id="turn-a", state_id=root["state_id"])
+        runtime.release(owner_id="turn-a", state_ids=[root["state_id"]])
+        damaged = bytearray(snapshot["payload"])
+        damaged[-1] ^= 0xFF
+        with self.assertRaises(ValueError):
+            runtime.restore(owner_id="turn-a", payload=bytes(damaged))
+        self.assertEqual(scheduler.pool.allocated, 0)
+
+    def test_sidecar_snapshot_restore_transport_enforces_identity(self) -> None:
+        from fastapi.testclient import TestClient
+        import rwkv_agent.sidecar as sidecar
+
+        _scheduler, runtime = self.make_runtime()
+        root = runtime.prefill(owner_id="turn-a", prompt="abc")
+        previous = sidecar.service
+        sidecar.service = SimpleNamespace(states=runtime)
+        try:
+            client = TestClient(sidecar.create_app())
+            identity = {
+                "model_id": sidecar.MODEL_ID,
+                "revision": sidecar.MODEL_REVISION,
+                "tokenizer": sidecar.TOKENIZER_ID,
+                "state_abi": sidecar.STATE_ABI,
+            }
+            wrong = client.post(
+                f"/v1/states/{root['state_id']}/snapshot",
+                json={"owner_id": "turn-a", "model_ref": {**identity, "revision": "wrong"}},
+            )
+            self.assertEqual(wrong.status_code, 409)
+            response = client.post(
+                f"/v1/states/{root['state_id']}/snapshot",
+                json={
+                    "owner_id": "turn-a",
+                    "model_ref": identity,
+                    "target_tier": "cpu",
+                },
+            )
+            self.assertEqual(response.status_code, 200, response.text)
+            checkpoint = response.json()
+            live = client.post(
+                "/v1/states/restore",
+                json={
+                    "owner_id": "turn-a",
+                    "model_ref": identity,
+                    "checksum": checkpoint["checkpoint"]["checksum"],
+                    "payload_base64": checkpoint["payload_base64"],
+                },
+            )
+            self.assertEqual(live.status_code, 409)
+            runtime.release(owner_id="turn-a", state_ids=[root["state_id"]])
+            restored = client.post(
+                "/v1/states/restore",
+                json={
+                    "owner_id": "turn-a",
+                    "model_ref": identity,
+                    "checksum": checkpoint["checkpoint"]["checksum"],
+                    "payload_base64": checkpoint["payload_base64"],
+                },
+            )
+            self.assertEqual(restored.status_code, 200, restored.text)
+            self.assertNotEqual(
+                restored.json()["state"]["state_id"],
+                root["state_id"],
+            )
+        finally:
+            sidecar.service = previous
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ map answers only where code lives.
 | Retrieval/Evidence data plane | Active | `src/rwkv_agent/data_plane.py` |
 | Python data-plane HTTP process | Active | `src/rwkv_agent/data_server.py` |
 | CUDA Sidecar | Active | `src/rwkv_agent/sidecar.py` |
+| Native StatePool Worker registration/drain | Active, opt-in | `src/rwkv_agent/statepool_worker.py`, `src/rwkv_agent/statepool_drain.py` and `docs/STATEPOOL_CLOUD_PLUGIN.md` |
 | Unified recurrent scheduler | Active | `src/rwkv7_scheduler/` |
 | Shared inference contracts | Active | `src/rwkv_runtime/` |
 | Web and knowledge retrieval | Active dependency | `src/rwkv_search/` |

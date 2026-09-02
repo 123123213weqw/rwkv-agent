@@ -8,8 +8,10 @@ owner-local `docs/TODO.md`.
 
 - Rust control plane: `crates/agent-{core,runtime,server,cli}/`;
 - recurrent scheduling and lifecycle harness: `crates/state-runtime/`;
-- narrow RWKV Provider: `src/rwkv_agent/sidecar.py`,
-  `src/rwkv7_scheduler/` and `src/rwkv_runtime/`;
+- narrow RWKV Provider and native StatePool Worker hooks:
+  `src/rwkv_agent/sidecar.py`, `src/rwkv_agent/statepool_worker.py`,
+  `src/rwkv_agent/statepool_drain.py`, `src/rwkv7_scheduler/` and
+  `src/rwkv_runtime/`;
 - narrow Retrieval/Evidence Provider: `src/rwkv_agent/data_server.py`,
   `src/rwkv_agent/data_plane.py`, its adapters and the reachable
   `src/rwkv_search/` library;
@@ -48,7 +50,8 @@ Runtime caches are already ignored: `.venv/`, `target/`, `var/`,
 legacy entrypoints and requires the Python wheel to expose only:
 
 - `rwkv-g1i-sidecar`;
-- `rwkv-agent-data-plane`.
+- `rwkv-agent-data-plane`;
+- `rwkv-statepool-drain`.
 
 Any further removal from the active Provider graph requires a separate Rust
 parity gate. Historical evidence is retrieved from Git when needed rather than

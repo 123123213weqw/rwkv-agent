@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -23,6 +26,7 @@ from .routing import (
     render_tool_gate_turn,
 )
 from .state_runtime import PersistentStateRuntime
+from .statepool_worker import StatePoolWorkerAgent, WorkerSettings
 
 
 MODEL_PATH = os.getenv(
@@ -34,7 +38,13 @@ RUNTIME_DIR = os.getenv(
     "vendor/Albatross/faster3a_2607",
 )
 MODEL_ID = os.getenv("G1I_MODEL_ID", "rwkv7-g1i-preview3260-7.2b")
+MODEL_REVISION = os.getenv("G1I_MODEL_REVISION", "preview3260")
+TOKENIZER_ID = os.getenv("G1I_TOKENIZER_ID", "rwkv_vocab_v20230424")
 BACKEND = os.getenv("G1I_BACKEND", "albatross").strip().lower()
+STATE_ABI = os.getenv(
+    "G1I_STATE_ABI",
+    f"rwkv7-{BACKEND}-recurrent-state-v1",
+)
 HF_MODEL_PATH = os.getenv("G1I_HF_MODEL_PATH", MODEL_PATH)
 HF_DTYPE = os.getenv("G1I_HF_DTYPE", "fp16").strip().lower()
 CONTEXT = int(os.getenv("G1I_CONTEXT", "12288"))
@@ -51,6 +61,9 @@ PERSISTENT_STATE_CAPACITY = int(
 )
 PERSISTENT_STATE_TTL_SECONDS = float(
     os.getenv("G1I_PERSISTENT_STATE_TTL_SECONDS", "120")
+)
+MAX_SNAPSHOT_BYTES = int(
+    os.getenv("G1I_MAX_SNAPSHOT_BYTES", str(512 * 1024 * 1024))
 )
 PIPELINE_DEVICES = tuple(
     int(value)
@@ -145,6 +158,7 @@ class NativeG1I:
             capacity=min(PERSISTENT_STATE_CAPACITY, STATE_CAPACITY),
             ttl_seconds=PERSISTENT_STATE_TTL_SECONDS,
             decode_engine=self.engine,
+            max_snapshot_bytes=MAX_SNAPSHOT_BYTES,
         )
         self._counter_lock = threading.Lock()
         self.calls = 0
@@ -463,6 +477,12 @@ class NativeG1I:
                 "failures": self._tool_gate_failures,
                 "mode": "persistent_root_fork",
             }
+        persistent_states = self.states.health()
+        # The immutable tool-gate root has no user/session data and is rebuilt
+        # from render_tool_gate_root() when a Worker starts. Expose it
+        # explicitly so StatePool drain does not mistake this reproducible
+        # system cache for a dirty user State that must be snapshotted.
+        persistent_states["reconstructible"] = int(tool_gate_root_available)
         return {
             "backend": BACKEND,
             "calls": calls,
@@ -471,7 +491,7 @@ class NativeG1I:
             "memory_gate_calls": memory_gate_calls,
             "tool_gate_state": tool_gate_metrics,
             "inference": self.engine.health(),
-            "persistent_states": self.states.health(),
+            "persistent_states": persistent_states,
         }
 
     def close(self) -> None:
@@ -480,25 +500,100 @@ class NativeG1I:
 
 
 service: NativeG1I | None = None
+worker_agent: StatePoolWorkerAgent | None = None
+
+
+def _requires_worker_admission(path: str) -> bool:
+    """Return whether a POST can begin or mutate inference work.
+
+    Snapshot and release remain available while draining so the Controller can
+    make every resident State durable and free its slot. Control-plane routes
+    likewise remain reachable for polling.
+    """
+
+    if not path.startswith("/v1/"):
+        return False
+    if path.startswith("/v1/statepool/") or path == "/v1/states/release":
+        return False
+    if path.startswith("/v1/states/") and path.endswith("/snapshot"):
+        return False
+    return True
 
 
 def create_app():
     from fastapi import FastAPI, HTTPException
-    from fastapi.responses import StreamingResponse
+    from fastapi.responses import JSONResponse, StreamingResponse
 
     app = FastAPI(title="RWKV G1I continuous-batch sidecar", version="0.4.0")
 
+    @app.middleware("http")
+    async def statepool_admission(request, call_next):
+        agent = worker_agent
+        admitted = False
+        if (
+            agent is not None
+            and request.method == "POST"
+            and _requires_worker_admission(request.url.path)
+        ):
+            admitted = agent.enter_request()
+            if not admitted:
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "error": "statepool_worker_draining",
+                        "message": "Worker is draining and rejects new inference",
+                    },
+                    headers={"Retry-After": "1"},
+                )
+        try:
+            return await call_next(request)
+        finally:
+            if admitted and agent is not None:
+                agent.exit_request()
+
+    def model_ref() -> dict[str, str]:
+        return {
+            "model_id": MODEL_ID,
+            "revision": MODEL_REVISION,
+            "tokenizer": TOKENIZER_ID,
+            "state_abi": STATE_ABI,
+        }
+
+    def require_model_ref(payload: dict[str, Any]) -> None:
+        supplied = payload.get("model_ref")
+        if supplied != model_ref():
+            raise HTTPException(409, "exact State model_ref mismatch")
+
     @app.on_event("startup")
     def startup() -> None:
-        global service
+        global service, worker_agent
         service = NativeG1I()
+        settings = WorkerSettings.from_environment()
+        if settings is not None:
+            worker_agent = StatePoolWorkerAgent(settings, service.health)
+            worker_agent.start()
 
     @app.on_event("shutdown")
     def shutdown() -> None:
-        global service
+        global service, worker_agent
+        if worker_agent is not None:
+            worker_agent.stop()
+            worker_agent = None
         if service is not None:
             service.close()
             service = None
+
+    @app.get("/live")
+    def live() -> dict[str, Any]:
+        return {"status": "live"}
+
+    @app.get("/ready")
+    def ready():
+        if service is None:
+            raise HTTPException(503, "loading")
+        if worker_agent is not None and not worker_agent.ready():
+            raise HTTPException(503, "StatePool Worker is not registered or is draining")
+        return {"status": "ready"}
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -508,13 +603,43 @@ def create_app():
         return {
             "status": "ready",
             "model": MODEL_ID,
+            "model_ref": model_ref(),
             "backend": BACKEND,
             "context": CONTEXT,
             "loaded_seconds": round(service.loaded_seconds, 3),
             "pipeline_devices": list(PIPELINE_DEVICES),
             **runtime,
             "cuda_visible_devices": os.getenv("CUDA_VISIBLE_DEVICES", ""),
+            "statepool_worker": (
+                worker_agent.status()
+                if worker_agent is not None
+                else {"enabled": False, "ready": True}
+            ),
         }
+
+    @app.get("/v1/statepool/worker")
+    def statepool_worker() -> dict[str, Any]:
+        if worker_agent is None:
+            raise HTTPException(404, "StatePool Worker adapter is disabled")
+        return {
+            "status": worker_agent.status(),
+            "capability": worker_agent.capability(),
+        }
+
+    @app.post("/v1/statepool/drain")
+    def statepool_drain(payload: dict[str, Any]) -> dict[str, Any]:
+        if worker_agent is None:
+            raise HTTPException(404, "StatePool Worker adapter is disabled")
+        timeout_seconds = float(payload.get("timeout_seconds", 120))
+        if timeout_seconds <= 0 or timeout_seconds > 3600:
+            raise HTTPException(422, "timeout_seconds must be in (0, 3600]")
+        return worker_agent.begin_draining(timeout_seconds=timeout_seconds)
+
+    @app.get("/v1/statepool/drain")
+    def statepool_drain_status() -> dict[str, Any]:
+        if worker_agent is None:
+            raise HTTPException(404, "StatePool Worker adapter is disabled")
+        return worker_agent.drain_status()
 
     @app.get("/v1/models")
     def models() -> dict[str, Any]:
@@ -838,6 +963,72 @@ def create_app():
                 state_ids=state_ids,
             )
             return {"status": "ok", **released}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.post("/v1/states/{state_id}/snapshot")
+    def state_snapshot(state_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        if service is None:
+            raise HTTPException(503, "loading")
+        require_model_ref(payload)
+        if payload.get("target_tier", "cpu") != "cpu":
+            raise HTTPException(422, "Sidecar snapshot target_tier must be cpu")
+        try:
+            snapshot = service.states.snapshot(
+                owner_id=str(payload.get("owner_id") or ""),
+                state_id=state_id,
+            )
+            checkpoint_id = "checkpoint-" + snapshot["checksum"].removeprefix(
+                "sha256:"
+            )[:32]
+            return {
+                "status": "ok",
+                "checkpoint": {
+                    "checkpoint_id": checkpoint_id,
+                    "model_ref": model_ref(),
+                    "provider_mode": "rwkv_recurrent",
+                    "placement": "cpu",
+                    "checksum": snapshot["checksum"],
+                    "size_bytes": snapshot["size_bytes"],
+                    "atomic": True,
+                    "seen_tokens": snapshot["seen_tokens"],
+                },
+                "payload_base64": base64.b64encode(snapshot["payload"]).decode("ascii"),
+            }
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.post("/v1/states/restore")
+    def state_restore(payload: dict[str, Any]) -> dict[str, Any]:
+        if service is None:
+            raise HTTPException(503, "loading")
+        require_model_ref(payload)
+        encoded = payload.get("payload_base64")
+        if not isinstance(encoded, str) or not encoded:
+            raise HTTPException(422, "payload_base64 must be a non-empty string")
+        if len(encoded) > ((MAX_SNAPSHOT_BYTES + 2) // 3) * 4 + 4:
+            raise HTTPException(413, "snapshot exceeds configured byte limit")
+        try:
+            raw = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise HTTPException(422, "payload_base64 is invalid") from exc
+        expected_checksum = str(payload.get("checksum") or "")
+        actual_checksum = "sha256:" + hashlib.sha256(raw).hexdigest()
+        if expected_checksum != actual_checksum:
+            raise HTTPException(422, "snapshot checksum mismatch")
+        try:
+            state = service.states.restore(
+                owner_id=str(payload.get("owner_id") or ""),
+                payload=raw,
+                branch=(
+                    str(payload["branch"])
+                    if payload.get("branch") is not None
+                    else None
+                ),
+            )
+            return {"status": "ok", "state": state}
         except Exception as exc:
             state_error(exc)
             raise AssertionError("unreachable")

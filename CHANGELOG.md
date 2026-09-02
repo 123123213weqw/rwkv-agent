@@ -4,6 +4,21 @@ All notable public changes are recorded here.
 
 ## Unreleased
 
+### Added
+
+- optional, disabled-by-default StatePool Cloud client boundary with versioned
+  JSON Schema/OpenAPI contracts;
+- Worker registry, exact model/Tokenizer/State ABI placement, privacy zones,
+  Lease/fencing client and native RWKV State lifecycle;
+- native Worker registration, heartbeat and conservative drain admission;
+- independent [`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud)
+  product boundary for cloud control plane, deployment and FinOps evidence.
+
+### Known limitations
+
+- `owner_id` is not authentication; external plugin endpoints must not be
+  exposed publicly without a trusted identity boundary.
+
 ## 0.3.0-beta.2 - 2026-08-25
 
 ### Added

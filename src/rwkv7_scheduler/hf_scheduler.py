@@ -227,6 +227,18 @@ class HFRecurrentScheduler:
             self._requests.pop(str(request_id))
             self._metrics["released"] += 1
 
+    def export_state(self, request_id: str):
+        del request_id
+        raise RuntimeError(
+            "exact snapshot is not enabled for the HF recurrent cache backend"
+        )
+
+    def import_state(self, request_id: str, manifest, tensors):
+        del request_id, manifest, tensors
+        raise RuntimeError(
+            "exact restore is not enabled for the HF recurrent cache backend"
+        )
+
     def cancel(self, request_id: str) -> None:
         with self._model_lock:
             self.request(request_id).cancelled = True

@@ -327,12 +327,13 @@ def _check_provider_entrypoints(errors: list[str]) -> None:
     expected = {
         "rwkv-agent-data-plane": "rwkv_agent.data_server:main",
         "rwkv-g1i-sidecar": "rwkv_agent.sidecar:main",
+        "rwkv-statepool-drain": "rwkv_agent.statepool_drain:main",
     }
     if scripts != expected:
         _error(
             errors,
-            "Python release entrypoints must contain only the narrow Sidecar and "
-            f"Data Plane providers; got {scripts!r}",
+            "Python release entrypoints must contain only the narrow Sidecar, "
+            f"Data Plane and native StatePool drain helpers; got {scripts!r}",
         )
 
 

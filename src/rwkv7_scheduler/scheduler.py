@@ -193,6 +193,155 @@ class AlbatrossChunkScheduler:
             self.pool.release(request.handle)
             self._metrics["released"] += 1
 
+    def export_state(
+        self,
+        request_id: str,
+    ) -> tuple[dict[str, Any], dict[str, torch.Tensor]]:
+        """Copy one decode-ready recurrent row to a portable CPU tensor map."""
+
+        with self._model_lock:
+            request = self.request(request_id)
+            if request.cancelled or request.remaining or request.logits is None:
+                raise RuntimeError(f"request {request_id} is not snapshot-ready")
+            state = self.pool.snapshot(request.handle)
+            tensors: dict[str, torch.Tensor] = {
+                "logits": request.logits.detach().to(device="cpu").contiguous(),
+            }
+            if self.pool.pipeline_parallel:
+                group_lengths = []
+                for group_index, group in enumerate(state):
+                    group_lengths.append(len(group))
+                    for item_index, value in enumerate(group):
+                        tensors[f"state.{group_index}.{item_index}"] = (
+                            value.detach().to(device="cpu").contiguous()
+                        )
+                layout = "pipeline"
+            else:
+                group_lengths = []
+                for index, value in enumerate(state):
+                    tensors[f"state.{index}"] = (
+                        value.detach().to(device="cpu").contiguous()
+                    )
+                layout = "stacked"
+            self._metrics["state_exports"] += 1
+            return (
+                {
+                    "format": "rwkv-recurrent-state.v1",
+                    "backend": "albatross",
+                    "layout": layout,
+                    "group_lengths": group_lengths,
+                    "seen_tokens": request.seen_tokens,
+                },
+                tensors,
+            )
+
+    def import_state(
+        self,
+        request_id: str,
+        manifest: dict[str, Any],
+        tensors: dict[str, torch.Tensor],
+    ) -> RequestState:
+        """Install a validated exact snapshot into a newly allocated slab row."""
+
+        clean_id = str(request_id or "").strip()
+        if not clean_id:
+            raise ValueError("request_id must not be empty")
+        if manifest.get("format") != "rwkv-recurrent-state.v1" or manifest.get(
+            "backend"
+        ) != "albatross":
+            raise ValueError("snapshot backend is incompatible with Albatross")
+        seen_tokens = int(manifest.get("seen_tokens", -1))
+        if seen_tokens < 0 or seen_tokens > self.config.max_input_tokens:
+            raise ValueError("snapshot seen_tokens is outside the context limit")
+        with self._model_lock:
+            if clean_id in self._requests:
+                raise ValueError(f"duplicate request_id: {clean_id}")
+            if len(self._requests) >= self.config.max_queue_size:
+                raise RuntimeError("scheduler queue is full")
+            handle = self.pool.allocate(clean_id)
+            try:
+                expected = self.pool.snapshot(handle)
+                incoming_state: list[Any]
+                if self.pool.pipeline_parallel:
+                    lengths = manifest.get("group_lengths")
+                    expected_lengths = [len(group) for group in expected]
+                    if manifest.get("layout") != "pipeline" or lengths != expected_lengths:
+                        raise ValueError("snapshot pipeline layout mismatch")
+                    incoming_state = []
+                    expected_names = {"logits"}
+                    for group_index, expected_group in enumerate(expected):
+                        incoming_group = []
+                        for item_index, target in enumerate(expected_group):
+                            name = f"state.{group_index}.{item_index}"
+                            expected_names.add(name)
+                            incoming_group.append(
+                                self._validated_snapshot_tensor(name, tensors, target)
+                            )
+                        incoming_state.append(incoming_group)
+                else:
+                    if manifest.get("layout") != "stacked" or manifest.get(
+                        "group_lengths"
+                    ) not in ([], None):
+                        raise ValueError("snapshot state layout mismatch")
+                    expected_names = {"logits"}
+                    incoming_state = []
+                    for index, target in enumerate(expected):
+                        name = f"state.{index}"
+                        expected_names.add(name)
+                        incoming_state.append(
+                            self._validated_snapshot_tensor(name, tensors, target)
+                        )
+                if set(tensors) != expected_names:
+                    raise ValueError("snapshot contains unexpected or missing tensors")
+                logits = tensors["logits"]
+                if logits.ndim != 1 or logits.numel() < 2:
+                    raise ValueError("snapshot logits must be a non-empty vocabulary vector")
+                expected_vocab = getattr(self.model, "vocab_size", None)
+                head_weight = getattr(getattr(self.model, "head", None), "weight", None)
+                if expected_vocab is None and head_weight is not None:
+                    expected_vocab = int(head_weight.shape[0])
+                if expected_vocab is not None and logits.numel() != int(expected_vocab):
+                    raise ValueError("snapshot logits vocabulary size mismatch")
+                if head_weight is not None:
+                    logits_device = head_weight.device
+                elif self.pool.pipeline_parallel:
+                    logits_device = expected[0][-1].device
+                else:
+                    logits_device = expected[0].device
+                logits = logits.to(device=logits_device)
+                self.pool.commit([handle], incoming_state)
+                now = time.monotonic()
+                request = RequestState(
+                    request_id=clean_id,
+                    handle=handle,
+                    token_ids=(),
+                    seen_tokens=seen_tokens,
+                    logits=logits.contiguous(),
+                    admitted_at=now,
+                    first_service_at=now,
+                    completed_at=now,
+                )
+                self._requests[clean_id] = request
+                self._metrics["state_imports"] += 1
+                return request
+            except Exception:
+                self.pool.release(handle)
+                raise
+
+    @staticmethod
+    def _validated_snapshot_tensor(
+        name: str,
+        tensors: dict[str, torch.Tensor],
+        target: torch.Tensor,
+    ) -> torch.Tensor:
+        try:
+            value = tensors[name]
+        except KeyError as exc:
+            raise ValueError(f"snapshot is missing tensor {name}") from exc
+        if value.shape != target.shape or value.dtype != target.dtype:
+            raise ValueError(f"snapshot tensor {name} shape or dtype mismatch")
+        return value.to(device=target.device).contiguous()
+
     @torch.inference_mode()
     def prefill(
         self,

@@ -1,0 +1,24 @@
+{
+  "contract_version": "statepool-snapshot-request.v1",
+  "provider_mode": "rwkv_recurrent",
+  "model_ref": {
+    "model_id": "rwkv7-g1i-7b",
+    "revision": "sha256:example-model-revision",
+    "tokenizer": "rwkv-world-v20230424",
+    "state_abi": "rwkv7-g1i-fp16-v1"
+  },
+  "target_tier": "cold",
+  "lease": {
+    "contract_version": "statepool-lease.v1",
+    "lease_id": "lease-assistant-001-10",
+    "session_id": "assistant-001",
+    "owner_id": "session:assistant-001",
+    "holder_id": "worker-v100-01/request-001",
+    "fencing_token": 10,
+    "expected_state_version": 42,
+    "expires_at_ms": 1787753079000
+  },
+  "expected_state_version": 42,
+  "payload_base64": "cndrdi1zdGF0ZQ==",
+  "expected_checksum": "sha256:c69f69960a85c98b5f4c0126ef4c4260ec45e519e9628bbaa55cc4420676ef60"
+}

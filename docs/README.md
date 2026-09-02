@@ -17,6 +17,8 @@
 - [CODEMAP.md](CODEMAP.md): active implementation ownership
 - [REPOSITORY_SURFACE.md](REPOSITORY_SURFACE.md): retained and removed executable surface
 - [RUST_MIGRATION.md](RUST_MIGRATION.md): incremental provider and tooling migration
+- [STATEPOOL_CLOUD_PLUGIN.md](STATEPOOL_CLOUD_PLUGIN.md): optional cloud plugin contract, compatibility and current limits
+- [statepool-cloud](https://github.com/123123213weqw/statepool-cloud): independent cloud control plane, deployment, adapters and evidence
 - [SCHEDULER.md](SCHEDULER.md): state pool and continuous batching
 - [AGENT_BENCHMARK.md](AGENT_BENCHMARK.md): fixed evaluation methodology
 - [BENCHMARK.md](BENCHMARK.md): retrieval benchmark discipline

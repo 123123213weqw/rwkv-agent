@@ -2490,6 +2490,7 @@ dependencies = [
 [package.optional-dependencies]
 agent = [
     { name = "fastapi" },
+    { name = "safetensors" },
     { name = "torch" },
     { name = "uvicorn" },
 ]
@@ -2555,6 +2556,7 @@ requires-dist = [
     { name = "regex", specifier = ">=2024.5.15" },
     { name = "resiliparse", marker = "extra == 'extraction-bench'", specifier = ">=0.15.2" },
     { name = "resiliparse", marker = "extra == 'realtime'", specifier = ">=0.15.2" },
+    { name = "safetensors", marker = "extra == 'agent'", specifier = ">=0.5" },
     { name = "safetensors", marker = "extra == 'model'" },
     { name = "selectolax", marker = "extra == 'realtime'", specifier = ">=0.3" },
     { name = "sentence-transformers", marker = "extra == 'retrieval'" },

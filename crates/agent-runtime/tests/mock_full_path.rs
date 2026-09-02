@@ -8,8 +8,10 @@ use axum::extract::{Path, State};
 use axum::response::Response;
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use rwkv_agent_runtime::{
-    AgentService, DebugTraceConfig, DebugTraceFileKind, DebugTraceFilter, DebugTraceMode,
+    AgentService, CloudModelRef, CloudPluginConfig, CloudPluginFallback, CloudStatePlacement,
+    DebugTraceConfig, DebugTraceFileKind, DebugTraceFilter, DebugTraceMode, PrivacyClass,
     RequestIdentity, RuntimeConfig, SERVICE_API_VERSION, StageStatus, TaskLedger, TaskSpec,
     TaskStageSpec, TaskStatus,
 };
@@ -20,6 +22,9 @@ use tokio::sync::Mutex;
 #[derive(Clone, Default)]
 struct MockState {
     prefills: Arc<AtomicUsize>,
+    snapshots: Arc<AtomicUsize>,
+    restores: Arc<AtomicUsize>,
+    continuations: Arc<AtomicUsize>,
     releases: Arc<AtomicUsize>,
     continue_delay_ms: Arc<AtomicUsize>,
     prompts: Arc<Mutex<HashMap<String, String>>>,
@@ -41,6 +46,8 @@ async fn sidecar() -> (String, MockState) {
         )
         .route("/v1/gate/tool", post(gate))
         .route("/v1/states/prefill", post(prefill))
+        .route("/v1/states/{state_id}/snapshot", post(snapshot_state))
+        .route("/v1/states/restore", post(restore_state))
         .route("/v1/states/{state_id}/fork", post(fork))
         .route("/v1/states/batch_continue", post(continue_states))
         .route("/v1/states/stream_continue", post(stream_continue_state))
@@ -73,6 +80,183 @@ async fn data_plane() -> String {
     spawn(router).await
 }
 
+#[derive(Clone)]
+struct StatePoolMock {
+    worker_endpoint: String,
+    worker_zone: String,
+    payloads: Arc<Mutex<HashMap<u64, String>>>,
+    usage: Arc<Mutex<Vec<Value>>>,
+    releases: Arc<AtomicUsize>,
+    fail_snapshots: Arc<AtomicUsize>,
+    fail_usage: Arc<AtomicUsize>,
+}
+
+async fn statepool_plugin(worker_endpoint: String) -> (String, StatePoolMock) {
+    statepool_plugin_in_zone(worker_endpoint, "cloud").await
+}
+
+async fn statepool_plugin_in_zone(
+    worker_endpoint: String,
+    worker_zone: &str,
+) -> (String, StatePoolMock) {
+    async fn handshake(Json(request): Json<Value>) -> Json<Value> {
+        let required = request["required_capabilities"].as_array().unwrap();
+        assert!(required.contains(&json!("leases")));
+        assert!(required.contains(&json!("state_lifecycle")));
+        Json(json!({
+            "contract_version":"statepool-plugin.v1",
+            "plugin":"statepool-cloud",
+            "plugin_version":"mock",
+            "capabilities":["placement","leases","state_lifecycle","finops"]
+        }))
+    }
+
+    async fn plan(State(state): State<StatePoolMock>, Json(request): Json<Value>) -> Json<Value> {
+        Json(json!({
+            "contract_version":"statepool-execution-plan.v1",
+            "decision_id":format!("decision-{}", request["request_id"].as_str().unwrap()),
+            "request_id":request["request_id"],
+            "mode":if state.worker_zone == "local" {"local"} else {"remote"},
+            "worker_id":"worker-mock",
+            "worker_zone":state.worker_zone,
+            "endpoint":state.worker_endpoint,
+            "state_action":if request["state_ref"].is_null() {"none"} else {"restore"},
+            "reason_code":"state_affinity",
+            "lease_required":true,
+            "estimated_queue_ms":0.0,
+            "estimated_restore_ms":0.0,
+            "estimated_cost":null,
+            "fallback":"fail_closed"
+        }))
+    }
+
+    async fn acquire(Json(request): Json<Value>) -> Json<Value> {
+        let version = request["expected_state_version"].as_u64().unwrap();
+        Json(json!({
+            "contract_version":"statepool-lease.v1",
+            "lease_id":format!("lease-{version}"),
+            "session_id":request["session_id"],
+            "owner_id":request["owner_id"],
+            "holder_id":request["holder_id"],
+            "fencing_token":version+1,
+            "expected_state_version":version,
+            "expires_at_ms":9_999_999_999_999_u64
+        }))
+    }
+
+    async fn renew(Json(request): Json<Value>) -> Json<Value> {
+        Json(request["lease"].clone())
+    }
+
+    async fn release_lease(
+        State(state): State<StatePoolMock>,
+        Json(_request): Json<Value>,
+    ) -> axum::http::StatusCode {
+        state.releases.fetch_add(1, Ordering::SeqCst);
+        axum::http::StatusCode::NO_CONTENT
+    }
+
+    async fn snapshot(
+        State(state): State<StatePoolMock>,
+        Json(request): Json<Value>,
+    ) -> (axum::http::StatusCode, Json<Value>) {
+        if state
+            .fail_snapshots
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+                value.checked_sub(1)
+            })
+            .is_ok()
+        {
+            return (
+                axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error":"injected snapshot failure"})),
+            );
+        }
+        let version = request["expected_state_version"].as_u64().unwrap() + 1;
+        state.payloads.lock().await.insert(
+            version,
+            request["payload_base64"].as_str().unwrap().to_string(),
+        );
+        (
+            axum::http::StatusCode::OK,
+            Json(json!({
+                "contract_version":"statepool-state-reference.v1",
+                "state_id":format!("durable-{version}"),
+                "session_id":request["lease"]["session_id"],
+                "owner_id":request["lease"]["owner_id"],
+                "version":version,
+                "fencing_token":request["lease"]["fencing_token"],
+                "provider_mode":"rwkv_recurrent",
+                "model_ref":request["model_ref"],
+                "placement":request["target_tier"],
+                "worker_id":null,
+                "object_uri":format!("s3://mock/durable-{version}"),
+                "checksum":request["expected_checksum"],
+                "size_bytes":BASE64_STANDARD.decode(request["payload_base64"].as_str().unwrap()).unwrap().len(),
+                "atomic":true,
+                "created_at_ms":1,
+                "last_active_at_ms":1,
+                "encryption":null
+            })),
+        )
+    }
+
+    async fn restore(
+        State(state): State<StatePoolMock>,
+        Json(request): Json<Value>,
+    ) -> Json<Value> {
+        let version = request["state_ref"]["version"].as_u64().unwrap();
+        let payload = state.payloads.lock().await.get(&version).cloned().unwrap();
+        Json(json!({
+            "contract_version":"statepool-restore-response.v1",
+            "state_ref":request["state_ref"],
+            "payload_base64":payload
+        }))
+    }
+
+    async fn record_usage(
+        State(state): State<StatePoolMock>,
+        Json(record): Json<Value>,
+    ) -> axum::http::StatusCode {
+        assert_eq!(record["contract_version"], "statepool-usage-record.v1");
+        assert_eq!(record["worker_id"], "worker-mock");
+        assert_eq!(record["zone"], state.worker_zone);
+        assert_eq!(record["outcome"], "succeeded");
+        if state
+            .fail_usage
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+                value.checked_sub(1)
+            })
+            .is_ok()
+        {
+            return axum::http::StatusCode::SERVICE_UNAVAILABLE;
+        }
+        state.usage.lock().await.push(record);
+        axum::http::StatusCode::ACCEPTED
+    }
+
+    let state = StatePoolMock {
+        worker_endpoint,
+        worker_zone: worker_zone.into(),
+        payloads: Arc::new(Mutex::new(HashMap::new())),
+        usage: Arc::new(Mutex::new(Vec::new())),
+        releases: Arc::new(AtomicUsize::new(0)),
+        fail_snapshots: Arc::new(AtomicUsize::new(0)),
+        fail_usage: Arc::new(AtomicUsize::new(0)),
+    };
+    let router = Router::new()
+        .route("/plugin/v1/handshake", post(handshake))
+        .route("/plugin/v1/plan", post(plan))
+        .route("/plugin/v1/leases/acquire", post(acquire))
+        .route("/plugin/v1/leases/renew", post(renew))
+        .route("/plugin/v1/leases/release", post(release_lease))
+        .route("/plugin/v1/states/snapshot", post(snapshot))
+        .route("/plugin/v1/states/restore", post(restore))
+        .route("/plugin/v1/usage", post(record_usage))
+        .with_state(state.clone());
+    (spawn(router).await, state)
+}
+
 async fn gate(Json(body): Json<Value>) -> Json<Value> {
     let message = body["message"].as_str().unwrap_or_default();
     Json(
@@ -88,6 +272,64 @@ async fn prefill(State(state): State<MockState>, Json(body): Json<Value>) -> Jso
         body["prompt"].as_str().unwrap_or_default().to_string(),
     );
     Json(json!({"status":"ok","state":{"state_id":state_id,"branch":"root","seen_tokens":10}}))
+}
+
+fn sha256_checksum(payload: &[u8]) -> String {
+    let digest = ring::digest::digest(&ring::digest::SHA256, payload);
+    format!(
+        "sha256:{}",
+        digest
+            .as_ref()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    )
+}
+
+async fn snapshot_state(
+    State(state): State<MockState>,
+    Path(state_id): Path<String>,
+    Json(body): Json<Value>,
+) -> Json<Value> {
+    state.snapshots.fetch_add(1, Ordering::SeqCst);
+    let payload = format!("snapshot:{state_id}").into_bytes();
+    Json(json!({
+        "status":"ok",
+        "checkpoint":{
+            "checkpoint_id":format!("checkpoint-{state_id}"),
+            "model_ref":body["model_ref"],
+            "provider_mode":"rwkv_recurrent",
+            "placement":"cpu",
+            "checksum":sha256_checksum(&payload),
+            "size_bytes":payload.len(),
+            "atomic":true,
+            "seen_tokens":20
+        },
+        "payload_base64":BASE64_STANDARD.encode(payload)
+    }))
+}
+
+async fn restore_state(State(state): State<MockState>, Json(body): Json<Value>) -> Json<Value> {
+    let payload = BASE64_STANDARD
+        .decode(body["payload_base64"].as_str().unwrap())
+        .unwrap();
+    assert_eq!(body["checksum"], sha256_checksum(&payload));
+    let index = state.restores.fetch_add(1, Ordering::SeqCst) + 1;
+    let state_id = format!("restored-{index}");
+    state
+        .prompts
+        .lock()
+        .await
+        .insert(state_id.clone(), "restored-chat".into());
+    Json(json!({
+        "status":"ok",
+        "state":{
+            "state_id":state_id,
+            "owner_id":body["owner_id"],
+            "branch":"restored",
+            "seen_tokens":20
+        }
+    }))
 }
 
 async fn fork(
@@ -122,6 +364,7 @@ async fn fork(
 }
 
 async fn continue_states(State(state): State<MockState>, Json(body): Json<Value>) -> Json<Value> {
+    state.continuations.fetch_add(1, Ordering::SeqCst);
     let delay_ms = state.continue_delay_ms.load(Ordering::SeqCst);
     if delay_ms > 0 {
         tokio::time::sleep(Duration::from_millis(delay_ms as u64)).await;
@@ -201,6 +444,237 @@ async fn direct_chat_reuses_state_and_shutdown_releases_it() {
     assert_eq!(mock.prefills.load(Ordering::SeqCst), 1);
     service.shutdown().await.unwrap();
     assert_eq!(mock.releases.load(Ordering::SeqCst), 1);
+}
+
+#[tokio::test]
+async fn direct_chat_persists_releases_restores_and_advances_fenced_state() {
+    let (model_url, model) = sidecar().await;
+    let (plugin_url, plugin) = statepool_plugin(model_url.clone()).await;
+    let data_url = data_plane().await;
+    let directory = tempfile::tempdir().unwrap();
+    let model_ref = CloudModelRef {
+        model_id: "rwkv7".into(),
+        revision: "revision".into(),
+        tokenizer: "tokenizer".into(),
+        state_abi: "rwkv7-state-v1".into(),
+    };
+    let service = AgentService::new(RuntimeConfig {
+        model_urls: vec![model_url],
+        data_plane_url: data_url,
+        session_dir: directory.path().to_path_buf(),
+        cloud_plugin: CloudPluginConfig {
+            enabled: true,
+            endpoint: plugin_url,
+            fallback: CloudPluginFallback::FailClosed,
+            default_privacy: PrivacyClass::CloudAllowed,
+            model_ref: Some(model_ref),
+            state_lifecycle: true,
+            state_target_tier: CloudStatePlacement::Cold,
+            ..CloudPluginConfig::default()
+        },
+        ..RuntimeConfig::default()
+    })
+    .await
+    .unwrap();
+
+    let first = service.run("hello", "durable").await.unwrap();
+    assert_eq!(first["trace"]["finops"]["status"], "accepted");
+    assert_eq!(
+        first["trace"]["context"]["session_state"]["residency"],
+        "durable"
+    );
+    assert_eq!(
+        first["trace"]["context"]["session_state"]["state_version"],
+        1
+    );
+    assert_eq!(model.prefills.load(Ordering::SeqCst), 1);
+    assert_eq!(model.snapshots.load(Ordering::SeqCst), 1);
+    assert_eq!(model.releases.load(Ordering::SeqCst), 1);
+
+    let second = service.run("again", "durable").await.unwrap();
+    assert_eq!(second["trace"]["context"]["session_state"]["reused"], true);
+    assert_eq!(second["trace"]["placement"]["state_action"], "restore");
+    assert_eq!(
+        second["trace"]["context"]["session_state"]["residency"],
+        "durable"
+    );
+    assert_eq!(
+        second["trace"]["context"]["session_state"]["state_version"],
+        2
+    );
+    assert_eq!(model.prefills.load(Ordering::SeqCst), 1);
+    assert_eq!(model.restores.load(Ordering::SeqCst), 1);
+    assert_eq!(model.snapshots.load(Ordering::SeqCst), 2);
+    assert_eq!(model.releases.load(Ordering::SeqCst), 2);
+    assert_eq!(plugin.releases.load(Ordering::SeqCst), 2);
+    let usage = plugin.usage.lock().await.clone();
+    assert_eq!(usage.len(), 2);
+    assert_eq!(usage[0]["operation"], "create");
+    assert!(usage[0]["state_tier_before"].is_null());
+    assert_eq!(usage[0]["state_tier_after"], "cold");
+    assert_eq!(usage[0]["metrics"]["state_bytes_read"], 0);
+    assert!(usage[0]["metrics"]["state_bytes_written"].as_u64().unwrap() > 0);
+    assert_eq!(usage[1]["operation"], "continue");
+    assert_eq!(usage[1]["state_tier_before"], "cold");
+    assert_eq!(usage[1]["state_tier_after"], "cold");
+    assert!(
+        usage[1]["metrics"]["prefill_tokens_avoided"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    assert!(usage[1]["metrics"]["state_bytes_read"].as_u64().unwrap() > 0);
+    assert!(usage[1]["metrics"]["state_bytes_written"].as_u64().unwrap() > 0);
+    assert!(usage[1]["metrics"]["restore_ms"].as_f64().unwrap() >= 0.0);
+    assert!(usage[1]["metrics"]["snapshot_ms"].as_f64().unwrap() >= 0.0);
+
+    let readiness = service.readiness().await;
+    assert_eq!(readiness["context"]["session_state"]["allocated"], 0);
+    assert_eq!(readiness["context"]["session_state"]["durable"], 1);
+    service.shutdown().await.unwrap();
+    assert_eq!(model.releases.load(Ordering::SeqCst), 2);
+}
+
+#[tokio::test]
+async fn plugin_selected_local_worker_endpoint_is_used_for_create_and_restore() {
+    let (default_url, default_model) = sidecar().await;
+    let (selected_url, selected_model) = sidecar().await;
+    let (plugin_url, plugin) = statepool_plugin_in_zone(selected_url, "local").await;
+    let data_url = data_plane().await;
+    let directory = tempfile::tempdir().unwrap();
+    let service = AgentService::new(RuntimeConfig {
+        model_urls: vec![default_url],
+        data_plane_url: data_url,
+        session_dir: directory.path().to_path_buf(),
+        cloud_plugin: CloudPluginConfig {
+            enabled: true,
+            endpoint: plugin_url,
+            fallback: CloudPluginFallback::FailClosed,
+            default_privacy: PrivacyClass::CloudAllowed,
+            model_ref: Some(CloudModelRef {
+                model_id: "rwkv7".into(),
+                revision: "revision".into(),
+                tokenizer: "tokenizer".into(),
+                state_abi: "rwkv7-state-v1".into(),
+            }),
+            state_lifecycle: true,
+            state_target_tier: CloudStatePlacement::Cold,
+            ..CloudPluginConfig::default()
+        },
+        ..RuntimeConfig::default()
+    })
+    .await
+    .unwrap();
+
+    let first = service.run("hello", "local-placement").await.unwrap();
+    let second = service.run("again", "local-placement").await.unwrap();
+    assert_eq!(first["trace"]["placement"]["mode"], "local");
+    assert_eq!(second["trace"]["placement"]["mode"], "local");
+    assert_eq!(second["trace"]["placement"]["state_action"], "restore");
+    assert_eq!(default_model.prefills.load(Ordering::SeqCst), 0);
+    assert_eq!(default_model.restores.load(Ordering::SeqCst), 0);
+    assert_eq!(selected_model.prefills.load(Ordering::SeqCst), 1);
+    assert_eq!(selected_model.restores.load(Ordering::SeqCst), 1);
+    assert_eq!(selected_model.snapshots.load(Ordering::SeqCst), 2);
+    let usage = plugin.usage.lock().await.clone();
+    assert_eq!(usage.len(), 2);
+    assert!(usage.iter().all(|record| record["zone"] == "local"));
+    service.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn uncertain_lifecycle_commit_blocks_automatic_double_execution() {
+    let (model_url, model) = sidecar().await;
+    let (plugin_url, plugin) = statepool_plugin(model_url.clone()).await;
+    plugin.fail_snapshots.store(1, Ordering::SeqCst);
+    let data_url = data_plane().await;
+    let directory = tempfile::tempdir().unwrap();
+    let service = AgentService::new(RuntimeConfig {
+        model_urls: vec![model_url],
+        data_plane_url: data_url,
+        session_dir: directory.path().to_path_buf(),
+        cloud_plugin: CloudPluginConfig {
+            enabled: true,
+            endpoint: plugin_url,
+            fallback: CloudPluginFallback::FailClosed,
+            default_privacy: PrivacyClass::CloudAllowed,
+            model_ref: Some(CloudModelRef {
+                model_id: "rwkv7".into(),
+                revision: "revision".into(),
+                tokenizer: "tokenizer".into(),
+                state_abi: "rwkv7-state-v1".into(),
+            }),
+            state_lifecycle: true,
+            ..CloudPluginConfig::default()
+        },
+        ..RuntimeConfig::default()
+    })
+    .await
+    .unwrap();
+
+    let first = service.run("hello", "uncertain").await.unwrap();
+    assert_eq!(
+        first["trace"]["context"]["session_state"]["residency"],
+        "blocked_hot"
+    );
+    assert!(
+        first["trace"]["context"]["session_state"]["persistence_error"]
+            .as_str()
+            .unwrap()
+            .contains("snapshot")
+    );
+    assert_eq!(model.continuations.load(Ordering::SeqCst), 1);
+
+    let error = service.run("again", "uncertain").await.unwrap_err();
+    assert!(error.contains("requires reconciliation"));
+    assert_eq!(model.continuations.load(Ordering::SeqCst), 1);
+    assert_eq!(model.prefills.load(Ordering::SeqCst), 1);
+    assert_eq!(model.restores.load(Ordering::SeqCst), 0);
+    assert!(service.shutdown().await.unwrap_err().contains("unresolved"));
+}
+
+#[tokio::test]
+async fn finops_reporting_failure_never_turns_successful_inference_into_failure() {
+    let (model_url, model) = sidecar().await;
+    let (plugin_url, plugin) = statepool_plugin(model_url.clone()).await;
+    plugin.fail_usage.store(1, Ordering::SeqCst);
+    let data_url = data_plane().await;
+    let directory = tempfile::tempdir().unwrap();
+    let service = AgentService::new(RuntimeConfig {
+        model_urls: vec![model_url],
+        data_plane_url: data_url,
+        session_dir: directory.path().to_path_buf(),
+        cloud_plugin: CloudPluginConfig {
+            enabled: true,
+            endpoint: plugin_url,
+            fallback: CloudPluginFallback::FailClosed,
+            default_privacy: PrivacyClass::CloudAllowed,
+            model_ref: Some(CloudModelRef {
+                model_id: "rwkv7".into(),
+                revision: "revision".into(),
+                tokenizer: "tokenizer".into(),
+                state_abi: "rwkv7-state-v1".into(),
+            }),
+            state_lifecycle: true,
+            ..CloudPluginConfig::default()
+        },
+        ..RuntimeConfig::default()
+    })
+    .await
+    .unwrap();
+
+    let response = service.run("hello", "finops-failure").await.unwrap();
+    assert_eq!(response["status"], "ok");
+    assert_eq!(response["trace"]["finops"]["status"], "report_failed");
+    assert!(
+        response["trace"]["finops"]["error"]
+            .as_str()
+            .unwrap()
+            .contains("503")
+    );
+    assert_eq!(model.continuations.load(Ordering::SeqCst), 1);
+    assert_eq!(plugin.usage.lock().await.len(), 0);
+    service.shutdown().await.unwrap();
 }
 
 #[tokio::test]

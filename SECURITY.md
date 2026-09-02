@@ -13,3 +13,13 @@ Debug Trace与其API默认关闭。显式启用`full`会保存Prompt、模型输
 
 发现安全问题时，请提供最小化复现，不要附带真实API Key、完整Session数据库、模型私有路径、网页正文或
 未脱敏Token Trace。
+
+StatePool Cloud Plugin 同样没有内置公网身份认证或租户认证。`owner_id` 是协议
+隔离字段，不是可信身份；8130 端口只能监听 loopback、受限容器网络或 mTLS/
+VPN 后的私网。LocalFS State 可能包含可恢复的模型上下文，应按私密数据处理，
+限制目录权限、备份和日志，禁止提交。
+
+生产远程 State 在实现加密、可信 Worker 身份、PostgreSQL/S3 权限、密钥轮换和
+审计前不得启用。发现 Lease 绕过、fencing/CAS 失效、owner 越权、State URI
+逃逸、checksum 绕过或 Drain 数据丢失时，请使用 GitHub Private Security
+Advisory，不要公开真实 State payload。

@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rwkv_agent_core::{
     AgentEvent, AgentLoop, AgentRunRequest, AnswerDecision, ArgumentSpec, CancellationToken,
@@ -11,6 +11,11 @@ use rwkv_agent_core::{
 use serde_json::{Value, json};
 use tokio::sync::{Mutex, Notify, mpsc};
 
+use crate::cloud_plugin::{
+    CLOUD_USAGE_RECORD_CONTRACT_VERSION, CloudLease, CloudMoney, CloudPluginClient,
+    CloudPluginConfig, CloudPluginFallback, CloudStatePlacement, CloudStateReference,
+    CloudUsageMetrics, CloudUsageRecord, WorkerZone,
+};
 use crate::command::{CommandPolicy, SandboxedCommand};
 use crate::data_client::DataPlaneClient;
 use crate::debug_trace::{
@@ -38,6 +43,7 @@ pub struct RuntimeConfig {
     pub direct_chat_max_tokens: u32,
     pub max_run_elapsed: Duration,
     pub shutdown_grace: Duration,
+    pub cloud_plugin: CloudPluginConfig,
     pub command: CommandPolicy,
     pub debug_trace: DebugTraceConfig,
 }
@@ -58,6 +64,7 @@ impl Default for RuntimeConfig {
             direct_chat_max_tokens: 96,
             max_run_elapsed: Duration::from_secs(600),
             shutdown_grace: Duration::from_secs(200),
+            cloud_plugin: CloudPluginConfig::default(),
             command: CommandPolicy::default(),
             debug_trace: DebugTraceConfig::default(),
         }
@@ -72,6 +79,7 @@ pub struct AgentService {
     sessions: SessionStore,
     chat_states: Arc<Mutex<ChatStateCache>>,
     command: SandboxedCommand,
+    cloud_plugin: CloudPluginClient,
     task_ledger: TaskLedger,
     active_tasks: Arc<Mutex<HashMap<String, CancellationToken>>>,
     task_completion: Arc<Notify>,
@@ -82,10 +90,36 @@ pub struct AgentService {
 #[derive(Clone, Debug)]
 struct CachedChatState {
     session_id: String,
-    state: SidecarState,
+    worker_id: String,
+    worker_zone: WorkerZone,
+    hot_state: Option<SidecarState>,
+    state_ref: Option<CloudStateReference>,
+    state_version: u64,
+    active_lease: Option<CloudLease>,
+    blocked_error: Option<String>,
     history_len: usize,
     stop_reason: String,
     last_used: u64,
+}
+
+impl CachedChatState {
+    fn hot_state(&self) -> Result<&SidecarState, String> {
+        self.hot_state
+            .as_ref()
+            .ok_or_else(|| "chat State is not resident on a Worker".into())
+    }
+
+    fn state_identity(&self) -> String {
+        self.hot_state
+            .as_ref()
+            .map(|state| state.state_id.clone())
+            .or_else(|| self.state_ref.as_ref().map(|state| state.state_id.clone()))
+            .unwrap_or_else(|| "unavailable".into())
+    }
+
+    fn is_durable(&self) -> bool {
+        self.hot_state.is_none() && self.state_ref.is_some() && self.blocked_error.is_none()
+    }
 }
 
 #[derive(Default)]
@@ -1106,6 +1140,8 @@ impl AgentService {
         let task_ledger = TaskLedger::new(config.session_dir.join("task-ledger")).await?;
         let recovered_tasks = task_ledger.recover_interrupted().await?;
         let command = SandboxedCommand::new(config.command.clone());
+        let cloud_plugin = CloudPluginClient::new(config.cloud_plugin.clone())?;
+        cloud_plugin.initialize(&config.runtime_revision).await?;
         let debug_trace = DebugTraceStore::new(
             config.debug_trace.clone(),
             config.runtime_revision.clone(),
@@ -1117,6 +1153,7 @@ impl AgentService {
                 "model_urls":config.model_urls,
                 "data_plane_url":config.data_plane_url,
                 "command_enabled":config.command.enabled,
+                "cloud_plugin_enabled":config.cloud_plugin.enabled,
                 "max_tool_steps":config.max_tool_steps,
                 "max_model_tokens_per_turn":config.max_model_tokens_per_turn,
             }),
@@ -1129,6 +1166,7 @@ impl AgentService {
             sessions,
             chat_states: Arc::new(Mutex::new(ChatStateCache::default())),
             command,
+            cloud_plugin,
             task_ledger,
             active_tasks: Arc::new(Mutex::new(HashMap::new())),
             task_completion: Arc::new(Notify::new()),
@@ -1172,10 +1210,31 @@ impl AgentService {
         };
         let (state_capacity, state_capacity_ready) = state_capacity_status(&model, model_ready);
         let states = self.chat_states.lock().await;
+        let hot_chat_states = states
+            .values
+            .values()
+            .filter(|state| state.hot_state.is_some())
+            .count();
+        let durable_chat_states = states
+            .values
+            .values()
+            .filter(|state| state.is_durable())
+            .count();
+        let blocked_chat_states = states
+            .values
+            .values()
+            .filter(|state| state.blocked_error.is_some())
+            .count();
         let active_tasks = self.active_tasks.lock().await.len();
         let sandbox_ready = !self.config.command.enabled || self.command.available();
         let debug_trace = self.debug_trace.readiness().await;
-        let ready = model_ready && data_ready && sandbox_ready && state_capacity_ready;
+        let cloud_plugin = self.cloud_plugin.readiness().await;
+        let cloud_plugin_ready = !self.cloud_plugin.blocks_readiness().await;
+        let ready = model_ready
+            && data_ready
+            && sandbox_ready
+            && state_capacity_ready
+            && cloud_plugin_ready;
         json!({
             "status":if ready {"ready"} else {"unavailable"},
             "api_version":SERVICE_API_VERSION,
@@ -1193,6 +1252,7 @@ impl AgentService {
                 "task_ledger":{"status":"ready","schema_version":crate::task_ledger::LEDGER_SCHEMA_VERSION,
                     "active_tasks":active_tasks},
                 "debug_trace":debug_trace,
+                "statepool_cloud_plugin":cloud_plugin,
             },
             "configuration":{
                 "runtime_revision":self.config.runtime_revision,
@@ -1203,14 +1263,18 @@ impl AgentService {
                 "debug_trace_mode":self.config.debug_trace.mode,
                 "debug_trace_directory":self.config.debug_trace.directory,
                 "debug_trace_api":self.config.debug_trace.api_enabled,
+                "cloud_plugin_enabled":self.config.cloud_plugin.enabled,
+                "cloud_plugin_fallback":self.config.cloud_plugin.fallback,
             },
             "context":{
                 "mode":"recurrent_session_state_with_transcript_fallback",
                 "history_messages":12,
                 "long_term_memory":false,
                 "session_state":{
-                    "enabled":true,"mode":"gpu_recurrent_lru","capacity":self.config.chat_state_capacity,
-                    "allocated":states.values.len(),"metrics":states.metrics,
+                    "enabled":true,"mode":if self.cloud_plugin.state_lifecycle_enabled() {"statepool_hot_warm_cold"} else {"gpu_recurrent_lru"},
+                    "capacity":self.config.chat_state_capacity,
+                    "allocated":hot_chat_states,"durable":durable_chat_states,"blocked":blocked_chat_states,
+                    "cached_total":states.values.len(),"metrics":states.metrics,
                 }
             },
             "tool_gate":{"mode":"semantic_single_token","threshold":self.config.tool_gate_threshold,
@@ -2376,6 +2440,12 @@ impl AgentService {
                 .collect::<Vec<_>>()
         };
         for record in &records {
+            if let Some(error) = &record.blocked_error {
+                failures.push(format!(
+                    "Session {} has an unresolved State lifecycle: {error}",
+                    record.session_id
+                ));
+            }
             if let Err(error) = self.release_chat_record(record).await {
                 failures.push(error);
             }
@@ -2408,20 +2478,306 @@ impl AgentService {
             self.release_chat_record(stale).await?;
         }
         let reused = cached.is_some();
-        let mut state = if let Some(cached) = cached {
+        let state_tier_before = cached.as_ref().and_then(|state| {
+            state
+                .state_ref
+                .as_ref()
+                .map(|state_ref| state_ref.placement.clone())
+                .or_else(|| state.hot_state.as_ref().map(|_| CloudStatePlacement::Hot))
+        });
+        // Durable State owner identity must remain stable across turns. The
+        // generic owner_id() intentionally adds a nonce for short-lived task
+        // States and therefore cannot identify a persistent chat Session.
+        let usage_record_id = owner_id("usage", session_id);
+        let owner_id = chat_owner_id(session_id);
+        let usage_started_at_ms = unix_time_ms();
+        let usage_started = Instant::now();
+        let mut usage_request_id = format!("direct-{usage_record_id}");
+        let mut usage_queue_ms = None;
+        let mut usage_restore_ms = None;
+        let mut usage_snapshot_ms = None;
+        let mut usage_state_bytes_read = 0;
+        let mut usage_state_bytes_written = 0;
+        let mut usage_estimated_cost: Option<CloudMoney> = None;
+        let prefix = prompt::direct_prefix(&context);
+        let estimated_input_tokens = prefix
+            .chars()
+            .count()
+            .div_ceil(4)
+            .try_into()
+            .unwrap_or(u64::MAX);
+        let mut placement_trace = json!({
+            "contract_version":"statepool-execution-plan.v1",
+            "mode":"state_affinity",
+            "reason_code":"state_affinity",
+        });
+
+        let mut state = if let Some(mut cached) = cached {
+            if let Some(error) = cached.blocked_error.clone() {
+                let error = format!(
+                    "Session State requires reconciliation before another execution: {error}"
+                );
+                return Err(self.preserve_chat_record(cached, &error).await);
+            }
+            if cached.hot_state.is_none()
+                && let Some(lease) = cached.active_lease.take()
+                && let Err(error) = self.cloud_plugin.release_lease(&lease).await
+            {
+                cached.active_lease = Some(lease);
+                let error = format!("previous committed State Lease is not released: {error}");
+                return Err(self.preserve_chat_record(cached, &error).await);
+            }
+
+            if let Some(hot) = cached.hot_state.clone() {
+                placement_trace["worker_endpoint"] = json!(hot.home_url);
+                placement_trace["state_version"] = json!(cached.state_version);
+                if self.cloud_plugin.state_lifecycle_ready().await {
+                    let holder = format!("rwkv-agent/hot/{session_id}/{}", cached.state_version);
+                    match self
+                        .cloud_plugin
+                        .acquire_lease(session_id, &owner_id, &holder, cached.state_version)
+                        .await
+                    {
+                        Ok(lease) => cached.active_lease = Some(lease),
+                        Err(error)
+                            if self.config.cloud_plugin.fallback == CloudPluginFallback::Local
+                                && cached.state_ref.is_none() =>
+                        {
+                            placement_trace["lifecycle_status"] = json!("degraded_hot");
+                            placement_trace["lifecycle_error"] = json!(error);
+                        }
+                        Err(error) => {
+                            return Err(self.preserve_chat_record(cached, &error).await);
+                        }
+                    }
+                }
+                debug_record(
+                    debug_trace,
+                    "state",
+                    "state_cache",
+                    "state_reused",
+                    stage_id,
+                    || json!({"state_id":hot.state_id,"seen_tokens":hot.seen_tokens,"residency":"hot"}),
+                )
+                .await;
+                cached
+            } else if let Some(state_ref) = cached.state_ref.clone() {
+                let plan = match self
+                    .cloud_plugin
+                    .plan_with_state(
+                        session_id,
+                        &owner_id,
+                        estimated_input_tokens,
+                        self.config.direct_chat_max_tokens.into(),
+                        Some(state_ref.clone()),
+                    )
+                    .await
+                {
+                    Ok(plan) => plan,
+                    Err(error) => return Err(self.preserve_chat_record(cached, &error).await),
+                };
+                usage_request_id = plan.request_id.clone();
+                usage_queue_ms = plan.estimated_queue_ms;
+                usage_estimated_cost = plan.estimated_cost.clone();
+                placement_trace = serde_json::to_value(&plan)
+                    .unwrap_or_else(|_| json!({"status":"serialization_error"}));
+                let endpoint = match plan.mode.as_str() {
+                    "local" | "remote" => match plan.endpoint.as_deref() {
+                        Some(endpoint) => endpoint,
+                        None => {
+                            return Err(self
+                                .preserve_chat_record(
+                                    cached,
+                                    "cloud plugin committed State restore plan has no endpoint",
+                                )
+                                .await);
+                        }
+                    },
+                    "defer" => {
+                        return Err(self
+                            .preserve_chat_record(
+                                cached,
+                                "cloud plugin deferred committed State restore",
+                            )
+                            .await);
+                    }
+                    "reject" => {
+                        return Err(self
+                            .preserve_chat_record(
+                                cached,
+                                "cloud plugin rejected committed State restore",
+                            )
+                            .await);
+                    }
+                    mode => {
+                        return Err(self
+                            .preserve_chat_record(
+                                cached,
+                                &format!("committed State restore has unsupported mode {mode}"),
+                            )
+                            .await);
+                    }
+                };
+                let worker_id = match plan.worker_id.as_deref() {
+                    Some(worker_id) => worker_id,
+                    None => {
+                        return Err(self
+                            .preserve_chat_record(
+                                cached,
+                                "cloud plugin restore plan has no Worker identity",
+                            )
+                            .await);
+                    }
+                };
+                let worker_zone = plan.worker_zone.clone().unwrap_or_else(|| {
+                    if plan.mode == "local" {
+                        WorkerZone::Local
+                    } else {
+                        WorkerZone::Cloud
+                    }
+                });
+                let holder = format!("rwkv-agent/{}/restore", plan.decision_id);
+                let lease = match self
+                    .cloud_plugin
+                    .acquire_lease(session_id, &owner_id, &holder, state_ref.version)
+                    .await
+                {
+                    Ok(lease) => lease,
+                    Err(error) => return Err(self.preserve_chat_record(cached, &error).await),
+                };
+                let restore_started = Instant::now();
+                let restored = match self
+                    .cloud_plugin
+                    .read_state(state_ref.clone(), worker_id, &lease)
+                    .await
+                {
+                    Ok(restored) => restored,
+                    Err(error) => {
+                        let release = self.cloud_plugin.release_lease(&lease).await;
+                        let error = append_cleanup_error(error, release.err());
+                        return Err(self.preserve_chat_record(cached, &error).await);
+                    }
+                };
+                let model_ref = match self.cloud_plugin.state_model_ref() {
+                    Ok(model_ref) => model_ref,
+                    Err(error) => {
+                        let release = self.cloud_plugin.release_lease(&lease).await;
+                        let error = append_cleanup_error(error, release.err());
+                        return Err(self.preserve_chat_record(cached, &error).await);
+                    }
+                };
+                let hot = match self
+                    .sidecar
+                    .restore_at(
+                        endpoint,
+                        &owner_id,
+                        &model_ref,
+                        &state_ref.checksum,
+                        &restored.payload_base64,
+                    )
+                    .await
+                {
+                    Ok(state) => state,
+                    Err(error) => {
+                        let release = self.cloud_plugin.release_lease(&lease).await;
+                        let error = append_cleanup_error(error, release.err());
+                        return Err(self.preserve_chat_record(cached, &error).await);
+                    }
+                };
+                usage_restore_ms = Some(restore_started.elapsed().as_secs_f64() * 1000.0);
+                usage_state_bytes_read = state_ref.size_bytes;
+                placement_trace["lifecycle_status"] = json!("restored");
+                placement_trace["state_version"] = json!(state_ref.version);
+                debug_record(
+                    debug_trace,
+                    "state",
+                    "statepool_cloud_plugin",
+                    "state_restored",
+                    stage_id,
+                    || json!({"state_id":state_ref.state_id,"worker_state_id":hot.state_id,"version":state_ref.version,"checksum":state_ref.checksum}),
+                )
+                .await;
+                cached.hot_state = Some(hot);
+                cached.active_lease = Some(lease);
+                cached.worker_id = worker_id.to_string();
+                cached.worker_zone = worker_zone;
+                cached
+            } else {
+                return Err("chat State cache invariant violated: no hot or durable State".into());
+            }
+        } else {
+            // Planning receives bounded metadata only. Prompt text and raw
+            // recurrent-State bytes are never sent to the placement endpoint.
+            let plan = self
+                .cloud_plugin
+                .plan(
+                    session_id,
+                    &owner_id,
+                    estimated_input_tokens,
+                    self.config.direct_chat_max_tokens.into(),
+                )
+                .await?;
+            usage_request_id = plan.request_id.clone();
+            usage_queue_ms = plan.estimated_queue_ms;
+            usage_estimated_cost = plan.estimated_cost.clone();
+            placement_trace = serde_json::to_value(&plan)
+                .unwrap_or_else(|_| json!({"status":"serialization_error"}));
             debug_record(
                 debug_trace,
-                "state",
-                "state_cache",
-                "state_reused",
+                "routing",
+                "statepool_cloud_plugin",
+                "execution_planned",
                 stage_id,
-                || json!({"state_id":cached.state.state_id,"seen_tokens":cached.state.seen_tokens}),
+                || placement_trace.clone(),
             )
             .await;
-            cached
-        } else {
-            let owner_id = owner_id("chat", session_id);
-            let prefix = prompt::direct_prefix(&context);
+
+            let mut selected_endpoint = match plan.mode.as_str() {
+                // A real placement plugin may select a registered local/edge
+                // Worker and return its endpoint. Fallback Local plans leave
+                // endpoint empty and preserve the original round-robin path.
+                "local" => plan.endpoint.clone(),
+                "remote" => Some(
+                    plan.remote_endpoint()
+                        .ok_or_else(|| "cloud plugin remote plan has no endpoint".to_string())?
+                        .to_string(),
+                ),
+                "defer" => return Err("cloud plugin deferred execution".into()),
+                "reject" => return Err("cloud plugin rejected execution".into()),
+                mode => return Err(format!("cloud plugin returned unknown mode: {mode}")),
+            };
+            let mut selected_worker_id = plan
+                .worker_id
+                .clone()
+                .unwrap_or_else(|| "local-sidecar".into());
+            let mut selected_worker_zone = plan.worker_zone.clone().unwrap_or_else(|| {
+                if plan.mode == "local" {
+                    WorkerZone::Local
+                } else {
+                    WorkerZone::Cloud
+                }
+            });
+            let mut active_lease = None;
+            if self.cloud_plugin.state_lifecycle_ready().await {
+                let holder = format!("rwkv-agent/{}/open", plan.decision_id);
+                match self
+                    .cloud_plugin
+                    .acquire_lease(session_id, &owner_id, &holder, 0)
+                    .await
+                {
+                    Ok(lease) => active_lease = Some(lease),
+                    Err(error)
+                        if self.config.cloud_plugin.fallback == CloudPluginFallback::Local =>
+                    {
+                        selected_endpoint = None;
+                        selected_worker_id = "local-sidecar".into();
+                        selected_worker_zone = WorkerZone::Local;
+                        placement_trace["lifecycle_status"] = json!("fallback_before_execution");
+                        placement_trace["lifecycle_error"] = json!(error);
+                    }
+                    Err(error) => return Err(error),
+                }
+            }
             debug_record(
                 debug_trace,
                 "model",
@@ -2431,30 +2787,58 @@ impl AgentService {
                 || json!({"owner_id":owner_id,"prompt":prefix}),
             )
             .await;
-            let state = self.sidecar.prefill(&owner_id, &prefix).await?;
+            let hot = match selected_endpoint {
+                Some(endpoint) => self.sidecar.prefill_at(&endpoint, &owner_id, &prefix).await,
+                None => self.sidecar.prefill(&owner_id, &prefix).await,
+            };
+            let hot = match hot {
+                Ok(state) => state,
+                Err(error) => {
+                    let release = if let Some(lease) = &active_lease {
+                        self.cloud_plugin.release_lease(lease).await.err()
+                    } else {
+                        None
+                    };
+                    return Err(append_cleanup_error(error, release));
+                }
+            };
             debug_record(
                 debug_trace,
                 "state",
                 "provider",
                 "state_opened",
                 stage_id,
-                || json!({"state":state}),
+                || json!({"state":hot}),
             )
             .await;
             CachedChatState {
                 session_id: session_id.to_string(),
-                state,
+                worker_id: selected_worker_id,
+                worker_zone: selected_worker_zone,
+                hot_state: Some(hot),
+                state_ref: None,
+                state_version: 0,
+                active_lease,
+                blocked_error: None,
                 history_len,
                 stop_reason: String::new(),
                 last_used: 0,
             }
         };
+
         if cancellation.is_cancelled() {
             return Err(self
                 .release_chat_after_error(&state, "task cancelled", debug_trace, stage_id)
                 .await);
         }
         let input = prompt::direct_turn(message, reused, &state.stop_reason);
+        let input_tokens = input
+            .chars()
+            .count()
+            .div_ceil(4)
+            .try_into()
+            .unwrap_or(u64::MAX)
+            .saturating_add(if reused { 0 } else { estimated_input_tokens });
         let stops = prompt::CHAT_STOPS
             .iter()
             .map(|value| (*value).to_string())
@@ -2473,13 +2857,14 @@ impl AgentService {
                 .send(json!({"type":"phase","phase":"decoding"}))
                 .await;
         }
+        let hot = state.hot_state()?.clone();
         debug_record(
             debug_trace,
             "model",
             "provider",
             "continue_requested",
             stage_id,
-            || json!({"state_id":state.state.state_id,"input":input,"stops":stops,"max_tokens":self.config.direct_chat_max_tokens}),
+            || json!({"state_id":hot.state_id,"input":input,"stops":stops,"max_tokens":self.config.direct_chat_max_tokens}),
         )
         .await;
         let continuation = tokio::time::timeout(self.config.max_run_elapsed, async {
@@ -2487,7 +2872,7 @@ impl AgentService {
                 Some(events) if debug_trace.is_some() => {
                     self.sidecar
                         .continue_one_stream_captured(
-                            &state.state,
+                            &hot,
                             &input,
                             &stops,
                             self.config.direct_chat_max_tokens,
@@ -2498,7 +2883,7 @@ impl AgentService {
                 Some(events) => self
                     .sidecar
                     .continue_one_stream(
-                        &state.state,
+                        &hot,
                         &input,
                         &stops,
                         self.config.direct_chat_max_tokens,
@@ -2508,12 +2893,7 @@ impl AgentService {
                     .map(|row| (row, Vec::new())),
                 None => self
                     .sidecar
-                    .continue_one(
-                        &state.state,
-                        &input,
-                        &stops,
-                        self.config.direct_chat_max_tokens,
-                    )
+                    .continue_one(&hot, &input, &stops, self.config.direct_chat_max_tokens)
                     .await
                     .map(|row| (row, Vec::new())),
             }
@@ -2560,7 +2940,7 @@ impl AgentService {
                 .release_chat_after_error(&state, "task cancelled", debug_trace, stage_id)
                 .await);
         }
-        if row.state_id != state.state.state_id {
+        if row.state_id != hot.state_id {
             return Err(self
                 .release_chat_after_error(
                     &state,
@@ -2582,59 +2962,226 @@ impl AgentService {
         }
         state.history_len = history_len + 1;
         state.stop_reason = row.stop_reason.clone();
-        state.state.seen_tokens = row.seen_tokens;
+        if let Some(hot) = &mut state.hot_state {
+            hot.seen_tokens = row.seen_tokens;
+        }
         // The recurrent State is the authoritative transcript. A complete
         // leading <think> block can be hidden from the user without discarding
         // the already-computed State; only an unusable generation or a System
         // boundary makes continuation unsafe.
         let safe_to_cache = chat_state_cache_safe(generated_usable, &row.stop_reason);
+        let mut persistence_status = "released";
+        let mut persistence_error = String::new();
         let mut released = Vec::new();
+
         if safe_to_cache {
+            persistence_status = "hot";
+            if let Some(mut lease) = state.active_lease.clone() {
+                let mut lifecycle_error = None;
+                match self.cloud_plugin.renew_lease(&lease).await {
+                    Ok(renewed) => {
+                        lease = renewed;
+                        state.active_lease = Some(lease.clone());
+                    }
+                    Err(error) => lifecycle_error = Some(format!("Lease renewal failed: {error}")),
+                }
+                let mut snapshot = None;
+                let snapshot_started = Instant::now();
+                let snapshot_attempted = lifecycle_error.is_none();
+                if snapshot_attempted {
+                    match (self.cloud_plugin.state_model_ref(), state.hot_state()) {
+                        (Ok(model_ref), Ok(hot)) => {
+                            match self.sidecar.snapshot(hot, &model_ref).await {
+                                Ok(value) => snapshot = Some(value),
+                                Err(error) => {
+                                    lifecycle_error =
+                                        Some(format!("State snapshot failed: {error}"))
+                                }
+                            }
+                        }
+                        (Err(error), _) | (_, Err(error)) => lifecycle_error = Some(error),
+                    }
+                }
+                let mut committed = None;
+                if let Some(snapshot) = snapshot {
+                    match self
+                        .cloud_plugin
+                        .commit_snapshot(&lease, snapshot.payload_base64, snapshot.checksum)
+                        .await
+                    {
+                        Ok(state_ref) => committed = Some(state_ref),
+                        Err(error) => {
+                            lifecycle_error = Some(format!("State commit failed: {error}"))
+                        }
+                    }
+                }
+                if snapshot_attempted {
+                    usage_snapshot_ms = Some(snapshot_started.elapsed().as_secs_f64() * 1000.0);
+                }
+                if let Some(state_ref) = committed {
+                    usage_state_bytes_written = state_ref.size_bytes;
+                    state.state_version = state_ref.version;
+                    state.state_ref = Some(state_ref.clone());
+                    let hot = state.hot_state()?.clone();
+                    match self
+                        .sidecar
+                        .release_many(
+                            &hot.home_url,
+                            &hot.owner_id,
+                            std::slice::from_ref(&hot.state_id),
+                        )
+                        .await
+                    {
+                        Ok(_) => {
+                            state.hot_state = None;
+                            state.active_lease = None;
+                            persistence_status = "durable";
+                            if let Err(error) = self.cloud_plugin.release_lease(&lease).await {
+                                state.active_lease = Some(lease.clone());
+                                persistence_error = format!("Lease release pending: {error}");
+                                persistence_status = "durable_lease_pending";
+                            }
+                            debug_record(
+                                debug_trace,
+                                "state",
+                                "statepool_cloud_plugin",
+                                "state_committed",
+                                stage_id,
+                                || json!({"state_id":state_ref.state_id,"version":state_ref.version,"placement":state_ref.placement,"checksum":state_ref.checksum}),
+                            )
+                            .await;
+                        }
+                        Err(error) => {
+                            lifecycle_error = Some(format!(
+                                "State committed but source Worker release failed: {error}"
+                            ));
+                        }
+                    }
+                }
+                if let Some(error) = lifecycle_error {
+                    persistence_status = "blocked_hot";
+                    persistence_error = error.clone();
+                    state.blocked_error = Some(error);
+                    state.active_lease = Some(lease);
+                }
+            }
             released = self
                 .chat_states
                 .lock()
                 .await
                 .put(state.clone(), self.config.chat_state_capacity);
+            let state_id = state.state_identity();
             debug_record(
                 debug_trace,
                 "state",
                 "state_cache",
                 "state_cached",
                 stage_id,
-                || json!({"state_id":state.state.state_id,"seen_tokens":state.state.seen_tokens,"success":true}),
+                || json!({"state_id":state_id,"seen_tokens":row.seen_tokens,"residency":persistence_status,"success":true,"error":persistence_error}),
             )
             .await;
         } else {
             self.release_chat_record(&state).await?;
+            let state_id = state.state_identity();
             debug_record(
                 debug_trace,
                 "state",
                 "state_cache",
                 "state_released",
                 stage_id,
-                || json!({"state_id":state.state.state_id,"success":true,"reason":"unsafe_cache_boundary"}),
+                || json!({"state_id":state_id,"success":true,"reason":"unsafe_cache_boundary"}),
             )
             .await;
         }
         for evicted in &released {
             self.release_chat_record(evicted).await?;
+            let state_id = evicted.state_identity();
             debug_record(
                 debug_trace,
                 "state",
                 "state_cache",
                 "state_released",
                 stage_id,
-                || json!({"state_id":evicted.state.state_id,"success":true,"reason":"cache_eviction"}),
+                || json!({"state_id":state_id,"success":true,"reason":"cache_eviction"}),
             )
             .await;
         }
+        let state_tier_after = if safe_to_cache {
+            state
+                .state_ref
+                .as_ref()
+                .filter(|_| state.hot_state.is_none())
+                .map(|state_ref| state_ref.placement.clone())
+                .or_else(|| state.hot_state.as_ref().map(|_| CloudStatePlacement::Hot))
+        } else {
+            Some(CloudStatePlacement::Dropped)
+        };
+        let finished_at_ms = unix_time_ms().max(usage_started_at_ms);
+        let usage = CloudUsageRecord {
+            contract_version: CLOUD_USAGE_RECORD_CONTRACT_VERSION.into(),
+            record_id: usage_record_id,
+            request_id: usage_request_id,
+            session_id: session_id.into(),
+            owner_id: owner_id.clone(),
+            worker_id: state.worker_id.clone(),
+            zone: state.worker_zone.clone(),
+            operation: if reused { "continue" } else { "create" }.into(),
+            outcome: "succeeded".into(),
+            state_tier_before,
+            state_tier_after,
+            started_at_ms: usage_started_at_ms,
+            finished_at_ms,
+            metrics: CloudUsageMetrics {
+                elapsed_ms: usage_started.elapsed().as_secs_f64() * 1000.0,
+                queue_ms: usage_queue_ms,
+                restore_ms: usage_restore_ms,
+                snapshot_ms: usage_snapshot_ms,
+                input_tokens,
+                output_tokens: row.token_ids.len().try_into().unwrap_or(u64::MAX),
+                prefill_tokens_avoided: if reused { estimated_input_tokens } else { 0 },
+                // The Sidecar currently reports model wall time rather than
+                // hardware utilization; this is an explicitly documented
+                // one-active-GPU proxy until provider telemetry is plumbed.
+                gpu_seconds: row.elapsed_ms / 1000.0,
+                state_bytes_read: usage_state_bytes_read,
+                state_bytes_written: usage_state_bytes_written,
+                estimated_cost: usage_estimated_cost,
+            },
+            error_code: match persistence_status {
+                "blocked_hot" => Some("state_lifecycle_blocked".into()),
+                "durable_lease_pending" => Some("lease_release_pending".into()),
+                _ => None,
+            },
+        };
+        let (finops_status, finops_error) = if self.cloud_plugin.finops_ready().await {
+            match self.cloud_plugin.record_usage(&usage).await {
+                Ok(()) => ("accepted", String::new()),
+                Err(error) => ("report_failed", error),
+            }
+        } else {
+            ("not_available", String::new())
+        };
+        debug_record(
+            debug_trace,
+            "finops",
+            "statepool_cloud_plugin",
+            "usage_recorded",
+            stage_id,
+            || json!({"status":finops_status,"error":finops_error,"usage":usage}),
+        )
+        .await;
         Ok(json!({
             "status":"ok","session_id":session_id,"message":message,
             "route":{"mode":"direct","tool":null},"tool_result":null,"answer":answer,
             "trace":{
                 "task_spec":task_spec,"gate":gate,"context":{"history_messages":history_len,"mode":"recurrent_session_state","session_state":{
-                    "used":true,"reused":reused,"cached":safe_to_cache,"cache_reject_reason":if !generated_usable{"empty_or_incomplete_generation"}else if !safe_to_cache{"unsafe_stop_boundary"}else{""},"seen_tokens":row.seen_tokens}},
+                    "used":true,"reused":reused,"cached":safe_to_cache,"residency":persistence_status,
+                    "state_version":state.state_version,"persistence_error":persistence_error,
+                    "cache_reject_reason":if !generated_usable{"empty_or_incomplete_generation"}else if !safe_to_cache{"unsafe_stop_boundary"}else{""},"seen_tokens":row.seen_tokens}},
                 "answer_completion":{"stop":row.stop_reason,"output_tokens":row.token_ids.len(),"model_elapsed_ms":row.elapsed_ms,"reasoning_stripped":reasoning_stripped},
+                "placement":placement_trace,
+                "finops":{"status":finops_status,"error":finops_error,"record_id":usage.record_id,
+                    "gpu_seconds_source":"provider_model_wall_time_proxy"},
                 "elapsed_ms":started.elapsed().as_secs_f64()*1000.0,"control_plane":"rust",
             }
         }))
@@ -2887,20 +3434,62 @@ impl AgentService {
 
     async fn invalidate_chat_state(&self, session_id: &str) -> Result<(), String> {
         if let Some(record) = self.chat_states.lock().await.pop(session_id) {
+            if let Some(error) = &record.blocked_error {
+                let message =
+                    format!("Session State requires reconciliation before invalidation: {error}");
+                return Err(self.preserve_chat_record(record, &message).await);
+            }
             self.release_chat_record(&record).await?;
         }
         Ok(())
     }
 
     async fn release_chat_record(&self, record: &CachedChatState) -> Result<(), String> {
-        self.sidecar
-            .release_many(
-                &record.state.home_url,
-                &record.state.owner_id,
-                std::slice::from_ref(&record.state.state_id),
-            )
+        let mut failures = Vec::new();
+        if let Some(state) = &record.hot_state
+            && let Err(error) = self
+                .sidecar
+                .release_many(
+                    &state.home_url,
+                    &state.owner_id,
+                    std::slice::from_ref(&state.state_id),
+                )
+                .await
+        {
+            failures.push(format!("State release failed: {error}"));
+        }
+        if let Some(lease) = &record.active_lease
+            && let Err(error) = self.cloud_plugin.release_lease(lease).await
+        {
+            failures.push(format!("Lease release failed: {error}"));
+        }
+        if failures.is_empty() {
+            Ok(())
+        } else {
+            Err(failures.join("; "))
+        }
+    }
+
+    async fn preserve_chat_record(&self, record: CachedChatState, error: &str) -> String {
+        let evicted = self
+            .chat_states
+            .lock()
             .await
-            .map(|_| ())
+            .put(record, self.config.chat_state_capacity);
+        let mut failures = Vec::new();
+        for record in &evicted {
+            if let Err(release) = self.release_chat_record(record).await {
+                failures.push(release);
+            }
+        }
+        if failures.is_empty() {
+            error.to_string()
+        } else {
+            format!(
+                "{error}; cache eviction cleanup failed: {}",
+                failures.join("; ")
+            )
+        }
     }
 
     async fn release_chat_after_error(
@@ -2910,7 +3499,24 @@ impl AgentService {
         debug_trace: Option<&DebugTraceHandle>,
         stage_id: Option<&str>,
     ) -> String {
+        if record.active_lease.is_some() || record.state_ref.is_some() {
+            let mut blocked = record.clone();
+            blocked.blocked_error = Some(error.to_string());
+            let preserved = self.preserve_chat_record(blocked, error).await;
+            let state_id = record.state_identity();
+            debug_record(
+                debug_trace,
+                "state",
+                "statepool_cloud_plugin",
+                "state_reconciliation_required",
+                stage_id,
+                || json!({"state_id":state_id,"success":false,"reason":error}),
+            )
+            .await;
+            return format!("{preserved}; automatic re-execution is blocked");
+        }
         let release = self.release_chat_record(record).await;
+        let state_id = record.state_identity();
         debug_record(
             debug_trace,
             "state",
@@ -2918,8 +3524,10 @@ impl AgentService {
             "state_released",
             stage_id,
             || match &release {
-                Ok(()) => json!({"state_id":record.state.state_id,"success":true,"reason":error}),
-                Err(release) => json!({"state_id":record.state.state_id,"success":false,"reason":error,"error":release}),
+                Ok(()) => json!({"state_id":state_id,"success":true,"reason":error}),
+                Err(release) => {
+                    json!({"state_id":state_id,"success":false,"reason":error,"error":release})
+                }
             },
         )
         .await;
@@ -2927,6 +3535,13 @@ impl AgentService {
             Ok(()) => error.to_string(),
             Err(release) => format!("{error}; State release also failed: {release}"),
         }
+    }
+}
+
+fn append_cleanup_error(error: String, cleanup: Option<String>) -> String {
+    match cleanup {
+        Some(cleanup) => format!("{error}; cleanup also failed: {cleanup}"),
+        None => error,
     }
 }
 
@@ -3007,6 +3622,26 @@ fn owner_id(prefix: &str, session_id: &str) -> String {
         hash.finish(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     )
+}
+
+fn chat_owner_id(session_id: &str) -> String {
+    let digest = ring::digest::digest(&ring::digest::SHA256, session_id.as_bytes());
+    let stable = digest
+        .as_ref()
+        .iter()
+        .take(16)
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    format!("chat-session-{stable}")
+}
+
+fn unix_time_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .try_into()
+        .unwrap_or(u64::MAX)
 }
 
 fn legacy_request_id(task_id: Option<&str>) -> String {

@@ -1,0 +1,44 @@
+{
+  "contract_version": "statepool-restore-request.v1",
+  "state_ref": {
+    "contract_version": "statepool-state-reference.v1",
+    "state_id": "state-123",
+    "session_id": "assistant-001",
+    "owner_id": "session:assistant-001",
+    "version": 42,
+    "fencing_token": 9,
+    "provider_mode": "rwkv_recurrent",
+    "model_ref": {
+      "model_id": "rwkv7-g1i-7b",
+      "revision": "sha256:example-model-revision",
+      "tokenizer": "rwkv-world-v20230424",
+      "state_abi": "rwkv7-g1i-fp16-v1"
+    },
+    "placement": "cold",
+    "worker_id": null,
+    "object_uri": "s3://rwkv-statepool/session-assistant-001/42.state",
+    "checksum": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "size_bytes": 34078724,
+    "atomic": true,
+    "created_at_ms": 1787753049000,
+    "last_active_at_ms": 1787753049000,
+    "encryption": null
+  },
+  "expected_model_ref": {
+    "model_id": "rwkv7-g1i-7b",
+    "revision": "sha256:example-model-revision",
+    "tokenizer": "rwkv-world-v20230424",
+    "state_abi": "rwkv7-g1i-fp16-v1"
+  },
+  "target_worker_id": "worker-v100-02",
+  "lease": {
+    "contract_version": "statepool-lease.v1",
+    "lease_id": "lease-assistant-001-10",
+    "session_id": "assistant-001",
+    "owner_id": "session:assistant-001",
+    "holder_id": "worker-v100-02/request-restore-001",
+    "fencing_token": 10,
+    "expected_state_version": 42,
+    "expires_at_ms": 1787753079000
+  }
+}

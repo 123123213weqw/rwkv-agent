@@ -16,6 +16,20 @@ cargo test --locked
 cargo clippy --all-targets -- -D warnings
 ```
 
+StatePool 相关变更还必须运行：
+
+```bash
+uv run --with jsonschema python scripts/check_statepool_contracts.py
+```
+
+协议字段变更需要同步 Rust wire type、JSON Schema、OpenAPI、example、ADR/兼容
+说明。插件关闭回归是合并硬门槛。Kubernetes、KEDA、PostgreSQL、S3、
+Prometheus/Grafana 和 OpenAI-compatible Adapter 变更应提交到独立
+[`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud) 仓库。
+
+性能 PR 必须明确区分 `measured` 与 `estimated`，包含 commit、硬件、软件版本、
+命令和原始日志；不得把“已有配置”写成“运行验证”。
+
 新的来源策略应基于通用页面/来源特征，不应添加行业专用路由表。
 
 面向用户的改动还必须更新对应Quickstart、配置模板、CHANGELOG和Known Issues。不得把内部服务器生命周期、

@@ -35,7 +35,7 @@ realtime = [
 ]
 browser = ["playwright>=1.50"]
 model = ["torch", "transformers", "safetensors"]
-agent = ["fastapi>=0.115", "uvicorn>=0.34", "torch>=2.5"]
+agent = ["fastapi>=0.115", "uvicorn>=0.34", "torch>=2.5", "safetensors>=0.5"]
 retrieval = ["sentence-transformers", "faiss-cpu"]
 segment = ["jieba>=0.42.1"]
 analysis = ["jieba>=0.42.1"]
@@ -45,13 +45,16 @@ dev = ["pytest>=7", "tomli>=2; python_version < '3.11'"]
 [project.scripts]
 rwkv-agent-data-plane = "rwkv_agent.data_server:main"
 rwkv-g1i-sidecar = "rwkv_agent.sidecar:main"
+rwkv-statepool-drain = "rwkv_agent.statepool_drain:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.ruff]
 target-version = "py310"
-extend-exclude = ["bench/baselines"]
+# Frozen benchmark/evidence bundles preserve the exact executed sources and
+# logs. Lint maintained runners under `bench/`, but do not rewrite artifacts.
+extend-exclude = ["bench/baselines", "bench/artifacts"]
 
 [tool.ruff.lint]
 # Keep CI focused on correctness checks. Opt into additional style rules in a

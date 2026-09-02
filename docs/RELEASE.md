@@ -37,8 +37,8 @@ Tailscale addresses on the documented public surface.
 
 1. Install the built Python wheel into a fresh virtual environment.
 2. Confirm `rwkv_search`, `rwkv_agent` and `rwkv7_scheduler` import, then verify
-   the two Provider entrypoints are `rwkv-g1i-sidecar` and
-   `rwkv-agent-data-plane`.
+   the narrow Provider/helper entrypoints are `rwkv-g1i-sidecar`,
+   `rwkv-agent-data-plane` and `rwkv-statepool-drain`.
 3. Run `rwkv-agent --version` and the mock Controller smoke test.
 4. Verify the removed Python Controller, `rwkv-search` product CLI and service
    wrapper are absent from the wheel and source release.

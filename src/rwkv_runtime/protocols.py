@@ -59,4 +59,16 @@ class SchedulerProtocol(Protocol):
 
     def release(self, request_id: str) -> None: ...
 
+    def export_state(
+        self,
+        request_id: str,
+    ) -> tuple[dict[str, Any], dict[str, Any]]: ...
+
+    def import_state(
+        self,
+        request_id: str,
+        manifest: Mapping[str, Any],
+        tensors: Mapping[str, Any],
+    ) -> Any: ...
+
     def metrics(self) -> dict[str, Any]: ...

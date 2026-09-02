@@ -6,6 +6,11 @@ RWKV State Agent is a fully local, general-purpose Agent built around RWKV recur
 
 > **One-line pitch:** a private local Agent that remembers through recurrent state, acts through bounded tools, and can advance 100 isolated jobs on one Radeon GPU without sharing their context.
 
+> **Optional cloud story:** the assistant stays resident, but the GPU does not
+> have to. The opt-in StatePool Cloud Plugin turns long-lived recurrent State
+> into a cloud-native scheduling and lifecycle primitive while leaving the
+> default local assistant unchanged.
+
 ## Release status
 
 The current public beta is [`v0.3.0-beta.2`](https://github.com/123123213weqw/rwkv-agent/releases/tag/v0.3.0-beta.2). It includes the Rust control plane, local Web UI and CLI, recurrent-State runtime, bounded tools, AMD ROCm configuration, benchmarks, and reviewed evidence summaries.
@@ -21,6 +26,24 @@ production-deployment claim. See
 [`docs/DEBUG_TRACE.md`](docs/DEBUG_TRACE.md).
 
 The architecture and operating contract are documented in [`docs/PROJECT_SPECIFICATION.md`](docs/PROJECT_SPECIFICATION.md).
+
+## Optional StatePool Cloud integration
+
+This repository contains only the disabled-by-default StatePool **client and
+native RWKV Worker interface**. Without `--cloud-plugin`, no plugin client is
+constructed and the existing local routing path is unchanged. Wire types,
+JSON Schema and OpenAPI stay here so each `rwkv-agent` release can declare an
+exact client compatibility window.
+
+The independently released
+[`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud) repository
+owns the cloud control plane, PostgreSQL/S3 backends, OpenAI/vLLM adapter,
+Compose/Helm/KEDA deployment, FinOps benchmarks and competition evidence.
+No cloud control-plane source or upstream inference engine is vendored here.
+
+- client configuration: [`docs/STATEPOOL_CLOUD_PLUGIN.md`](docs/STATEPOOL_CLOUD_PLUGIN.md)
+- client schemas/OpenAPI: [`contracts/statepool-plugin-v1.openapi.json`](contracts/statepool-plugin-v1.openapi.json)
+- cloud product and deployment: [`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud)
 
 ## What you can verify
 

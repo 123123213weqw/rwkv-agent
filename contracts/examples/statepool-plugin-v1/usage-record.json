@@ -1,0 +1,32 @@
+{
+  "contract_version": "statepool-usage-record.v1",
+  "record_id": "usage-001",
+  "request_id": "request-001",
+  "session_id": "assistant-001",
+  "owner_id": "session:assistant-001",
+  "worker_id": "v100-01",
+  "zone": "cloud",
+  "operation": "continue",
+  "outcome": "succeeded",
+  "state_tier_before": "cold",
+  "state_tier_after": "hot",
+  "started_at_ms": 1787753049000,
+  "finished_at_ms": 1787753051500,
+  "metrics": {
+    "elapsed_ms": 2500,
+    "queue_ms": 1800,
+    "restore_ms": 430,
+    "snapshot_ms": 0,
+    "input_tokens": 128,
+    "output_tokens": 64,
+    "prefill_tokens_avoided": 4096,
+    "gpu_seconds": 2.5,
+    "state_bytes_read": 34078724,
+    "state_bytes_written": 0,
+    "estimated_cost": {
+      "currency": "CNY",
+      "amount": 0.08
+    }
+  },
+  "error_code": null
+}
