@@ -5,6 +5,7 @@
 - [QUICKSTART.md](QUICKSTART.md): install, configure, start and chat
 - [KNOWLEDGE_SETUP.md](KNOWLEDGE_SETUP.md): corpus, model and Elasticsearch download links plus index setup
 - [CONFIGURATION.md](CONFIGURATION.md): environment and Web configuration
+- [HTTP_API.md](HTTP_API.md): canonical frontend endpoints, NDJSON streaming and task lifecycle
 - [SERVICE_PIPELINE.md](SERVICE_PIPELINE.md): canonical startup, readiness, lifecycle and failure diagnosis
 - [DEBUG_TRACE.md](DEBUG_TRACE.md): opt-in local diagnostic capture
 - [KNOWN_ISSUES.md](KNOWN_ISSUES.md): defects, limits and stable-release gates

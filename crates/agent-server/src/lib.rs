@@ -25,6 +25,8 @@ use rwkv_agent_runtime::TaskSpec;
 const INDEX_HTML: &str = include_str!("../../../web/index.html");
 const APP_CSS: &str = include_str!("../../../web/app.css");
 const APP_JS: &str = include_str!("../../../web/app.js");
+const SERVICE_SCHEMA_JSON: &str = include_str!("../../../contracts/agent-service-v1.schema.json");
+const OPENAPI_JSON: &str = include_str!("../../../contracts/agent-service-v1.openapi.json");
 
 #[derive(Clone)]
 struct ServerState {
@@ -65,14 +67,37 @@ pub fn router(service: AgentService) -> Router {
     };
     let debug_api_enabled = state.service.debug_trace_api_enabled();
     let mut app = Router::new()
+        .merge(ui_routes())
+        .merge(health_routes())
+        .merge(canonical_api_routes())
+        .merge(compatibility_routes());
+    if debug_api_enabled {
+        app = app.merge(debug_routes());
+    }
+    app.with_state(state)
+}
+
+// Keep the stable frontend surface, compatibility aliases and local operator
+// surface visibly separate. They may share handlers, but they must not become
+// separate control planes or acquire different lifecycle semantics.
+fn ui_routes() -> Router<ServerState> {
+    Router::new()
         .route("/", get(index))
         .route("/tasks", get(index))
         .route("/assets/app.css", get(app_css))
         .route("/assets/app.js", get(app_js))
+}
+
+fn health_routes() -> Router<ServerState> {
+    Router::new()
         .route("/live", get(live))
         .route("/ready", get(ready))
-        // Compatibility: pre-v1 clients used `/health` as a 200 readiness report.
-        .route("/health", get(compat_health))
+}
+
+fn canonical_api_routes() -> Router<ServerState> {
+    Router::new()
+        .route("/v1/openapi.json", get(openapi_document))
+        .route("/v1/schema.json", get(service_schema_document))
         .route("/v1/tasks", get(tasks).post(run))
         .route("/v1/tasks/stream", axum::routing::post(run_stream))
         .route("/v1/tasks/{task_id}", get(task_record))
@@ -84,7 +109,15 @@ pub fn router(service: AgentService) -> Router {
             "/v1/tasks/{task_id}/cancel",
             axum::routing::post(cancel_task),
         )
-        // Compatibility aliases. They invoke the same handlers and lifecycle.
+        .route("/v1/research", axum::routing::post(research))
+        .route("/v1/tools/call", axum::routing::post(tool))
+}
+
+fn compatibility_routes() -> Router<ServerState> {
+    Router::new()
+        // Pre-v1 clients used `/health` as an always-200 readiness report.
+        .route("/health", get(compat_health))
+        // These aliases invoke the canonical handlers and lifecycle.
         .route("/v1/task-ledger", get(task_ledger))
         .route("/v1/task-ledger/{task_id}", get(task_record))
         .route(
@@ -97,24 +130,22 @@ pub fn router(service: AgentService) -> Router {
         )
         .route("/v1/agent/run", axum::routing::post(run))
         .route("/v1/agent/run_stream", axum::routing::post(run_stream))
-        .route("/v1/research", axum::routing::post(research))
         .route("/v1/agent/run_stateful", axum::routing::post(research))
         .route("/v1/agent/gate", axum::routing::post(gate))
-        .route("/v1/tools/call", axum::routing::post(tool));
-    if debug_api_enabled {
-        app = app
-            .route("/v1/debug/traces", get(debug_traces))
-            .route("/v1/debug/traces/{trace_id}", get(debug_trace_manifest))
-            .route(
-                "/v1/debug/traces/{trace_id}/events",
-                get(debug_trace_events),
-            )
-            .route(
-                "/v1/debug/traces/{trace_id}/files/{kind}",
-                get(debug_trace_file),
-            );
-    }
-    app.with_state(state)
+}
+
+fn debug_routes() -> Router<ServerState> {
+    Router::new()
+        .route("/v1/debug/traces", get(debug_traces))
+        .route("/v1/debug/traces/{trace_id}", get(debug_trace_manifest))
+        .route(
+            "/v1/debug/traces/{trace_id}/events",
+            get(debug_trace_events),
+        )
+        .route(
+            "/v1/debug/traces/{trace_id}/files/{kind}",
+            get(debug_trace_file),
+        )
 }
 
 async fn index() -> Response {
@@ -127,6 +158,20 @@ async fn app_css() -> Response {
 
 async fn app_js() -> Response {
     secured_asset(APP_JS.into_response(), "text/javascript; charset=utf-8")
+}
+
+async fn openapi_document() -> Response {
+    secured_asset(
+        OPENAPI_JSON.into_response(),
+        "application/vnd.oai.openapi+json;version=3.1",
+    )
+}
+
+async fn service_schema_document() -> Response {
+    secured_asset(
+        SERVICE_SCHEMA_JSON.into_response(),
+        "application/schema+json",
+    )
 }
 
 fn secured_asset(mut response: Response, content_type: &'static str) -> Response {
@@ -1297,9 +1342,13 @@ mod tests {
         assert!(INDEX_HTML.contains("/assets/app.css"));
         assert!(INDEX_HTML.contains("/assets/app.js"));
         assert!(!INDEX_HTML.contains("https://"));
-        assert!(APP_JS.contains("/v1/agent/run"));
-        assert!(APP_JS.contains("/v1/agent/run_stream"));
-        assert!(APP_JS.contains("/v1/task-ledger"));
+        assert!(APP_JS.contains("/v1/tasks/stream"));
+        assert!(APP_JS.contains("/v1/tasks?"));
+        assert!(APP_JS.contains("/ready"));
+        assert!(APP_JS.contains(SERVICE_API_VERSION));
+        assert!(!APP_JS.contains("/v1/agent/run"));
+        assert!(!APP_JS.contains("/v1/task-ledger"));
+        assert!(!APP_JS.contains("/health"));
         assert!(INDEX_HTML.contains("/tasks"));
         assert!(APP_JS.contains("textContent"));
         assert!(APP_CSS.contains("prefers-reduced-motion"));
@@ -1383,11 +1432,100 @@ mod tests {
     #[test]
     fn canonical_and_compatibility_routes_share_handlers() {
         let source = include_str!("lib.rs");
+        assert!(source.contains("fn canonical_api_routes()"));
+        assert!(source.contains("fn compatibility_routes()"));
         assert!(source.contains(".route(\"/v1/tasks\", get(tasks).post(run))"));
         assert!(source.contains(".route(\"/v1/agent/run\", axum::routing::post(run))"));
         assert!(source.contains(".route(\"/v1/tasks/stream\", axum::routing::post(run_stream))"));
         assert!(
             source.contains(".route(\"/v1/agent/run_stream\", axum::routing::post(run_stream))")
+        );
+    }
+
+    #[test]
+    fn openapi_tracks_every_canonical_frontend_route() {
+        let document: Value = serde_json::from_str(OPENAPI_JSON).unwrap();
+        assert_eq!(
+            document.pointer("/info/version").and_then(Value::as_str),
+            Some(SERVICE_API_VERSION)
+        );
+        for (method, path) in [
+            ("get", "/live"),
+            ("get", "/ready"),
+            ("get", "/v1/openapi.json"),
+            ("get", "/v1/schema.json"),
+            ("get", "/v1/tasks"),
+            ("post", "/v1/tasks"),
+            ("post", "/v1/tasks/stream"),
+            ("get", "/v1/tasks/{task_id}"),
+            ("post", "/v1/tasks/{task_id}/resume"),
+            ("post", "/v1/tasks/{task_id}/cancel"),
+            ("post", "/v1/research"),
+            ("post", "/v1/tools/call"),
+        ] {
+            assert!(
+                document
+                    .pointer(&format!(
+                        "/paths/{}/{method}",
+                        path.replace('~', "~0").replace('/', "~1")
+                    ))
+                    .is_some(),
+                "OpenAPI is missing {method} {path}"
+            );
+        }
+        for compatibility_path in [
+            "/health",
+            "/v1/agent/run",
+            "/v1/agent/run_stream",
+            "/v1/task-ledger",
+        ] {
+            let pointer = format!(
+                "/paths/{}",
+                compatibility_path.replace('~', "~0").replace('/', "~1")
+            );
+            assert!(
+                document.pointer(&pointer).is_none(),
+                "compatibility route leaked into the canonical OpenAPI surface"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn machine_readable_contract_documents_are_served_with_safe_types() {
+        let app = test_router().await;
+        let openapi = app
+            .clone()
+            .oneshot(
+                Request::get("/v1/openapi.json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(openapi.status(), StatusCode::OK);
+        assert_eq!(
+            openapi
+                .headers()
+                .get(header::CONTENT_TYPE)
+                .and_then(|value| value.to_str().ok()),
+            Some("application/vnd.oai.openapi+json;version=3.1")
+        );
+        let openapi: Value =
+            serde_json::from_slice(&to_bytes(openapi.into_body(), 1024 * 1024).await.unwrap())
+                .unwrap();
+        assert_eq!(openapi["openapi"], "3.1.0");
+
+        let schema = app
+            .oneshot(Request::get("/v1/schema.json").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(schema.status(), StatusCode::OK);
+        assert_eq!(
+            schema
+                .headers()
+                .get(header::CONTENT_TYPE)
+                .and_then(|value| value.to_str().ok()),
+            Some("application/schema+json")
         );
     }
 
@@ -1471,6 +1609,12 @@ mod tests {
                 .pointer("/components/data_plane/status")
                 .and_then(Value::as_str),
             Some("unavailable")
+        );
+        assert_eq!(
+            ready
+                .pointer("/state_parallel_search/endpoint")
+                .and_then(Value::as_str),
+            Some("/v1/research")
         );
 
         let run = app

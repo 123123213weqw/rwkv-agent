@@ -10,7 +10,7 @@ map answers only where code lives.
 |---|---|---|
 | Terminal client | Active | `crates/agent-cli/` |
 | Strict Tool/Answer protocol | Active | `crates/agent-core/src/protocol.rs` |
-| Service v1 request/event/error contract | Active | `crates/agent-core/src/service_contract.rs` and `contracts/agent-service-v1.schema.json` |
+| Service v1 HTTP/frontend contract | Active | `docs/HTTP_API.md`, `contracts/agent-service-v1.openapi.json`, `contracts/agent-service-v1.schema.json` and `crates/agent-core/src/service_contract.rs` |
 | Tool definitions and argument validation | Active | `crates/agent-core/src/registry.rs` |
 | Bounded same-State Agent loop | Active | `crates/agent-core/src/run_loop.rs` |
 | Agent service and routing | Active | `crates/agent-runtime/src/service.rs` |

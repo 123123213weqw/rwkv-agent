@@ -1,0 +1,563 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RWKV Agent Service API",
+    "version": "rwkv-agent.service.v1",
+    "description": "Canonical browser-facing HTTP contract for the Rust RWKV Agent control plane. Compatibility aliases and the opt-in local debug API are intentionally excluded from this stable surface."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Same-origin Rust agent server"
+    }
+  ],
+  "tags": [
+    { "name": "Service", "description": "Process and dependency status" },
+    { "name": "Tasks", "description": "Durable task execution and control" },
+    { "name": "Research", "description": "Bounded stateful research" },
+    { "name": "Tools", "description": "Operator-level direct tool invocation" },
+    { "name": "Contract", "description": "Machine-readable API documents" }
+  ],
+  "paths": {
+    "/live": {
+      "get": {
+        "tags": ["Service"],
+        "operationId": "getLiveness",
+        "summary": "Check process liveness",
+        "description": "Does not call the model, data plane or sandbox.",
+        "responses": {
+          "200": {
+            "description": "The Rust process is alive.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LivenessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "tags": ["Service"],
+        "operationId": "getReadiness",
+        "summary": "Check dependency readiness",
+        "description": "Returns model, data-plane, sandbox, State-capacity, ledger and configuration diagnostics. Use the HTTP status as the readiness decision.",
+        "responses": {
+          "200": {
+            "description": "All required dependencies are ready.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReadinessResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "At least one required dependency is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReadinessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/openapi.json": {
+      "get": {
+        "tags": ["Contract"],
+        "operationId": "getOpenApiDocument",
+        "summary": "Get the OpenAPI 3.1 document",
+        "responses": {
+          "200": {
+            "description": "OpenAPI document",
+            "content": {
+              "application/vnd.oai.openapi+json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/schema.json": {
+      "get": {
+        "tags": ["Contract"],
+        "operationId": "getJsonSchema",
+        "summary": "Get the service JSON Schema",
+        "responses": {
+          "200": {
+            "description": "JSON Schema for versioned request, stream-event and error types",
+            "content": {
+              "application/schema+json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks": {
+      "get": {
+        "tags": ["Tasks"],
+        "operationId": "listTasks",
+        "summary": "List owner-scoped task summaries",
+        "parameters": [
+          { "$ref": "#/components/parameters/ApiVersion" },
+          { "$ref": "#/components/parameters/RequestId" },
+          { "$ref": "#/components/parameters/OwnerId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner-scoped task wall snapshot",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskListResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      },
+      "post": {
+        "tags": ["Tasks"],
+        "operationId": "runTask",
+        "summary": "Run a durable task synchronously",
+        "description": "The response is returned after the task reaches a terminal state. Prefer /v1/tasks/stream for an interactive frontend.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "./schema.json#/$defs/taskRunRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task result or idempotent replay",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskRunResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/v1/tasks/stream": {
+      "post": {
+        "tags": ["Tasks"],
+        "operationId": "streamTask",
+        "summary": "Run a durable task as an NDJSON stream",
+        "description": "Each non-empty line is one ServiceStreamEvent. Sequence numbers increase strictly and the stream contains exactly one terminal final or error event. This is NDJSON, not SSE; browser clients must use fetch and ReadableStream.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "./schema.json#/$defs/taskRunRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Newline-delimited ServiceStreamEvent values",
+            "headers": {
+              "Cache-Control": {
+                "schema": { "type": "string", "const": "no-store" }
+              },
+              "X-Accel-Buffering": {
+                "schema": { "type": "string", "const": "no" }
+              }
+            },
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string",
+                  "description": "One JSON value matching ./schema.json#/$defs/streamEvent per line."
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/v1/tasks/{task_id}": {
+      "get": {
+        "tags": ["Tasks"],
+        "operationId": "getTask",
+        "summary": "Get an owner-scoped durable task record",
+        "parameters": [
+          { "$ref": "#/components/parameters/TaskId" },
+          { "$ref": "#/components/parameters/ApiVersion" },
+          { "$ref": "#/components/parameters/RequestId" },
+          { "$ref": "#/components/parameters/OwnerId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Safe task detail with stage and ledger events",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskDetailResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/tasks/{task_id}/resume": {
+      "post": {
+        "tags": ["Tasks"],
+        "operationId": "resumeTask",
+        "summary": "Resume a failed or interrupted task",
+        "parameters": [
+          { "$ref": "#/components/parameters/TaskId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "./schema.json#/$defs/taskControlRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resumed task result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskRunResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/v1/tasks/{task_id}/cancel": {
+      "post": {
+        "tags": ["Tasks"],
+        "operationId": "cancelTask",
+        "summary": "Request idempotent task cancellation",
+        "description": "Cancellation is observed at the next safe controller/provider boundary.",
+        "parameters": [
+          { "$ref": "#/components/parameters/TaskId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "./schema.json#/$defs/taskControlRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cancellation state",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskControlResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/v1/research": {
+      "post": {
+        "tags": ["Research"],
+        "operationId": "runResearch",
+        "summary": "Run bounded stateful research",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "./schema.json#/$defs/researchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Research result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskRunResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/v1/tools/call": {
+      "post": {
+        "tags": ["Tools"],
+        "operationId": "callTool",
+        "summary": "Invoke one registered tool directly",
+        "description": "Operator-level endpoint. Normal Agent frontends should create a task and let the runtime select tools. Command execution remains disabled unless the server has an explicit sandbox workspace.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "./schema.json#/$defs/toolCallRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ToolCallResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ApiVersion": {
+        "name": "api_version",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string", "const": "rwkv-agent.service.v1" }
+      },
+      "RequestId": {
+        "name": "request_id",
+        "in": "query",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Identifier" }
+      },
+      "OwnerId": {
+        "name": "owner_id",
+        "in": "query",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Identifier" }
+      },
+      "TaskId": {
+        "name": "task_id",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Identifier" }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request or unsupported API version",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "./schema.json#/$defs/errorResponse" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Task does not exist for this owner",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "./schema.json#/$defs/errorResponse" }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Identity, idempotency or task-state conflict",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "./schema.json#/$defs/errorResponse" }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "Model, data plane, sandbox or capacity unavailable",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "./schema.json#/$defs/errorResponse" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Identifier": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[A-Za-z0-9._:/-]+$"
+      },
+      "ResponseIdentity": {
+        "type": "object",
+        "required": ["api_version", "request_id", "owner_id"],
+        "properties": {
+          "api_version": { "type": "string", "const": "rwkv-agent.service.v1" },
+          "request_id": { "$ref": "#/components/schemas/Identifier" },
+          "owner_id": { "$ref": "#/components/schemas/Identifier" }
+        }
+      },
+      "LivenessResponse": {
+        "type": "object",
+        "required": ["status", "api_version", "control_plane", "runtime_revision"],
+        "properties": {
+          "status": { "type": "string", "const": "alive" },
+          "api_version": { "type": "string", "const": "rwkv-agent.service.v1" },
+          "control_plane": { "type": "string", "const": "rust" },
+          "runtime_revision": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "ReadinessResponse": {
+        "type": "object",
+        "required": ["status", "api_version", "control_plane", "runtime_revision", "components", "configuration"],
+        "properties": {
+          "status": { "enum": ["ready", "unavailable"] },
+          "api_version": { "type": "string", "const": "rwkv-agent.service.v1" },
+          "control_plane": { "type": "string", "const": "rust" },
+          "runtime_revision": { "type": "string" },
+          "components": { "type": "object", "additionalProperties": true },
+          "configuration": { "type": "object", "additionalProperties": true }
+        },
+        "additionalProperties": true
+      },
+      "TaskRunResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResponseIdentity" },
+          {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": { "type": "string" },
+              "task_id": { "$ref": "#/components/schemas/Identifier" },
+              "session_id": { "type": "string" },
+              "answer": { "type": "string" },
+              "route": { "type": ["object", "string", "null"] },
+              "tool_result": {},
+              "trace": { "type": "object", "additionalProperties": true },
+              "trace_id": { "type": "string" },
+              "debug_capture": { "type": "object", "additionalProperties": true }
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "TaskSummary": {
+        "type": "object",
+        "required": ["id", "request_id", "owner_id", "session_id", "status", "created_unix_ms", "elapsed_ms", "revision"],
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Identifier" },
+          "request_id": { "$ref": "#/components/schemas/Identifier" },
+          "owner_id": { "$ref": "#/components/schemas/Identifier" },
+          "session_id": { "type": "string" },
+          "message": { "type": "string" },
+          "kind": { "type": "string" },
+          "status": { "type": "string" },
+          "route": { "type": ["string", "null"] },
+          "state": { "type": ["string", "null"] },
+          "tool_count": { "type": "integer", "minimum": 0 },
+          "created_unix_ms": { "type": "integer", "minimum": 0 },
+          "elapsed_ms": { "type": "integer", "minimum": 0 },
+          "error": { "type": ["string", "null"] },
+          "revision": { "type": "integer", "minimum": 0 },
+          "recovery_count": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      },
+      "TaskListResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResponseIdentity" },
+          {
+            "type": "object",
+            "required": ["status", "durable", "counts", "tasks"],
+            "properties": {
+              "status": { "type": "string", "const": "ok" },
+              "durable": { "type": "boolean", "const": true },
+              "counts": {
+                "type": "object",
+                "required": ["total", "running", "complete", "failed"],
+                "properties": {
+                  "total": { "type": "integer", "minimum": 0 },
+                  "running": { "type": "integer", "minimum": 0 },
+                  "complete": { "type": "integer", "minimum": 0 },
+                  "failed": { "type": "integer", "minimum": 0 }
+                }
+              },
+              "tasks": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/TaskSummary" },
+                "maxItems": 100
+              }
+            }
+          }
+        ]
+      },
+      "TaskDetailResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResponseIdentity" },
+          {
+            "type": "object",
+            "required": ["status", "task"],
+            "properties": {
+              "status": { "type": "string", "const": "ok" },
+              "task": {
+                "type": "object",
+                "required": ["task_id", "status", "revision", "stages", "events"],
+                "properties": {
+                  "task_id": { "$ref": "#/components/schemas/Identifier" },
+                  "status": { "type": "string" },
+                  "current_stage": { "type": ["string", "null"] },
+                  "revision": { "type": "integer", "minimum": 0 },
+                  "recovery_count": { "type": "integer", "minimum": 0 },
+                  "trace_id": { "type": ["string", "null"] },
+                  "stages": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+                  "events": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+                  "final_summary": { "type": ["object", "null"], "additionalProperties": true }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        ]
+      },
+      "TaskControlResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResponseIdentity" },
+          {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": { "type": "string" },
+              "task_id": { "$ref": "#/components/schemas/Identifier" }
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "ToolCallResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ResponseIdentity" },
+          {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": { "type": "string" },
+              "tool": { "type": "string" },
+              "result": {}
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    }
+  }
+}
