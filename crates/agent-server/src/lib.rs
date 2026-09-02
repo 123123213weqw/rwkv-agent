@@ -24,7 +24,8 @@ use rwkv_agent_runtime::TaskSpec;
 
 const INDEX_HTML: &str = include_str!("../../../web/index.html");
 const APP_CSS: &str = include_str!("../../../web/app.css");
-const APP_JS: &str = include_str!("../../../web/app.js");
+const APP_JS: &str = include_str!("../../../web/dist/app.js");
+const API_CLIENT_JS: &str = include_str!("../../../web/dist/api-client.js");
 const SERVICE_SCHEMA_JSON: &str = include_str!("../../../contracts/agent-service-v1.schema.json");
 const OPENAPI_JSON: &str = include_str!("../../../contracts/agent-service-v1.openapi.json");
 
@@ -84,8 +85,10 @@ fn ui_routes() -> Router<ServerState> {
     Router::new()
         .route("/", get(index))
         .route("/tasks", get(index))
+        .route("/status", get(index))
         .route("/assets/app.css", get(app_css))
         .route("/assets/app.js", get(app_js))
+        .route("/assets/api-client.js", get(api_client_js))
 }
 
 fn health_routes() -> Router<ServerState> {
@@ -158,6 +161,13 @@ async fn app_css() -> Response {
 
 async fn app_js() -> Response {
     secured_asset(APP_JS.into_response(), "text/javascript; charset=utf-8")
+}
+
+async fn api_client_js() -> Response {
+    secured_asset(
+        API_CLIENT_JS.into_response(),
+        "text/javascript; charset=utf-8",
+    )
 }
 
 async fn openapi_document() -> Response {
@@ -1338,20 +1348,26 @@ mod tests {
 
     #[test]
     fn embedded_web_ui_has_no_external_runtime_dependency() {
-        assert!(INDEX_HTML.contains("STATE AGENT"));
+        assert!(INDEX_HTML.contains("RWKV Agent"));
         assert!(INDEX_HTML.contains("/assets/app.css"));
         assert!(INDEX_HTML.contains("/assets/app.js"));
         assert!(!INDEX_HTML.contains("https://"));
-        assert!(APP_JS.contains("/v1/tasks/stream"));
-        assert!(APP_JS.contains("/v1/tasks?"));
-        assert!(APP_JS.contains("/ready"));
-        assert!(APP_JS.contains(SERVICE_API_VERSION));
+        assert!(API_CLIENT_JS.contains("/v1/tasks/stream"));
+        assert!(API_CLIENT_JS.contains("/v1/tasks?"));
+        assert!(API_CLIENT_JS.contains("/ready"));
+        assert!(API_CLIENT_JS.contains(SERVICE_API_VERSION));
         assert!(!APP_JS.contains("/v1/agent/run"));
         assert!(!APP_JS.contains("/v1/task-ledger"));
         assert!(!APP_JS.contains("/health"));
         assert!(INDEX_HTML.contains("/tasks"));
+        assert!(INDEX_HTML.contains("/status"));
         assert!(APP_JS.contains("textContent"));
         assert!(APP_CSS.contains("prefers-reduced-motion"));
+        let browser_surface =
+            format!("{INDEX_HTML}{APP_CSS}{APP_JS}{API_CLIENT_JS}").to_lowercase();
+        for forbidden in ["deepseek", "xharness", "xlang", "__dsh_boot__"] {
+            assert!(!browser_surface.contains(forbidden));
+        }
     }
 
     #[test]
