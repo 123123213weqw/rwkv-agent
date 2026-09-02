@@ -1,8 +1,8 @@
 # Local knowledge service setup
 
 `knowledge_search` uses an external Elasticsearch-compatible index. The Agent
-connects to it through `RWKV_AGENT_KNOWLEDGE_ENDPOINT`; `rwkv-agent-service`
-does not download the corpus, build indexes or start Elasticsearch for you.
+Data Plane connects to the configured endpoint; the Rust Server and Provider
+processes do not download the corpus, build indexes or start Elasticsearch.
 
 The public repository currently publishes the index builders and benchmark
 summaries, but **does not publish a prebuilt FineWiki index snapshot**. Download

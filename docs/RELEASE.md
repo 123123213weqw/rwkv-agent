@@ -28,19 +28,22 @@ cargo build --release --locked
 bash cli/tests/cli_smoke.sh
 ```
 
-The release audit verifies version alignment, required files, executable startup
-scripts, safe realtime-search defaults, blank credential templates, portable
-service configuration, and the absence of secrets, user-specific home paths and
+The release audit verifies version alignment, required files, executable release
+scripts, safe realtime-search defaults, blank credential templates, narrow
+Provider entrypoints, and the absence of secrets, user-specific home paths and
 Tailscale addresses on the documented public surface.
 
 ## 3. Clean-install smoke
 
 1. Install the built Python wheel into a fresh virtual environment.
-2. Confirm `rwkv_search`, `rwkv_agent` and `rwkv7_scheduler` import.
+2. Confirm `rwkv_search`, `rwkv_agent` and `rwkv7_scheduler` import, then verify
+   the narrow Provider/helper entrypoints are `rwkv-g1i-sidecar`,
+   `rwkv-agent-data-plane` and `rwkv-statepool-drain`.
 3. Run `rwkv-agent --version` and the mock Controller smoke test.
-4. Run `rwkv-agent-service init` with a temporary config directory.
-5. Verify `rwkv-agent-service doctor` fails clearly until model/runtime paths are
-   populated; it must not contact a private host or alter a remote service.
+4. Verify the removed Python Controller, `rwkv-search` product CLI and service
+   wrapper are absent from the wheel and source release.
+5. Start an isolated split stack or verify structured fail-closed readiness when
+   the external Providers are intentionally unavailable.
 
 ## 4. Artifacts
 

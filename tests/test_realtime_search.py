@@ -3,15 +3,12 @@ from __future__ import annotations
 import asyncio
 import queue
 import socket
-import tempfile
 import threading
 import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
 from rwkv_search.config import RealtimeSearchConfig, SearchConfig
-from rwkv_search.db import SearchDatabase
 from rwkv_search.g1i_types import G1ICompletion
 from rwkv_search.realtime.cache import TTLByteCache
 from rwkv_search.realtime.discovery import (
@@ -29,9 +26,7 @@ from rwkv_search.realtime.fetcher import AsyncPageFetcher, FetchError
 from rwkv_search.realtime.precision_discovery import compact_general_query
 from rwkv_search.realtime.ranker import rank_documents, to_search_results
 from rwkv_search.realtime.types import DiscoveredURL, FetchedPage, RealtimeDocument
-from rwkv_search.search import SearchResult
 from rwkv_search.search_reasoning import CFeedbackPlanner
-from rwkv_search.service import SearchService
 
 
 class RealtimeFixtureHandler(BaseHTTPRequestHandler):
@@ -59,41 +54,6 @@ class RealtimeFixtureHandler(BaseHTTPRequestHandler):
 
     def log_message(self, *args) -> None:
         pass
-
-
-class FakeRealtimeEngine:
-    def __init__(self) -> None:
-        self.called = False
-
-    def search_events(self, query, queries, *, freshness, depth, cancel_event=None):
-        self.called = True
-        yield {
-            "type": "discovery_progress",
-            "progress": {"candidate_count": 1, "query_count": len(queries)},
-        }
-        yield {
-            "type": "fetch_progress",
-            "progress": {"attempted": 1, "succeeded": 1, "failed": 0, "total": 1},
-        }
-        yield {
-            "type": "realtime_result",
-            "results": [
-                SearchResult(
-                    document_id=-9,
-                    url="https://docs.example/realtime",
-                    title="实时网页证据",
-                    snippet="网页正文证据",
-                    content="实时网页正文提供了可核查的搜索证据，并且不会写入本地数据库。",
-                    published_at="2026-07-16T08:00:00Z",
-                    fetched_at=time.time(),
-                    source_type="official_docs",
-                    authority=0.9,
-                    score=1.0,
-                    score_components={"realtime": 1.0},
-                )
-            ],
-            "stats": {"fetched": 1},
-        }
 
 
 class FakeDiscovery:
@@ -1544,7 +1504,7 @@ class RealtimeSearchTests(unittest.TestCase):
 
         asyncio.run(run())
 
-    def test_extraction_ranking_and_service_event_bridge(self) -> None:
+    def test_extraction_and_ranking(self) -> None:
         page = FetchedPage(
             requested_url="https://docs.example/article",
             final_url="https://docs.example/article",
@@ -1571,27 +1531,6 @@ class RealtimeSearchTests(unittest.TestCase):
             limit=3,
         )
         self.assertEqual(to_search_results("实时搜索", ranked)[0].url, page.final_url)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            engine = FakeRealtimeEngine()
-            service = SearchService(
-                SearchDatabase(Path(tmp) / "search.db"), realtime_engine=engine
-            )
-            events = list(
-                service.ask_events(
-                    "搜索一下实时抓取方案",
-                    search_mode="always",
-                    source_scope="web",
-                )
-            )
-        kinds = [event["type"] for event in events]
-        self.assertTrue(engine.called)
-        self.assertIn("discovery_progress", kinds)
-        self.assertIn("fetch_progress", kinds)
-        evidence = next(event for event in events if event["type"] == "evidence")
-        self.assertEqual(
-            evidence["evidence"][0]["url"], "https://docs.example/realtime"
-        )
 
     def test_semantic_reranker_handles_named_entity_relevance(self) -> None:
         now = time.time()

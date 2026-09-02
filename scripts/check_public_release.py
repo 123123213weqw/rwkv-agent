@@ -41,28 +41,30 @@ REQUIRED_FILES = (
     "crates/agent-runtime/README.md",
     "crates/agent-server/Cargo.toml",
     "crates/agent-server/README.md",
-    "cli/scripts/rwkv",
-    "cli/scripts/rwkv-agent-service",
-    "deploy/agent/README.md",
-    "deploy/agent/start_g1i_sidecars.sh",
-    "deploy/agent/stop_g1i_sidecars.sh",
     "docs/CONFIGURATION.md",
     "docs/CODEMAP.md",
-    "docs/DEPLOYMENT.md",
     "docs/KNOWN_ISSUES.md",
-    "docs/MODEL_SETUP.md",
     "docs/QUICKSTART.md",
+    "docs/REPOSITORY_SURFACE.md",
     "docs/RELEASE.md",
-    "docs/TROUBLESHOOTING.md",
     "scripts/dev",
 )
 
 EXECUTABLE_FILES = (
+    "scripts/dev",
+)
+
+FORBIDDEN_LEGACY_FILES = (
+    "src/rwkv_agent/controller.py",
+    "src/rwkv_agent/server.py",
+    "src/rwkv_agent/state_agent.py",
+    "src/rwkv_search/api.py",
+    "src/rwkv_search/cli.py",
+    "src/rwkv_search/web/index.html",
     "cli/scripts/rwkv",
     "cli/scripts/rwkv-agent-service",
-    "deploy/agent/start_g1i_sidecars.sh",
-    "deploy/agent/stop_g1i_sidecars.sh",
-    "scripts/dev",
+    "scripts/train_fitgen_lora.py",
+    "benchmarks/run_fitgen_benchmark.py",
 )
 
 SCAN_FILES = (
@@ -208,6 +210,9 @@ def _check_files(errors: list[str]) -> None:
         path = ROOT / relative
         if path.exists() and not os.access(path, os.X_OK):
             _error(errors, f"release script is not executable: {relative}")
+    for relative in FORBIDDEN_LEGACY_FILES:
+        if (ROOT / relative).exists():
+            _error(errors, f"removed legacy release path returned: {relative}")
 
 
 def _check_config(errors: list[str]) -> None:
@@ -239,12 +244,22 @@ def _check_environment_template(errors: list[str]) -> None:
         "RWKV_AGENT_PYTHON",
         "G1I_MODEL_PATH",
         "G1I_RUNTIME_DIR",
-        "RWKV_AGENT_CONTROLLER_HOST",
+        "RWKV_AGENT_HOST",
+        "RWKV_AGENT_PORT",
+        "RWKV_AGENT_MODEL_URLS",
+        "RWKV_AGENT_DATA_PLANE_URL",
+        "RWKV_AGENT_SESSION_DIR",
         "RWKV_AGENT_WEB_CONFIG",
     }
     for key in sorted(required - values.keys()):
         _error(errors, f"environment template is missing {key}")
-    for key in ("RWKV_AGENT_PROJECT_ROOT", "RWKV_AGENT_PYTHON", "G1I_MODEL_PATH", "G1I_RUNTIME_DIR"):
+    for key in (
+        "RWKV_AGENT_PROJECT_ROOT",
+        "RWKV_AGENT_PYTHON",
+        "G1I_MODEL_PATH",
+        "G1I_RUNTIME_DIR",
+        "RWKV_AGENT_SESSION_DIR",
+    ):
         if key in values and not values[key].startswith("/absolute/path/"):
             _error(errors, f"{key} must use the /absolute/path placeholder")
     if values.get("TAVILY_API_KEY") or values.get("GITHUB_TOKEN"):
@@ -306,11 +321,20 @@ def _check_benchmark_publication(errors: list[str]) -> None:
             _error(errors, f"public result SHA-256 mismatch: {name}")
 
 
-def _check_service_portability(errors: list[str]) -> None:
-    text = (ROOT / "cli/scripts/rwkv-agent-service").read_text(encoding="utf-8")
-    for forbidden in ("REMOTE_HOST", "REMOTE_USER", "ProxyJump", "ssh -L", "ssh -J"):
-        if forbidden in text:
-            _error(errors, f"service script contains private/remote coupling marker: {forbidden}")
+def _check_provider_entrypoints(errors: list[str]) -> None:
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    scripts = pyproject.get("project", {}).get("scripts", {})
+    expected = {
+        "rwkv-agent-data-plane": "rwkv_agent.data_server:main",
+        "rwkv-g1i-sidecar": "rwkv_agent.sidecar:main",
+        "rwkv-statepool-drain": "rwkv_agent.statepool_drain:main",
+    }
+    if scripts != expected:
+        _error(
+            errors,
+            "Python release entrypoints must contain only the narrow Sidecar, "
+            f"Data Plane and native StatePool drain helpers; got {scripts!r}",
+        )
 
 
 def _check_markdown_links(errors: list[str]) -> None:
@@ -362,7 +386,7 @@ def main() -> int:
         _check_config(errors)
         _check_environment_template(errors)
         _check_benchmark_publication(errors)
-        _check_service_portability(errors)
+        _check_provider_entrypoints(errors)
         _check_markdown_links(errors)
     scanned = _check_public_text(errors)
 

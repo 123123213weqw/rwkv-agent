@@ -6,7 +6,6 @@ from rwkv_search.pipeline.answer_policy import AnswerPolicy
 from rwkv_search.pipeline.discovery import DiscoveryLayer
 from rwkv_search.pipeline.query_compiler import QueryCompiler, QueryHints
 from rwkv_search.pipeline.reranker import RetrievalReranker
-from rwkv_search.pipeline.search_need import SearchNeedGate
 from rwkv_search.pipeline.source_selector import SourceCapability, SourceSelector
 
 
@@ -33,21 +32,6 @@ class Candidate:
 
 
 class PipelineLayerTests(unittest.TestCase):
-    def test_search_need_gate_has_only_ui_policy_and_semantic_gate(self) -> None:
-        gate = SearchNeedGate()
-        self.assertIsNone(gate.policy("任何未见表达"))
-        forced = gate.policy("普通聊天", mode="always")
-        self.assertTrue(forced.use_tool)
-        calls = []
-
-        def semantic(message, **_):
-            calls.append(message)
-            return {"use_tool": False, "margin": 0.8}
-
-        decision = gate.decide("任意未见表达", semantic_gate=semantic)
-        self.assertFalse(decision["use_tool"])
-        self.assertEqual(calls, ["任意未见表达"])
-
     def test_query_compiler_preserves_model_query_and_explicit_site_only(self) -> None:
         compiled = QueryCompiler().compile(
             "请查最新版本 site:example.org",

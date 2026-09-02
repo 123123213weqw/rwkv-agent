@@ -7,7 +7,6 @@ from benchmarks.evaluate_s_level_bench import (
     DEFAULT_TARGETS,
     MEASUREMENT_SCHEMA,
     evaluate,
-    measurements_from_fitgen,
 )
 
 
@@ -61,46 +60,6 @@ class SLevelBenchTests(unittest.TestCase):
         failed = {item["gate_id"] for item in report["failed_gates"]}
         self.assertIn("metric.unsupported_claim_rate", failed)
         self.assertIn("language.zh.exact_page_recall_at_20", failed)
-
-    def test_fitgen_adapter_maps_only_semantically_supported_metrics(self) -> None:
-        summary = {
-            "cases": 80,
-            "reliability": {"state_leak_count": 0},
-            "unified_metrics": {
-                "citation_validity_precision": {"kind": "macro_rate", "mean": 0.65},
-                "citation_exact_page_recall": {"kind": "macro_rate", "mean": 0.23125},
-                "claim_citation_coverage": {"kind": "macro_rate", "mean": 0.873214},
-                "unsupported_claim_rate": {"kind": "macro_rate", "mean": 0.126786},
-                "result_status_ok": {"kind": "rate", "rate": 1.0},
-                "latency_ms": {"kind": "distribution", "p50": 28248.949, "p95": 38223.079},
-                "answer_token_f1": {"kind": "macro_rate", "mean": 0.221927},
-            },
-        }
-        funnel = {
-            "stage_hit_rates": {
-                "domain_candidate_hit": 0.95,
-                "exact_raw_candidate_hit": 0.5,
-                "exact_final_evidence_hit": 0.3875,
-                "search_invoked": 0.95,
-            },
-            "stage_macro_recalls": {
-                "raw_candidate_recall": 0.39375,
-                "final_evidence_recall": 0.30625,
-            },
-            "by_language": {
-                "zh": {"stage_hit_rates": {"domain_candidate_hit": 0.977778}},
-                "en": {"stage_hit_rates": {"domain_candidate_hit": 0.962963}},
-            },
-        }
-        converted = measurements_from_fitgen(summary, funnel)
-        metrics = converted["metrics"]
-        self.assertEqual(metrics["exact_page_recall_at_20"], 0.39375)
-        self.assertEqual(metrics["final_evidence_exact_recall"], 0.30625)
-        self.assertEqual(metrics["discovered_to_evidence_retention_rate"], 0.775)
-        self.assertEqual(metrics["search_false_negative_rate"], 0.05)
-        self.assertNotIn("answer_factual_accuracy", metrics)
-        self.assertNotIn("answer_token_f1", metrics)
-
 
 if __name__ == "__main__":
     unittest.main()

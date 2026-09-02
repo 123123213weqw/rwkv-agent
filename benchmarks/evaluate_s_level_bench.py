@@ -42,15 +42,6 @@ def _nested(value: Mapping[str, Any], path: str) -> Any:
     return current
 
 
-def _unified_metric(summary: Mapping[str, Any], name: str, statistic: str | None = None) -> float | None:
-    value = _nested(summary, f"unified_metrics.{name}")
-    if not isinstance(value, Mapping):
-        return None
-    if statistic is not None:
-        return _number(value.get(statistic))
-    return _number(value.get("rate" if value.get("kind") == "rate" else "mean"))
-
-
 @dataclass(frozen=True)
 class GateResult:
     gate_id: str
@@ -208,92 +199,6 @@ def evaluate(
     }
 
 
-def measurements_from_fitgen(
-    summary: Mapping[str, Any],
-    funnel: Mapping[str, Any] | None = None,
-    *,
-    live_repetitions: int = 1,
-) -> dict[str, Any]:
-    """Create a conservative partial S-level measurement from existing artifacts.
-
-    Only metrics whose semantics match the S-level contract are mapped.  All
-    others remain absent and therefore fail closed instead of being guessed.
-    """
-
-    metrics: dict[str, float] = {}
-    cases = int(_number(summary.get("cases")) or 0)
-    mappings = {
-        "citation_validity_precision": ("citation_validity_precision", None),
-        "citation_exact_page_recall": ("citation_exact_page_recall", None),
-        "important_claim_citation_coverage": ("claim_citation_coverage", None),
-        "unsupported_claim_rate": ("unsupported_claim_rate", None),
-        "status_ok_rate": ("result_status_ok", None),
-        "search_p50_latency_ms": ("latency_ms", "p50"),
-        "search_p95_latency_ms": ("latency_ms", "p95"),
-    }
-    for output_name, (source_name, statistic) in mappings.items():
-        value = _unified_metric(summary, source_name, statistic)
-        if value is not None:
-            metrics[output_name] = value
-    state_leaks = _number(_nested(summary, "reliability.state_leak_count"))
-    if state_leaks is not None:
-        metrics["state_leak_count"] = state_leaks
-
-    language_groups: dict[str, dict[str, float]] = {}
-    if isinstance(funnel, Mapping):
-        stage_rates = funnel.get("stage_hit_rates")
-        macro_recalls = funnel.get("stage_macro_recalls")
-        stage_rates = stage_rates if isinstance(stage_rates, Mapping) else {}
-        macro_recalls = macro_recalls if isinstance(macro_recalls, Mapping) else {}
-        discovery_domain = _number(stage_rates.get("domain_candidate_hit"))
-        exact_discovery = _number(macro_recalls.get("raw_candidate_recall"))
-        final_evidence = _number(macro_recalls.get("final_evidence_recall"))
-        if discovery_domain is not None:
-            metrics["domain_recall_at_10"] = discovery_domain
-        if exact_discovery is not None:
-            metrics["exact_page_recall_at_20"] = exact_discovery
-        if final_evidence is not None:
-            metrics["final_evidence_exact_recall"] = final_evidence
-        raw_hit = _number(stage_rates.get("exact_raw_candidate_hit"))
-        final_hit = _number(stage_rates.get("exact_final_evidence_hit"))
-        if raw_hit is not None and raw_hit > 0 and final_hit is not None:
-            metrics["discovered_to_evidence_retention_rate"] = min(1.0, final_hit / raw_hit)
-        search_invoked = _number(stage_rates.get("search_invoked"))
-        if search_invoked is not None:
-            metrics["search_false_negative_rate"] = round(
-                max(0.0, 1.0 - search_invoked), 12
-            )
-
-        by_language = funnel.get("by_language")
-        by_language = by_language if isinstance(by_language, Mapping) else {}
-        for language in ("zh", "en"):
-            item = by_language.get(language)
-            item = item if isinstance(item, Mapping) else {}
-            group_rates = item.get("stage_hit_rates")
-            group_rates = group_rates if isinstance(group_rates, Mapping) else {}
-            group: dict[str, float] = {}
-            for output_name, source_name in (
-                ("domain_recall_at_10", "domain_candidate_hit"),
-                ("exact_page_recall_at_20", "exact_raw_candidate_hit"),
-                ("final_evidence_exact_recall", "exact_final_evidence_hit"),
-                ("citation_exact_page_recall", "exact_citation_hit"),
-            ):
-                value = _number(group_rates.get(source_name))
-                if value is not None:
-                    group[output_name] = value
-            language_groups[language] = group
-
-    return {
-        "schema_version": MEASUREMENT_SCHEMA,
-        "benchmark": "RWKV-Agent-S-Level-v1",
-        "source": "fitgen_partial_adapter",
-        "cases": cases,
-        "live_repetitions": live_repetitions,
-        "metrics": metrics,
-        "language_groups": language_groups,
-    }
-
-
 def _atomic_write(path: Path, value: Mapping[str, Any]) -> None:
     path = path.expanduser().resolve()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -307,29 +212,13 @@ def _atomic_write(path: Path, value: Mapping[str, Any]) -> None:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    sources = parser.add_mutually_exclusive_group(required=True)
-    sources.add_argument("--measurements", type=Path)
-    sources.add_argument("--fitgen-summary", type=Path)
-    parser.add_argument("--retrieval-funnel", type=Path)
-    parser.add_argument("--live-repetitions", type=int, default=1)
+    parser.add_argument("--measurements", type=Path, required=True)
     parser.add_argument("--targets", type=Path, default=DEFAULT_TARGETS)
     parser.add_argument("--profile", choices=("production", "s_level"), default="s_level")
-    parser.add_argument("--write-measurements", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
 
-    if args.measurements:
-        measurements = _load_object(args.measurements)
-    else:
-        summary = _load_object(args.fitgen_summary)
-        funnel = _load_object(args.retrieval_funnel) if args.retrieval_funnel else None
-        measurements = measurements_from_fitgen(
-            summary,
-            funnel,
-            live_repetitions=args.live_repetitions,
-        )
-    if args.write_measurements:
-        _atomic_write(args.write_measurements, measurements)
+    measurements = _load_object(args.measurements)
     report = evaluate(measurements, _load_object(args.targets), profile=args.profile)
     _atomic_write(args.output, report)
     print(

@@ -12,8 +12,8 @@ changing an entry point.
   control plane.
 - Python owns CUDA/model integration, live and local retrieval, long-text
   processing, Evidence reduction and claim validation.
-- `cli/` contains packaging and compatibility scripts, not the active Rust
-  source tree.
+- `cli/` contains the Rust client installer, release packager and smoke
+  fixtures, not a second service lifecycle.
 
 ## Setup
 
@@ -23,7 +23,7 @@ source .venv/bin/activate
 python -m pip install -e '.[realtime,segment,dev]' fastapi uvicorn
 ```
 
-Install the terminal client and compatibility launchers:
+Install the terminal client:
 
 ```bash
 ./cli/install.sh
@@ -41,8 +41,8 @@ Install the terminal client and compatibility launchers:
 ```
 
 The data plane expects a model Sidecar at `http://127.0.0.1:8417` unless
-`RWKV_AGENT_MODEL_URLS` is set. The development server never replaces the
-compatibility Controller on port 8120 by default.
+`RWKV_AGENT_MODEL_URLS` is set. The Rust development server is the only Agent
+Controller.
 
 ## Direct commands
 

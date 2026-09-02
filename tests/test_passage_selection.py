@@ -2,14 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from rwkv_search.config import SearchConfig
-from rwkv_search.evidence import EvidenceBuilder
 from rwkv_search.passage_selection import (
     query_aspects,
     select_page_passages,
     split_web_passages,
 )
-from rwkv_search.search import SearchResult
 
 
 class FakeScorer:
@@ -89,35 +86,6 @@ class PassageSelectionTests(unittest.TestCase):
         )
         self.assertIn("cross_encoder", selection.strategy)
         self.assertEqual(selection.reranker_model, "fake-cross-encoder")
-
-    def test_evidence_builder_records_selected_spans(self) -> None:
-        result = SearchResult(
-            document_id=1,
-            url="https://github.com/BlinkDL/RWKV-LM",
-            title="BlinkDL/RWKV-LM",
-            snippet="RWKV",
-            content=long_rwkv_page(),
-            published_at=None,
-            fetched_at=1.0,
-            source_type="official_repository",
-            authority=0.95,
-            score=0.9,
-            score_components={"rrf": 0.1},
-        )
-        evidence = EvidenceBuilder(
-            SearchConfig(),
-            passage_scorer=FakeScorer(),
-        ).build(
-            "RWKV的创始人是谁，他的GitHub项目都有哪些，最新的更新是什么？",
-            [result],
-        )[0]
-        passage = evidence.metadata["passage_selection"]
-        self.assertGreaterEqual(passage["total_passages"], 3)
-        self.assertEqual(len(passage["query_aspects"]), 3)
-        self.assertIn("Bo Peng", evidence.text)
-        self.assertIn("RWKV-LM", evidence.text)
-        self.assertIn("latest commit", evidence.text)
-
 
 if __name__ == "__main__":
     unittest.main()

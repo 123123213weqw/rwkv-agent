@@ -1279,7 +1279,7 @@ impl AgentService {
             },
             "tool_gate":{"mode":"semantic_single_token","threshold":self.config.tool_gate_threshold,
                 "pasted_text_threshold":self.config.pasted_text_gate_threshold},
-            "state_parallel_search":{"enabled":true,"endpoint":"/v1/agent/run_stateful","max_branches":4,"max_rounds":3},
+            "state_parallel_search":{"enabled":true,"endpoint":"/v1/research","max_branches":4,"max_rounds":3},
             "command":{"enabled":self.config.command.enabled,"available":self.command.available(),"sandbox":self.command.sandbox_mode()},
             "agent_limits":{"max_tool_steps":self.config.max_tool_steps,"max_model_tokens_per_turn":self.config.max_model_tokens_per_turn,
                 "direct_chat_max_tokens":self.config.direct_chat_max_tokens,

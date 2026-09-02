@@ -18,7 +18,8 @@ The Rust control plane is authoritative for request identity, TaskSpec
 normalization, budgets, tool sequencing, durable task checkpoints and State
 release. The current CUDA Sidecar and retrieval/evidence Data Plane remain
 narrow external providers until their separate Rust parity gates pass. The
-Python compatibility Controller on `8120` is not in the canonical path.
+former Python Controller has been removed rather than retained as a second
+Agent loop.
 
 ## Endpoint contract
 
@@ -26,6 +27,8 @@ Python compatibility Controller on `8120` is not in the canonical path.
 |---|---|
 | `GET /live` | Process liveness; never calls an external Provider |
 | `GET /ready` | Model, Data Plane, Sandbox, persistent-State capacity and Task Ledger readiness |
+| `GET /v1/openapi.json` | Canonical OpenAPI 3.1 document for frontend tooling |
+| `GET /v1/schema.json` | Versioned request, stream-event and error JSON Schema |
 | `POST /v1/tasks` | Canonical synchronous TaskSpec or legacy-message run |
 | `POST /v1/tasks/stream` | Canonical versioned NDJSON task event stream |
 | `GET /v1/tasks` | Versioned, owner-scoped task summaries; requires `api_version`, `request_id`, and `owner_id` query fields |
@@ -37,10 +40,10 @@ Python compatibility Controller on `8120` is not in the canonical path.
 | `GET /v1/debug/traces*` | Opt-in, owner-scoped local Debug Trace query/API; absent by default |
 
 `/health`, `/v1/agent/run`, `/v1/agent/run_stream`,
-`/v1/agent/run_stateful` and `/v1/task-ledger/*` are compatibility aliases. The
-embedded local task wall uses the unscoped `/v1/task-ledger` compatibility view;
-external clients must use the owner-scoped canonical `/v1/tasks` API.
-They share the canonical handlers and do not create a second Agent loop.
+`/v1/agent/run_stateful` and `/v1/task-ledger/*` are compatibility aliases.
+They share the canonical handlers and do not create a second Agent loop. The
+embedded UI and external clients both use the owner-scoped canonical
+`/v1/tasks` API.
 
 Every canonical mutation carries:
 
@@ -60,7 +63,10 @@ cannot inspect or mutate another Owner's task.
 
 Stream events carry the same identities, a strictly increasing `sequence`, an
 optional `task_id` and exactly one terminal `final` or `error` event. The
-machine-readable schema is `contracts/agent-service-v1.schema.json`.
+machine-readable contracts are `contracts/agent-service-v1.openapi.json` and
+`contracts/agent-service-v1.schema.json`; the running server exposes the same
+bytes at `/v1/openapi.json` and `/v1/schema.json`. See
+[`HTTP_API.md`](HTTP_API.md) for the frontend integration contract.
 Dropping the response body cancels the durable task immediately; an already
 running Provider operation finishes only its atomic boundary, after which the
 Controller performs no further model/tool action and releases the State.
@@ -133,5 +139,4 @@ States and reports a failure instead of hiding an incomplete cleanup.
 
 This milestone validates service correctness, not load performance. It does
 not claim GPU↔CPU snapshot/restore, high-concurrency capacity, full-screen TUI,
-production deployment, real Webhooks or repository-wide Rust migration. Public
-ports `8118/8120` remain unchanged.
+production deployment, real Webhooks or repository-wide Rust migration.

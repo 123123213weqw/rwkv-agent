@@ -274,7 +274,7 @@ web/                    Claude Code/Codex-inspired local UI and task wall
 docs/                   architecture, setup, benchmark, and specification
 ```
 
-The main development map is [`docs/CODEMAP.md`](docs/CODEMAP.md). Historical CUDA deployment instructions remain in [`docs/QUICKSTART.md`](docs/QUICKSTART.md); the verified Radeon configuration is documented here.
+The main development map is [`docs/CODEMAP.md`](docs/CODEMAP.md). The canonical split-stack startup is documented in [`docs/QUICKSTART.md`](docs/QUICKSTART.md); the verified Radeon configuration is documented here.
 
 ## Privacy and execution boundaries
 

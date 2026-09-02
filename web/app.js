@@ -1,4 +1,5 @@
 const $ = (selector) => document.querySelector(selector);
+const API_VERSION = "rwkv-agent.service.v1";
 
 const elements = {
   composer: $("#composer"),
@@ -40,6 +41,7 @@ let healthTimer = null;
 let taskTimer = null;
 let toastTimer = null;
 let sessionId = loadSession();
+let ownerId = loadOwner();
 const taskViewActive = window.location.pathname === "/tasks";
 
 function loadSession() {
@@ -48,6 +50,26 @@ function loadSession() {
   const created = `web-${crypto.randomUUID()}`;
   localStorage.setItem("rwkv-agent-session", created);
   return created;
+}
+
+function loadOwner() {
+  const stored = localStorage.getItem("rwkv-agent-owner");
+  if (stored) return stored;
+  const created = `web-owner-${crypto.randomUUID()}`;
+  localStorage.setItem("rwkv-agent-owner", created);
+  return created;
+}
+
+function requestId() {
+  return `web-request-${crypto.randomUUID()}`;
+}
+
+function requestIdentity() {
+  return {
+    api_version: API_VERSION,
+    request_id: requestId(),
+    owner_id: ownerId,
+  };
 }
 
 function short(value, limit = 40) {
@@ -331,9 +353,8 @@ function renderTasks(payload) {
 
 async function refreshTasks() {
   try {
-    // The embedded local task wall intentionally uses the compatibility admin
-    // view. Canonical `/v1/tasks` listing is owner-scoped and versioned.
-    renderTasks(await request("/v1/task-ledger", { headers: {} }));
+    const query = new URLSearchParams(requestIdentity());
+    renderTasks(await request(`/v1/tasks?${query}`, { headers: {} }));
   } catch (error) {
     elements.taskList.replaceChildren();
     const card = document.createElement("div");
@@ -415,7 +436,10 @@ async function sendMessage(message) {
   let response = null;
 
   try {
-    await requestStream("/v1/agent/run_stream", { session_id: sessionId, message }, (event) => {
+    await requestStream(
+      "/v1/tasks/stream",
+      { ...requestIdentity(), session_id: sessionId, message },
+      (event) => {
       if (event.type === "phase") {
         thinking.setPhase(event.phase);
         return;
@@ -431,7 +455,8 @@ async function sendMessage(message) {
         return;
       }
       if (event.type === "final") response = event.response;
-    });
+      },
+    );
     if (!response) throw new Error("Controller stream ended without a final event");
     thinking.stop();
     renderToolTimeline(response);
@@ -483,7 +508,7 @@ function renderTools(tools) {
 
 async function refreshHealth(showToast = false) {
   try {
-    const health = await request("/health", { headers: {} });
+    const health = await request("/ready", { headers: {} });
     const model = Array.isArray(health.model) ? health.model[0] || {} : {};
     const modelName = formatModel(model.model);
     const backend = model.backend || "unknown";

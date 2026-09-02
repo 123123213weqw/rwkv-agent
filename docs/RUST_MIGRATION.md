@@ -2,8 +2,10 @@
 
 The target repository is Rust-only for executable runtime, harness, benchmark,
 server, CLI, provider adapters, migrations, tests and the future WASM UI.
-Current Python/JavaScript/Shell files are frozen legacy evidence, not the target
-architecture. No new implementation may be added in those languages.
+The remaining Python runtime surface is limited to the RWKV Sidecar and
+Retrieval/Evidence Data Plane plus migration-gated support modules. Historical
+Python Controller, product UI, training and one-off evaluation paths have been
+removed. No new implementation may be added in Python, JavaScript or Shell.
 
 ## Why migration is incremental
 

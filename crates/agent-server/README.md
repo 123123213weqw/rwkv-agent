@@ -4,6 +4,7 @@
 
 - `GET /live` — process liveness only
 - `GET /ready` — dependency readiness; returns `503` while unavailable
+- `GET /v1/openapi.json` and `/v1/schema.json` — machine-readable frontend contract
 - `POST /v1/tasks` and `POST /v1/tasks/stream`
 - `GET /v1/tasks?api_version=...&request_id=...&owner_id=...`
 - `GET /v1/tasks/{task_id}` with the same versioned owner identity
@@ -15,8 +16,13 @@
 `GET /health`, `/v1/agent/run`, `/v1/agent/run_stream`,
 `/v1/agent/run_stateful` and `/v1/task-ledger/*` are compatibility aliases;
 they invoke the same Rust service methods rather than a parallel lifecycle.
-The versioned request, event and error contract is
-[`contracts/agent-service-v1.schema.json`](../../contracts/agent-service-v1.schema.json).
+The versioned request, event and error contracts are
+[`contracts/agent-service-v1.openapi.json`](../../contracts/agent-service-v1.openapi.json)
+and [`contracts/agent-service-v1.schema.json`](../../contracts/agent-service-v1.schema.json).
+The human frontend guide is [`docs/HTTP_API.md`](../../docs/HTTP_API.md).
+
+The embedded UI itself uses only canonical `/ready` and `/v1/tasks*` routes.
+Compatibility aliases are not part of the frontend contract.
 
 It defaults to the isolated port `8122`, Sidecar `8417` and Python data plane
 `8121`. The default semantic Gate threshold is the frozen Preview4922 13.3B
@@ -24,7 +30,7 @@ calibration value `-3.2`; deployments using another checkpoint must recalibrate
 it. When a pasted document is active, a separately calibrated `-5.5` threshold
 keeps document questions on the semantic tool path while greetings stay chat;
 this is still the model Gate, not keyword routing. It does not replace or
-restart the Python Controller on port `8120`.
+restart another Controller.
 
 ```bash
 rwkv-agent-data-plane --port 8121 --model-urls http://127.0.0.1:8417

@@ -18,16 +18,9 @@ import math
 from pathlib import Path
 import threading
 import time
-from typing import Any
+from typing import Any, Protocol
+from urllib.request import Request, urlopen
 import uuid
-
-from benchmarks.run_chat_state_throughput_ab import (
-    CHAT_STOPS,
-    DIRECT_SYSTEM_PROMPT,
-    HttpSidecar,
-    SidecarTransport,
-    summarize_shape_delta,
-)
 
 SCHEMA = "rwkv_agent_mixed_scheduler_benchmark.v1"
 DEFAULT_CONCURRENCY = (8, 16)
@@ -44,6 +37,96 @@ WORKLOAD_BLOCK = (
 )
 GATE_LABELS = {"tool": "search", "chat": "chat"}
 GATE_SCORE_ATOL = 0.125
+CHAT_STOPS = ("\n\nUser:", "\nUser:", "\nSystem:", "</s>")
+DIRECT_SYSTEM_PROMPT = (
+    "System: You are a helpful conversational assistant. Answer the user "
+    "directly in the user's language. Do not claim to have searched, do not "
+    "invent sources or citation IDs, and do not emit a tool call. Never output "
+    "<think> tags or hidden reasoning.\n\n"
+)
+
+
+class SidecarTransport(Protocol):
+    endpoint: str
+
+    def get(self, path: str) -> dict[str, Any]: ...
+
+    def post(self, path: str, payload: dict[str, Any]) -> dict[str, Any]: ...
+
+
+class HttpSidecar:
+    def __init__(self, endpoint: str, *, timeout: float = 300.0) -> None:
+        self.endpoint = str(endpoint or "").rstrip("/")
+        if not self.endpoint:
+            raise ValueError("endpoint must not be empty")
+        self.timeout = float(timeout)
+
+    def get(self, path: str) -> dict[str, Any]:
+        with urlopen(self.endpoint + path, timeout=self.timeout) as response:
+            value = json.load(response)
+        if not isinstance(value, dict):
+            raise RuntimeError(f"{path} returned a non-object")
+        return value
+
+    def post(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
+        request = Request(
+            self.endpoint + path,
+            data=json.dumps(payload, ensure_ascii=False).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urlopen(request, timeout=self.timeout) as response:
+            value = json.load(response)
+        if not isinstance(value, dict):
+            raise RuntimeError(f"{path} returned a non-object")
+        return value
+
+
+def _shape_counts(health: dict[str, Any]) -> dict[str, int]:
+    scheduler = dict(health.get("inference") or {}).get("scheduler", {})
+    return {
+        str(key): int(value)
+        for key, value in dict(dict(scheduler).get("shape_counts") or {}).items()
+    }
+
+
+def summarize_shape_delta(
+    before: dict[str, Any],
+    after: dict[str, Any],
+) -> dict[str, Any]:
+    left = _shape_counts(before)
+    right = _shape_counts(after)
+    delta = {
+        key: max(0, right.get(key, 0) - left.get(key, 0))
+        for key in sorted(set(left) | set(right))
+        if right.get(key, 0) - left.get(key, 0) > 0
+    }
+    decoded: list[tuple[int, int, int]] = []
+    for key, calls in delta.items():
+        if not key.startswith("B") or "T" not in key:
+            continue
+        batch_text, token_text = key[1:].split("T", 1)
+        try:
+            decoded.append((int(batch_text), int(token_text), int(calls)))
+        except ValueError:
+            continue
+
+    def fill(*, token_length: int | None) -> float:
+        rows = [
+            (batch, calls)
+            for batch, tokens, calls in decoded
+            if (tokens == token_length if token_length is not None else tokens > 1)
+        ]
+        calls = sum(count for _batch, count in rows)
+        return (
+            sum(batch * count for batch, count in rows) / calls if calls else 0.0
+        )
+
+    return {
+        "shape_counts": delta,
+        "decode_average_batch_fill": round(fill(token_length=1), 4),
+        "prefill_average_batch_fill": round(fill(token_length=None), 4),
+        "model_forward_calls": sum(delta.values()),
+    }
 
 
 @dataclass(frozen=True, slots=True)

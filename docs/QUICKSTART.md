@@ -1,174 +1,105 @@
 # RWKV Agent quickstart
 
-This guide starts the `v0.3.0-beta.2` Agent on one local CUDA host. The
-canonical path is the Rust CLI on `8122` → Rust Server → external model Sidecar
-and Data Plane. The existing `rwkv-agent-service` script remains a compatibility
-bootstrap for the Python Controller on `8120`; it never creates SSH tunnels or
-contacts a private server. See [Rust Service Pipeline](SERVICE_PIPELINE.md) for
-the canonical startup and readiness contract.
+The supported service path is:
 
-## Requirements
-
-- Linux with an NVIDIA CUDA GPU;
-- Python 3.10 or newer;
-- Rust toolchain for the terminal client;
-- `curl`;
-- RWKV G1I model checkpoint;
-- compatible Albatross runtime containing `rwkv7_fast_v3a.py`.
-
-The verified Preview4922 13.3B setup fits one 32 GB V100. Other cards and
-quantized runtimes require separate validation.
-
-## Client-only setup
-
-The Rust client does not need CUDA or model weights. Install it on a laptop and
-connect to an already configured Controller:
-
-```bash
-git clone https://github.com/123123213weqw/rwkv-agent.git
-cd rwkv-agent
-./cli/install.sh --client-only
-
-ssh -N -L 8122:127.0.0.1:8122 user@gpu-host
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent
+```text
+rwkv-agent -> Rust Server :8122 -> RWKV Sidecar :8417
+                               -> Retrieval Data Plane :8121
 ```
 
-Prebuilt CLI archives, when attached to a tagged Beta release, contain the
-binary, CLI guide, license and an adjacent SHA-256 file. See
-[`cli/README.md`](../cli/README.md) for installation and supported targets.
+The old Python Controller, Web preview and service-manager wrapper have been
+removed. All three backend processes bind to loopback by default.
 
-The remaining sections install the complete backend on a Linux CUDA host.
+## 1. Requirements
 
-## Full backend install
+- Linux CUDA host with a compatible RWKV checkpoint and Albatross runtime;
+- Python 3.10 or newer for the two narrow external providers;
+- Rust toolchain for the Server and CLI;
+- Bubblewrap when the optional command tool is enabled.
+
+## 2. Install providers
 
 ```bash
-git clone https://github.com/123123213weqw/rwkv-agent.git
-cd rwkv-agent
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -e '.[realtime,agent]'
-
-./cli/install.sh
+python -m pip install --upgrade pip
+python -m pip install -e '.[realtime,agent]'
 ```
 
-Ensure `$HOME/.local/bin` is in `PATH`.
-
-## Configure
-
-From the repository root:
+Set the checkpoint and runtime identity for the Sidecar:
 
 ```bash
-rwkv-agent-service init
-$EDITOR ~/.config/rwkv-agent/rwkv-agent.env
+export G1I_MODEL_PATH=/absolute/path/to/model.pth
+export G1I_RUNTIME_DIR=/absolute/path/to/albatross-runtime
+export G1I_MODEL_ID=your-verified-model-id
+export G1I_CONTEXT=16384
+export CUDA_VISIBLE_DEVICES=0
 ```
 
-At minimum, replace:
+Model-specific State capacity and Search Gate thresholds must come from a
+verified profile. Do not reuse a threshold calibrated for another checkpoint.
+
+## 3. Build the Rust binaries
 
 ```bash
-RWKV_AGENT_PROJECT_ROOT=/absolute/path/to/rwkv-agent
-RWKV_AGENT_PYTHON=/absolute/path/to/rwkv-agent/.venv/bin/python
-G1I_MODEL_PATH=/absolute/path/to/model.pth
-G1I_RUNTIME_DIR=/absolute/path/to/albatross-runtime
+cargo build --release --locked -p rwkv-agent-server -p rwkv-agent-cli
 ```
 
-The environment file is mode `0600`. Do not commit it.
+Repository contributors must follow `AGENTS.md`; its remote-only Rust build
+policy takes precedence over the example above.
 
-## Canonical Rust service pipeline
+## 4. Start the split stack
 
-Start the configured model Sidecar, then the external Data Plane, and finally
-the Rust control plane. The tagged release archives contain the CLI; build the
-Server from the same tagged source tree:
+Terminal 1:
 
 ```bash
-cargo build --release --locked -p rwkv-agent-server
-export PATH="$PWD/target/release:$PATH"
+source .venv/bin/activate
+rwkv-g1i-sidecar --host 127.0.0.1 --port 8417
+```
 
-rwkv-agent-data-plane --port 8121 --model-urls http://127.0.0.1:8417
-rwkv-agent-server-rs \
+Terminal 2:
+
+```bash
+source .venv/bin/activate
+rwkv-agent-data-plane \
+  --host 127.0.0.1 \
+  --port 8121 \
+  --model-urls http://127.0.0.1:8417
+```
+
+Terminal 3:
+
+```bash
+./target/release/rwkv-agent-server-rs \
+  --host 127.0.0.1 \
   --port 8122 \
-  --runtime-revision <runtime-commit-or-release> \
   --model-urls http://127.0.0.1:8417 \
-  --data-plane-url http://127.0.0.1:8121
-
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent
+  --data-plane-url http://127.0.0.1:8121 \
+  --session-dir ./var/sessions
 ```
 
-Command execution remains disabled unless a bounded Sandbox and Workspace are
-explicitly configured. Debug Trace remains `off` unless explicitly enabled.
+Command execution remains disabled unless both `--enable-command` and an
+isolated `--command-workspace` are supplied.
 
-## Compatibility lifecycle script
+## 5. Verify and use
 
 ```bash
-rwkv-agent-service doctor
-rwkv
+./target/release/rwkv-agent --endpoint http://127.0.0.1:8122 health
+./target/release/rwkv-agent --endpoint http://127.0.0.1:8122 doctor
+./target/release/rwkv-agent --endpoint http://127.0.0.1:8122 ask "你好"
 ```
 
-`rwkv` can automatically start the configured local Sidecar and compatibility
-Controller when they are offline, then enter interactive chat. Service lifecycle
-commands are retained for existing installations and troubleshooting; they do
-not replace the canonical Rust Server lifecycle above.
+Use `GET /live` for process liveness and `GET /ready` for Provider,
+Sandbox, State-capacity and Task-Ledger readiness. See
+[SERVICE_PIPELINE.md](SERVICE_PIPELINE.md) for TaskSpec, streaming,
+cancellation and Debug Trace endpoints.
 
-The compatibility endpoints are:
-
-- Sidecar: `http://127.0.0.1:8118`;
-- Controller: `http://127.0.0.1:8120`.
-
-## Use
-
-```bash
-rwkv
-rwkv ask "Explain recurrent state in RWKV."
-rwkv tool web-search "RWKV latest official repository update"
-rwkv research --branches 4 --rounds 2 \
-  "Compare the latest official progress across RWKV repositories."
-```
-
-Interactive commands include `/status`, `/web`, `/knowledge`, `/research`,
-`/longtext`, `/session` and `/json`.
-
-## Optional local knowledge service
-
-`knowledge_search` requires a separately running Elasticsearch-compatible
-FineWiki index. The public service script does not download or start it.
-
-See [Local knowledge service setup](KNOWLEDGE_SETUP.md) for the official
-FineWiki, Elasticsearch, Embedding and Reranker download links, storage sizes,
-copyable download commands and index-building steps.
-
-## Optional SearXNG
-
-```bash
-cd deploy/searxng
-# Replace the example secret_key in settings.yml before use.
-docker compose up -d
-curl 'http://127.0.0.1:8888/search?q=rwkv&format=json'
-```
-
-If SearXNG is unavailable, the Agent uses configured structured providers and
-the bounded fallback engine. Search quality depends on network egress.
-
-## Remote GPU host
-
-Run the installation and canonical service pipeline on the GPU host, then
-forward the Rust Server:
+For remote access, keep the Server on loopback and forward only the Rust port:
 
 ```bash
 ssh -N -L 8122:127.0.0.1:8122 user@gpu-host
 RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent doctor
-RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent
 ```
 
-Do not bind the Beta Server or compatibility Controller to a public interface
-without adding your own authentication, TLS, rate limiting and outbound network
-policy.
-
-## Stop
-
-```bash
-rwkv-agent-service status
-rwkv-agent-service stop
-```
-
-Only processes referenced by PID files under `RWKV_AGENT_STATE_DIR` are stopped.
+The Beta Server has no public authentication, TLS or rate limiting. Stop the
+processes in reverse order: Rust Server, Data Plane, then Sidecar.

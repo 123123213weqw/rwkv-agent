@@ -13,7 +13,8 @@ Default path:
 ~/.config/rwkv-agent/rwkv-agent.env
 ```
 
-Change it with `RWKV_AGENT_ENV_FILE`.
+Source it before starting the three processes. No repository service-manager
+wrapper reads this file automatically.
 
 | Variable | Required | Purpose |
 |---|---:|---|
@@ -24,15 +25,17 @@ Change it with `RWKV_AGENT_ENV_FILE`.
 | `G1I_PERSISTENT_STATE_CAPACITY` | no | Sidecar recurrent-state ownership limit |
 | `G1I_PERSISTENT_STATE_TTL_SECONDS` | no | Idle GPU State expiry |
 | `CUDA_VISIBLE_DEVICES` | yes | Single verified CUDA device |
+| `RWKV_AGENT_HOST` / `RWKV_AGENT_PORT` | no | Rust Server bind address; defaults to loopback `8122` |
+| `RWKV_AGENT_MODEL_URLS` | no | Sidecar endpoint list |
+| `RWKV_AGENT_DATA_PLANE_URL` | no | Retrieval/Evidence Provider endpoint |
+| `RWKV_AGENT_SESSION_DIR` | no | Durable Rust Session and Task Ledger directory |
 | `RWKV_AGENT_TOOL_GATE_THRESHOLD` | model-specific | Semantic Search Gate threshold |
-| `RWKV_AGENT_CHAT_STATE_ENABLED` | no | Reuse recurrent State across direct chat turns |
-| `RWKV_AGENT_CHAT_STATE_CAPACITY` | no | Controller hot-session State LRU size |
+| `RWKV_AGENT_CHAT_STATE_CAPACITY` | no | Rust Runtime hot-session State LRU size |
 | `RWKV_AGENT_WEB_CONFIG` | no | JSON config path |
 | `RWKV_AGENT_WEB_API_PROVIDERS` | no | Ordered structured providers |
 | `RWKV_AGENT_KNOWLEDGE_ENDPOINT` | no | External local knowledge index; see [knowledge setup](KNOWLEDGE_SETUP.md) |
 | `TAVILY_API_KEY` | no | Enables Tavily when present |
 | `GITHUB_TOKEN` | no | Raises GitHub API allowance |
-| `RWKV_AGENT_STATE_DIR` | no | Logs, PIDs and sessions |
 
 ## Optional StatePool Cloud Plugin
 
@@ -79,7 +82,7 @@ Use [`.env.example`](../.env.example) as the source of truth. Never place API
 keys in JSON config or command-line arguments.
 
 Direct chat keeps at most `RWKV_AGENT_CHAT_STATE_CAPACITY` opaque GPU State IDs
-in a Controller-side LRU. The default is three so one B4 research request can
+in the Rust Runtime LRU. The default is three so one B4 research request can
 still allocate its root plus four branches within the Sidecar's default
 eight-state ownership limit. Tool turns release the chat State while external
 I/O runs; the next direct turn rebuilds once from the durable transcript.
