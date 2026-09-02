@@ -270,7 +270,7 @@ src/rwkv7_scheduler/    ROCm recurrent cache scheduler and State pool
 src/rwkv_agent/         Sidecar, data plane, routing, long text, retrieval
 demos/                  100-independent-State Agent demonstration
 benchmarks/             State scaling, reuse, routing, and Agent regressions
-web/                    Claude Code/Codex-inspired local UI and task wall
+web/                    RWKV conversation workspace, task wall and runtime status UI
 docs/                   architecture, setup, benchmark, and specification
 ```
 

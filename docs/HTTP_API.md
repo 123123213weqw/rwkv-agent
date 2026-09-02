@@ -10,8 +10,10 @@ The machine-readable documents are:
 
 The API version is always `rwkv-agent.service.v1`. The examples below use a
 same-origin base URL. The server does not enable cross-origin access by default;
-a separately hosted development frontend should proxy `/live`, `/ready` and
-`/v1/*` to the Rust server.
+a separately hosted development frontend should proxy only the ordinary
+canonical surface to the Rust server. The checked-in loopback-only
+`rwkv-agent-web-dev-proxy-rs` does this without exposing compatibility aliases,
+Debug Trace, direct Tool calls or Providers. See [`FRONTEND.md`](FRONTEND.md).
 
 ## 1. Frontend boundary
 
@@ -33,6 +35,10 @@ identity. Put an authenticated same-origin gateway in front before any remote
 or multi-user deployment.
 
 ## 2. Canonical endpoints
+
+The embedded browser routes are `/`, `/tasks` and `/status`; assets remain
+same-origin under `/assets/`. These routes are UI navigation, not additional
+control planes.
 
 | Method | Path | Purpose |
 |---|---|---|

@@ -1134,6 +1134,7 @@ version = "0.3.0-beta.2"
 dependencies = [
  "axum",
  "clap",
+ "reqwest",
  "rwkv-agent-runtime",
  "serde",
  "serde_json",

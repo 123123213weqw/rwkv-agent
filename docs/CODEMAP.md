@@ -19,6 +19,8 @@ map answers only where code lives.
 | Parallel-State research | Active | `crates/agent-runtime/src/research.rs` |
 | Command sandbox policy | Active, opt-in | `crates/agent-runtime/src/command.rs` |
 | Rust HTTP control plane | Active, isolated default | `crates/agent-server/` |
+| Embedded browser workspace | Active | `web/`, `docs/FRONTEND.md` and `crates/agent-server/src/lib.rs` |
+| Loopback frontend development proxy | Active, development-only | `crates/agent-server/src/bin/web_dev_proxy.rs` |
 | Durable Task Ledger v2 | Active | `crates/agent-runtime/src/task_ledger.rs` |
 | Local Rust Debug Trace v1 | Active, opt-in/off by default | `crates/agent-runtime/src/debug_trace.rs`, `contracts/debug-trace-v1.schema.json`, and `docs/DEBUG_TRACE.md` |
 | Retrieval/Evidence data plane | Active | `src/rwkv_agent/data_plane.py` |
@@ -34,6 +36,7 @@ map answers only where code lives.
 
 ```text
 crates/agent-cli
+web or crates/agent-cli
     -> crates/agent-server (/v1/tasks)
         -> crates/agent-runtime
             -> crates/agent-core

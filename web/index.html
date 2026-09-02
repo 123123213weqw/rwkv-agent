@@ -3,223 +3,173 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
-    <meta
-      name="description"
-      content="Local-first RWKV State Agent control surface"
-    />
-    <title>RWKV State Agent</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="RWKV Agent local recurrent-state workspace" />
+    <title>RWKV Agent</title>
     <link rel="stylesheet" href="/assets/app.css" />
     <script type="module" src="/assets/app.js"></script>
   </head>
   <body>
-    <div class="ambient ambient-one"></div>
-    <div class="ambient ambient-two"></div>
-
-    <div class="app-shell">
-      <header class="topbar">
-        <div class="brand-lockup">
-          <div class="brand-mark" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </div>
-          <div>
-            <div class="eyebrow">LOCAL AGENT RUNTIME</div>
-            <div class="brand-name">RWKV <strong>STATE AGENT</strong></div>
-          </div>
+    <div class="app-layout" id="app-layout">
+      <aside class="sidebar" id="sidebar" aria-label="Workspace navigation">
+        <div class="sidebar-brand">
+          <a class="brand" href="/" aria-label="RWKV Agent home">
+            <span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="brand-wordmark"><strong>RWKV</strong><span>Agent</span></span>
+          </a>
+          <button class="quiet-icon" id="sidebar-toggle" type="button" aria-label="Collapse sidebar" aria-pressed="false">◧</button>
         </div>
 
-        <div class="topbar-center" aria-label="Runtime identity">
-          <span class="hardware-pill">AMD RADEON</span>
-          <span class="topbar-separator"></span>
-          <span id="top-model">G1I 13.3B</span>
-          <span class="muted">·</span>
-          <span id="top-backend" class="muted">ROCm</span>
-        </div>
-
-        <div class="connection" id="connection" data-status="loading">
-          <span class="status-dot"></span>
-          <span id="connection-label">CONNECTING</span>
-        </div>
-      </header>
-
-      <aside class="sidebar">
-        <button class="new-session" id="new-session" type="button">
-          <span class="new-session-icon">＋</span>
-          <span>New session</span>
-          <kbd>⌘ K</kbd>
+        <button class="new-task-button" id="new-session" type="button">
+          <span aria-hidden="true">⊕</span><strong>New session</strong><kbd>⌘ K</kbd>
         </button>
 
-        <section class="side-section">
-          <div class="side-heading">
-            <span>ACTIVE SESSION</span>
-            <span class="live-label">LIVE</span>
+        <div class="sidebar-section">
+          <div class="section-label">
+            <span>Workspaces</span>
+            <button class="quiet-icon small" id="refresh-tasks" type="button" aria-label="Refresh tasks">↻</button>
           </div>
-          <button class="session-card active" type="button">
-            <span class="session-glyph">›_</span>
-            <span class="session-copy">
-              <strong id="session-label">local-session</strong>
-              <small id="session-state">State ready</small>
-            </span>
-            <span class="session-pulse"></span>
-          </button>
-        </section>
+          <nav class="primary-nav" aria-label="Primary views">
+            <a href="/" data-view="chat"><span class="nav-icon">⌁</span><span><strong>Conversation</strong><small>Current recurrent state</small></span></a>
+            <a href="/tasks" data-view="tasks"><span class="nav-icon">▦</span><span><strong>Task wall</strong><small>Durable controller runs</small></span><b id="task-running-badge" hidden>0</b></a>
+            <a href="/status" data-view="status"><span class="nav-icon">◌</span><span><strong>System status</strong><small>Live and readiness</small></span><i class="status-pin" id="sidebar-status-pin"></i></a>
+          </nav>
+        </div>
 
-        <nav class="view-nav" aria-label="Workspace views">
-          <a href="/" data-view="chat"><span>›_</span><strong>Conversation</strong><small>Session workspace</small></a>
-          <a href="/tasks" data-view="tasks"><span>▦</span><strong>Task wall</strong><small>Live controller runs</small></a>
-        </nav>
+        <div class="sidebar-section recent-section">
+          <div class="section-label"><span>Recent sessions</span><span>LOCAL</span></div>
+          <div class="session-list" id="session-list"></div>
+        </div>
 
-        <section class="side-section capabilities">
-          <div class="side-heading"><span>CAPABILITIES</span></div>
-          <div class="capability-row">
-            <span class="cap-icon">⌘</span>
-            <span><strong>Execute</strong><small>Sandboxed workspace</small></span>
+        <div class="sidebar-bottom">
+          <div class="owner-card" title="Logical owner boundary">
+            <span class="owner-avatar">R</span>
+            <span><strong>Local owner</strong><small id="owner-label">Loading…</small></span>
           </div>
-          <div class="capability-row">
-            <span class="cap-icon">◫</span>
-            <span><strong>Knowledge</strong><small>Local index</small></span>
-          </div>
-          <div class="capability-row">
-            <span class="cap-icon">≋</span>
-            <span><strong>Long text</strong><small>Grounded evidence</small></span>
-          </div>
-          <div class="capability-row">
-            <span class="cap-icon">◎</span>
-            <span><strong>Web</strong><small>Explicit opt-in</small></span>
-          </div>
-        </section>
-
-        <div class="privacy-card">
-          <div class="privacy-icon">◆</div>
-          <div>
-            <strong>Local by design</strong>
-            <p>Prompts, states and workspaces remain on the private runtime.</p>
-          </div>
+          <button class="settings-button" id="theme-toggle" type="button"><span>◐</span><span>Appearance</span><small id="theme-label">System</small></button>
         </div>
       </aside>
 
-      <main class="conversation">
-        <div class="conversation-head" id="conversation-head">
-          <div>
-            <div class="eyebrow">CONVERSATION</div>
-            <h1>Stateful workspace</h1>
-          </div>
-          <div class="head-actions">
-            <button class="icon-button" id="refresh-health" type="button" title="Refresh runtime status">↻</button>
-            <button class="state-badge" id="state-badge" type="button">
-              <span class="state-badge-dot"></span>
-              <span>STATE READY</span>
-            </button>
-          </div>
-        </div>
-
-        <section class="task-view" id="task-view" hidden>
-          <div class="task-view-head">
+      <main class="workspace">
+        <header class="workspace-header">
+          <div class="workspace-title">
+            <button class="quiet-icon mobile-menu" id="mobile-menu" type="button" aria-label="Open navigation">☰</button>
             <div>
-              <div class="eyebrow">CONTROLLER TASKS</div>
-              <h1>Live task wall</h1>
-              <p>Real Chat and Research runs tracked by the Rust Controller.</p>
+              <strong id="page-title">New session</strong>
+              <small id="page-subtitle">State-native agent workspace</small>
             </div>
-            <a class="back-to-chat" href="/">← Conversation</a>
           </div>
-          <div class="task-kpis" aria-label="Task totals">
-            <div><span>TOTAL</span><strong id="tasks-total">0</strong></div>
-            <div><span>RUNNING</span><strong id="tasks-running">0</strong></div>
-            <div><span>COMPLETE</span><strong id="tasks-complete">0</strong></div>
-            <div><span>FAILED</span><strong id="tasks-failed">0</strong></div>
+          <div class="header-actions">
+            <span class="model-pill" id="model-pill">RWKV · connecting</span>
+            <button class="connection-button" id="connection-button" type="button" data-status="loading" aria-label="Open runtime inspector">
+              <i></i><span id="connection-label">Connecting</span>
+            </button>
+            <button class="quiet-icon" id="inspector-toggle" type="button" aria-label="Toggle inspector" aria-pressed="false">◨</button>
           </div>
-          <div class="task-list" id="task-list">
-            <div class="task-empty">No tasks have reached this Controller yet.</div>
+        </header>
+
+        <section class="conversation-view" id="conversation-view">
+          <div class="messages" id="messages" aria-live="polite">
+            <article class="welcome-card" id="welcome-card">
+              <div class="hero-lockup">
+                <span class="hero-symbol" aria-hidden="true"><i></i><i></i><i></i></span>
+                <h1>Build with a stateful agent</h1>
+                <span class="preview-badge">LOCAL PREVIEW</span>
+              </div>
+              <p>Describe a goal. RWKV keeps recurrent state across turns, selects bounded tools, and exposes every durable stage for review.</p>
+              <div class="starter-grid">
+                <button class="starter-card" data-prompt="Inspect this workspace, explain the relevant files, and propose a verified implementation plan." type="button"><span>⌁</span><strong>Explore a workspace</strong><small>Read, reason, and plan</small></button>
+                <button class="starter-card" data-prompt="Run the relevant tests, identify the root cause of any failure, repair it, and verify the result." type="button"><span>✓</span><strong>Fix and verify</strong><small>Bounded multi-step task</small></button>
+                <button class="starter-card" data-prompt="Compare the latest official sources for this topic and summarize the evidence." type="button"><span>◎</span><strong>Research with evidence</strong><small>Parallel recurrent branches</small></button>
+              </div>
+            </article>
+          </div>
+
+          <div class="composer-zone">
+            <form class="composer" id="composer">
+              <textarea id="message-input" rows="1" placeholder="Message RWKV Agent" aria-label="Message RWKV Agent"></textarea>
+              <div class="composer-toolbar">
+                <div class="mode-switch" role="group" aria-label="Run mode">
+                  <button type="button" class="active" data-mode="agent" aria-pressed="true">Agent</button>
+                  <button type="button" data-mode="research" aria-pressed="false">Research</button>
+                </div>
+                <span class="composer-context" id="composer-context">Auto tools · durable task</span>
+                <div class="composer-actions">
+                  <span id="char-count">0</span>
+                  <button class="send-button" id="send" type="submit" disabled aria-label="Send message"><span id="send-label">Send</span><b>↑</b></button>
+                </div>
+              </div>
+            </form>
+            <p class="composer-note">The runtime validates tools, sandbox boundaries, stopping behavior, and State release.</p>
           </div>
         </section>
 
-        <div class="messages" id="messages" aria-live="polite">
-          <article class="welcome-card">
-            <div class="welcome-orbit"><span>R</span></div>
-            <div>
-              <div class="eyebrow">RWKV RECURRENT INTELLIGENCE</div>
-              <h2>What should we work on?</h2>
-              <p>
-                Chat normally, paste a long document, or ask the Agent to execute
-                and verify a workspace task. Tool calls stay visible and auditable.
-              </p>
-              <div class="starter-grid">
-                <button class="starter" data-prompt="你好，请用一句话介绍你自己。" type="button">
-                  <span>01</span><strong>Start a conversation</strong><small>Simple chat · no tool</small>
-                </button>
-                <button class="starter" data-prompt="根据我接下来粘贴的材料回答问题，并标出原文证据。" type="button">
-                  <span>02</span><strong>Analyze long text</strong><small>Evidence-grounded QA</small>
-                </button>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <div class="composer-wrap" id="composer-wrap">
-          <form class="composer" id="composer">
-            <textarea
-              id="message-input"
-              rows="1"
-              placeholder="Ask, paste, or describe a task…"
-              aria-label="Message"
-            ></textarea>
-            <div class="composer-foot">
-              <div class="composer-hint">
-                <span class="prompt-mark">❯</span>
-                <span>Enter for newline · ⌘ Enter to send</span>
-              </div>
-              <div class="composer-actions">
-                <span id="char-count">0</span>
-                <button id="send" type="submit" disabled>
-                  <span>Send</span><span class="send-arrow">↑</span>
-                </button>
-              </div>
-            </div>
-          </form>
-          <div class="runtime-note">
-            <span>Greedy decode</span><span>•</span><span>recurrent state</span><span>•</span><span>one tool call per turn</span>
+        <section class="page-view" id="tasks-view" hidden>
+          <div class="page-heading">
+            <div><span class="overline">DURABLE LEDGER</span><h1>Task wall</h1><p>Up to 100 owner-scoped tasks from the canonical Rust Controller.</p></div>
+            <button class="secondary-button" id="tasks-refresh-button" type="button">Refresh</button>
           </div>
-        </div>
+          <div class="stat-grid">
+            <article><span>Total</span><strong id="tasks-total">0</strong><small>durable records</small></article>
+            <article><span>Running</span><strong id="tasks-running">0</strong><small>active now</small></article>
+            <article><span>Complete</span><strong id="tasks-complete">0</strong><small>checkpointed</small></article>
+            <article><span>Failed</span><strong id="tasks-failed">0</strong><small>reviewable</small></article>
+          </div>
+          <div class="table-card">
+            <div class="task-table-head"><span>Task</span><span>Objective</span><span>Runtime</span><span>Status</span></div>
+            <div class="task-list" id="task-list"><div class="empty-state">No tasks have reached this Controller.</div></div>
+          </div>
+        </section>
+
+        <section class="page-view" id="status-view" hidden>
+          <div class="page-heading">
+            <div><span class="overline">CONTROL PLANE</span><h1>System status</h1><p>Liveness and readiness are measured separately. No compatibility health alias is used.</p></div>
+            <button class="secondary-button" id="status-refresh-button" type="button">Refresh</button>
+          </div>
+          <div class="status-hero" id="status-hero" data-status="loading">
+            <span class="status-orb"></span><div><strong id="status-title">Checking runtime</strong><p id="status-message">Waiting for /live and /ready.</p></div><code id="runtime-revision">—</code>
+          </div>
+          <div class="component-grid" id="component-grid"></div>
+          <div class="status-columns">
+            <section class="info-card"><header><span>Model</span><b id="model-status">—</b></header><dl id="model-details"></dl></section>
+            <section class="info-card"><header><span>Agent limits</span><b>POLICY</b></header><dl id="limit-details"></dl></section>
+            <section class="info-card wide"><header><span>Runtime identity</span><b>CANONICAL</b></header><dl id="identity-details"></dl></section>
+          </div>
+        </section>
       </main>
 
-      <aside class="inspector">
-        <section class="inspector-section">
-          <div class="inspector-heading">
-            <span>RUNTIME</span>
-            <button id="runtime-refresh" type="button">REFRESH</button>
-          </div>
-          <div class="runtime-hero">
-            <div class="runtime-logo">R7</div>
-            <div><strong id="runtime-model">Loading model…</strong><small id="runtime-context">Context —</small></div>
-          </div>
-          <dl class="metric-list">
-            <div><dt>Controller</dt><dd id="metric-controller">Checking</dd></div>
-            <div><dt>Backend</dt><dd id="metric-backend">—</dd></div>
-            <div><dt>Session state</dt><dd id="metric-state">—</dd></div>
-            <div><dt>Sandbox</dt><dd id="metric-sandbox">—</dd></div>
-          </dl>
-        </section>
-
-        <section class="inspector-section">
-          <div class="inspector-heading"><span>TOOLS</span><span id="tool-count">0 READY</span></div>
-          <div class="tool-stack" id="tool-stack"></div>
-        </section>
-
-        <section class="inspector-section trace-section">
-          <div class="inspector-heading"><span>LAST TURN</span><span id="last-turn-status">IDLE</span></div>
-          <div class="trace-empty" id="trace-summary">
-            <span class="trace-line"></span>
-            <p>State and tool events will appear here after the next turn.</p>
-          </div>
-        </section>
-
-        <div class="endpoint-line">
-          <span>ENDPOINT</span>
-          <code id="endpoint-label">same-origin</code>
+      <aside class="inspector" id="inspector" aria-label="Context inspector" aria-hidden="true">
+        <header class="inspector-header"><div><span class="overline">INSPECTOR</span><strong id="inspector-title">Session context</strong></div><button class="quiet-icon" id="inspector-close" type="button" aria-label="Close inspector">×</button></header>
+        <div class="inspector-tabs" role="tablist">
+          <button class="active" type="button" role="tab" aria-selected="true" data-inspector-tab="context">Context</button>
+          <button type="button" role="tab" aria-selected="false" data-inspector-tab="runtime">Runtime</button>
+          <button type="button" role="tab" aria-selected="false" data-inspector-tab="task">Task</button>
+        </div>
+        <div class="inspector-body">
+          <section data-inspector-panel="context">
+            <div class="context-identity"><span>OWNER</span><code id="context-owner">—</code><span>SESSION</span><code id="context-session">—</code></div>
+            <div class="inspector-section"><div class="inspector-label"><span>LAST TURN</span><b id="last-turn-status">IDLE</b></div><div class="timeline-empty" id="turn-timeline">No runtime events yet.</div></div>
+            <div class="inspector-section"><div class="inspector-label"><span>TOOLS</span><b id="tool-count">0 READY</b></div><div class="tool-list" id="tool-list"></div></div>
+          </section>
+          <section data-inspector-panel="runtime" hidden>
+            <div class="runtime-card"><span class="runtime-glyph">R7</span><div><strong id="runtime-model">Loading model…</strong><small id="runtime-context">Context —</small></div></div>
+            <dl class="detail-list" id="runtime-detail-list"></dl>
+          </section>
+          <section data-inspector-panel="task" hidden>
+            <div class="task-detail-empty" id="task-detail-empty">Select a task from the Task wall or start a new run.</div>
+            <div id="task-detail" hidden>
+              <div class="task-detail-hero"><span class="task-status-dot" id="task-detail-dot"></span><div><strong id="task-detail-title">Task</strong><small id="task-detail-meta">—</small></div></div>
+              <p class="task-objective" id="task-detail-objective"></p>
+              <div class="task-actions"><button class="danger-button" id="cancel-task" type="button">Cancel</button><button class="secondary-button" id="resume-task" type="button">Resume</button></div>
+              <div class="inspector-section"><div class="inspector-label"><span>STAGES</span><b id="stage-count">0</b></div><div class="stage-list" id="stage-list"></div></div>
+              <div class="inspector-section"><div class="inspector-label"><span>EVENTS</span><b id="event-count">0</b></div><div class="event-list" id="event-list"></div></div>
+              <div class="inspector-section"><div class="inspector-label"><span>FINAL SUMMARY</span></div><dl class="detail-list" id="final-summary"></dl></div>
+            </div>
+          </section>
         </div>
       </aside>
     </div>
-
+    <div class="sidebar-scrim" id="sidebar-scrim"></div>
     <div class="toast" id="toast" role="status"></div>
   </body>
 </html>

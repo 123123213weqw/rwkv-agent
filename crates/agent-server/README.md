@@ -1,6 +1,8 @@
 # RWKV Agent Rust Server
 
-`rwkv-agent-server-rs` is the canonical Rust HTTP control plane.
+`rwkv-agent-server-rs` is the canonical Rust HTTP control plane. It embeds the
+RWKV browser workspace at `/`, Task wall at `/tasks` and readiness dashboard at
+`/status`.
 
 - `GET /live` — process liveness only
 - `GET /ready` — dependency readiness; returns `503` while unavailable
@@ -21,8 +23,14 @@ The versioned request, event and error contracts are
 and [`contracts/agent-service-v1.schema.json`](../../contracts/agent-service-v1.schema.json).
 The human frontend guide is [`docs/HTTP_API.md`](../../docs/HTTP_API.md).
 
-The embedded UI itself uses only canonical `/ready` and `/v1/tasks*` routes.
+The embedded UI itself uses `/live`, `/ready`, canonical `/v1/tasks*` routes and
+bounded `/v1/research`.
 Compatibility aliases are not part of the frontend contract.
+
+For frontend-only iteration, `rwkv-agent-web-dev-proxy-rs` serves the checked-in
+TypeScript output from `web/` and proxies a strict allowlist to a loopback Rust
+Controller. It rejects Debug, compatibility and direct Tool routes. See
+[`docs/FRONTEND.md`](../../docs/FRONTEND.md).
 
 It defaults to the isolated port `8122`, Sidecar `8417` and Python data plane
 `8121`. The default semantic Gate threshold is the frozen Preview4922 13.3B
