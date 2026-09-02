@@ -24,7 +24,7 @@ calibration value `-3.2`; deployments using another checkpoint must recalibrate
 it. When a pasted document is active, a separately calibrated `-5.5` threshold
 keeps document questions on the semantic tool path while greetings stay chat;
 this is still the model Gate, not keyword routing. It does not replace or
-restart the Python Controller on port `8120`.
+restart another Controller.
 
 ```bash
 rwkv-agent-data-plane --port 8121 --model-urls http://127.0.0.1:8417

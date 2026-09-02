@@ -18,7 +18,8 @@ The Rust control plane is authoritative for request identity, TaskSpec
 normalization, budgets, tool sequencing, durable task checkpoints and State
 release. The current CUDA Sidecar and retrieval/evidence Data Plane remain
 narrow external providers until their separate Rust parity gates pass. The
-Python compatibility Controller on `8120` is not in the canonical path.
+former Python Controller has been removed rather than retained as a second
+Agent loop.
 
 ## Endpoint contract
 
@@ -133,5 +134,4 @@ States and reports a failure instead of hiding an incomplete cleanup.
 
 This milestone validates service correctness, not load performance. It does
 not claim GPU↔CPU snapshot/restore, high-concurrency capacity, full-screen TUI,
-production deployment, real Webhooks or repository-wide Rust migration. Public
-ports `8118/8120` remain unchanged.
+production deployment, real Webhooks or repository-wide Rust migration.

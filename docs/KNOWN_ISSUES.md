@@ -12,7 +12,7 @@ time-isolated Fresh-Web-200-v1 blind run and the current deployment audit.
 - **Unsupported answered claims:** FRAMES unsupported-claim rate on answered
   cases was 15.52%. Strengthen claim-to-Evidence entailment and suppress only
   unsupported clauses rather than accepting the complete answer.
-- **Public API security:** the Rust Server and compatibility Controller have no
+- **Public API security:** the Rust Server has no
   authentication, TLS or rate limiting. Service v1 `owner_id` is an isolation
   key, not authentication. Loopback-only is the supported Beta deployment.
 - **Full Debug Trace privacy:** Debug Trace and its API are disabled by default.

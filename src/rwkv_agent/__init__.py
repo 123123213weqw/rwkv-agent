@@ -1,5 +1,1 @@
-"""RWKV Agent controller, tools and G1I serving runtime."""
-
-from .controller import AgentController
-
-__all__ = ["AgentController"]
+"""Narrow Python providers for the Rust RWKV Agent service pipeline."""

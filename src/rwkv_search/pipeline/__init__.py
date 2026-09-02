@@ -10,7 +10,6 @@ from .answer_policy import AnswerPolicy
 from .discovery import DiscoveryLayer
 from .query_compiler import CompiledQuery, QueryCompiler, QueryHints
 from .reranker import RetrievalReranker
-from .search_need import SearchNeedDecision, SearchNeedGate
 from .source_selector import SourceCapability, SourceSelector
 
 __all__ = [
@@ -20,8 +19,6 @@ __all__ = [
     "QueryCompiler",
     "QueryHints",
     "RetrievalReranker",
-    "SearchNeedDecision",
-    "SearchNeedGate",
     "SourceCapability",
     "SourceSelector",
 ]

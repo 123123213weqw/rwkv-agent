@@ -151,7 +151,7 @@ def test_public_evidence_selects_compound_question_passages_from_full_page() -> 
     assert len(selected) <= 900
 
 
-def test_fitgen_fallback_engine_override_is_explicit() -> None:
+def test_fallback_engine_override_is_explicit() -> None:
     config = _configure(
         "missing-config.json",
         profile="legacy",

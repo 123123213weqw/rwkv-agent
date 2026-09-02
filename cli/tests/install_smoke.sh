@@ -6,19 +6,13 @@ ROOT=$(cd "$CLI_DIR/.." && pwd)
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
-CLIENT_PREFIX="$WORK/client"
-FULL_PREFIX="$WORK/full"
+PREFIX="$WORK/client"
 
-"$CLI_DIR/install.sh" --client-only --skip-build --prefix "$CLIENT_PREFIX" >/dev/null
-test -x "$CLIENT_PREFIX/bin/rwkv-agent"
-test ! -e "$CLIENT_PREFIX/bin/rwkv"
-test ! -e "$CLIENT_PREFIX/bin/rwkv-agent-service"
-"$CLIENT_PREFIX/bin/rwkv-agent" --version | grep -q '^rwkv-agent '
-
-"$CLI_DIR/install.sh" --skip-build --prefix "$FULL_PREFIX" >/dev/null
-test -x "$FULL_PREFIX/bin/rwkv-agent"
-test -x "$FULL_PREFIX/bin/rwkv"
-test -x "$FULL_PREFIX/bin/rwkv-agent-service"
+"$CLI_DIR/install.sh" --skip-build --prefix "$PREFIX" >/dev/null
+test -x "$PREFIX/bin/rwkv-agent"
+test ! -e "$PREFIX/bin/rwkv"
+test ! -e "$PREFIX/bin/rwkv-agent-service"
+"$PREFIX/bin/rwkv-agent" --version | grep -q '^rwkv-agent '
 
 if "$CLI_DIR/install.sh" --unknown-option >/dev/null 2>&1; then
   echo "installer accepted an unknown option" >&2

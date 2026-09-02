@@ -36,16 +36,5 @@ python benchmarks/evaluate_s_level_bench.py \
   --output /path/to/s-level-report.json
 ```
 
-把已有FitGen结果和Retrieval Funnel保守映射成一个**不完整**的当前差距报告：
-
-```bash
-python benchmarks/evaluate_s_level_bench.py \
-  --fitgen-summary /path/to/webwalkerqa.score-summary.json \
-  --retrieval-funnel /path/to/webwalkerqa.retrieval-funnel-v2.json \
-  --write-measurements /path/to/current.measurements.json \
-  --profile s_level \
-  --output /path/to/current.s-level-report.json
-```
-
-适配器只映射语义一致的现有指标。没有可靠测量的指标保持缺失并判定失败，不用Token F1猜测事实正确率，
-也不把单次Live运行伪装成稳定性结果。
+Runner只接受版本化Measurement，不再把历史模型专用结果转换成当前发布判断。没有可靠测量的指标保持缺失并
+判定失败，不用Token F1猜测事实正确率，也不把单次Live运行伪装成稳定性结果。

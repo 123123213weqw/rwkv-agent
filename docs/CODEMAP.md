@@ -23,13 +23,11 @@ map answers only where code lives.
 | Local Rust Debug Trace v1 | Active, opt-in/off by default | `crates/agent-runtime/src/debug_trace.rs`, `contracts/debug-trace-v1.schema.json`, and `docs/DEBUG_TRACE.md` |
 | Retrieval/Evidence data plane | Active | `src/rwkv_agent/data_plane.py` |
 | Python data-plane HTTP process | Active | `src/rwkv_agent/data_server.py` |
-| Python compatibility Controller | Compatibility | `src/rwkv_agent/controller.py` |
 | CUDA Sidecar | Active | `src/rwkv_agent/sidecar.py` |
 | Unified recurrent scheduler | Active | `src/rwkv7_scheduler/` |
 | Shared inference contracts | Active | `src/rwkv_runtime/` |
 | Web and knowledge retrieval | Active dependency | `src/rwkv_search/` |
-| Client installation and service lifecycle | Compatibility packaging | `cli/` |
-| Legacy Web preview | Legacy/compatibility | `src/rwkv_search/web/` |
+| Client installation and release packaging | Active | `cli/` |
 
 ## Request flow
 
@@ -59,6 +57,14 @@ Torch, CUDA, crawlers or indexes.
 Python owns model/CUDA integration, Web discovery and extraction, local
 knowledge, pasted long text, Evidence admission/reduction and claim validation.
 It does not own the Rust Agent State machine.
+
+## Removed compatibility surface
+
+The Python Controller/Server, Python Agent state loop, old `rwkv-search` HTTP
+product, packaged Web preview, automatic service wrapper and training-only
+FitGen utilities are not release entrypoints. Frozen benchmark results remain
+under `bench/baselines/`; their historical source revisions remain available
+from Git rather than being kept executable in the current tree.
 
 ## Repository data
 

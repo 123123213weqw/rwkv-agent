@@ -2,8 +2,8 @@
 
 ## Rust 控制面与 Python 数据面
 
-当前代码提供两套兼容 Controller：原 Python Controller，以及默认监听
-`8122` 的 Rust-first Controller。Rust 路径已完整覆盖 CLI 所需的 Gate、普通
+当前代码只有一套 Agent Controller：默认监听 `8122` 的 Rust Controller。
+Rust 路径已完整覆盖 CLI 所需的 Gate、普通
 聊天、严格 Tool/Observation 循环、跨轮 Recurrent State、并行 State Research、
 Session transcript 和 State 释放；Python 不再承担这条路径的 Agent 状态机。
 
@@ -30,12 +30,11 @@ flowchart LR
 - `run_command(command)`默认关闭，仅在 Linux + Bubblewrap + 显式 Workspace
   条件同时满足时出现，且没有非隔离后备路径。
 
-Rust Server与旧API保持`/health`、`/v1/agent/run`、
+Rust Server为旧客户端保留`/health`、`/v1/agent/run`、
 `/v1/agent/run_stateful`、`/v1/agent/gate`、`/v1/tools/call`兼容。
-在单独授权切换前，公共`8120`仍由旧Python Controller持有；Rust默认端口
-`8122`只用于隔离/Shadow验证。
+这些别名调用同一 Rust Handler，不产生第二套生命周期。
 
-活跃Rust源码在仓库根目录`crates/`；`cli/`只保留客户端安装、打包、服务生命周期和
+活跃Rust源码在仓库根目录`crates/`；`cli/`只保留客户端安装、发布打包和
 集成Smoke脚本。详细文件所属见[`CODEMAP.md`](CODEMAP.md)。
 
 ## 两条路径

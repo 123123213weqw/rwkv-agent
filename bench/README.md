@@ -1,332 +1,49 @@
-# Benchmark
+# Benchmark surface
 
-本目录只保留可公开、可复现的小型测试集、Runner、指标实现和审核后的摘要。模型权重、网页正文、完整 Token Trace、运行日志和机器配置不进入 Git。
+`bench/` keeps reproducible datasets, generic metrics, current runners and
+reviewed historical evidence. Runtime outputs belong in ignored
+`bench/runs/`.
 
-## 文件
+## Current runnable groups
 
-| 路径 | 作用 |
-|---|---|
-| `realtime_web_retrieval.jsonl` | 冻结的50条中英文历史回归集，不再修改 |
-| `realtime_web_retrieval_audited_v2.jsonl` | 对冻结50条做官方域名/路径迁移复核后的当前Gold；问题不变 |
-| `realtime_web_retrieval_audited_v2_manifest.json` | 8条Gold修订的旧值、新值、理由、核验URL与双版本哈希 |
-| `realtime_web_retrieval_dev_v2.jsonl` | 新增100条、50个中英文配对主题的真实风格开发集 |
-| `realtime_web_retrieval_dev_v2_manifest.json` | v2数量、分布、SHA-256和数据来源声明 |
-| `build_retrieval_dev_v2.py` | 从人工审核主题表确定性重建v2 JSONL与Manifest |
-| `retrieval_schema.py` | Schema、枚举、唯一性和字段校验 |
-| `retrieval_metrics.py` | Domain/Target Recall、垃圾率、抓取率和延迟 |
-| `run_realtime_retrieval_bench.py` | 完整 Discovery + Fetch Runner |
-| `retrieval_failure_attribution.py` | 沿Discovery、抓取、抽取和结果阶段归因失败 |
-| `generate_p4_queries.py` | 用 G1I/P4 greedy 生成严格 Tool Call |
-| `query_formation.py` | 原问题、规则与模型查询的比较逻辑 |
-| `run_query_formation_bench.py` | Query Formation Runner |
-| `run_candidate_admission_bench.py` | 固定候选离线重放 |
-| `web_extraction_cases.jsonl` | 30条真实官方网页静态抽取用例 |
-| `web_extraction_schema.py` | 抽取用例Schema和一致性校验 |
-| `web_extraction.py` | 固定快照、失败分类、抽取器适配和指标 |
-| `run_web_extraction_bench.py` | Live Capture与固定快照A/B Runner |
-| `searxng_engine_bench.py` | 逐引擎稳定性、跨轮命中和公开脱敏汇总 |
-| `run_searxng_engine_bench.py` | SearXNG逐引擎隔离Runner，不修改服务配置 |
-| `candidate_rerank.py` | 候选级Admission、Cross-Encoder融合与离线排序指标 |
-| `run_candidate_rerank_bench.py` | 在冻结搜索候选上运行语义Rerank A/B |
-| `external/miracl-v1/` | MIRACL中英文dev人工qrels、上游哈希和许可记录 |
-| `long_knowledge_compat_v1/` | 48条项目长期知识兼容集及明确本地缺失探针 |
-| `long_knowledge_schema.py` | page-level qrels、query type和local-missing Schema |
-| `long_knowledge_metrics.py` | Hit/Recall、MRR、nDCG、覆盖率、缺失准确率和延迟指标 |
-| `run_long_knowledge_bench.py` | FineWiki长期知识页级检索Runner |
-| `long_knowledge_hybrid.py` | Top-100诊断、Cross-Encoder排序、RRF和失败层归因 |
-| `run_long_knowledge_hybrid_bench.py` | 冻结Lexical候选与轻量Rerank A/B |
-| `run_long_knowledge_dense_bench.py` | 页面级Dense、Lexical融合及融合后Rerank A/B |
-| `analyze_long_knowledge_threshold.py` | 准入阈值的缺失拒绝率与正例召回损失联合评估 |
-| `sweep_long_knowledge_rerank_rrf.py` | Lexical/Cross-Encoder权重开发集诊断 |
-| `sweep_long_knowledge_dense_rrf.py` | Lexical/Dense权重开发集诊断 |
-| `baselines/long_knowledge/` | FineWiki中英文MIRACL、兼容集、Hybrid及Agent Shadow冻结摘要 |
-| `baselines/` | 小型冻结摘要，不含网页正文 |
+- realtime retrieval: `run_realtime_retrieval_bench.py`,
+  `retrieval_{schema,metrics,failure_attribution}.py`;
+- candidate admission/reranking: `run_candidate_*_bench.py`;
+- Web extraction: `run_web_extraction_bench.py` and
+  `web_extraction*.py`;
+- SearXNG engine diagnostics: `run_searxng_engine_bench.py`;
+- long knowledge: `run_long_knowledge_{bench,hybrid_bench,dense_bench}.py`
+  and their generic metrics/schema helpers;
+- recurrent Agent runtime: `long_lived_runtime_v1/` and the Rust runners in
+  `crates/state-runtime/`.
 
-Agent端到端Benchmark另有两项只用于私有Run的可重放工具：
+Model-training, FitGen, old Python Controller, legacy Web-product and one-off
+shadow/replay runners are no longer executable release surface. Their reviewed
+results remain in `baselines/` and their source revisions remain available
+from Git.
 
-| 路径 | 作用 |
-|---|---|
-| `../benchmarks/retrieval_snapshot.py` | 脱敏配置、Raw/Admission/Fetch/Evidence候选快照Schema与原子写入 |
-| `../benchmarks/analyze_retrieval_funnel.py` | 不联网重放快照，定位域名、精确页、抓取、Evidence、回答和引用损失 |
+## Evidence boundary
 
-## 快速运行
+- `baselines/` and `artifacts/` are immutable reviewed evidence;
+- frozen SHA/Manifest files are not regenerated during repository cleanup;
+- duplicated files inside checksummed historical bundles are intentional and
+  are not deduplicated in place;
+- model weights, page bodies, private traces, credentials and machine-local run
+  logs must not enter Git.
+
+## Basic checks
 
 ```bash
-PYTHONPATH=src python -m unittest -v tests.test_realtime_retrieval_bench_data
+PYTHONPATH=src:. python -m pytest -q \
+  tests/test_realtime_retrieval_bench_data.py \
+  tests/test_retrieval_metrics.py
 
-# 确定性重建100条v2开发集及Manifest
-PYTHONPATH=src python bench/build_retrieval_dev_v2.py
-
-PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
+PYTHONPATH=src:. python bench/run_realtime_retrieval_bench.py \
   --config configs/benchmark.json \
   --case-id retrieval-zh-001 \
   --case-id retrieval-en-006
 ```
 
-### Agent候选快照与失败漏斗
-
-新建Run时显式开启快照；默认关闭，因此不会增加普通聊天或既有Benchmark的输出体积：
-
-```bash
-PYTHONPATH=.:src python benchmarks/run_fitgen_benchmark.py \
-  --dataset webwalkerqa --run-id web-dev-snapshot-v1 \
-  --cases-dir /path/to/fitgen/dev --full --concurrency 1 \
-  --web-profile enhanced --web-fallback-engines bing \
-  --web-api-providers github,crossref,mediawiki \
-  --capture-retrieval-snapshots
-```
-
-Run会额外生成`config.snapshot.json`和
-`webwalkerqa.retrieval-snapshots.jsonl`。快照保留URL、标题、摘要、排名、引擎、抓取结果和Evidence URI，
-不保存网页正文或凭据。随后完全离线生成失败漏斗：
-
-```bash
-RUN=/path/to/run
-PYTHONPATH=.:src python benchmarks/analyze_retrieval_funnel.py \
-  --cases "$RUN/webwalkerqa.cases.jsonl" \
-  --results "$RUN/webwalkerqa.results.jsonl" \
-  --evaluations "$RUN/webwalkerqa.evaluations.jsonl" \
-  --snapshots "$RUN/webwalkerqa.retrieval-snapshots.jsonl" \
-  --output "$RUN/webwalkerqa.retrieval-funnel.json" \
-  --rows-output "$RUN/webwalkerqa.retrieval-funnel.rows.jsonl"
-```
-
-Gold只在Run结束后的离线漏斗评分中读取，不进入模型提示词、查询、候选排序或抓取。
-
-`realtime_web_retrieval_dev_v2.jsonl`是人工策划的真实搜索风格开发集，不是用户日志，也不是私有盲测集。
-它包含口语、短查询、少量噪声输入、安全公告、标准规范、公共实时信息、公司原始文件、技术文档和社区讨论。
-中英文按同一50个检索目标成对构建，可直接比较跨语言召回差异。`query_style`、`task_family`、
-`gold_ttl_days`、期望域和路径都只能用于运行结束后的分组和评分，禁止进入模型或搜索查询。
-
-50条历史集的v1文件保持冻结，用于连续性对比；动态官网迁移后的当前有效评分使用
-`realtime_web_retrieval_audited_v2.jsonl`。审计版只更改8条已经由一手来源复核的期望域名或路径，
-不得把系统当前检索到的普通页面直接写成Gold。运行报告应同时保留v1和审计v2，不能用新标注覆盖历史结果。
-
-运行v2开发集：
-
-```bash
-PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
-  --bench bench/realtime_web_retrieval_dev_v2.jsonl \
-  --config configs/benchmark.json \
-  --output bench/runs/retrieval_dev_v2.jsonl \
-  --summary bench/runs/retrieval_dev_v2_summary.json
-```
-
-### SearXNG逐引擎稳定性
-
-Runner从运行中实例的`/config`读取已启用引擎，只用冻结P4计划的**有效执行查询**请求单个引擎。
-新版计划优先读取`effective_query`；旧计划会重新执行当前运行时的年份、`site:`数量和长度约束，违规时
-回退原问题，禁止直接执行历史`model_query`。期望域名和URL模式仅在结果返回后用于打分，不加入搜索词。
-稳定性运行应顺序限速，避免把并发限流误判为引擎质量：
-
-当生产配置启用多个通用引擎时，Agent对每个引擎发起独立有界请求，再在本地用RRF去重融合。
-不允许一个慢引擎阻塞健康引擎；稳定性Benchmark仍须按引擎单独运行，再使用同一冻结集
-进行引擎池端到端对比。当前接受池为`dogpile + naver`，Bing HTML只是受限后备。
-
-```bash
-PYTHONPATH=src python bench/run_searxng_engine_bench.py \
-  --endpoint http://127.0.0.1:8888 \
-  --model-queries bench/runs/query_formation_p4_queries_v1.jsonl \
-  --engine mwmbl \
-  --repetitions 2 \
-  --concurrency 1 \
-  --request-delay 0.5
-```
-
-完整URL只写入被Git忽略的`bench/runs/`；公开基线位于：
-
-- `baselines/realtime_retrieval/searxng-engine-stability-v1/`：现有四引擎稳定性；
-- `baselines/realtime_retrieval/searxng-candidate-engines-v1/`：Google、Bing、DuckDuckGo、Brave、Startpage和Qwant隔离试用。
-
-### 冻结候选语义Rerank
-
-Rerank Runner只读取已经冻结的Discovery JSONL，不重新请求搜索引擎。Cross-Encoder只接收P4查询和候选的标题、规范化URL来源及摘要；期望域名、目标路径和禁止类型只在排序完成后参与评估：
-
-```bash
-PYTHONPATH=src python bench/run_candidate_rerank_bench.py \
-  --input bench/runs/searxng_bing_cn_paced_v1.jsonl \
-  --model BAAI/bge-reranker-v2-m3 \
-  --device cuda --batch-size 16 --max-length 512 --fp16 \
-  --output bench/runs/candidate_rerank.jsonl \
-  --summary bench/runs/candidate_rerank_summary.json \
-  --public-summary bench/runs/candidate_rerank_public.json
-```
-
-固定比较四个阶段：Bing原始顺序、通用Admission、纯语义Rerank、Admission与语义等权融合。指标包含Domain Recall@5/10、Target Recall@10/20、Domain/Target MRR、Top8垃圾率、硬过滤误删和P95延迟。公开冻结结果位于`baselines/realtime_retrieval/candidate-rerank-bge-m3-v1/`，完整URL、摘要和逐候选分数只保留在被Git忽略的`bench/runs/`。
-
-全量运行：
-
-```bash
-PYTHONPATH=src python bench/run_realtime_retrieval_bench.py \
-  --config configs/benchmark.json \
-  --output bench/runs/retrieval.jsonl \
-  --summary bench/runs/retrieval_summary.json
-```
-
-`bench/runs/` 被 Git 忽略。冻结摘要前必须记录数据 SHA、配置、代码版本、网络出口和上游搜索引擎，并人工检查失败样本。
-
-两次独立Live运行完成后，可以生成跨阶段失败归因：
-
-```bash
-PYTHONPATH=src python bench/retrieval_failure_attribution.py \
-  bench/runs/run1.jsonl bench/runs/run2.jsonl \
-  --output bench/runs/attribution.json \
-  --case-matrix bench/runs/attribution_cases.json
-```
-
-它只使用Runner已经记录的可观察阶段，不把Benchmark期望域名或目标路径反馈给运行时搜索。
-
-## 固定网页抽取
-
-先安装只用于Benchmark的抽取器：
-
-```bash
-pip install -e '.[extraction-bench,dev]'
-```
-
-第一次采集真实页面。正文只会进入被Git忽略的`data/`：
-
-```bash
-PYTHONPATH=src python bench/run_web_extraction_bench.py \
-  --capture --capture-only
-```
-
-之后所有抽取器读取完全相同的本地字节快照：
-
-```bash
-PYTHONPATH=src python bench/run_web_extraction_bench.py \
-  --repeat 3 \
-  --extractors current,hybrid_fast,trafilatura,justext,readability,resiliparse
-```
-
-`hybrid_fast`直接调用`src/rwkv_search/realtime/hybrid_extractor.py`，因此固定快照验证的是实时链路使用的同一套实现，而不是一份Benchmark复制代码。它使用Resiliparse快速正文、Trafilatura轻量元数据，并只在通用低质量信号命中时运行完整Trafilatura兜底。公开冻结结果见：
-
-- `baselines/web_extraction/static-extractors-v1/`：4B-1五种静态抽取器基线；
-- `baselines/web_extraction/hybrid-fast-v1/`：4B-2混合快速实现的接入前冻结基线。
-
-公开文件不包含网页正文、响应头或完整运行日志。
-
-完整方法见 [`docs/BENCHMARK.md`](../docs/BENCHMARK.md)。
-
-## 原问题互补车道Discovery A/B
-
-该实验只比较URL发现，不抓取页面、不调用答案模型。Control使用冻结快照中第一次模型搜索词；
-Candidate把用户原问题经通用`QueryAnalyzer`压缩并保留同一个`site:`硬约束；Union用RRF合并两路。
-两个搜索臂都返回后才读取Gold URL评分，禁止把目标页或期望域名写入查询。
-
-```bash
-PYTHONPATH=.:src python benchmarks/run_query_lane_discovery_ab.py \
-  --cases /private/normalized/webwalkerqa.jsonl \
-  --snapshots /private/run/webwalkerqa.retrieval-snapshots.jsonl \
-  --endpoint http://127.0.0.1:8888 \
-  --output /private/run/query-lane.rows.jsonl \
-  --summary /private/run/query-lane.summary.json
-```
-
-Dev80配对Live结果（76条实际调用搜索）：Target Page Hit@20从31.58%升到40.79%，
-Macro Recall@20从24.34%升到32.89%，7胜/0负。随后7条增益样本的13.3B端到端诊断没有复现
-Exact Page Recall收益（85.71%降至71.43%）；这是顺序Live诊断，不是冻结Provider的严格A/B，说明
-新增Raw Candidate仍可能在后续Evidence合并中被淘汰。因此该开关默认关闭，不允许据此切换生产。
-
-## 冻结Evidence保留式融合A/B
-
-该实验完全离线重放已经冻结的逐次Web Evidence。Control保持现有全局Query-view MMR Top-8；
-Candidate不替换Control的任何页面，只追加最多4条“至少被两个独立搜索Query观察到”的Query头部页面。
-两种选择都完成后才读取Gold URL，因此不会用目标页调选择器。
-
-```bash
-PYTHONPATH=.:src python benchmarks/replay_evidence_merge_ab.py \
-  --cases /private/run/webwalkerqa.cases.jsonl \
-  --snapshots /private/run/webwalkerqa.retrieval-snapshots.jsonl \
-  --results /private/run/webwalkerqa.results.jsonl \
-  --output-dir /private/run/evidence-merge-ab
-```
-
-冻结Dev80重放中，Exact Page Recall从29.375%升至32.50%，3胜/0负；逐次Evidence URI平均保留率
-从49.18%升至53.03%。快照为保护网页正文不落盘，只保存URL、标题和轻量元数据，因此重放Control与当时
-内容感知Final Evidence的平均URI Jaccard只有40.20%；该实验只证明“非破坏追加”的选择性质，不等价于
-冻结答案生成。13.3B的7条顺序Live复验受Provider结果和第二轮Query联动波动影响，三次Candidate结果未
-稳定复现，最终一次相对Control的Exact Recall持平、Citation Exact Recall下降7.14个百分点。因此
-`--preserve-query-view-evidence`仍默认关闭，不接入生产。
-
-## 长期知识Hybrid Retrieval
-
-里程碑5B保持5A索引只读，另建页面级Dense索引，并在完全相同的MIRACL dev和项目兼容集上比较
-Lexical、Cross-Encoder、Dense、等权RRF和融合后Cross-Encoder。先生成Top-100失败诊断：
-
-```bash
-PYTHONPATH=src:. python bench/run_long_knowledge_hybrid_bench.py \
-  --cases bench/external/miracl-v1/miracl_long_knowledge_dev_v1.jsonl \
-  --index rwkv-finewiki-zh-full-v1 --language zh \
-  --channel-size 100 --candidate-limit 100 --rerank-depth 50 \
-  --strategies lexical,semantic,hybrid \
-  --model BAAI/bge-reranker-v2-m3 --device cuda:0 --fp16 \
-  --output bench/runs/miracl-zh-rerank.jsonl \
-  --summary bench/runs/miracl-zh-rerank-summary.json
-```
-
-页面向量索引只取`chunk_id=0`，文档由标题、别名、章节标题和首段构成，不为所有chunk生成向量：
-
-```bash
-PYTHONPATH=src:. python scripts/index_finewiki_page_embeddings.py \
-  --source-index rwkv-finewiki-zh-full-v1 \
-  --target-index rwkv-finewiki-page-e5-small-zh-v1 \
-  --model intfloat/multilingual-e5-small \
-  --checkpoint /data/checkpoints/e5-zh.json \
-  --fetch-size 512 --encode-batch-size 128 --max-length 256 \
-  --device cuda:0 --fp16 --recreate
-```
-
-运行Dense闭环：
-
-```bash
-PYTHONPATH=src:. python bench/run_long_knowledge_dense_bench.py \
-  --cases bench/external/miracl-v1/miracl_long_knowledge_dev_v1.jsonl \
-  --lexical-index rwkv-finewiki-zh-full-v1 \
-  --dense-index rwkv-finewiki-page-e5-small-zh-v1 \
-  --language zh --candidate-limit 100 --dense-num-candidates 1000 \
-  --embedding-model intfloat/multilingual-e5-small \
-  --reranker-model BAAI/bge-reranker-v2-m3 \
-  --rerank-depth 50 --device cuda:0 --fp16 \
-  --output bench/runs/miracl-zh-dense.jsonl \
-  --summary bench/runs/miracl-zh-dense-summary.json
-```
-
-公开冻结结果位于`baselines/long_knowledge/finewiki-hybrid-v1/`。逐查询候选、分数、机器Endpoint和
-模型缓存路径只保留在被Git忽略的`bench/runs/`。
-
-Agent接入使用独立桌面工作区中的正式Hybrid模块，复用24条冻结兼容题直接比较同请求Legacy与
-Hybrid，不调用答案模型。公开摘要位于
-`baselines/long_knowledge/agent-hybrid-shadow-v1/`：Hit@5从18/24升至21/24，但Hit@1保持
-15/24且平均延迟从851.9ms升至1704.8ms，因此只批准Shadow接入，不批准默认切换。
-
-## Agent实时Web Shadow
-
-桌面Agent的增强Web只作为默认关闭的异步有界Shadow接入。用户可见结果继续使用原
-`web_search(query)`和`W1..W5` Legacy协议；Shadow队列满、超时、发现、抓取或日志异常都不能
-影响聊天请求。
-
-同一50条冻结实时网页集的V100隔离A/B公开摘要位于
-`baselines/realtime_retrieval/agent-web-shadow-v1/`。增强路径把垃圾结果率从17.56%降至1.08%，
-但Candidate Domain Recall@10从32%降至26%、非空率从86%降至58%、抓取成功率从72.99%降至
-58.77%，因此只通过接入安全门槛，未通过默认切换门槛。运行时没有健康的本地SearXNG，两臂均使用
-Bing HTML fallback，不能用这次结果评价SearXNG或多引擎质量。
-
-### Agent Web 5H召回修复
-
-5H继续复用完全相同的50条和评估器，不运行答案模型。增强路径只增加通用英文Query Compaction、
-Recall-protected Top-10 rerank、同请求共享Discovery缓存、阶段失败归因和可审计空Evidence回退。
-
-| 指标 | 配对Legacy | Enhanced |
-|---|---:|---:|
-| Candidate Domain Recall@10 | 30% | **50%** |
-| Result Domain Recall@10 | 24% | **40%** |
-| 非空结果率 | 72% | **88%** |
-| 垃圾结果率 | 9.15% | **1.12%** |
-| 抓取成功率 | 56.52% | **71.35%** |
-| 平均/P95延迟 | 3291.3/8008.4ms | 3301.5/**6901.9ms** |
-
-逐例Candidate Domain Recall@10、Result Domain Recall@10和非空结果分别为Enhanced胜10/8/8、
-Legacy胜0/0/0。隔离SearXNG的公共引擎池在持续请求中出现超时、连接重置和反爬响应，因此被单独
-保留为失败诊断；通过门槛的冻结运行使用现有Bing HTML fallback，不是SearXNG质量结论。公开摘要：
-`bench/baselines/realtime_retrieval/agent-web-recall-5h-v1/`。
+Gold fields are read only after retrieval for scoring. They must never be
+added to prompts, generated queries, discovery requests, ranking features or
+training data.
