@@ -165,7 +165,6 @@ impl Ui {
         let rows = [
             ("web_search(query)", "实时发现与网页提取"),
             ("knowledge_search(query)", "本地索引知识"),
-            ("long_text_qa(question)", "并行处理Session长文本"),
             ("/research <question>", "B4 × 2 State-native Web研究"),
         ];
         self.command_panel(

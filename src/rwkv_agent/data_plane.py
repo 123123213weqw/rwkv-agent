@@ -24,8 +24,6 @@ class AgentDataPlane:
         *,
         web: Any,
         knowledge: Any,
-        long_text: Any,
-        session_text: Any,
         semantic_scorer: Any | None = None,
         evidence_admission: EntityEvidenceAdmission | None = None,
         answer_policy: AnswerPolicy | None = None,
@@ -33,8 +31,6 @@ class AgentDataPlane:
     ) -> None:
         self.web = web
         self.knowledge = knowledge
-        self.long_text = long_text
-        self.session_text = session_text
         self.semantic_scorer = semantic_scorer
         self.evidence_admission = evidence_admission or EntityEvidenceAdmission()
         self.answer_policy = answer_policy or AnswerPolicy()
@@ -42,8 +38,6 @@ class AgentDataPlane:
         self.tool_executor = ToolExecutor(
             web=self.web,
             knowledge=self.knowledge,
-            long_text=self.long_text,
-            session_text=self.session_text,
         )
 
     def health(self) -> dict[str, Any]:
@@ -51,7 +45,6 @@ class AgentDataPlane:
             "status": "ready",
             "mode": "python_model_retrieval_data_plane",
             "tools": ["web_search", "knowledge_search"],
-            "session_text": self.session_text.health(),
             "answer_validation": "fitgen-claim-lexical-v2",
             "query_coordination": "structured-query-view",
         }
@@ -96,33 +89,6 @@ class AgentDataPlane:
             "status": "ok" if admitted else "empty",
             "evidence": admitted,
             "evidence_admission": trace.to_dict(),
-        }
-
-    def capture_text(self, session_id: str, text: str) -> dict[str, Any]:
-        pasted = self.session_text.put(session_id, text)
-        return {
-            "status": "accepted",
-            "document": {
-                "source": "session_pasted_text",
-                "name": pasted.name,
-                "chars": pasted.chars,
-                "sha256": pasted.sha256,
-            },
-        }
-
-    def text_status(self, session_id: str) -> dict[str, Any]:
-        pasted = self.session_text.get(session_id)
-        if pasted is None:
-            return {"status": "empty", "active": False}
-        return {
-            "status": "ok",
-            "active": True,
-            "document": {
-                "source": "session_pasted_text",
-                "name": pasted.name,
-                "chars": pasted.chars,
-                "sha256": pasted.sha256,
-            },
         }
 
     def validate_answer(
@@ -180,7 +146,6 @@ class AgentDataPlane:
         return view.to_trace()
 
     def close(self) -> None:
-        self.session_text.close()
         knowledge_close = getattr(self.knowledge, "close", None)
         if callable(knowledge_close):
             knowledge_close()

@@ -22,11 +22,10 @@ flowchart LR
 
 - Rust 持有请求预算、工具注册表、严格协议、Session 锁、State ID/Owner、LRU、
   Fork/Batch Continue、取消与所有成功/失败路径的 Release；
-- Python 数据面只持有 `web_search`、`knowledge_search`、`long_text_qa`、
-  Query Coordination、Evidence Reduce/Admission 和 Claim Validation；
+- Python 数据面只持有 `web_search`、`knowledge_search`、Query Coordination、
+  Evidence Reduce/Admission 和 Claim Validation；
 - CUDA/Torch、模型权重、Crawler、索引和语义模型不迁移到 Rust；
-- Session transcript 是唯一持久记忆，不做隐式用户画像提取；粘贴长文本按
-  Session 暂存于数据面；
+- Session transcript 是唯一持久记忆，不做隐式用户画像提取；
 - `run_command(command)`默认关闭，仅在 Linux + Bubblewrap + 显式 Workspace
   条件同时满足时出现，且没有非隔离后备路径。
 

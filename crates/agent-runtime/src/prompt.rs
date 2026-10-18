@@ -58,7 +58,7 @@ pub fn direct_turn(message: &str, continuation: bool, previous_stop: &str) -> St
     )
 }
 
-pub fn agent_prompt(message: &str, _has_text: bool, context: &str, command: bool) -> String {
+pub fn agent_prompt(message: &str, context: &str, command: bool) -> String {
     let command_schema = if command {
         "- run_command(command): run one bounded command in the configured sandbox workspace\n"
     } else {
@@ -293,15 +293,6 @@ mod tests {
         assert!(value.ends_with('}'));
     }
 
-    #[test]
-    fn active_text_prompt_prioritizes_long_text_without_hiding_other_tools() {
-        let value = agent_prompt("What does the material say?", true, "", true);
-        assert!(value.contains("MUST use long_text_qa"));
-        assert!(value.contains("Do not substitute web_search"));
-        assert!(value.contains("\"name\":\"long_text_qa\""));
-        assert!(value.contains("- web_search(query)"));
-        assert!(value.contains("- run_command(command)"));
-    }
 
     #[test]
     fn structured_non_workspace_task_keeps_acceptance_contract() {

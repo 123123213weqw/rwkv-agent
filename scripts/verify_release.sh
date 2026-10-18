@@ -140,7 +140,7 @@ assert sidecar["inference"]["worker_alive"] is True, sidecar
 assert controller["status"] == "ready", controller
 models = controller.get("model") or []
 assert any("preview4922-13.3b" in str(row.get("model", "")).lower() for row in models), models
-assert {"run_command", "knowledge_search", "long_text_qa", "web_search"}.issubset(set(controller["tools"])), controller["tools"]
+assert {"run_command", "knowledge_search", "web_search"}.issubset(set(controller["tools"])), controller["tools"]
 assert tasks["status"] == "ok" and "counts" in tasks and isinstance(tasks["tasks"], list), tasks
 assert "Live task wall" in page, "task page content missing"
 assert data["status"] == "ready", data

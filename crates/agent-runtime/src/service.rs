@@ -35,8 +35,6 @@ pub struct RuntimeConfig {
     pub data_plane_url: String,
     pub session_dir: PathBuf,
     pub tool_gate_threshold: f64,
-    pub pasted_text_gate_threshold: f64,
-    pub long_text_capture_chars: usize,
     pub chat_state_capacity: usize,
     pub max_tool_steps: usize,
     pub max_model_tokens_per_turn: u32,
@@ -56,8 +54,6 @@ impl Default for RuntimeConfig {
             data_plane_url: "http://127.0.0.1:8121".into(),
             session_dir: PathBuf::from("var/rust-agent-sessions"),
             tool_gate_threshold: -3.2,
-            pasted_text_gate_threshold: -5.5,
-            long_text_capture_chars: 4000,
             chat_state_capacity: 3,
             max_tool_steps: 6,
             max_model_tokens_per_turn: 192,
@@ -940,7 +936,6 @@ fn normalize_workspace_value(value: &str, display_directory: &str) -> String {
 struct ToolRunOptions<'a> {
     task_spec: &'a TaskSpec,
     context: &'a str,
-    has_text: bool,
     gate: GateDecision,
     started: Instant,
     command: SandboxedCommand,
@@ -1119,9 +1114,7 @@ impl AgentService {
         if config.runtime_revision.trim().is_empty() {
             return Err("runtime_revision must not be empty".into());
         }
-        if !(-20.0..=20.0).contains(&config.tool_gate_threshold)
-            || !(-20.0..=20.0).contains(&config.pasted_text_gate_threshold)
-        {
+        if !(-20.0..=20.0).contains(&config.tool_gate_threshold) {
             return Err("tool Gate thresholds must be between -20 and 20".into());
         }
         if config.chat_state_capacity == 0
@@ -1277,8 +1270,7 @@ impl AgentService {
                     "cached_total":states.values.len(),"metrics":states.metrics,
                 }
             },
-            "tool_gate":{"mode":"semantic_single_token","threshold":self.config.tool_gate_threshold,
-                "pasted_text_threshold":self.config.pasted_text_gate_threshold},
+            "tool_gate":{"mode":"semantic_single_token","threshold":self.config.tool_gate_threshold},
             "state_parallel_search":{"enabled":true,"endpoint":"/v1/research","max_branches":4,"max_rounds":3},
             "command":{"enabled":self.config.command.enabled,"available":self.command.available(),"sandbox":self.command.sandbox_mode()},
             "agent_limits":{"max_tool_steps":self.config.max_tool_steps,"max_model_tokens_per_turn":self.config.max_model_tokens_per_turn,
@@ -1346,19 +1338,13 @@ impl AgentService {
         message: &str,
         threshold: Option<f64>,
         context: &str,
-        has_pasted_text: bool,
     ) -> Result<Value, String> {
         let decision = self
             .sidecar
             .gate(
                 message,
-                threshold.unwrap_or(if has_pasted_text {
-                    self.config.pasted_text_gate_threshold
-                } else {
-                    self.config.tool_gate_threshold
-                }),
+                threshold.unwrap_or(self.config.tool_gate_threshold),
                 context,
-                has_pasted_text,
             )
             .await?;
         serde_json::to_value(decision).map_err(|e| e.to_string())
@@ -2113,31 +2099,6 @@ impl AgentService {
         };
         let session_id = SessionStore::normalize_session_id(session_id)?;
         let _turn = self.sessions.lock(&session_id).await?;
-        if workspace.is_none() && message.chars().count() >= self.config.long_text_capture_chars {
-            self.invalidate_chat_state(&session_id).await?;
-            let tool_result = self.data.capture_text(&session_id, message).await?;
-            if cancellation.is_cancelled() {
-                return Err("task cancelled".into());
-            }
-            let chars = message.chars().count();
-            let answer = if contains_chinese(message) {
-                format!("已接收长文本，共{chars}个字符。请继续提问。")
-            } else {
-                format!("Received {chars} characters of long text. Ask a question when ready.")
-            };
-            self.sessions
-                .append(
-                    &session_id,
-                    &format!("[pasted long text: {chars} characters]"),
-                    &answer,
-                )
-                .await?;
-            return Ok(json!({
-                "status":"ok","session_id":session_id,"route":{"mode":"document_capture","tool":null},
-                "tool_result":tool_result,"answer":answer,
-                "trace":{"task_spec":&task_spec,"model_called":false,"context":{"mode":"transient_session_text"},"control_plane":"rust"},
-            }));
-        }
         let started = Instant::now();
         if let Some(events) = events {
             debug_record(
@@ -2154,14 +2115,6 @@ impl AgentService {
         let history = self.sessions.history(&session_id, 12).await?;
         let context = prompt::bounded_context(&history, 8000);
         let routing_context = prompt::bounded_context(&history, 2000);
-        let text_status = self.data.text_status(&session_id).await?;
-        if cancellation.is_cancelled() {
-            return Err("task cancelled".into());
-        }
-        let has_text = text_status
-            .get("active")
-            .and_then(Value::as_bool)
-            .unwrap_or(false);
         let gate = if workspace.is_some() {
             GateDecision {
                 use_tool: true,
@@ -2175,13 +2128,8 @@ impl AgentService {
             self.sidecar
                 .gate(
                     message,
-                    if has_text {
-                        self.config.pasted_text_gate_threshold
-                    } else {
-                        self.config.tool_gate_threshold
-                    },
+                    self.config.tool_gate_threshold,
                     &routing_context,
-                    has_text,
                 )
                 .await?
         };
@@ -2237,7 +2185,6 @@ impl AgentService {
             ToolRunOptions {
                 task_spec: &task_spec,
                 context: &context,
-                has_text,
                 gate,
                 started,
                 command,
@@ -3196,7 +3143,6 @@ impl AgentService {
         let ToolRunOptions {
             task_spec,
             context,
-            has_text,
             gate,
             started,
             command,
@@ -3222,7 +3168,6 @@ impl AgentService {
             None => (
                 prompt::agent_prompt(
                     &prompt::task_spec_message(task_spec),
-                    has_text,
                     context,
                     self.config.command.enabled,
                 ),

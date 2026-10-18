@@ -47,13 +47,6 @@ struct Args {
         allow_hyphen_values = true
     )]
     tool_gate_threshold: f64,
-    #[arg(
-        long,
-        env = "RWKV_AGENT_PASTED_TEXT_GATE_THRESHOLD",
-        default_value_t = -5.5,
-        allow_hyphen_values = true
-    )]
-    pasted_text_gate_threshold: f64,
     #[arg(long, env = "RWKV_AGENT_CHAT_STATE_CAPACITY", default_value_t = 3)]
     chat_state_capacity: usize,
     #[arg(long, env = "RWKV_AGENT_MAX_TOOL_STEPS", default_value_t = 6)]
@@ -66,12 +59,6 @@ struct Args {
     max_model_tokens_per_turn: u32,
     #[arg(long, env = "RWKV_AGENT_DIRECT_CHAT_MAX_TOKENS", default_value_t = 96)]
     direct_chat_max_tokens: u32,
-    #[arg(
-        long,
-        env = "RWKV_AGENT_LONG_TEXT_CAPTURE_CHARS",
-        default_value_t = 4000
-    )]
-    long_text_capture_chars: usize,
     #[arg(long, env = "RWKV_AGENT_MAX_RUN_SECONDS", default_value_t = 600)]
     max_run_seconds: u64,
     #[arg(long, env = "RWKV_AGENT_SHUTDOWN_GRACE_SECONDS", default_value_t = 200)]
@@ -211,8 +198,6 @@ async fn main() -> Result<(), String> {
         data_plane_url: args.data_plane_url,
         session_dir: args.session_dir,
         tool_gate_threshold: args.tool_gate_threshold,
-        pasted_text_gate_threshold: args.pasted_text_gate_threshold,
-        long_text_capture_chars: args.long_text_capture_chars,
         chat_state_capacity: args.chat_state_capacity,
         max_tool_steps: args.max_tool_steps,
         max_model_tokens_per_turn: args.max_model_tokens_per_turn,

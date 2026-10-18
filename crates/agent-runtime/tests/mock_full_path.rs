@@ -58,7 +58,7 @@ async fn sidecar() -> (String, MockState) {
 
 async fn data_plane() -> String {
     let router = Router::new()
-        .route("/health", get(|| async { Json(json!({"status":"ready","tools":["web_search","knowledge_search","long_text_qa"]})) }))
+        .route("/health", get(|| async { Json(json!({"status":"ready","tools":["web_search","knowledge_search"]})) }))
         .route("/v1/session/text/status", post(|| async { Json(json!({"status":"empty","active":false})) }))
         .route("/v1/session/text", post(|Json(body): Json<Value>| async move {
             Json(json!({"status":"accepted","document":{"chars":body["text"].as_str().unwrap_or_default().chars().count()}}))

@@ -13,13 +13,9 @@ class ToolExecutor:
         *,
         web: Any,
         knowledge: Any,
-        long_text: Any,
-        session_text: Any,
     ) -> None:
         self.web = web
         self.knowledge = knowledge
-        self.long_text = long_text
-        self.session_text = session_text
 
     def execute(
         self,
@@ -43,8 +39,6 @@ class ToolExecutor:
                     "message": "knowledge_search requires a non-empty query.",
                 }
             return self.knowledge.execute(query)
-        if name == "long_text_qa":
-            return self._execute_long_text(arguments, session_id=session_id)
         if name in {"memory", "memory_save"}:
             return {
                 "status": "disabled",
@@ -59,30 +53,3 @@ class ToolExecutor:
             "message": f"unknown tool: {name}",
         }
 
-    def _execute_long_text(
-        self,
-        arguments: dict[str, Any],
-        *,
-        session_id: str,
-    ) -> dict[str, Any]:
-        if set(arguments) != {"question"}:
-            return {
-                "status": "invalid",
-                "evidence": [],
-                "message": "long_text_qa accepts exactly one argument: question.",
-            }
-        pasted = self.session_text.get(session_id)
-        if pasted is None:
-            return {
-                "status": "empty",
-                "evidence": [],
-                "message": (
-                    "No pasted long text is active in this session. "
-                    "Paste the text first, then ask a question."
-                ),
-            }
-        return self.long_text.execute(
-            pasted.text,
-            str(arguments.get("question") or ""),
-            document_name=pasted.name,
-        )

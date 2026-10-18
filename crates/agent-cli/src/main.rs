@@ -119,11 +119,6 @@ enum ToolCommand {
         query: Vec<String>,
     },
 
-    /// Ask the long text currently pasted into this session.
-    LongTextQa {
-        #[arg(required = true, trailing_var_arg = true)]
-        question: Vec<String>,
-    },
 }
 
 struct AgentClient {
@@ -376,7 +371,7 @@ fn doctor_checks(health: &Value) -> Vec<(&'static str, bool, String)> {
         .cloned()
         .unwrap_or_default();
     let has_tool = |name: &str| tools.iter().any(|item| item.as_str() == Some(name));
-    let required_tools = ["web_search", "knowledge_search", "long_text_qa"];
+    let required_tools = ["web_search", "knowledge_search"];
     let tools_ready = required_tools.iter().all(|name| has_tool(name));
     let state_ready = health
         .pointer("/state_parallel_search/enabled")
@@ -536,16 +531,6 @@ fn execute(cli: &Cli, client: &mut AgentClient) -> Result<(), String> {
                         )
                     })?
                 }
-                ToolCommand::LongTextQa { question } => {
-                    with_spinner("Analyzing document chunks…", || {
-                        client.tool(
-                            "long_text_qa",
-                            json!({
-                                "question": joined(question, "question")?,
-                            }),
-                        )
-                    })?
-                }
             };
             render(&value, cli.json);
         }
@@ -627,18 +612,6 @@ fn handle_slash(line: &str, client: &mut AgentClient, raw_json: &mut bool) -> Re
             let question = slash_argument(line, command)?;
             let value = with_spinner("Researching with parallel states…", || {
                 client.research(question, 4, 2)
-            })?;
-            render(&value, *raw_json);
-        }
-        "/longtext" => {
-            let question = slash_argument(line, command)?;
-            let value = with_spinner("Analyzing document chunks…", || {
-                client.tool(
-                    "long_text_qa",
-                    json!({
-                        "question": question,
-                    }),
-                )
             })?;
             render(&value, *raw_json);
         }
@@ -792,7 +765,7 @@ mod tests {
     fn doctor_requires_controller_model_tools_and_state_search() {
         let ready = json!({
             "status": "ready",
-            "tools": ["web_search", "knowledge_search", "long_text_qa", "memory"],
+            "tools": ["web_search", "knowledge_search", "memory"],
             "model": [{"status": "ready"}],
             "state_parallel_search": {"enabled": true},
             "configuration": {"runtime_revision":"test-revision"},
@@ -808,7 +781,7 @@ mod tests {
 
         let missing_model = json!({
             "status": "ready",
-            "tools": ["web_search", "knowledge_search", "long_text_qa"],
+            "tools": ["web_search", "knowledge_search"],
             "model": [],
             "state_parallel_search": {"enabled": true},
             "configuration": {"runtime_revision":"test-revision"},
@@ -865,26 +838,6 @@ mod tests {
         }
     }
 
-    #[test]
-    fn parses_question_only_long_text_tool() {
-        let cli = Cli::try_parse_from([
-            "rwkv-agent",
-            "--session",
-            "demo",
-            "tool",
-            "long-text-qa",
-            "Who",
-            "founded",
-            "it?",
-        ])
-        .unwrap();
-        match cli.command {
-            Some(Command::Tool {
-                command: ToolCommand::LongTextQa { question },
-            }) => assert_eq!(question, vec!["Who", "founded", "it?"]),
-            _ => panic!("unexpected command"),
-        }
-    }
 
     #[test]
     fn parses_stateful_research_with_bounded_controls() {
@@ -965,11 +918,4 @@ mod tests {
         assert_eq!(resolve_session(Some("demo")), "demo");
     }
 
-    #[test]
-    fn long_pasted_text_is_not_written_to_cli_history() {
-        assert!(should_store_history("normal question"));
-        assert!(!should_store_history(
-            &"文".repeat(PASTED_TEXT_CAPTURE_CHARS)
-        ));
-    }
 }

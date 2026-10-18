@@ -11,8 +11,7 @@ from urllib.parse import urlsplit
 
 from .data_plane import AgentDataPlane
 from .model_client import ModelClient
-from .session_text import SessionTextBuffer
-from .tools import KnowledgeSearchAdapter, LongTextQAAdapter, WebSearchAdapter
+from .tools import KnowledgeSearchAdapter, WebSearchAdapter
 
 
 def build_semantic_scorer_from_env() -> Any | None:
@@ -100,13 +99,6 @@ class Handler(BaseHTTPRequestHandler):
                     session_id=session_id,
                     original_query=str(body.get("original_query") or "") or None,
                 )
-            elif path == "/v1/session/text":
-                result = data_plane.capture_text(
-                    self._session_id(body),
-                    str(body.get("text") or ""),
-                )
-            elif path == "/v1/session/text/status":
-                result = data_plane.text_status(self._session_id(body))
             elif path == "/v1/answers/validate":
                 evidence = body.get("evidence")
                 if not isinstance(evidence, list):
@@ -177,20 +169,9 @@ def main() -> None:
     semantic_scorer = build_semantic_scorer_from_env()
     web = WebSearchAdapter(args.web_config, semantic_scorer=semantic_scorer)
     knowledge = KnowledgeSearchAdapter(args.knowledge_endpoint)
-    long_text = LongTextQAAdapter(
-        model.complete,
-        top_k=int(os.getenv("RWKV_LONG_TEXT_TOP_K", "16")),
-        concurrency=int(os.getenv("RWKV_LONG_TEXT_CONCURRENCY", "8")),
-        worker_max_tokens=int(os.getenv("RWKV_LONG_TEXT_MAX_TOKENS", "64")),
-    )
-    session_text = SessionTextBuffer(
-        max_chars=int(getattr(long_text, "max_document_chars", 1_000_000)),
-    )
     data_plane = AgentDataPlane(
         web=web,
         knowledge=knowledge,
-        long_text=long_text,
-        session_text=session_text,
         semantic_scorer=semantic_scorer,
     )
     server = DataPlaneHTTPServer((args.host, args.port), Handler)

@@ -226,7 +226,6 @@ def compact_answer_evidence(
     evidence shape instead of silently left-truncating several whole documents.
     """
 
-    from .tools.long_text import chunk_text, rank_chunks
 
     if max_chars_per_source < 256:
         raise ValueError("max_chars_per_source must be at least 256")
@@ -251,3 +250,95 @@ def compact_answer_evidence(
                 value["content"] = content[:max_chars_per_source]
         output.append(value)
     return output
+
+
+def chunk_text(
+    text: str,
+    *,
+    max_chars: int = 1200,
+    overlap_chars: int = 160,
+) -> list[TextChunk]:
+    """Split on paragraph/line boundaries and retain bounded character overlap."""
+
+    if max_chars < 256:
+        raise ValueError("max_chars must be at least 256")
+    if overlap_chars < 0 or overlap_chars >= max_chars:
+        raise ValueError("overlap_chars must be in [0, max_chars)")
+    normalized = str(text or "").replace("\r\n", "\n").replace("\r", "\n")
+    if not normalized.strip():
+        return []
+
+    chunks: list[TextChunk] = []
+    start = 0
+    length = len(normalized)
+    while start < length:
+        hard_end = min(length, start + max_chars)
+        end = hard_end
+        if hard_end < length:
+            candidates = [
+                normalized.rfind("\n\n", start + max_chars // 2, hard_end),
+                normalized.rfind("\n", start + max_chars // 2, hard_end),
+                normalized.rfind("。", start + max_chars // 2, hard_end),
+            ]
+            boundary = max(candidates)
+            if boundary > start:
+                end = boundary + (1 if normalized[boundary] != "\n" else 0)
+        content = normalized[start:end].strip()
+        if content:
+            chunks.append(
+                TextChunk(
+                    chunk_id=len(chunks),
+                    text=content,
+                    char_start=start,
+                    char_end=end,
+                )
+            )
+        if end >= length:
+            break
+        next_start = max(start + 1, end - overlap_chars)
+        while next_start < end and normalized[next_start].isspace():
+            next_start += 1
+        start = next_start
+    return chunks
+
+
+def rank_chunks(
+    question: str,
+    chunks: list[TextChunk],
+    *,
+    top_k: int = 16,
+) -> list[tuple[float, TextChunk]]:
+    """Rank chunks with query-feature IDF without gold labels or task rules."""
+
+    if top_k <= 0:
+        raise ValueError("top_k must be positive")
+    features = _query_features(question)
+    if not features:
+        return [(0.0, chunk) for chunk in chunks[:top_k]]
+    lowered = [chunk.text.lower() for chunk in chunks]
+    document_frequency = Counter(
+        feature
+        for feature in features
+        for text in lowered
+        if feature in text
+    )
+    total = max(1, len(chunks))
+    ranked: list[tuple[float, TextChunk]] = []
+    for chunk, text in zip(chunks, lowered):
+        score = sum(
+            math.log((total + 1) / (document_frequency[feature] + 1)) + 1.0
+            for feature in features
+            if feature in text
+        )
+        ranked.append((score, chunk))
+    ranked.sort(key=lambda item: (item[0], -item[1].chunk_id), reverse=True)
+    positive = [item for item in ranked if item[0] > 0]
+    selected = positive[:top_k]
+    if len(selected) < min(top_k, len(ranked)):
+        selected_ids = {item[1].chunk_id for item in selected}
+        selected.extend(
+            item
+            for item in ranked
+            if item[1].chunk_id not in selected_ids
+        )
+    return selected[: min(top_k, len(ranked))]

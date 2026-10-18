@@ -208,8 +208,6 @@ struct GateBody {
     threshold: Option<f64>,
     #[serde(default)]
     context: String,
-    #[serde(default)]
-    has_pasted_text: bool,
 }
 
 #[derive(Deserialize)]
@@ -1089,7 +1087,6 @@ async fn gate(
                 &body.message,
                 body.threshold,
                 &body.context,
-                body.has_pasted_text,
             )
             .await,
         &request_id,

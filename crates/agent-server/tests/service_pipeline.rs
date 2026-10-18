@@ -139,7 +139,7 @@ async fn data_plane() -> String {
             get(|| async {
                 Json(json!({
                     "status":"ready",
-                    "tools":["web_search","knowledge_search","long_text_qa"]
+                    "tools":["web_search","knowledge_search"]
                 }))
             }),
         )

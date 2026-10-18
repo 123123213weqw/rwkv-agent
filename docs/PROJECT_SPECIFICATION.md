@@ -21,9 +21,9 @@ A user can hold an ordinary multi-turn conversation without sending prompts or m
 
 The user can request a bounded workspace task such as creating a small project, running tests, repairing a failure, or validating an artifact. The Agent performs one Tool Call per model turn, observes the result, and continues from the same owned State until verification succeeds or a budget terminates the task.
 
-### 2.3 Local knowledge and long-document question answering
+### 2.3 Local knowledge question answering
 
-`knowledge_search` queries a separately configured local index. `long_text_qa` accepts pasted material, retrieves relevant passages, and returns evidence-grounded answers. These capabilities do not require Web retrieval.
+`knowledge_search` queries a separately configured local index and returns evidence-grounded answers. It does not require Web retrieval.
 
 ### 2.4 Optional current-information research
 
@@ -87,7 +87,6 @@ flowchart TB
     subgraph Tools["Local tool data plane"]
         CMD["run_command"]
         KB["knowledge_search"]
-        LONG["long_text_qa"]
         WEBSEARCH["optional web_search"]
     end
 
@@ -158,7 +157,6 @@ Malformed envelopes receive one bounded repair attempt. Unknown tools, missing o
 |---|---|---|
 | `run_command` | controlled command string | configured workspace, timeout, output cap, no unsafe sandbox fallback |
 | `knowledge_search` | query | local knowledge endpoint |
-| `long_text_qa` | question and captured text context | evidence selection and bounded answer |
 | `web_search` | query | optional network data plane, only when semantically selected |
 
 ## 6. Memory and isolation model

@@ -166,7 +166,6 @@ impl SidecarClient {
         message: &str,
         threshold: f64,
         context: &str,
-        has_pasted_text: bool,
     ) -> Result<GateDecision, String> {
         let endpoint = self.choose();
         let value = self
@@ -176,7 +175,6 @@ impl SidecarClient {
                     "message": message,
                     "threshold": threshold,
                     "context": context,
-                    "has_pasted_text": has_pasted_text,
                 }),
             )
             .await?;

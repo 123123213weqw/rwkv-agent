@@ -22,7 +22,6 @@ class Handler(BaseHTTPRequestHandler):
                 "tools": [
                     "web_search",
                     "knowledge_search",
-                    "long_text_qa",
                 ],
                 "model": [
                     {

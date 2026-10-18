@@ -105,7 +105,6 @@ def test_data_plane_capture_and_long_text_are_session_scoped() -> None:
     assert plane.text_status("alpha")["active"] is True
     assert plane.text_status("beta")["active"] is False
     result = plane.execute(
-        "long_text_qa",
         {"question": "What is it?"},
         session_id="alpha",
     )
