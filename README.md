@@ -49,7 +49,7 @@ No cloud control-plane source or upstream inference engine is vendored here.
 
 - **Ordinary chat:** greetings remain on the direct path and do not call a tool.
 - **State-native memory:** the same session reuses its RWKV recurrent state and only computes new turns.
-- **Strict Tool Calls:** `run_command`, `knowledge_search`, `long_text_qa`, and optional `web_search` use one bounded call per model turn.
+- **Strict Tool Calls:** `web_search` (DeepSeek-ranked discovery), `knowledge_search`, `run_command` and the sandboxed file tools use one bounded call per model turn.
 - **Multi-step execution:** Action → Tool → Observation → repair → verification → final answer stays in one owned State.
 - **True streaming:** tokens flow from the Sidecar through the Rust Controller to any client as NDJSON deltas.
 - **Independent parallel States:** jobs have separate Owner, State, Session, Workspace, Trace, and release lifecycle.
