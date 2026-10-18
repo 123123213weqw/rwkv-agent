@@ -13,7 +13,7 @@ RWKV State Agent is a fully local, general-purpose Agent built around RWKV recur
 
 ## Release status
 
-The current public beta is [`v0.3.0-beta.2`](https://github.com/123123213weqw/rwkv-agent/releases/tag/v0.3.0-beta.2). It includes the Rust control plane, local Web UI and CLI, recurrent-State runtime, bounded tools, AMD ROCm configuration, benchmarks, and reviewed evidence summaries.
+The current public beta is [`v0.3.0-beta.2`](https://github.com/123123213weqw/rwkv-agent/releases/tag/v0.3.0-beta.2). It includes the Rust control plane and CLI, recurrent-State runtime, bounded tools, AMD ROCm configuration, benchmarks, and reviewed evidence summaries.
 
 **New in Beta 2:** the canonical Rust service pipeline now accepts versioned
 TaskSpec requests, owns durable task identity, resume/cancel, strict streaming
@@ -51,7 +51,7 @@ No cloud control-plane source or upstream inference engine is vendored here.
 - **State-native memory:** the same session reuses its RWKV recurrent state and only computes new turns.
 - **Strict Tool Calls:** `run_command`, `knowledge_search`, `long_text_qa`, and optional `web_search` use one bounded call per model turn.
 - **Multi-step execution:** Action → Tool → Observation → repair → verification → final answer stays in one owned State.
-- **True streaming:** tokens flow from the ROCm Sidecar through the Rust Controller to the Web UI as NDJSON deltas.
+- **True streaming:** tokens flow from the Sidecar through the Rust Controller to any client as NDJSON deltas.
 - **Independent parallel States:** jobs have separate Owner, State, Session, Workspace, Trace, and release lifecycle.
 - **Live task wall:** [`/tasks`](http://127.0.0.1:18120/tasks) shows real Controller runs and their Route, State, Tool count, status, and elapsed time.
 - **100-job proof:** 100 independent website tasks completed with physical decode concurrency 32, without shared context or prebuilt answers.
@@ -74,7 +74,7 @@ The models use the same frozen dataset and runner, but different precision and r
 
 ```mermaid
 flowchart LR
-    UI["Web UI / Rust CLI"] --> C["Rust Agent Controller"]
+    CLI["Rust CLI / HTTP API"] --> C["Rust Agent Controller"]
     C --> G["Semantic Tool Gate\nprewarmed root State"]
     G -->|direct chat| S["RWKV G1I 13.3B\nROCm Sidecar"]
     G -->|tool task| L["Strict Agent loop"]
@@ -127,7 +127,7 @@ The source checkpoint is distributed separately by RWKV and is not committed to 
 4. **Unified ready queue** — prompt chunks and decode rows are scheduled across independent requests up to physical batch 32.
 5. **Prewarmed semantic gate root** — static routing instructions are prefetched once; every request forks the root and appends only dynamic input.
 6. **Short direct-chat budget** — ordinary chat uses a 96-token ceiling and a visible-answer stop envelope.
-7. **End-to-end streaming** — each Greedy update becomes a Sidecar delta and is forwarded directly by Rust; the Web UI does not simulate typing.
+7. **End-to-end streaming** — each Greedy update becomes a Sidecar delta and is forwarded directly by Rust; clients receive real deltas.
 
 ## Verified AMD results
 

@@ -1,7 +1,6 @@
 # RWKV Agent code map
 
 This file is the authoritative map from a product capability to its active
-implementation. Project status remains authoritative in `docs/TODO.md`; this
 map answers only where code lives.
 
 ## Start here
@@ -19,7 +18,6 @@ map answers only where code lives.
 | Parallel-State research | Active | `crates/agent-runtime/src/research.rs` |
 | Command sandbox policy | Active, opt-in | `crates/agent-runtime/src/command.rs` |
 | Rust HTTP control plane | Active, isolated default | `crates/agent-server/` |
-| Embedded browser workspace | Active | `web/`, `docs/FRONTEND.md` and `crates/agent-server/src/lib.rs` |
 | Loopback frontend development proxy | Active, development-only | `crates/agent-server/src/bin/web_dev_proxy.rs` |
 | Durable Task Ledger v2 | Active | `crates/agent-runtime/src/task_ledger.rs` |
 | Local Rust Debug Trace v1 | Active, opt-in/off by default | `crates/agent-runtime/src/debug_trace.rs`, `contracts/debug-trace-v1.schema.json`, and `docs/DEBUG_TRACE.md` |
@@ -75,8 +73,6 @@ from Git rather than being kept executable in the current tree.
 - `benchmarks/`: reproducible benchmark runners and public fixtures.
 - `bench/baselines/`: reviewed aggregate results safe for publication.
 - ignored `bench/runs/`, `var/` and `data/`: raw or runtime-only artifacts.
-- `docs/TODO.md`: local project status and execution record; intentionally not
-  part of the public release surface.
 - `docs/SERVICE_PIPELINE.md`: canonical endpoints, startup order and failure
   diagnosis for the isolated Rust service.
 - `docs/DEBUG_TRACE.md`: local full/redacted diagnostic capture, owner APIs,

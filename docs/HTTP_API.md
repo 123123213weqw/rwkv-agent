@@ -13,7 +13,7 @@ same-origin base URL. The server does not enable cross-origin access by default;
 a separately hosted development frontend should proxy only the ordinary
 canonical surface to the Rust server. The checked-in loopback-only
 `rwkv-agent-web-dev-proxy-rs` does this without exposing compatibility aliases,
-Debug Trace, direct Tool calls or Providers. See [`FRONTEND.md`](FRONTEND.md).
+Debug Trace, direct Tool calls or Providers.
 
 ## 1. Frontend boundary
 
@@ -28,7 +28,7 @@ browser
       -> bounded Tool / Sandbox
 ```
 
-Do not expose the Sidecar, Data Plane or command sandbox directly to a browser.
+Do not expose the Sidecar, Data Plane or command sandbox directly to any client.
 The Rust server defaults to `127.0.0.1:8122`; it has no built-in API key, OAuth
 or user authentication. `owner_id` is a logical isolation key, not proof of
 identity. Put an authenticated same-origin gateway in front before any remote
@@ -36,7 +36,6 @@ or multi-user deployment.
 
 ## 2. Canonical endpoints
 
-The embedded browser routes are `/`, `/tasks` and `/status`; assets remain
 same-origin under `/assets/`. These routes are UI navigation, not additional
 control planes.
 
