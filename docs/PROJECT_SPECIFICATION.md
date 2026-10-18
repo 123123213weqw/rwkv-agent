@@ -46,7 +46,7 @@ The scheduler can retain many mutually isolated States and advance ready rows in
 7. Independent jobs must not share context, workspace, or observations.
 8. Tokens must stream through the real inference path.
 9. State creation, use, release, errors, tools, timings, and artifacts must be auditable.
-10. The Web UI and CLI must remain thin clients of one Rust Controller.
+10. The CLI and API clients must remain thin clients of one Rust Controller.
 
 ### 3.2 Non-functional requirements
 
@@ -64,7 +64,6 @@ The scheduler can retain many mutually isolated States and advance ready rows in
 ```mermaid
 flowchart TB
     subgraph Clients["Local clients"]
-        WEB["Embedded Web UI"]
         CLI["Rust CLI"]
         WALL["/tasks live wall"]
     end
@@ -113,7 +112,7 @@ flowchart TB
 |---|---|
 | `crates/agent-core` | strict wire envelope, Tool registry, Agent loop, budgets, cancellation, events, State lifecycle |
 | `crates/agent-runtime` | sessions, Sidecar client, recurrent chat cache, research, tools, workspace and sandbox policy |
-| `crates/agent-server` | same-origin HTTP API, true NDJSON streaming, embedded Web UI, live task registry |
+| `crates/agent-server` | same-origin HTTP API, true NDJSON streaming, live task registry |
 | `src/rwkv7_scheduler` | HF recurrent cache adaptation, batch gather/scatter, State pool, scheduler metrics |
 | `src/rwkv_agent` | ROCm Sidecar, semantic gate prompts, continuous batch engine, persistent State registry, tool data plane |
 | `web` | rendering only: conversation, Tool cards, State trace, runtime health, and `/tasks` |
@@ -213,7 +212,7 @@ The original checkpoint and converted weights are external assets and are not co
 ```text
 18118  RWKV ROCm Sidecar
 18121  Tool data plane
-18120  Rust Controller + Web UI + /tasks
+18120  Rust Controller HTTP API + /tasks
 18122  read-only frozen 100-job review dashboard
 ```
 
@@ -255,7 +254,7 @@ Ordinary chat has a 96-token maximum and uses an explicit visible-answer envelop
 
 ### 8.7 True streaming
 
-After each Greedy state update, the Python engine emits a delta. The Sidecar exposes NDJSON, the Rust client consumes it incrementally, the Controller forwards phase/delta/final events, and the Web UI renders the current model text. A disconnected UI does not interrupt recurrent State mutation.
+After each Greedy state update, the Python engine emits a delta. The Sidecar exposes NDJSON, the Rust client consumes it incrementally, the Controller forwards phase/delta/final events to any streaming client. A disconnected client does not interrupt recurrent State mutation.
 
 ## 9. Evaluation plan and verified results
 
@@ -341,7 +340,7 @@ Reviewed benchmark summaries and screenshots are stored under `evidence/`. Raw t
 
 ## 11. User interfaces
 
-### 11.1 Web UI
+### 11.1 Clients
 
 The Rust server embeds a Claude Code/Codex-inspired local UI. It provides:
 
@@ -391,7 +390,7 @@ The Rust CLI connects to the same Controller. It supports ordinary chat, direct 
 ## 15. Deliverables
 
 - complete Rust and Python source;
-- embedded Web UI and Rust CLI;
+- Rust CLI and HTTP API clients;
 - AMD ROCm Sidecar configuration;
 - strict Tool protocol and Agent loop;
 - local knowledge and long-text capabilities;
