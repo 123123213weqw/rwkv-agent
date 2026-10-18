@@ -15,11 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   pip install -e '.[model]'      # Hugging Face RWKV support
   pip install -e '.[browser]'    # Playwright fallback for a small number of JS pages
   ```
-- Initialize the SQLite schema and run the local Web UI with extractive fallback:
-  ```bash
-  rwkv-search --config configs/default.json init
-  rwkv-search --config configs/default.json serve --host 127.0.0.1 --port 8765 --no-model
-  ```
+- The legacy `rwkv-search` Web CLI was removed in the 2026-10-18 cleanup.
+  Start the data plane with `rwkv-agent-data-plane` instead.
 - Run the full test suite:
   ```bash
   PYTHONPATH=src python -m unittest discover -s tests
