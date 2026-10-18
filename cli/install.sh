@@ -68,9 +68,7 @@ echo "installed $PREFIX/bin/rwkv-agent"
 
 if [[ $CLIENT_ONLY -eq 0 ]]; then
   install -m 0755 "$CLI_DIR/scripts/rwkv" "$PREFIX/bin/rwkv"
-  install -m 0755 "$CLI_DIR/scripts/rwkv-agent-service" "$PREFIX/bin/rwkv-agent-service"
   echo "installed $PREFIX/bin/rwkv"
-  echo "installed $PREFIX/bin/rwkv-agent-service"
 fi
 
 case ":$PATH:" in

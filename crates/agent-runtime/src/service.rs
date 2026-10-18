@@ -3379,11 +3379,6 @@ impl AgentService {
                     "Search the local knowledge index",
                     "query",
                 ),
-                (
-                    "long_text_qa",
-                    "Answer from active pasted session text",
-                    "question",
-                ),
             ] {
                 registry
                     .register(ToolDefinition::one_string(name, description, argument))
@@ -3418,7 +3413,7 @@ impl AgentService {
     }
 
     fn tool_names(&self) -> Vec<&'static str> {
-        let mut names = vec!["web_search", "knowledge_search", "long_text_qa"];
+        let mut names = vec!["web_search", "knowledge_search"];
         if self.config.command.enabled {
             names.push("run_command");
             names.extend(["read_file", "write_file", "edit_file"]);

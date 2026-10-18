@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import unittest
 
-from rwkv_agent.controller import parse_tool_call
+from rwkv_agent.tool_protocol import parse_tool_call
 from rwkv_agent.state_agent import (
     ANSWER_MAX_TOKENS,
     ANSWER_STOPS,

@@ -9,7 +9,7 @@ import os
 from typing import Any
 from urllib.parse import urlsplit
 
-from .controller import build_semantic_scorer_from_env
+from .semantic import build_semantic_scorer_from_env
 from .data_plane import AgentDataPlane
 from .model_client import ModelClient
 from .session_text import SessionTextBuffer

@@ -101,22 +101,6 @@ RWKV_AGENT_ENDPOINT=http://127.0.0.1:8122 rwkv-agent
 Command execution remains disabled unless a bounded Sandbox and Workspace are
 explicitly configured. Debug Trace remains `off` unless explicitly enabled.
 
-## Compatibility lifecycle script
-
-```bash
-rwkv-agent-service doctor
-rwkv
-```
-
-`rwkv` can automatically start the configured local Sidecar and compatibility
-Controller when they are offline, then enter interactive chat. Service lifecycle
-commands are retained for existing installations and troubleshooting; they do
-not replace the canonical Rust Server lifecycle above.
-
-The compatibility endpoints are:
-
-- Sidecar: `http://127.0.0.1:8118`;
-- Controller: `http://127.0.0.1:8120`.
 
 ## Use
 
