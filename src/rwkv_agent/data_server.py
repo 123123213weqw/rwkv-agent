@@ -3,15 +3,92 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
+from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import math
 import os
+import re
+import time
 from typing import Any
 from urllib.parse import urlsplit
 
+from . import state_evidence
 from .data_plane import AgentDataPlane
 from .model_client import ModelClient
+from .state_prompts import render_compact_answer_prompt
+from .claim_verifier import verify_answer_claims
+from .state_answer import attach_evidence_citations
 from .tools import KnowledgeSearchAdapter, WebSearchAdapter
+
+compact_answer_evidence = state_evidence.compact_answer_evidence
+
+# Compatibility shim for the longtext cleanup (commit 6c4e2a4): chunk_text
+# and rank_chunks moved into state_evidence, but the TextChunk record and
+# _query_features extraction they still reference at runtime were dropped with
+# tools/long_text.py. Restore the historical contracts (verbatim from
+# 6c4e2a4~1) so the production compact_answer_evidence path is callable.
+# Every name is injected only when missing, so a future upstream fix wins.
+_SHIM_CJK = re.compile(r"[\u3400-\u9fff]")
+_SHIM_WORD = re.compile(r"[A-Za-z0-9_.+\-]{2,}")
+_SHIM_QUERY_STOP = (
+    "请根据",
+    "根据",
+    "这份文档",
+    "这个文档",
+    "文档中",
+    "材料中",
+    "回答",
+    "什么",
+    "多少",
+    "哪些",
+    "如何",
+    "为什么",
+    "where",
+    "what",
+    "which",
+    "who",
+    "when",
+    "how",
+    "the",
+    "from",
+    "document",
+)
+
+
+@dataclass(frozen=True)
+class _ShimTextChunk:
+    chunk_id: int
+    text: str
+    char_start: int
+    char_end: int
+
+
+def _shim_query_features(question: str) -> set[str]:
+    text = str(question or "").lower()
+    for token in _SHIM_QUERY_STOP:
+        text = text.replace(token, " ")
+    features = {match.group(0) for match in _SHIM_WORD.finditer(text)}
+    compact_cjk = "".join(_SHIM_CJK.findall(text))
+    for size in (1, 2, 3):
+        for start in range(max(0, len(compact_cjk) - size + 1)):
+            features.add(compact_cjk[start : start + size])
+    return {feature for feature in features if feature.strip()}
+
+
+def _restore_state_evidence_helpers() -> None:
+    if not hasattr(state_evidence, "TextChunk"):
+        state_evidence.TextChunk = _ShimTextChunk
+    if not hasattr(state_evidence, "_query_features"):
+        state_evidence._query_features = _shim_query_features
+    if not hasattr(state_evidence, "Counter"):
+        state_evidence.Counter = Counter
+    if not hasattr(state_evidence, "math"):
+        state_evidence.math = math
+
+
+_restore_state_evidence_helpers()
 
 
 def build_semantic_scorer_from_env() -> Any | None:
@@ -99,6 +176,141 @@ class Handler(BaseHTTPRequestHandler):
                     session_id=session_id,
                     original_query=str(body.get("original_query") or "") or None,
                 )
+            elif path == "/v1/search":
+                original_query = str(body.get("query") or "").strip()
+                if not original_query:
+                    raise ValueError("query must be a non-empty string")
+                mode = str(body.get("mode") or "answer")
+                started = time.perf_counter()
+                query = original_query
+                if mode != "evidence" or body.get("compile", True):
+                    t_c = time.perf_counter()
+                    compile_completion = self.server.model.complete(
+                        "System: Produce one focused web search query for the user's "
+                        "question. Plain natural terms, no quotes, no boolean operators, "
+                        "same language as the question, keep key entity names.\n\n"
+                        f"Question: {original_query}\n\nQuery: ",
+                        max_tokens=48,
+                        stops=["\n"],
+                    )
+                    compiled_query = str(compile_completion.get("raw") or "").strip().splitlines()[0].strip('" ')
+                    if compiled_query:
+                        query = compiled_query
+                    payload_compile_ms = round((time.perf_counter() - t_c) * 1000, 1)
+                else:
+                    payload_compile_ms = None
+                retrieval = data_plane.execute(
+                    "web_search",
+                    {"query": query},
+                    session_id=self._session_id(body),
+                    original_query=original_query or query,
+                )
+                evidence = [
+                    dict(item)
+                    for item in (retrieval.get("evidence") or [])
+                    if isinstance(item, dict)
+                ]
+                # Refusal language follows the ORIGINAL request language, never
+                # the compiled search query (which may switch languages).
+                chinese = any("\u3400" <= ch <= "\u9fff" for ch in original_query)
+                refusal = (
+                    "\u6ca1\u6709\u627e\u5230\u8db3\u4ee5\u56de\u7b54\u8be5\u95ee\u9898\u7684\u53ef\u6838\u67e5\u8bc1\u636e\u3002"
+                    if chinese
+                    else "No sufficient verifiable evidence was found."
+                )
+                payload = {
+                    "api": "rwkv-search.v1",
+                    "query": query,
+                    "effective_query": retrieval.get("effective_query"),
+                    "mode": mode,
+                    "evidence": evidence,
+                    "evidence_admission": retrieval.get("evidence_admission"),
+                    "latency_ms": {"compile": payload_compile_ms} if payload_compile_ms is not None else {},
+                }
+                if not evidence:
+                    payload.update(status="refused", answer=refusal, verified=False)
+                elif mode == "evidence":
+                    payload.update(status="ok", answer=None, verified=None)
+                else:
+                    # Production answer path: compact evidence against the
+                    # original question, render the compact answer protocol
+                    # prompt, generate with the "<answer>" prefill, then run the
+                    # full coordinated validation (citation repair + salvage).
+                    t_k = time.perf_counter()
+                    compacted = compact_answer_evidence(original_query, evidence)
+                    payload["latency_ms"]["evidence_compaction"] = round(
+                        (time.perf_counter() - t_k) * 1000, 1
+                    )
+                    t1 = time.perf_counter()
+                    cite_free = "\n".join(
+                        f"[{item.get('id')}] {item.get('title', '')} | {str(item.get('content', ''))[:900]}"
+                        for item in compacted[:6]
+                    )
+                    prompt = (
+                        "System: Answer with one compact paragraph of plain text. Never output "
+                        "reasoning or <think> blocks, Markdown or bullet lists, and do NOT add "
+                        "any [W#] citation markers. If the evidence does not support an "
+                        "answer, output exactly: insufficient evidence\n\n"
+                        f"Question: {original_query}\n\nEvidence:\n{cite_free}\n\nAssistant: <answer>"
+                    )
+                    completion = self.server.model.complete(
+                        prompt, max_tokens=448, stops=["</answer>"]
+                    )
+                    raw = str(completion.get("raw") or "").strip()
+                    payload["latency_ms"]["generation"] = round(
+                        (time.perf_counter() - t1) * 1000, 1
+                    )
+                    t2 = time.perf_counter()
+                    plain = re.sub(r"\s*\[[A-Za-z]\d+\]", "", raw).strip()
+                    cited_answer = attach_evidence_citations(plain, compacted)
+                    claims = verify_answer_claims(cited_answer, compacted)
+                    supported = [
+                        claim
+                        for claim in claims
+                        if claim.get("supported")
+                        and claim.get("question_relevant", True)
+                    ]
+                    ok = bool(claims) and len(supported) == len(claims)
+                    citations = sorted(
+                        {
+                            piece
+                            for claim in supported
+                            for piece in (claim.get("citations") or [])
+                            if piece
+                        }
+                        | {
+                            claim.get("support_evidence_id")
+                            for claim in supported
+                            if claim.get("support_evidence_id")
+                        }
+                    )
+                    validated = {
+                        "valid": ok,
+                        "answer": cited_answer if ok else "",
+                        "citations": citations,
+                        "errors": [] if ok else ["unsupported_claim"],
+                    }
+                    payload["latency_ms"]["verification"] = round(
+                        (time.perf_counter() - t2) * 1000, 1
+                    )
+                    if validated.get("valid"):
+                        payload.update(
+                            status="ok",
+                            answer=str(validated.get("answer") or raw),
+                            citations=validated.get("citations") or [],
+                            verified=True,
+                        )
+                    else:
+                        payload.update(
+                            status="refused",
+                            answer=refusal,
+                            citations=[],
+                            verified=False,
+                        )
+                payload["latency_ms"]["total"] = round(
+                    (time.perf_counter() - started) * 1000, 1
+                )
+                result = payload
             elif path == "/v1/answers/validate":
                 evidence = body.get("evidence")
                 if not isinstance(evidence, list):

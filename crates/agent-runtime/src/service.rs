@@ -37,6 +37,7 @@ pub struct RuntimeConfig {
     pub tool_gate_threshold: f64,
     pub chat_state_capacity: usize,
     pub max_tool_steps: usize,
+    pub no_gate: bool,
     pub max_model_tokens_per_turn: u32,
     pub direct_chat_max_tokens: u32,
     pub max_run_elapsed: Duration,
@@ -56,6 +57,7 @@ impl Default for RuntimeConfig {
             tool_gate_threshold: -3.2,
             chat_state_capacity: 3,
             max_tool_steps: 6,
+            no_gate: false,
             max_model_tokens_per_turn: 192,
             direct_chat_max_tokens: 96,
             max_run_elapsed: Duration::from_secs(600),
@@ -2124,6 +2126,14 @@ impl AgentService {
                     ("label".into(), json!("tool")),
                 ]),
             }
+        } else if self.config.no_gate {
+            GateDecision {
+                use_tool: true,
+                tool: None,
+                trace: serde_json::Map::from_iter([
+                    ("mode".into(), json!("model_routed")),
+                ]),
+            }
         } else {
             self.sidecar
                 .gate(
@@ -3171,7 +3181,11 @@ impl AgentService {
                     context,
                     self.config.command.enabled,
                 ),
-                format!("\n\nAssistant: {TOOL_CALL_JSON_PREFIX}"),
+                if self.config.no_gate {
+                    "\n\nAssistant:".to_string()
+                } else {
+                    format!("\n\nAssistant: {TOOL_CALL_JSON_PREFIX}")
+                },
             ),
         };
         debug_record(

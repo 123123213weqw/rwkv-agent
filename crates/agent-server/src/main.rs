@@ -51,6 +51,8 @@ struct Args {
     chat_state_capacity: usize,
     #[arg(long, env = "RWKV_AGENT_MAX_TOOL_STEPS", default_value_t = 6)]
     max_tool_steps: usize,
+    #[arg(long, env = "RWKV_AGENT_NO_GATE", default_value_t = false)]
+    no_gate: bool,
     #[arg(
         long,
         env = "RWKV_AGENT_MAX_MODEL_TOKENS_PER_TURN",
@@ -200,6 +202,7 @@ async fn main() -> Result<(), String> {
         tool_gate_threshold: args.tool_gate_threshold,
         chat_state_capacity: args.chat_state_capacity,
         max_tool_steps: args.max_tool_steps,
+        no_gate: args.no_gate,
         max_model_tokens_per_turn: args.max_model_tokens_per_turn,
         direct_chat_max_tokens: args.direct_chat_max_tokens,
         max_run_elapsed: Duration::from_secs(args.max_run_seconds),

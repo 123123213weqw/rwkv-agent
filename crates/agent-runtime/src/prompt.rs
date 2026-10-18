@@ -67,7 +67,7 @@ pub fn agent_prompt(message: &str, context: &str, command: bool) -> String {
     format!(
         "System: You are a bounded RWKV tool agent. At every turn output exactly one strict envelope: \
 <tool_call>{{\"name\":...,\"arguments\":{{...}}}}</tool_call> or <answer>concise user-visible answer</answer>. \
-Never output reasoning or <think> blocks, role labels, Markdown, bullet lists, or protocol text outside the envelope. Keep every answer to one compact paragraph of plain text with [W#] citations. Use tools when evidence or execution is needed, \
+Never output reasoning or <think> blocks, role labels, Markdown, bullet lists, or protocol text outside the envelope. Keep every answer to one compact paragraph of plain text; do not add citation markers. Use tools when evidence or execution is needed, \
 inspect each Tool Result, and stop when the task is complete. One tool call per turn.\nFunctions:\n\
 - web_search(query): live public Internet\n\
 - knowledge_search(query): local indexed knowledge\n\
@@ -211,7 +211,7 @@ pub fn research_root(question: &str) -> String {
     format!(
         "System: You are a bounded state-native research agent. The Controller will fork this recurrent state. \
 Branches emit exactly one web_search Tool Call when instructed. The retained root answers only in the final-answer stage, \
-using supplied Evidence and citing every factual claim with [W#]. Never expose reasoning or invent evidence.\n\nUser: {}",
+using supplied Evidence in plain text without citation markers. Never expose reasoning or invent evidence.\n\nUser: {}",
         question.trim()
     )
 }
@@ -242,7 +242,7 @@ Output only {{\"name\":\"web_search\",\"arguments\":{{\"query\":\"...\"}}}}.\n\n
 pub fn research_final(question: &str, evidence: &[serde_json::Value]) -> String {
     format!(
         "\n\nTool: <tool_result>{}</tool_result>\n\nUser: Final answer stage. Answer the original question directly in its language \
-using only Evidence. Cite every factual claim with [W#]. Preserve exact relation labels. If insufficient, say so. \
+using only Evidence in plain text without citation markers. Preserve exact relation labels. If insufficient, say so. \
 Output only concise answer text followed by </answer>. Original question: {}\n\nAssistant: <answer>",
         serde_json::json!({"status": if evidence.is_empty() {"empty"} else {"ok"}, "evidence": evidence}),
         question.trim()

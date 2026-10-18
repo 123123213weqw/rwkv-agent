@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import math
+import re
+from dataclasses import dataclass
+from collections import Counter
+
 from typing import Any
 
 from rwkv_search.semantic_selection import PairScorer, select_diverse_items
@@ -342,3 +347,51 @@ def rank_chunks(
             if item[1].chunk_id not in selected_ids
         )
     return selected[: min(top_k, len(ranked))]
+
+@dataclass(frozen=True)
+class TextChunk:
+    chunk_id: int
+    text: str
+    char_start: int
+    char_end: int
+
+
+
+_QUERY_STOP = (
+    "请根据",
+    "根据",
+    "这份文档",
+    "这个文档",
+    "文档中",
+    "材料中",
+    "回答",
+    "什么",
+    "多少",
+    "哪些",
+    "如何",
+    "为什么",
+    "where",
+    "what",
+    "which",
+    "who",
+    "when",
+    "how",
+    "the",
+    "from",
+    "document",
+)
+
+_CJK = re.compile(r"[\u3400-\u9fff]")
+_WORD = re.compile(r"[A-Za-z0-9_.+\-]{2,}")
+def _query_features(question: str) -> set[str]:
+    text = str(question or "").lower()
+    for token in _QUERY_STOP:
+        text = text.replace(token, " ")
+    features = {match.group(0) for match in _WORD.finditer(text)}
+    compact_cjk = "".join(_CJK.findall(text))
+    for size in (1, 2, 3):
+        for start in range(max(0, len(compact_cjk) - size + 1)):
+            features.add(compact_cjk[start : start + size])
+    return {feature for feature in features if feature.strip()}
+
+
