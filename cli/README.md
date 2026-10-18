@@ -54,9 +54,7 @@ rwkv-agent tool web-search <query> call Web search directly
 rwkv-agent --json ...              print machine-readable JSON
 ```
 
-See [the quickstart](../docs/QUICKSTART.md) for the Sidecar, Data Plane and
 Rust Server startup order. Source ownership is documented in
-[CODEMAP.md](../docs/CODEMAP.md).
 
 ## Build and release
 

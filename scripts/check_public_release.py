@@ -24,10 +24,7 @@ FROZEN_PUBLIC_RESULTS_RELEASE = "0.3.0-beta.1"
 
 REQUIRED_FILES = (
     ".env.example",
-    "CHANGELOG.md",
-    "DEVELOPING.md",
     "README.md",
-    "SECURITY.md",
     "bench/baselines/agent-unified-regression-v1/manifest.json",
     "bench/baselines/agent-unified-regression-v1/public-results-manifest.json",
     "configs/production.example.json",
@@ -41,12 +38,6 @@ REQUIRED_FILES = (
     "crates/agent-runtime/README.md",
     "crates/agent-server/Cargo.toml",
     "crates/agent-server/README.md",
-    "docs/CONFIGURATION.md",
-    "docs/CODEMAP.md",
-    "docs/KNOWN_ISSUES.md",
-    "docs/QUICKSTART.md",
-    "docs/REPOSITORY_SURFACE.md",
-    "docs/RELEASE.md",
     "scripts/dev",
 )
 
@@ -69,11 +60,7 @@ FORBIDDEN_LEGACY_FILES = (
 
 SCAN_FILES = (
     ".env.example",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md",
-    "DEVELOPING.md",
     "README.md",
-    "SECURITY.md",
 )
 SCAN_DIRS = (
     ".github",
@@ -89,7 +76,7 @@ SCAN_DIRS = (
     "src",
     "tests",
 )
-SCAN_EXCLUDES = {"docs/TODO.md"}
+SCAN_EXCLUDES = set()
 # Frozen benchmark evidence intentionally preserves the exact experiment
 # workspace, including machine-local paths. It is integrity-checked by its own
 # SHA manifests and must not be rewritten by the public-source hygiene audit.

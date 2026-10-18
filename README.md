@@ -22,10 +22,7 @@ Debug capture is release-default `off`; `full` traces contain private bodies and
 must remain local. The CUDA model Sidecar and retrieval Data Plane are still
 narrow external Python providers, and this release makes no new load-capacity or
 production-deployment claim. See
-[`docs/SERVICE_PIPELINE.md`](docs/SERVICE_PIPELINE.md) and
-[`docs/DEBUG_TRACE.md`](docs/DEBUG_TRACE.md).
 
-The architecture and operating contract are documented in [`docs/PROJECT_SPECIFICATION.md`](docs/PROJECT_SPECIFICATION.md).
 
 ## Optional StatePool Cloud integration
 
@@ -41,7 +38,6 @@ owns the cloud control plane, PostgreSQL/S3 backends, OpenAI/vLLM adapter,
 Compose/Helm/KEDA deployment, FinOps benchmarks and competition evidence.
 No cloud control-plane source or upstream inference engine is vendored here.
 
-- client configuration: [`docs/STATEPOOL_CLOUD_PLUGIN.md`](docs/STATEPOOL_CLOUD_PLUGIN.md)
 - client schemas/OpenAPI: [`contracts/statepool-plugin-v1.openapi.json`](contracts/statepool-plugin-v1.openapi.json)
 - cloud product and deployment: [`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud)
 
@@ -271,10 +267,10 @@ src/rwkv_agent/         Sidecar, data plane, routing, long text, retrieval
 demos/                  100-independent-State Agent demonstration
 benchmarks/             State scaling, reuse, routing, and Agent regressions
 web/                    RWKV conversation workspace, task wall and runtime status UI
-docs/                   architecture, setup, benchmark, and specification
+docs/assets/             referenced benchmark figures
 ```
 
-The main development map is [`docs/CODEMAP.md`](docs/CODEMAP.md). The canonical split-stack startup is documented in [`docs/QUICKSTART.md`](docs/QUICKSTART.md); the verified Radeon configuration is documented here.
+The verified Radeon configuration is documented here.
 
 ## Privacy and execution boundaries
 

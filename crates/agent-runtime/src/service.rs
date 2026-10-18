@@ -4590,10 +4590,10 @@ mod tests {
     fn task_spec_can_override_mutation_heuristic_for_read_only_work() {
         let mut task = TaskSpec::legacy("Check and report update notes", Some("/repo".into()));
         task.requires_mutation = Some(false);
-        task.verification_commands = vec!["cat CHANGELOG.md".into()];
+        task.verification_commands = vec!["cat README.md".into()];
         let mut state = WorkspaceExecution::from_task_spec(&task, "/repo");
         state.record(
-            "cat CHANGELOG.md",
+            "cat README.md",
             &json!({"status":"ok","stdout":"v1.2"}),
             false,
         );

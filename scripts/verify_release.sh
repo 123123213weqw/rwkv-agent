@@ -47,16 +47,11 @@ if ((MODE_SOURCE)); then
   check "Required project documents"
   for file in \
     README.md \
-    docs/PROJECT_SPECIFICATION.md \
-    docs/CODEMAP.md \
     LICENSE \
     scripts/verify_release.sh; do
     require_file "$file"
   done
   grep -qi "RWKV State Agent" README.md || fail "README lacks project identity"
-  grep -qi "application scenarios" docs/PROJECT_SPECIFICATION.md || fail "specification lacks application scenarios"
-  grep -qi "system architecture" docs/PROJECT_SPECIFICATION.md || fail "specification lacks architecture"
-  grep -qi "AMD Radeon inference optimization" docs/PROJECT_SPECIFICATION.md || fail "specification lacks AMD optimization"
 
   check "Release-facing source paths"
   for path in \
