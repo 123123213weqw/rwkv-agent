@@ -623,6 +623,25 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                     // model action may begin after the token is observed.
                     context.check()?;
                     if repeated_rejections >= 2 {
+                        // The model re-emits an identical completed call
+                        // instead of transitioning to the final answer.
+                        // Exit deterministically with the last successful
+                        // tool output instead of failing the whole task.
+                        if let Some(last_ok) = tools.iter().rev().find(|step| {
+                            step.result.get("status").and_then(Value::as_str) == Some("ok")
+                        }) {
+                            let answer = synthesize_exit_answer(&last_ok.result);
+                            self.events.emit(AgentEvent::AnswerCompleted {
+                                answer: answer.clone(),
+                            });
+                            return Ok(RunReport {
+                                answer,
+                                state_id: state.state_id.clone(),
+                                model_turns,
+                                tool_steps,
+                                tools,
+                            });
+                        }
                         return Err(AgentError::NoProgress {
                             repetitions: repeated_rejections,
                         });
@@ -885,6 +904,24 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
             message: error.to_string(),
         });
     }
+}
+
+/// Deterministic final answer for a run that exits because the model
+/// repeated an identical completed tool call instead of answering.
+fn synthesize_exit_answer(result: &Value) -> String {
+    if let Some(stdout) = result.get("stdout").and_then(Value::as_str) {
+        let trimmed = stdout.trim();
+        if !trimmed.is_empty() {
+            return format!("Command output: {trimmed}");
+        }
+    }
+    if let Some(content) = result.get("content").and_then(Value::as_str) {
+        let trimmed = content.trim();
+        if !trimmed.is_empty() {
+            return format!("File content:\n{trimmed}");
+        }
+    }
+    "Task completed; no further output was produced.".into()
 }
 
 fn replacement_input(prompt: &str, prefix: &str, forked: bool) -> String {

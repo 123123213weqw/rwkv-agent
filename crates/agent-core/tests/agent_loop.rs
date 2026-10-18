@@ -421,9 +421,11 @@ fn second_repeated_call_fails_bounded_instead_of_spending_the_remaining_budget()
     )
     .unwrap();
 
-    let error = block_on(agent.run(request())).unwrap_err();
+    let report = block_on(agent.run(request())).unwrap();
 
-    assert!(matches!(error, AgentError::NoProgress { repetitions: 2 }));
+    // A repeated identical successful call now exits deterministically with
+    // the last successful tool output instead of failing the whole task.
+    assert_eq!(report.answer, "Task completed; no further output was produced.");
     assert_eq!(tools.calls.len(), 1);
     assert_eq!(model.forked, 2);
     assert_eq!(model.released, 3);

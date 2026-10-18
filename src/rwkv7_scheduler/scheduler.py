@@ -14,6 +14,69 @@ from rwkv_runtime.decode import append_greedy_token
 from .state_pool import AlbatrossStatePool, StateHandle
 
 
+
+
+def _sampling_settings() -> dict[str, float]:
+    """Decode-sampling settings from the environment (greedy by default)."""
+    import os
+
+    return {
+        "temperature": float(os.getenv("G1I_TEMPERATURE", "0") or 0),
+        "top_p": float(os.getenv("G1I_TOP_P", "1") or 1),
+        "repetition_penalty": float(os.getenv("G1I_REPETITION_PENALTY", "1") or 1),
+        "penalty_window": int(os.getenv("G1I_PENALTY_WINDOW", "0") or 0),
+        "frequency_penalty": float(os.getenv("G1I_FREQUENCY_PENALTY", "0") or 0),
+        "presence_penalty": float(os.getenv("G1I_PRESENCE_PENALTY", "0") or 0),
+    }
+
+
+def _sample_logits(
+    logits: torch.Tensor,
+    recent: list[int],
+    settings: dict[str, float],
+    generator: torch.Generator,
+) -> int:
+    """One sampled token with penalties, temperature and nucleus truncation."""
+    values = logits.detach().clone().float()
+    if recent:
+        if settings["penalty_window"] > 0:
+            recent = recent[-settings["penalty_window"] :]
+        seen = set(recent)
+        penalty = settings["repetition_penalty"]
+        if penalty != 1.0 and seen:
+            index = torch.tensor(sorted(seen), device=values.device, dtype=torch.long)
+            picked = values[index]
+            values[index] = torch.where(picked > 0, picked / penalty, picked * penalty)
+        counts = Counter(recent)
+        if settings["frequency_penalty"] or settings["presence_penalty"]:
+            index = torch.tensor(sorted(counts), device=values.device, dtype=torch.long)
+            freq = torch.tensor(
+                [counts[token] for token in sorted(counts)],
+                device=values.device,
+                dtype=torch.float32,
+            )
+            shift = settings["frequency_penalty"] * freq + settings[
+                "presence_penalty"
+            ] * (freq > 0).to(freq.dtype)
+            values[index] = values[index] - shift
+    if settings["temperature"] <= 0:
+        return int(values.argmax().item())
+    values = values / settings["temperature"]
+    top_p = settings["top_p"]
+    if 0 < top_p < 1:
+        sorted_values, sorted_index = torch.sort(values, descending=True)
+        probabilities = torch.softmax(sorted_values, dim=-1)
+        cumulative = torch.cumsum(probabilities, dim=-1)
+        keep = cumulative - probabilities < top_p
+        keep[0] = True
+        sorted_values = sorted_values[keep]
+        sorted_index = sorted_index[keep]
+        values = torch.full_like(values, float("-inf"))
+        values[sorted_index] = sorted_values
+    probabilities = torch.softmax(values, dim=-1).to("cpu")
+    return int(torch.multinomial(probabilities, 1, generator=generator).item())
+
+
 @dataclass(slots=True)
 class RequestState:
     request_id: str
@@ -571,8 +634,35 @@ class AlbatrossChunkScheduler:
                     raise RuntimeError(
                         f"request {request.request_id} has no next-token logits"
                     )
-            logits = torch.stack([request.logits for request in requests])
-            sampled = torch.argmax(logits, dim=-1).tolist()
+            settings = _sampling_settings()
+            greedy = (
+                settings["temperature"] <= 0
+                and settings["repetition_penalty"] == 1.0
+                and not settings["frequency_penalty"]
+                and not settings["presence_penalty"]
+            )
+            if greedy:
+                logits = torch.stack([request.logits for request in requests])
+                sampled = torch.argmax(logits, dim=-1).tolist()
+            else:
+                generator = getattr(self, "_sample_generator", None)
+                if generator is None:
+                    import os
+
+                    generator = torch.Generator(device="cpu")
+                    generator.manual_seed(
+                        int(os.getenv("G1I_SAMPLE_SEED", "1234") or 1234)
+                    )
+                    self._sample_generator = generator
+                sampled = [
+                    _sample_logits(
+                        request.logits,
+                        list(request.output_ids),
+                        settings,
+                        generator,
+                    )
+                    for request in requests
+                ]
             self._metrics["sample_calls"] += 1
             return {
                 request.request_id: int(token)

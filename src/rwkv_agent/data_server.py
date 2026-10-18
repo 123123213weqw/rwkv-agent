@@ -181,37 +181,25 @@ class Handler(BaseHTTPRequestHandler):
                 if not original_query:
                     raise ValueError("query must be a non-empty string")
                 mode = str(body.get("mode") or "answer")
+                allow_retry = bool(body.get("retry", True)) and mode == "answer"
                 started = time.perf_counter()
                 query = original_query
-                if mode != "evidence" or body.get("compile", True):
-                    t_c = time.perf_counter()
-                    compile_completion = self.server.model.complete(
-                        "System: Produce one focused web search query for the user's "
-                        "question. Plain natural terms, no quotes, no boolean operators, "
-                        "same language as the question, keep key entity names.\n\n"
-                        f"Question: {original_query}\n\nQuery: ",
-                        max_tokens=48,
-                        stops=["\n"],
-                    )
-                    compiled_query = str(compile_completion.get("raw") or "").strip().splitlines()[0].strip('" ')
-                    if compiled_query:
-                        query = compiled_query
-                    payload_compile_ms = round((time.perf_counter() - t_c) * 1000, 1)
-                else:
-                    payload_compile_ms = None
-                retrieval = data_plane.execute(
-                    "web_search",
-                    {"query": query},
-                    session_id=self._session_id(body),
-                    original_query=original_query or query,
+                t_c = time.perf_counter()
+                compile_completion = self.server.model.complete(
+                    "System: Produce one focused web search query for the user's "
+                    "question. Plain natural terms, no quotes, no boolean "
+                    "operators, same language as the question, keep key entity "
+                    "names.\n\n"
+                    f"Question: {original_query}\n\nQuery: ",
+                    max_tokens=48,
+                    stops=["\n"],
                 )
-                evidence = [
-                    dict(item)
-                    for item in (retrieval.get("evidence") or [])
-                    if isinstance(item, dict)
-                ]
-                # Refusal language follows the ORIGINAL request language, never
-                # the compiled search query (which may switch languages).
+                compiled_query = (
+                    str(compile_completion.get("raw") or "").strip().splitlines()[0].strip('" ')
+                )
+                if compiled_query:
+                    query = compiled_query
+                compile_ms = round((time.perf_counter() - t_c) * 1000, 1)
                 chinese = any("\u3400" <= ch <= "\u9fff" for ch in original_query)
                 refusal = (
                     "\u6ca1\u6709\u627e\u5230\u8db3\u4ee5\u56de\u7b54\u8be5\u95ee\u9898\u7684\u53ef\u6838\u67e5\u8bc1\u636e\u3002"
@@ -220,39 +208,55 @@ class Handler(BaseHTTPRequestHandler):
                 )
                 payload = {
                     "api": "rwkv-search.v1",
-                    "query": query,
-                    "effective_query": retrieval.get("effective_query"),
+                    "query": original_query,
                     "mode": mode,
-                    "evidence": evidence,
-                    "evidence_admission": retrieval.get("evidence_admission"),
-                    "latency_ms": {"compile": payload_compile_ms} if payload_compile_ms is not None else {},
+                    "latency_ms": {"compile": compile_ms},
                 }
-                if not evidence:
-                    payload.update(status="refused", answer=refusal, verified=False)
-                elif mode == "evidence":
-                    payload.update(status="ok", answer=None, verified=None)
-                else:
-                    # Production answer path: compact evidence against the
-                    # original question, render the compact answer protocol
-                    # prompt, generate with the "<answer>" prefill, then run the
-                    # full coordinated validation (citation repair + salvage).
+                result_payload = None
+                for attempt in range(2 if allow_retry else 1):
+                    retrieval = data_plane.execute(
+                        "web_search",
+                        {"query": original_query if attempt else query},
+                        session_id=self._session_id(body),
+                        original_query=original_query,
+                    )
+                    evidence = [
+                        dict(item)
+                        for item in (retrieval.get("evidence") or [])
+                        if isinstance(item, dict)
+                    ]
+                    if attempt == 0:
+                        payload["effective_query"] = retrieval.get("effective_query")
+                        payload["evidence"] = evidence
+                        payload["evidence_admission"] = retrieval.get("evidence_admission")
+                    if not evidence or mode == "evidence":
+                        break
                     t_k = time.perf_counter()
                     compacted = compact_answer_evidence(original_query, evidence)
                     payload["latency_ms"]["evidence_compaction"] = round(
                         (time.perf_counter() - t_k) * 1000, 1
                     )
-                    t1 = time.perf_counter()
                     cite_free = "\n".join(
-                        f"[{item.get('id')}] {item.get('title', '')} | {str(item.get('content', ''))[:900]}"
+                        f"[{item.get('id')}] {item.get('title', '')} | "
+                        f"{str(item.get('content', ''))[:900]}"
                         for item in compacted[:6]
                     )
-                    prompt = (
-                        "System: Answer with one compact paragraph of plain text. Never output "
-                        "reasoning or <think> blocks, Markdown or bullet lists, and do NOT add "
-                        "any [W#] citation markers. If the evidence does not support an "
-                        "answer, output exactly: insufficient evidence\n\n"
-                        f"Question: {original_query}\n\nEvidence:\n{cite_free}\n\nAssistant: <answer>"
+                    feedback = (
+                        "Your previous answer failed fact verification. Answer "
+                        "strictly and only from the evidence below. "
+                        if attempt
+                        else ""
                     )
+                    prompt = (
+                        "System: " + feedback + "Answer with one compact paragraph "
+                        "of plain text. Never output reasoning or <think> blocks, "
+                        "Markdown or bullet lists, and do NOT add any [W#] citation "
+                        "markers. If the evidence does not support an answer, output "
+                        "exactly: insufficient evidence\n\n"
+                        f"Question: {original_query}\n\nEvidence:\n{cite_free}"
+                        "\n\nAssistant: <answer>"
+                    )
+                    t1 = time.perf_counter()
                     completion = self.server.model.complete(
                         prompt, max_tokens=448, stops=["</answer>"]
                     )
@@ -284,29 +288,30 @@ class Handler(BaseHTTPRequestHandler):
                             if claim.get("support_evidence_id")
                         }
                     )
-                    validated = {
-                        "valid": ok,
-                        "answer": cited_answer if ok else "",
-                        "citations": citations,
-                        "errors": [] if ok else ["unsupported_claim"],
-                    }
                     payload["latency_ms"]["verification"] = round(
                         (time.perf_counter() - t2) * 1000, 1
                     )
-                    if validated.get("valid"):
-                        payload.update(
-                            status="ok",
-                            answer=str(validated.get("answer") or raw),
-                            citations=validated.get("citations") or [],
-                            verified=True,
-                        )
-                    else:
-                        payload.update(
-                            status="refused",
-                            answer=refusal,
-                            citations=[],
-                            verified=False,
-                        )
+                    if ok:
+                        result_payload = {
+                            "status": "ok",
+                            "answer": cited_answer,
+                            "citations": citations,
+                            "verified": True,
+                            "retried": attempt == 1,
+                        }
+                        break
+                    if attempt == 0 and allow_retry:
+                        continue
+                if mode == "evidence":
+                    payload.update(status="ok", answer=None, verified=None)
+                elif result_payload:
+                    payload.update(result_payload)
+                    if result_payload.get("retried"):
+                        payload["evidence"] = evidence
+                else:
+                    payload.update(
+                        status="refused", answer=refusal, citations=[], verified=False
+                    )
                 payload["latency_ms"]["total"] = round(
                     (time.perf_counter() - started) * 1000, 1
                 )
