@@ -25,6 +25,12 @@ FROZEN_PUBLIC_RESULTS_RELEASE = "0.3.0-beta.1"
 REQUIRED_FILES = (
     ".env.example",
     "README.md",
+    "docs/CONFIGURATION.md",
+    "docs/CODEMAP.md",
+    "docs/KNOWN_ISSUES.md",
+    "docs/QUICKSTART.md",
+    "docs/REPOSITORY_SURFACE.md",
+    "docs/RELEASE.md",
     "bench/baselines/agent-unified-regression-v1/manifest.json",
     "bench/baselines/agent-unified-regression-v1/public-results-manifest.json",
     "configs/production.example.json",

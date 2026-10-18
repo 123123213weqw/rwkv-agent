@@ -46,11 +46,16 @@ require_file() { [[ -s "$1" ]] || fail "required file is missing or empty: $1"; 
 if ((MODE_SOURCE)); then
   check "Required project documents"
   for file in \
+    docs/PROJECT_SPECIFICATION.md \
+    docs/CODEMAP.md \
     README.md \
     LICENSE \
     scripts/verify_release.sh; do
     require_file "$file"
   done
+  grep -qi "application scenarios" docs/PROJECT_SPECIFICATION.md || fail "specification lacks application scenarios"
+  grep -qi "system architecture" docs/PROJECT_SPECIFICATION.md || fail "specification lacks architecture"
+  grep -qi "AMD Radeon inference optimization" docs/PROJECT_SPECIFICATION.md || fail "specification lacks AMD optimization"
   grep -qi "RWKV State Agent" README.md || fail "README lacks project identity"
 
   check "Release-facing source paths"

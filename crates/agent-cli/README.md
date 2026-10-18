@@ -2,7 +2,7 @@
 
 `rwkv-agent` is the terminal client for the Agent HTTP API. It contains no model
 runtime, crawler, index or sandbox implementation; those live in the server and
-
+data-plane packages listed in [`docs/CODEMAP.md`](../../docs/CODEMAP.md).
 
 Common commands:
 
