@@ -342,14 +342,11 @@ Reviewed benchmark summaries and screenshots are stored under `evidence/`. Raw t
 
 ### 11.1 Clients
 
-The Rust server embeds a Claude Code/Codex-inspired local UI. It provides:
+The Rust CLI and any HTTP client talk to the same controller API:
 
-- real token streaming;
-- visible Tool cards and observations;
-- State cached/reused/released status;
-- model, backend, sandbox, and endpoint health;
-- isolated new sessions;
-- a live `/tasks` wall backed by the same Controller.
+- real NDJSON token streaming via `/v1/tasks/stream`;
+- task lifecycle and ledger visibility via `/v1/tasks`;
+- health and readiness via `/live` and `/ready`.
 
 ### 11.2 CLI
 
