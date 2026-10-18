@@ -58,38 +58,21 @@ pub fn direct_turn(message: &str, continuation: bool, previous_stop: &str) -> St
     )
 }
 
-pub fn agent_prompt(message: &str, has_text: bool, context: &str, command: bool) -> String {
+pub fn agent_prompt(message: &str, _has_text: bool, context: &str, command: bool) -> String {
     let command_schema = if command {
         "- run_command(command): run one bounded command in the configured sandbox workspace\n"
     } else {
         ""
     };
-    let selection_contract = if has_text {
-        "Tool-selection contract: An active pasted text exists. Questions about the supplied, active, current, or just-pasted material MUST use long_text_qa. Do not substitute web_search for the active text. Use web_search only when the user explicitly asks for live Internet information; use knowledge_search only when the user explicitly asks for the local index.\n\n\
-User: What is the final approval code in the supplied material?\n\nAssistant: <tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What is the final approval code?\"}}</tool_call>\n\n\
-Tool: <tool_result>{\"status\":\"ok\",\"answer_hint\":\"AX-17\",\"evidence\":[{\"id\":\"L1\",\"content\":\"The final approval code is AX-17.\"}]}</tool_result>\n\n\
-User: Continue the original task. Call a tool again only if more work is required; otherwise return the final answer. Output exactly one protocol envelope and no reasoning.\n\n\
-Assistant: <answer>AX-17 [L1]</answer>"
-    } else {
-        "Tool-selection contract: No active pasted text exists. Use web_search for live public facts and knowledge_search for the local index. Do not call long_text_qa until text is active.\n\n\
-User: Who maintains ExampleDB?\n\nAssistant: <tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"ExampleDB maintainer official\"}}</tool_call>\n\n\
-Tool: <tool_result>{\"status\":\"ok\",\"evidence\":[{\"id\":\"W1\",\"title\":\"ExampleDB\",\"content\":\"ExampleDB is maintained by Example Foundation.\",\"uri\":\"https://example.invalid/db\"}]}</tool_result>\n\n\
-User: Continue the original task. Call a tool again only if more work is required; otherwise return the final answer. Output exactly one protocol envelope and no reasoning.\n\n\
-Assistant: <answer>Example Foundation maintains ExampleDB [W1].</answer>"
-    };
     format!(
         "System: You are a bounded RWKV tool agent. At every turn output exactly one strict envelope: \
 <tool_call>{{\"name\":...,\"arguments\":{{...}}}}</tool_call> or <answer>concise user-visible answer</answer>. \
-Never output reasoning, role labels, Markdown fences, or protocol text outside the envelope. Use tools when evidence or execution is needed, \
+Never output reasoning or <think> blocks, role labels, Markdown, bullet lists, or protocol text outside the envelope. Keep every answer to one compact paragraph of plain text with [W#] citations. Use tools when evidence or execution is needed, \
 inspect each Tool Result, and stop when the task is complete. One tool call per turn.\nFunctions:\n\
 - web_search(query): live public Internet\n\
 - knowledge_search(query): local indexed knowledge\n\
-- long_text_qa(question): active pasted session text only\n\
-{command_schema}Active pasted long text: {}.\n\n\
-{}\n\n\
+{command_schema}Tool selection: use web_search for live public facts; knowledge_search only for the local index.\n\
 Recent conversation:\n{}\n\nUser: {}",
-        if has_text { "yes" } else { "no" },
-        selection_contract,
         context,
         message.trim(),
     )

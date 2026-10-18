@@ -50,7 +50,7 @@ class AgentDataPlane:
         return {
             "status": "ready",
             "mode": "python_model_retrieval_data_plane",
-            "tools": ["web_search", "knowledge_search", "long_text_qa"],
+            "tools": ["web_search", "knowledge_search"],
             "session_text": self.session_text.health(),
             "answer_validation": "fitgen-claim-lexical-v2",
             "query_coordination": "structured-query-view",
