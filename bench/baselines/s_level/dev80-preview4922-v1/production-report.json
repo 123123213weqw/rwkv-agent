@@ -1,0 +1,920 @@
+{
+  "benchmark": "RWKV-Agent-S-Level-v1",
+  "created_at": "2026-07-30T06:48:30.417573+00:00",
+  "failed_gates": [
+    {
+      "actual": 80.0,
+      "gap": 420.0,
+      "gate_id": "integrity.minimum_cases",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 500.0,
+      "track": "integrity"
+    },
+    {
+      "actual": 1.0,
+      "gap": 2.0,
+      "gate_id": "integrity.minimum_live_repetitions",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 3.0,
+      "track": "integrity"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.search_gate_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.98,
+      "track": "routing"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.search_false_positive_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.02,
+      "track": "routing"
+    },
+    {
+      "actual": 0.05,
+      "gap": 0.04,
+      "gate_id": "metric.search_false_negative_rate",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.01,
+      "track": "routing"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.tool_call_strict_success_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.995,
+      "track": "tool_call"
+    },
+    {
+      "actual": 0.95,
+      "gap": 0.020000000000000018,
+      "gate_id": "metric.domain_recall_at_10",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.97,
+      "track": "discovery"
+    },
+    {
+      "actual": 0.39375,
+      "gap": 0.40625000000000006,
+      "gate_id": "metric.exact_page_recall_at_20",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.8,
+      "track": "discovery"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.accessible_fetch_success_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.97,
+      "track": "fetch"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.garbage_result_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.02,
+      "track": "fetch"
+    },
+    {
+      "actual": 0.775,
+      "gap": 0.17499999999999993,
+      "gate_id": "metric.discovered_to_evidence_retention_rate",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.95,
+      "track": "evidence"
+    },
+    {
+      "actual": 0.30625,
+      "gap": 0.44375,
+      "gate_id": "metric.final_evidence_exact_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "evidence"
+    },
+    {
+      "actual": 0.65,
+      "gap": 0.32999999999999996,
+      "gate_id": "metric.citation_validity_precision",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.98,
+      "track": "citation"
+    },
+    {
+      "actual": 0.23125,
+      "gap": 0.51875,
+      "gate_id": "metric.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "citation"
+    },
+    {
+      "actual": 0.873214,
+      "gap": 0.07678599999999991,
+      "gate_id": "metric.important_claim_citation_coverage",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.95,
+      "track": "citation"
+    },
+    {
+      "actual": 0.126786,
+      "gap": 0.09678600000000001,
+      "gate_id": "metric.unsupported_claim_rate",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.03,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.answer_factual_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.9,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.answer_completeness_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.85,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.correct_abstention_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.95,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.multihop_complete_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "multihop"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.repeat_stability_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.9,
+      "track": "stability"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.chat_p50_ttft_ms",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 1000.0,
+      "track": "latency"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.chat_p95_ttft_ms",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 2000.0,
+      "track": "latency"
+    },
+    {
+      "actual": 28248.949,
+      "gap": 18248.949,
+      "gate_id": "metric.search_p50_latency_ms",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 10000.0,
+      "track": "latency"
+    },
+    {
+      "actual": 38223.079,
+      "gap": 18223.078999999998,
+      "gate_id": "metric.search_p95_latency_ms",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 20000.0,
+      "track": "latency"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.deep_research_p95_latency_ms",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 120000.0,
+      "track": "latency"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.average_pages_fetched",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 8.0,
+      "track": "efficiency"
+    },
+    {
+      "actual": 0.422222,
+      "gap": 0.2977780000000001,
+      "gate_id": "language.zh.exact_page_recall_at_20",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.7200000000000001,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.355556,
+      "gap": 0.31944400000000006,
+      "gate_id": "language.zh.final_evidence_exact_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.222222,
+      "gap": 0.452778,
+      "gate_id": "language.zh.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:zh"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.zh.unsupported_claim_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.03333333333333333,
+      "track": "language:zh"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.zh.answer_factual_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.81,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.62963,
+      "gap": 0.09037000000000006,
+      "gate_id": "language.en.exact_page_recall_at_20",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.7200000000000001,
+      "track": "language:en"
+    },
+    {
+      "actual": 0.407407,
+      "gap": 0.267593,
+      "gate_id": "language.en.final_evidence_exact_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:en"
+    },
+    {
+      "actual": 0.333333,
+      "gap": 0.34166700000000005,
+      "gate_id": "language.en.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:en"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.en.unsupported_claim_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.03333333333333333,
+      "track": "language:en"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.en.answer_factual_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.81,
+      "track": "language:en"
+    }
+  ],
+  "gate_counts": {
+    "failed": 37,
+    "missing": 18,
+    "passed": 4,
+    "total": 41
+  },
+  "gates": [
+    {
+      "actual": 80.0,
+      "gap": 420.0,
+      "gate_id": "integrity.minimum_cases",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 500.0,
+      "track": "integrity"
+    },
+    {
+      "actual": 1.0,
+      "gap": 2.0,
+      "gate_id": "integrity.minimum_live_repetitions",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 3.0,
+      "track": "integrity"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.search_gate_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.98,
+      "track": "routing"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.search_false_positive_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.02,
+      "track": "routing"
+    },
+    {
+      "actual": 0.05,
+      "gap": 0.04,
+      "gate_id": "metric.search_false_negative_rate",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.01,
+      "track": "routing"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.tool_call_strict_success_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.995,
+      "track": "tool_call"
+    },
+    {
+      "actual": 0.95,
+      "gap": 0.020000000000000018,
+      "gate_id": "metric.domain_recall_at_10",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.97,
+      "track": "discovery"
+    },
+    {
+      "actual": 0.39375,
+      "gap": 0.40625000000000006,
+      "gate_id": "metric.exact_page_recall_at_20",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.8,
+      "track": "discovery"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.accessible_fetch_success_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.97,
+      "track": "fetch"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.garbage_result_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.02,
+      "track": "fetch"
+    },
+    {
+      "actual": 0.775,
+      "gap": 0.17499999999999993,
+      "gate_id": "metric.discovered_to_evidence_retention_rate",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.95,
+      "track": "evidence"
+    },
+    {
+      "actual": 0.30625,
+      "gap": 0.44375,
+      "gate_id": "metric.final_evidence_exact_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "evidence"
+    },
+    {
+      "actual": 0.65,
+      "gap": 0.32999999999999996,
+      "gate_id": "metric.citation_validity_precision",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.98,
+      "track": "citation"
+    },
+    {
+      "actual": 0.23125,
+      "gap": 0.51875,
+      "gate_id": "metric.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "citation"
+    },
+    {
+      "actual": 0.873214,
+      "gap": 0.07678599999999991,
+      "gate_id": "metric.important_claim_citation_coverage",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.95,
+      "track": "citation"
+    },
+    {
+      "actual": 0.126786,
+      "gap": 0.09678600000000001,
+      "gate_id": "metric.unsupported_claim_rate",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.03,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.answer_factual_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.9,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.answer_completeness_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.85,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.correct_abstention_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.95,
+      "track": "answer"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.multihop_complete_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "multihop"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.repeat_stability_rate",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.9,
+      "track": "stability"
+    },
+    {
+      "actual": 1.0,
+      "gap": 0.0,
+      "gate_id": "metric.status_ok_rate",
+      "missing": false,
+      "operator": ">=",
+      "passed": true,
+      "target": 0.995,
+      "track": "reliability"
+    },
+    {
+      "actual": 0.0,
+      "gap": 0.0,
+      "gate_id": "metric.state_leak_count",
+      "missing": false,
+      "operator": "==",
+      "passed": true,
+      "target": 0.0,
+      "track": "reliability"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.chat_p50_ttft_ms",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 1000.0,
+      "track": "latency"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.chat_p95_ttft_ms",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 2000.0,
+      "track": "latency"
+    },
+    {
+      "actual": 28248.949,
+      "gap": 18248.949,
+      "gate_id": "metric.search_p50_latency_ms",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 10000.0,
+      "track": "latency"
+    },
+    {
+      "actual": 38223.079,
+      "gap": 18223.078999999998,
+      "gate_id": "metric.search_p95_latency_ms",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 20000.0,
+      "track": "latency"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.deep_research_p95_latency_ms",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 120000.0,
+      "track": "latency"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "metric.average_pages_fetched",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 8.0,
+      "track": "efficiency"
+    },
+    {
+      "actual": 0.977778,
+      "gap": 0.0,
+      "gate_id": "language.zh.domain_recall_at_10",
+      "missing": false,
+      "operator": ">=",
+      "passed": true,
+      "target": 0.873,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.422222,
+      "gap": 0.2977780000000001,
+      "gate_id": "language.zh.exact_page_recall_at_20",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.7200000000000001,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.355556,
+      "gap": 0.31944400000000006,
+      "gate_id": "language.zh.final_evidence_exact_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.222222,
+      "gap": 0.452778,
+      "gate_id": "language.zh.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:zh"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.zh.unsupported_claim_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.03333333333333333,
+      "track": "language:zh"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.zh.answer_factual_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.81,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.962963,
+      "gap": 0.0,
+      "gate_id": "language.en.domain_recall_at_10",
+      "missing": false,
+      "operator": ">=",
+      "passed": true,
+      "target": 0.873,
+      "track": "language:en"
+    },
+    {
+      "actual": 0.62963,
+      "gap": 0.09037000000000006,
+      "gate_id": "language.en.exact_page_recall_at_20",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.7200000000000001,
+      "track": "language:en"
+    },
+    {
+      "actual": 0.407407,
+      "gap": 0.267593,
+      "gate_id": "language.en.final_evidence_exact_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:en"
+    },
+    {
+      "actual": 0.333333,
+      "gap": 0.34166700000000005,
+      "gate_id": "language.en.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:en"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.en.unsupported_claim_rate",
+      "missing": true,
+      "operator": "<=",
+      "passed": false,
+      "target": 0.03333333333333333,
+      "track": "language:en"
+    },
+    {
+      "actual": null,
+      "gap": null,
+      "gate_id": "language.en.answer_factual_accuracy",
+      "missing": true,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.81,
+      "track": "language:en"
+    }
+  ],
+  "grand_score": null,
+  "largest_known_gaps": [
+    {
+      "actual": 28248.949,
+      "gap": 18248.949,
+      "gate_id": "metric.search_p50_latency_ms",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 10000.0,
+      "track": "latency"
+    },
+    {
+      "actual": 38223.079,
+      "gap": 18223.078999999998,
+      "gate_id": "metric.search_p95_latency_ms",
+      "missing": false,
+      "operator": "<=",
+      "passed": false,
+      "target": 20000.0,
+      "track": "latency"
+    },
+    {
+      "actual": 80.0,
+      "gap": 420.0,
+      "gate_id": "integrity.minimum_cases",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 500.0,
+      "track": "integrity"
+    },
+    {
+      "actual": 1.0,
+      "gap": 2.0,
+      "gate_id": "integrity.minimum_live_repetitions",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 3.0,
+      "track": "integrity"
+    },
+    {
+      "actual": 0.23125,
+      "gap": 0.51875,
+      "gate_id": "metric.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "citation"
+    },
+    {
+      "actual": 0.222222,
+      "gap": 0.452778,
+      "gate_id": "language.zh.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:zh"
+    },
+    {
+      "actual": 0.30625,
+      "gap": 0.44375,
+      "gate_id": "metric.final_evidence_exact_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.75,
+      "track": "evidence"
+    },
+    {
+      "actual": 0.39375,
+      "gap": 0.40625000000000006,
+      "gate_id": "metric.exact_page_recall_at_20",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.8,
+      "track": "discovery"
+    },
+    {
+      "actual": 0.333333,
+      "gap": 0.34166700000000005,
+      "gate_id": "language.en.citation_exact_page_recall",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.675,
+      "track": "language:en"
+    },
+    {
+      "actual": 0.65,
+      "gap": 0.32999999999999996,
+      "gate_id": "metric.citation_validity_precision",
+      "missing": false,
+      "operator": ">=",
+      "passed": false,
+      "target": 0.98,
+      "track": "citation"
+    }
+  ],
+  "missing_gate_ids": [
+    "metric.search_gate_accuracy",
+    "metric.search_false_positive_rate",
+    "metric.tool_call_strict_success_rate",
+    "metric.accessible_fetch_success_rate",
+    "metric.garbage_result_rate",
+    "metric.answer_factual_accuracy",
+    "metric.answer_completeness_rate",
+    "metric.correct_abstention_rate",
+    "metric.multihop_complete_rate",
+    "metric.repeat_stability_rate",
+    "metric.chat_p50_ttft_ms",
+    "metric.chat_p95_ttft_ms",
+    "metric.deep_research_p95_latency_ms",
+    "metric.average_pages_fetched",
+    "language.zh.unsupported_claim_rate",
+    "language.zh.answer_factual_accuracy",
+    "language.en.unsupported_claim_rate",
+    "language.en.answer_factual_accuracy"
+  ],
+  "profile": "production",
+  "release_passed": false,
+  "schema_version": "rwkv-agent-s-level-report.v1"
+}

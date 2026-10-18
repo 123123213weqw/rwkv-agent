@@ -1,0 +1,145 @@
+{
+  "prompt_chars": 3408,
+  "prefill_seen_tokens": [
+    600,
+    600
+  ],
+  "ordinary_ms": 3466.605,
+  "stream_first_delta_ms": 1622.122,
+  "stream_total_ms": 2046.244,
+  "ordinary": {
+    "state_id": "state-64c6347bf7494c7fad6d2e44527fae7c",
+    "branch": "json",
+    "text": "你好！",
+    "token_ids": [
+      10464,
+      11685,
+      19126,
+      754,
+      40992,
+      63
+    ],
+    "stop_reason": "</answer>",
+    "seen_tokens": 625,
+    "input_tokens": 19,
+    "elapsed_ms": 3463.916,
+    "queue_ms": 11.846,
+    "batch_mode": "unified"
+  },
+  "streamed": {
+    "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+    "branch": "stream",
+    "text": "你好！",
+    "token_ids": [
+      10464,
+      11685,
+      19126,
+      754,
+      40992,
+      63
+    ],
+    "stop_reason": "</answer>",
+    "seen_tokens": 625,
+    "input_tokens": 19,
+    "elapsed_ms": 2043.559,
+    "queue_ms": 10.215,
+    "batch_mode": "unified"
+  },
+  "parity": {
+    "text": true,
+    "token_ids": true,
+    "stop_reason": true
+  },
+  "events": [
+    {
+      "type": "delta",
+      "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+      "text": "你",
+      "delta": "你",
+      "replace": false,
+      "output_tokens": 1,
+      "received_ms": 1622.122
+    },
+    {
+      "type": "delta",
+      "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+      "text": "你好",
+      "delta": "好",
+      "replace": false,
+      "output_tokens": 2,
+      "received_ms": 1701.622
+    },
+    {
+      "type": "delta",
+      "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+      "text": "你好！",
+      "delta": "！",
+      "replace": false,
+      "output_tokens": 3,
+      "received_ms": 1780.008
+    },
+    {
+      "type": "delta",
+      "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+      "text": "你好！</",
+      "delta": "</",
+      "replace": false,
+      "output_tokens": 4,
+      "received_ms": 1858.221
+    },
+    {
+      "type": "delta",
+      "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+      "text": "你好！</answer",
+      "delta": "answer",
+      "replace": false,
+      "output_tokens": 5,
+      "received_ms": 1936.638
+    },
+    {
+      "type": "delta",
+      "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+      "text": "你好！",
+      "delta": "你好！",
+      "replace": true,
+      "output_tokens": 6,
+      "received_ms": 2014.856
+    },
+    {
+      "type": "done",
+      "results": [
+        {
+          "state_id": "state-e88542d7924a4375bba12289d64ffcce",
+          "branch": "stream",
+          "text": "你好！",
+          "token_ids": [
+            10464,
+            11685,
+            19126,
+            754,
+            40992,
+            63
+          ],
+          "stop_reason": "</answer>",
+          "seen_tokens": 625,
+          "input_tokens": 19,
+          "elapsed_ms": 2043.559,
+          "queue_ms": 10.215,
+          "batch_mode": "unified"
+        }
+      ],
+      "received_ms": 2046.088
+    }
+  ],
+  "pool": {
+    "backend": "hf_recurrent",
+    "capacity": 132,
+    "allocated": 3,
+    "free": 129,
+    "bytes_per_slot": 64970752,
+    "slab_bytes": 194912256,
+    "workspace_bytes": 0,
+    "peak_workspace_bytes": 0,
+    "device": "cuda"
+  }
+}

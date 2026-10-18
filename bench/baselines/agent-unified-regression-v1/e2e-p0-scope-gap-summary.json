@@ -1,0 +1,98 @@
+{
+  "schema_version": "rwkv-agent-p0-scope-gap-summary.v1",
+  "created_at": "2026-07-28",
+  "status": "experiment_only_not_production_ready",
+  "benchmark": {
+    "name": "RWKV-Agent-Unified-Regression-v1",
+    "cases": 200,
+    "cases_per_track": 40
+  },
+  "baseline_run_id": "agent-unified-regression-v1-stable-default",
+  "candidate_run_id": "agent-unified-regression-v1-p0-scope-gap",
+  "p0_changes": [
+    "Search scope is appended to every discovery query and enforced again by host/subdomain post-filtering.",
+    "Generic page-shape admission blocks dictionary, translation, search-homepage, login/captcha, error, empty and navigation-only pages unless the user explicitly asks for lexical information.",
+    "Round-two queries are generated only from validated missing entity/relation/value/date gaps; page-title pivots are removed.",
+    "Unsupported or uncited claims are not emitted; insufficient evidence produces an explicit abstention.",
+    "Exact-page recall and citation exact-page recall are first-class metrics and exact_page_recall is the runner primary retrieval metric."
+  ],
+  "runtime_audit": {
+    "webwalker_search_scope_queries": {
+      "passed": 254,
+      "total": 254,
+      "rate": 1.0
+    },
+    "webwalker_in_scope_evidence": {
+      "passed": 11,
+      "total": 11,
+      "rate": 1.0
+    },
+    "admitted_web_and_frames_evidence_page_quality": {
+      "passed": 166,
+      "total": 166,
+      "rate": 1.0
+    },
+    "dictionary_translation_navigation_contamination": 0
+  },
+  "tracks": {
+    "bfcl": {
+      "status_ok": 40,
+      "ast_exact_match": 0.675,
+      "abstained": 0
+    },
+    "webwalkerqa": {
+      "status_ok": 40,
+      "answer_token_f1": 0.017343,
+      "domain_recall": 0.2,
+      "exact_page_recall": 0.0,
+      "evidence_nonempty_rate": 0.2,
+      "abstained": 40,
+      "p95_latency_ms": 18739.534
+    },
+    "frames": {
+      "status_ok": 40,
+      "answer_token_f1": 0.01004,
+      "domain_recall": 0.0,
+      "exact_page_recall": 0.0,
+      "evidence_nonempty_rate": 0.725,
+      "supported_claim_rate_answered_only": 0.916667,
+      "unsupported_claim_rate_answered_only": 0.083333,
+      "answered_cases": 3,
+      "abstained": 37,
+      "p95_latency_ms": 24114.562
+    },
+    "longbench_v2": {
+      "status_ok": 40,
+      "choice_accuracy": 0.25,
+      "abstained": 0
+    },
+    "alce": {
+      "status_ok": 39,
+      "status_error": 1,
+      "answer_token_f1": 0.18174,
+      "citation_exact_page_recall": 0.355,
+      "supported_claim_rate_answered_only": 1.0,
+      "unsupported_claim_rate_answered_only": 0.0,
+      "answered_cases": 32,
+      "abstained": 7,
+      "error_case_ids": [
+        "alce-qampari-0490"
+      ]
+    }
+  },
+  "verification": {
+    "local_pytest": "520 passed, 9 skipped, 49 subtests passed",
+    "remote_targeted_pytest": "90 passed, 5 skipped, 5 subtests passed",
+    "git_diff_check": "passed",
+    "isolated_sidecars_after_cleanup": {
+      "8318": "closed",
+      "8319": "closed"
+    },
+    "production_after_cleanup": {
+      "8118": "closed",
+      "8119": "closed",
+      "8120": "open_http_503_unchanged"
+    }
+  },
+  "conclusion": "P0 correctness and abstention semantics are implemented, but live exact-page recall did not improve and answer coverage/F1 regressed. The candidate must not replace production; the next bottleneck is discovery and exact-page recall."
+}

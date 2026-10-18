@@ -1,0 +1,1472 @@
+{
+  "schema": "rwkv_agent_mixed_scheduler_benchmark.v1",
+  "run_id": "mixed-scheduler-0bcabce12e944b4eb09520f0da8f86c2",
+  "endpoint": "http://127.0.0.1:8417",
+  "model": "rwkv7-g1i-preview4922-13.3b",
+  "context": 12288,
+  "persistent_capacity": 16,
+  "protocol": {
+    "concurrency": [
+      8,
+      16
+    ],
+    "max_tokens": 8,
+    "greedy": true,
+    "workload_block": [
+      "state_chat",
+      "completion",
+      "gate",
+      "state_chat",
+      "completion",
+      "gate",
+      "state_chat",
+      "state_branch"
+    ],
+    "state_branch_rows": 2,
+    "gate_score_atol": 0.125,
+    "starvation_budget_ms": 20000,
+    "batch_fill_targets": {
+      "8": 3.0,
+      "16": 5.0
+    },
+    "comparison": "sequential isolated reference vs simultaneous mixed",
+    "prompt_set_sha256": "bbd5b0be1cfed203bb624f2f5581d26ea05f8dc777351bd5405f6e9f7de680bf"
+  },
+  "profiles": [
+    {
+      "concurrency": 8,
+      "max_tokens": 8,
+      "required_state_capacity": 5,
+      "reference": {
+        "requests": 8,
+        "state_rows": 5,
+        "wall_seconds": 4.00526,
+        "requests_per_second": 1.9974,
+        "latency_ms": {
+          "mean": 499.157,
+          "p50": 534.568,
+          "p95": 588.801,
+          "max": 588.801
+        },
+        "by_kind": {
+          "completion": {
+            "requests": 2,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 529.337,
+              "p50": 524.106,
+              "p95": 534.568,
+              "max": 534.568
+            }
+          },
+          "gate": {
+            "requests": 2,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 361.529,
+              "p50": 360.392,
+              "p95": 362.667,
+              "max": 362.667
+            }
+          },
+          "state_branch": {
+            "requests": 1,
+            "state_rows": 2,
+            "latency_ms": {
+              "mean": 588.801,
+              "p50": 588.801,
+              "p95": 588.801,
+              "max": 588.801
+            }
+          },
+          "state_chat": {
+            "requests": 3,
+            "state_rows": 3,
+            "latency_ms": {
+              "mean": 540.907,
+              "p50": 540.832,
+              "p95": 544.333,
+              "max": 544.333
+            }
+          }
+        },
+        "released_states": 5,
+        "rows": [
+          {
+            "item_id": "mixed-08-01",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 537.557,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 1. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    284,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-08-02",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 534.568,
+            "fingerprint": {
+              "text": " Scheduler case 2 preserves token order via",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                285,
+                60241,
+                39974,
+                39189,
+                22705
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-08-03",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 362.667,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.8125,
+                "tool": -6.67578125
+              }
+            }
+          },
+          {
+            "item_id": "mixed-08-04",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 544.333,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 4 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    287,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-08-05",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 524.106,
+            "fingerprint": {
+              "text": " Scheduler case 5 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                288,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-08-06",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 360.392,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.734375,
+                "tool": -6.5859375
+              }
+            }
+          },
+          {
+            "item_id": "mixed-08-07",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 540.832,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 7 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    290,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-08-08",
+            "kind": "state_branch",
+            "state_rows": 2,
+            "latency_ms": 588.801,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_branch-1",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                },
+                {
+                  "branch": "state_branch-2",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "mixed": {
+        "requests": 8,
+        "state_rows": 5,
+        "wall_seconds": 2.614016,
+        "requests_per_second": 3.0604,
+        "latency_ms": {
+          "mean": 2056.342,
+          "p50": 1655.116,
+          "p95": 2596.022,
+          "max": 2596.022
+        },
+        "by_kind": {
+          "completion": {
+            "requests": 2,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 2453.69,
+              "p50": 2384.773,
+              "p95": 2522.606,
+              "max": 2522.606
+            }
+          },
+          "gate": {
+            "requests": 2,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 1521.228,
+              "p50": 1520.931,
+              "p95": 1521.525,
+              "max": 1521.525
+            }
+          },
+          "state_branch": {
+            "requests": 1,
+            "state_rows": 2,
+            "latency_ms": {
+              "mean": 1654.66,
+              "p50": 1654.66,
+              "p95": 1654.66,
+              "max": 1654.66
+            }
+          },
+          "state_chat": {
+            "requests": 3,
+            "state_rows": 3,
+            "latency_ms": {
+              "mean": 2282.08,
+              "p50": 2595.101,
+              "p95": 2596.022,
+              "max": 2596.022
+            }
+          }
+        },
+        "released_states": 5,
+        "rows": [
+          {
+            "item_id": "mixed-08-01",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 1655.116,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 1. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    284,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-08-02",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 2522.606,
+            "fingerprint": {
+              "text": " Scheduler case 2 preserves token order via",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                285,
+                60241,
+                39974,
+                39189,
+                22705
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-08-03",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 1520.931,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.828125,
+                "tool": -6.67578125
+              }
+            }
+          },
+          {
+            "item_id": "mixed-08-04",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 2595.101,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 4 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    287,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-08-05",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 2384.773,
+            "fingerprint": {
+              "text": " Scheduler case 5 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                288,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-08-06",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 1521.525,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.7421875,
+                "tool": -6.5703125
+              }
+            }
+          },
+          {
+            "item_id": "mixed-08-07",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 2596.022,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 7 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    290,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-08-08",
+            "kind": "state_branch",
+            "state_rows": 2,
+            "latency_ms": 1654.66,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_branch-1",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                },
+                {
+                  "branch": "state_branch-2",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "comparison": {
+        "compared": 8,
+        "exact": 8,
+        "all_exact": true,
+        "mismatches": [],
+        "gate_label_mismatches": [],
+        "gate_score_max_abs_delta": 0.015625,
+        "gate_score_atol": 0.125,
+        "mixed_p95_over_isolated": {
+          "completion": 4.719,
+          "gate": 4.1954,
+          "state_branch": 2.8102,
+          "state_chat": 4.7692
+        }
+      },
+      "scheduler": {
+        "shape_counts": {
+          "B1T1": 2,
+          "B1T33": 5,
+          "B1T62": 2,
+          "B1T64": 5,
+          "B2T1": 14,
+          "B2T31": 1,
+          "B2T5": 1,
+          "B2T64": 2,
+          "B2T9": 1,
+          "B3T1": 8,
+          "B3T31": 1,
+          "B3T5": 1,
+          "B3T64": 4,
+          "B4T64": 2
+        },
+        "decode_average_batch_fill": 2.25,
+        "prefill_average_batch_fill": 1.92,
+        "model_forward_calls": 49
+      },
+      "queue_metric_delta": {
+        "inference": {
+          "admitted": 4,
+          "completed": 4,
+          "completed_classification": 2,
+          "completed_completion": 2,
+          "submitted": 4
+        },
+        "state": {
+          "completed_jobs": 4,
+          "completed_rows": 5,
+          "microbatches": 2,
+          "submitted_jobs": 4,
+          "submitted_rows": 5
+        }
+      },
+      "state_leak_count": 0,
+      "errors": []
+    },
+    {
+      "concurrency": 16,
+      "max_tokens": 8,
+      "required_state_capacity": 10,
+      "reference": {
+        "requests": 16,
+        "state_rows": 10,
+        "wall_seconds": 7.889801,
+        "requests_per_second": 2.0279,
+        "latency_ms": {
+          "mean": 491.963,
+          "p50": 517.717,
+          "p95": 592.074,
+          "max": 592.074
+        },
+        "by_kind": {
+          "completion": {
+            "requests": 4,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 523.307,
+              "p50": 525.422,
+              "p95": 537.916,
+              "max": 537.916
+            }
+          },
+          "gate": {
+            "requests": 4,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 365.348,
+              "p50": 363.623,
+              "p95": 367.66,
+              "max": 367.66
+            }
+          },
+          "state_branch": {
+            "requests": 2,
+            "state_rows": 4,
+            "latency_ms": {
+              "mean": 591.166,
+              "p50": 590.258,
+              "p95": 592.074,
+              "max": 592.074
+            }
+          },
+          "state_chat": {
+            "requests": 6,
+            "state_rows": 6,
+            "latency_ms": {
+              "mean": 522.41,
+              "p50": 517.717,
+              "p95": 545.74,
+              "max": 545.74
+            }
+          }
+        },
+        "released_states": 10,
+        "rows": [
+          {
+            "item_id": "mixed-16-01",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 502.863,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 1. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    284,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-02",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 496.941,
+            "fingerprint": {
+              "text": " Scheduler case 2 preserves token order via",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                285,
+                60241,
+                39974,
+                39189,
+                22705
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-03",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 367.66,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.8359375,
+                "tool": -6.6953125
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-04",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 545.74,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 4 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    287,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-05",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 525.422,
+            "fingerprint": {
+              "text": " Scheduler case 5 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                288,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-06",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 366.773,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.6875,
+                "tool": -6.54296875
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-07",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 517.717,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 7 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    290,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-08",
+            "kind": "state_branch",
+            "state_rows": 2,
+            "latency_ms": 590.258,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_branch-1",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                },
+                {
+                  "branch": "state_branch-2",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-09",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 501.213,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 9. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    292,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-10",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 532.947,
+            "fingerprint": {
+              "text": " Scheduler case 10 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                3483,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-11",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 363.623,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.71875,
+                "tool": -6.69921875
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-12",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 533.605,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 12. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3485,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-13",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 537.916,
+            "fingerprint": {
+              "text": " Scheduler case 13 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                3486,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-14",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 363.337,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.671875,
+                "tool": -6.6015625
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-15",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 533.324,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 15. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3488,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-16",
+            "kind": "state_branch",
+            "state_rows": 2,
+            "latency_ms": 592.074,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_branch-1",
+                  "text": " Scheduler case 16. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3489,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                },
+                {
+                  "branch": "state_branch-2",
+                  "text": " Scheduler case 16. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3489,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "mixed": {
+        "requests": 16,
+        "state_rows": 10,
+        "wall_seconds": 3.841948,
+        "requests_per_second": 4.1646,
+        "latency_ms": {
+          "mean": 3115.37,
+          "p50": 3070.725,
+          "p95": 3820.814,
+          "max": 3820.814
+        },
+        "by_kind": {
+          "completion": {
+            "requests": 4,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 3762.821,
+              "p50": 3705.135,
+              "p95": 3820.814,
+              "max": 3820.814
+            }
+          },
+          "gate": {
+            "requests": 4,
+            "state_rows": 0,
+            "latency_ms": {
+              "mean": 2643.481,
+              "p50": 2292.306,
+              "p95": 3070.725,
+              "max": 3070.725
+            }
+          },
+          "state_branch": {
+            "requests": 2,
+            "state_rows": 4,
+            "latency_ms": {
+              "mean": 3027.53,
+              "p50": 2293.832,
+              "p95": 3761.229,
+              "max": 3761.229
+            }
+          },
+          "state_chat": {
+            "requests": 6,
+            "state_rows": 6,
+            "latency_ms": {
+              "mean": 3027.61,
+              "p50": 2292.833,
+              "p95": 3763.819,
+              "max": 3763.819
+            }
+          }
+        },
+        "released_states": 10,
+        "rows": [
+          {
+            "item_id": "mixed-16-01",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 2290.297,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 1. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    284,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-02",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 3820.4,
+            "fingerprint": {
+              "text": " Scheduler case 2 preserves token order via",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                285,
+                60241,
+                39974,
+                39189,
+                22705
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-03",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 2197.373,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.7890625,
+                "tool": -6.65625
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-04",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 3763.689,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 4 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    287,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-05",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 3705.135,
+            "fingerprint": {
+              "text": " Scheduler case 5 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                288,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-06",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 3070.725,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.7578125,
+                "tool": -6.5859375
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-07",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 3762.597,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 7 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    290,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-08",
+            "kind": "state_branch",
+            "state_rows": 2,
+            "latency_ms": 3761.229,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_branch-1",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                },
+                {
+                  "branch": "state_branch-2",
+                  "text": " Scheduler case 8 preserves token order and",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    291,
+                    60241,
+                    39974,
+                    39189,
+                    21265
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-09",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 3763.819,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 9. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    292,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-10",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 3704.934,
+            "fingerprint": {
+              "text": " Scheduler case 10 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                3483,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-11",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 3013.519,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.7265625,
+                "tool": -6.71484375
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-12",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 2292.833,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 12. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3485,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-13",
+            "kind": "completion",
+            "state_rows": 0,
+            "latency_ms": 3820.814,
+            "fingerprint": {
+              "text": " Scheduler case 13 ensures that RWKV",
+              "token_ids": [
+                55308,
+                115,
+                30405,
+                3486,
+                51625,
+                32227,
+                4171,
+                1184
+              ],
+              "stop_reason": "max_tokens"
+            }
+          },
+          {
+            "item_id": "mixed-16-14",
+            "kind": "gate",
+            "state_rows": 0,
+            "latency_ms": 2292.306,
+            "fingerprint": {
+              "label": "tool",
+              "scores": {
+                "chat": -8.65625,
+                "tool": -6.58203125
+              }
+            }
+          },
+          {
+            "item_id": "mixed-16-15",
+            "kind": "state_chat",
+            "state_rows": 1,
+            "latency_ms": 2292.424,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_chat-1",
+                  "text": " Scheduler case 15. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3488,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          },
+          {
+            "item_id": "mixed-16-16",
+            "kind": "state_branch",
+            "state_rows": 2,
+            "latency_ms": 2293.832,
+            "fingerprint": {
+              "rows": [
+                {
+                  "branch": "state_branch-1",
+                  "text": " Scheduler case 16. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3489,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                },
+                {
+                  "branch": "state_branch-2",
+                  "text": " Scheduler case 16. RWKV recurrent",
+                  "token_ids": [
+                    55308,
+                    115,
+                    30405,
+                    3489,
+                    47,
+                    4171,
+                    1184,
+                    60342
+                  ],
+                  "stop_reason": "max_tokens"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "comparison": {
+        "compared": 16,
+        "exact": 16,
+        "all_exact": true,
+        "mismatches": [],
+        "gate_label_mismatches": [],
+        "gate_score_max_abs_delta": 0.070312,
+        "gate_score_atol": 0.125,
+        "mixed_p95_over_isolated": {
+          "completion": 7.103,
+          "gate": 8.3521,
+          "state_branch": 6.3526,
+          "state_chat": 6.8967
+        }
+      },
+      "scheduler": {
+        "shape_counts": {
+          "B1T33": 10,
+          "B1T64": 10,
+          "B2T1": 2,
+          "B2T62": 2,
+          "B2T64": 1,
+          "B2T9": 2,
+          "B4T1": 6,
+          "B4T64": 1,
+          "B5T1": 16,
+          "B5T31": 2,
+          "B5T5": 2,
+          "B5T64": 4,
+          "B6T64": 1,
+          "B8T64": 2
+        },
+        "decode_average_batch_fill": 4.5,
+        "prefill_average_batch_fill": 2.5946,
+        "model_forward_calls": 61
+      },
+      "queue_metric_delta": {
+        "inference": {
+          "admitted": 8,
+          "completed": 8,
+          "completed_classification": 4,
+          "completed_completion": 4,
+          "submitted": 8
+        },
+        "state": {
+          "completed_jobs": 8,
+          "completed_rows": 10,
+          "microbatches": 2,
+          "submitted_jobs": 8,
+          "submitted_rows": 10
+        }
+      },
+      "state_leak_count": 0,
+      "errors": []
+    }
+  ],
+  "initial_persistent_allocated": 0,
+  "final_persistent_allocated": 0,
+  "all_profiles_valid": true
+}

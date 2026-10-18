@@ -1,0 +1,100 @@
+{
+  "schema_version": "web-extraction-comparison.v1",
+  "status": "frozen_benchmark_not_production_decision",
+  "evaluation": {
+    "cases": 30,
+    "snapshots": 30,
+    "fetch_outcomes": {
+      "connect_timeout": 1,
+      "http_403": 1,
+      "ok": 28
+    },
+    "fixed_snapshots": true,
+    "repetitions": 3,
+    "all_outputs_deterministic": true,
+    "raw_bodies_public": false
+  },
+  "extractors": {
+    "current": {
+      "pass_rate": 0.7857,
+      "usable_success_rate": 0.8696,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.087,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.8,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_elapsed_ms": 112.087,
+      "p95_elapsed_ms": 536.022,
+      "delta_pass_rate_vs_current": 0.0,
+      "speedup_vs_current": 1.0
+    },
+    "justext": {
+      "pass_rate": 0.4643,
+      "usable_success_rate": 0.6522,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.3913,
+      "forbidden_leak_rate": 0.0,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.2,
+      "table_hit_rate": 0.5,
+      "code_hit_rate": 1.0,
+      "average_elapsed_ms": 23.533,
+      "p95_elapsed_ms": 93.305,
+      "delta_pass_rate_vs_current": -0.3214,
+      "speedup_vs_current": 4.76
+    },
+    "readability": {
+      "pass_rate": 0.4643,
+      "usable_success_rate": 0.6522,
+      "title_hit_rate": 0.9048,
+      "content_marker_hit_rate": 0.5217,
+      "forbidden_leak_rate": 0.0,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.2,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_elapsed_ms": 46.786,
+      "p95_elapsed_ms": 182.449,
+      "delta_pass_rate_vs_current": -0.3214,
+      "speedup_vs_current": 2.4
+    },
+    "resiliparse": {
+      "pass_rate": 0.75,
+      "usable_success_rate": 0.8696,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.1304,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.2,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_elapsed_ms": 15.088,
+      "p95_elapsed_ms": 62.423,
+      "delta_pass_rate_vs_current": -0.0357,
+      "speedup_vs_current": 7.43
+    },
+    "trafilatura": {
+      "pass_rate": 0.7143,
+      "usable_success_rate": 0.7391,
+      "title_hit_rate": 1.0,
+      "content_marker_hit_rate": 0.7391,
+      "forbidden_leak_rate": 0.0,
+      "author_hit_rate": 1.0,
+      "published_at_hit_rate": 0.8,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_elapsed_ms": 100.061,
+      "p95_elapsed_ms": 433.523,
+      "delta_pass_rate_vs_current": -0.0714,
+      "speedup_vs_current": 1.12
+    }
+  },
+  "finding": {
+    "accuracy_baseline": "current",
+    "fast_candidate": "resiliparse",
+    "metadata_candidate": "trafilatura",
+    "decision": "Keep the current hybrid as the accuracy baseline. Evaluate Resiliparse only as a bounded fast candidate; it is much faster but leaks more navigation and misses publication metadata. Do not replace production from this benchmark alone."
+  }
+}

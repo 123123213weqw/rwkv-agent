@@ -1,0 +1,15 @@
+{
+  "schema": "rwkv-task-ledger-bench-comparison.v1",
+  "arms": {
+    "c1": "task-ledger-c1-t100-s8-r10.json",
+    "c16": "task-ledger-c16-t100-s8-r10.json"
+  },
+  "correctness_passed": true,
+  "c16_vs_c1": {
+    "tasks_per_second_ratio": 0.930984,
+    "checkpoint_transitions_per_second_ratio": 0.930989,
+    "p95_task_latency_ratio": 18.285714,
+    "recovery_wall_ratio": 0.808336
+  },
+  "finding": "Correctness and restart recovery pass. The single atomic ledger lock serializes persistence, so C16 does not improve throughput and increases per-task queueing latency."
+}

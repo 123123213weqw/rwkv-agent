@@ -1,0 +1,26 @@
+{
+  "pipeline": "P4 greedy tool call -> strict parser -> SearchRequest constraint merge -> realtime web search",
+  "production_integrated": false,
+  "case_count": 10,
+  "tool_call_strict_success": 10,
+  "tool_call_strict_success_rate": 1.0,
+  "nonempty_result_cases": 9,
+  "nonempty_result_rate": 0.9,
+  "average_plan_elapsed_ms": 1352.063,
+  "average_total_elapsed_ms": 6692.935,
+  "median_total_elapsed_ms": 7207.676,
+  "average_result_count": 4.2,
+  "average_candidate_count": 15,
+  "fetch_attempted": 80,
+  "fetch_succeeded": 56,
+  "fetch_failed": 24,
+  "fetch_success_rate": 0.7,
+  "observed_retrieval_failures": [
+    "python.org was not recalled for either Python official-release query",
+    "official Chinese EV policy query returned portals/search homepages/dictionary pages",
+    "llama.cpp query did not recall GitHub",
+    "China NBS CPI query returned zero selected documents",
+    "NVIDIA, Rust, and Apple recalled official domains but not the requested earnings/release/newsroom pages"
+  ],
+  "conclusion": "Tool-call planning is stable; discovery, candidate admission, and source-aware ranking are now the primary bottlenecks."
+}

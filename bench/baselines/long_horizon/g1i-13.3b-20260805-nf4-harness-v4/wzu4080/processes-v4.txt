@@ -1,0 +1,4 @@
+    PID     ELAPSED STAT CMD
+1696963       35:37 Sl   /home/wzu/wangyue/envs/rwkv-g1i/bin/python -m rwkv_agent.sidecar --host 127.0.0.1 --port 19118
+1697066       35:05 S    /home/wzu/wangyue/envs/rwkv-g1i/bin/python -m rwkv_agent.data_server --host 127.0.0.1 --port 19121 --model-urls http://127.0.0.1:19118
+1697075       35:04 S    sh -c while true; do nvidia-smi --query-gpu=timestamp,memory.used,utilization.gpu --format=csv,noheader,nounits; sleep 1; done

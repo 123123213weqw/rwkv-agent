@@ -1,0 +1,47 @@
+{
+  "schema_version": "retrieval-development-set-manifest.v1",
+  "name": "realtime-web-retrieval-dev-v2",
+  "status": "development",
+  "case_count": 100,
+  "paired_topic_count": 50,
+  "sha256": "1c288697abd81882c41039028c7dbccc11d0f5b8860f2610b9c7228d7bc945f6",
+  "language_counts": {
+    "zh": 50,
+    "en": 50
+  },
+  "category_counts": {
+    "official_docs": 18,
+    "standards_specification": 12,
+    "software_release": 2,
+    "security_advisory": 20,
+    "statistics": 8,
+    "government_policy": 2,
+    "realtime_public_info": 12,
+    "company_filing": 6,
+    "newsroom": 4,
+    "product_support": 2,
+    "academic_paper": 2,
+    "community_discussion": 12
+  },
+  "freshness_counts": {
+    "latest": 62,
+    "stable": 12,
+    "realtime": 26
+  },
+  "source_policy_counts": {
+    "official_required": 64,
+    "primary_required": 22,
+    "original_required": 2,
+    "community_required": 12
+  },
+  "query_style_counts": {
+    "conversational": 50,
+    "terse": 24,
+    "canonical": 22,
+    "noisy": 4
+  },
+  "origin": "manually_curated_realistic",
+  "is_user_log": false,
+  "is_blind_test": false,
+  "runtime_label_visibility": false
+}

@@ -1,0 +1,18 @@
+{{- if .Values.controller.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rwkv-statepool.fullname" . }}-controller
+  labels:
+    {{- include "rwkv-statepool.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-controller
+spec:
+  selector:
+    app.kubernetes.io/name: {{ include "rwkv-statepool.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: agent-controller
+  ports:
+    - name: http
+      port: {{ .Values.controller.port }}
+      targetPort: http
+{{- end }}

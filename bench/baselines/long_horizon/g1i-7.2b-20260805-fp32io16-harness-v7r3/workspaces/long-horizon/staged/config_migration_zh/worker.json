@@ -1,0 +1,5 @@
+{
+  "name": "jobs",
+  "timeout_seconds": 12,
+  "log_level": "info"
+}

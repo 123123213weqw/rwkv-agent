@@ -1,0 +1,29 @@
+{
+  "schema_version": "long-knowledge-hybrid-resources.v1",
+  "dense_index": {
+    "zh": {
+      "pages": 1256291,
+      "primary_store_display": "5.7gb",
+      "build_pages_per_second": 544.881
+    },
+    "en": {
+      "pages": 6498758,
+      "primary_store_display": "20.7gb",
+      "partition_build_pages_per_second": [
+        505.228,
+        511.577
+      ]
+    },
+    "vector_dimensions": 384,
+    "vector_index": "int8_hnsw",
+    "hnsw_m": 16,
+    "ef_construction": 100
+  },
+  "runtime": {
+    "peak_dense_plus_cross_encoder_process_gpu_memory_mib": 3292,
+    "measurement": "nvidia-smi per-process sampling across 55 samples on the V100 experiment host"
+  },
+  "raw_traces_included": false,
+  "model_weights_included": false,
+  "production_changed": false
+}

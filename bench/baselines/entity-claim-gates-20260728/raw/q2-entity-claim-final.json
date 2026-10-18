@@ -1,0 +1,778 @@
+{
+  "request": {
+    "session_id": "e2e-entity-claim-final-q2-20260728",
+    "message": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）",
+    "branch_width": 4,
+    "max_rounds": 2
+  },
+  "started_at": "2026-07-28T08:15:17.413760+00:00",
+  "http_status": 200,
+  "elapsed_seconds": 52.831,
+  "response": {
+    "status": "insufficient_evidence",
+    "session_id": "e2e-entity-claim-final-q2-20260728",
+    "message": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）",
+    "route": {
+      "mode": "state_parallel_search",
+      "tool": "web_search",
+      "branch_width": 4,
+      "rounds": 2
+    },
+    "tool_result": {
+      "status": "ok",
+      "tool": "web_search",
+      "evidence": [
+        {
+          "id": "W1",
+          "title": "RWKV: Reinventing RNNs for the Transformer Era",
+          "content": "Computer Science > Computation and Language Title:RWKV: Reinventing RNNs for the Transformer Era View PDF HTML (experimental)Abstract:Transformers have revolutionized almost all natural language processing (NLP) tasks but suffer from memory and computational complexity that scales quadratically with sequence length. We propose a novel model architecture, Receptance Weighted Key Value (RWKV), that combines the efficient parallelizable training of transformers with the efficient inference of RNNs. Both individuals and organizations that work with arXivLabs have embraced and accepted our values of openness, community, excellence, and user data privacy. arXiv is committed to these values and only works with partners that adhere to them. Have an idea for a project that will add value for arXiv's community? Learn more about arXivLabs.",
+          "uri": "https://arxiv.org/abs/2305.13048v2",
+          "source": "paper",
+          "published_at": "2023-05-22"
+        },
+        {
+          "id": "W2",
+          "title": "深圳元始智能有限公司招聘",
+          "content": "2024年，微软在全球数亿台Windows电脑部署了RWKV运行库，元始智能获英伟达初创生态“荣耀企业”。 ... 公司地址. 深圳南山区南山云科技大厦. 公司还有1个其他办公地址. 查看全部",
+          "uri": "https://m.zhipin.com/companys/8037a57649694d4003R_2Ny8E1I~.html",
+          "source": "tavily",
+          "discovery_stage": "initial"
+        },
+        {
+          "id": "W3",
+          "title": "共话机器人技术与应用前沿！第三期深圳人机沙龙成功举办",
+          "content": "与会者围绕产业生态展开深度对话，重点探讨三大方向：一是华为、比亚迪等巨头加速AI布局，优必选战略转型物流领域，凸显深圳制造优势与政策协同效应；二是技术突破方面，新型RWKV架构凭借高效计算与持久记忆能力实现商业化落地；三是应用创新方面，灵心巧手技术及成本优势领跑行业，龙岗区鸿蒙全屋智能生态建设加速推进，10月将启动机器人剧场街区展示。微信图片_20250901182722.jpg 微信图片_20250901182722.jpg 值得关注的是，全球首家机器人6S店运营满月成效显著：日均客流超千人，覆盖23国访客，通过城管巡逻等场景定制激活需求，成为深圳产业链创新标杆。产学研融合持续深化，清华研究院在人形机器人、太空机器人等方向的人才培养为产业注入核心动能。 [...] 与会人员纷纷表示，人机沙龙把“闭门研讨”变成“咖啡聊天”，轻松氛围中碰撞出智慧火花，人机沙龙正成为驱动产业创新的新引擎。龙岗区将在市人工智能产业办公室的指导下，把人机沙龙将其塑造成一张持续迭代的名片：通过不断升级议题、引入更多顶尖专家，为区域AI与机器人产业注入新动能，助推深圳跻身全球人工智能创新策源地。微信图片_20250901183604.jpg 微信图片_20250901183604.jpg 主办单位：深圳市龙岗区人工智能（机器人）署 联系方式：0755-89556013 粤公网安备44030702000715号 粤ICP备05027862号 网站标识码：4403070005网络支持 IPv6 网络 [...] 近日，深圳人机沙龙（AI·R）第三期活动在华睿欣能公司智慧广场圆满落幕。本次活动由深圳市人工智能产业办公室、深圳市龙岗区人工智能（机器人）署、鹏城实验室、深圳市人工智能与机器人研究院、深圳市人工智能产业协会、深圳市机器人协会、京东集团股份有限公司、招银国际金融有限公司、深圳嘉立创科技集团股份有限公司、深圳市清华大学校友会计算机系分会、深圳市清华大学校友会电子工程系分会等单位共同主办，聚焦机器人应用与技术发展前沿。微信图片_20250901183757.jpg 微信图片_202509011837",
+          "uri": "https://www.lg.gov.cn/lgjqrs/gkmlpt/content/12/12361/post_12361092.html",
+          "source": "tavily",
+          "discovery_stage": "initial"
+        },
+        {
+          "id": "W4",
+          "title": "RWKV Chat - Google Play 上的应用",
+          "content": "flag举报不当内容 内容分级 所有年龄段 了解详情 ## 应用支持 public 网站 email 支持团队邮箱 contact@rwkvos.com shield 隐私权政策 开发者信息 深圳元始智能有限公司 contact@rwkvos.com 中国 广东省深圳市 南山区华润置地大厦D座6楼108 邮政编码: 518000 +86 136 1307 5879 flag举报不当内容 [...] 图标图片 图标图片 # RWKV Chat 深圳元始智能有限公司 内容分级 所有年龄段 info 100+ 次下载 内容分级 所有年龄段 了解详情 ## 关于此应用 [...] 3. 离线功能 非常适合旅行、远程办公或任何您想要断开网络连接的时候。无论您的网络连接如何，您的 AI 助手随时准备帮助您撰写电子邮件、集思广益、翻译文本或进行聊天。 4. 优化性能 专为移动硬件设计，确保流畅、低延迟的对话，同时避免过度耗电。 主要功能： - 直观的聊天界面：简洁的设计，带来流畅的对话体验。 - 模型管理：轻松切换不同大小的模型，根据您的设备性能平衡速度和智能。 - 可自定义的系统提示：配置 AI 担任程序员、创意写手、翻译员或通用助手。 - 历史记录管理：在本地保存、查看和删除您的对话历史记录。 关于 RWKV 技术： RWKV（接收加权键值）是一种新型的 RNN 架构，可提供 Transformer 级别的 LLM 性能。它支持推理过程中的线性注意力机制，与传统架构相比，在消费级设备上进行本地部署的效率显著提高。 立即下载，将个人 AI 助手装进口袋。",
+          "uri": "https://play.google.com/store/apps/details?hl=zh&id=com.rwkvzone.chat",
+          "source": "tavily",
+          "discovery_stage": "initial"
+        },
+        {
+          "id": "W5",
+          "title": "RWKV AI 大模型已完成生成式人工智能服务备案",
+          "content": "gong-shi.png RWKV AI 是一款基于 RWKV 架构开发的大语言模型。它融合了 RNN 和 Transformer 的优势，既保证了模型的高效性，又显著提升了生成质量。并且，RWKV AI 大模型支持超过 100 种自然语言及多种编程语言。RWKV AI 大模型的几大核心优势包括： 随着此次备案的成功，RWKV AI 大模型将进一步推动其在多个领域的应用落地，以及企业级解决方案等。元始智能也将继续致力于 RWKV AI 大模型的研发与优化，不断完善生成式人工智能服务的技术能力，拓展其应用场景，确保其持续满足不同行业的需求。 与此同时，元始智能也将坚持技术创新与合规发展并重的理念，保护用户数据的安全性和隐私性，为用户提供更加可靠的服务保障。 ### 联系信息 公司官网：rwkv.cn | rwkvos.com 媒体联系： contact@rwkvos.com ### 加入 RWKV 社区 欢迎大家加入 RWKV 社区，可以从 RWKV 中文官网了解 RWKV 模型，也可以加入我们的 QQ 频道和群聊，一起探讨 RWKV 模型。 [...] 稀土掘金 稀土掘金 # RWKV AI 大模型已完成生成式人工智能服务备案 2024年12月2日，元始智能自主研发的 RWKV AI 大模型已成功通过国家互联网信息办公室的生成式人工智能服务备案。这标志着 RWKV AI 大模型在 AI 技术安全、内容合规、数据管理及安全防护等方面已符合行业规范，为其在国内市场的进一步发展奠定了坚实基础。 上海市生成式人工智能服务已备案信息公告（12月2日） 自2024年4月上海市互联网信息办公室发布《关于受理生成式人工智能服务备案的公告》，元始智能的全资子公司——上海元我智能科技有限公司紧随政策指引，积极推进 RWKV AI 大模型的备案工作，从技术审查到安全评估均符合《生成式人工智能服务管理暂行办法》的要求，以确保技术应用安全、可控且合乎规范。 元始智能COO及联合创始人罗璇表示：“我们非常高兴能够获得官方认可，这不仅证明了 RWKV AI 的技术实力，也为我们未来的发展铺平了道路。",
+          "uri": "https://juejin.cn/post/7444386588185985059",
+          "source": "tavily",
+          "published_at": "2024-12-04",
+          "discovery_stage": "initial"
+        },
+        {
+          "id": "W6",
+          "title": "RWKV -原理笔记-全- - 绝不原创的飞龙 - 博客园",
+          "content": "Transformer的瓶颈在于其注意力机制。在因果语言建模中，每个词元都需要关注其之前的所有词元。对于长度为 T 的序列，这会产生大约 T^2 次交互，导致计算和内存的二次方复杂度。 RNN的瓶颈在于其顺序性。虽然它在推理时内存恒定，但训练时无法像Transformer那样并行处理整个序列。此外，信息必须通过一个固定的隐藏状态向量传递，这限制了模型回顾和利用遥远过去信息的能力，并存在梯度消失问题。 RWKV的设计目标就是融合二者的优点。 RWKV的灵感来源：从LSTM到线性注意力 💡 - 二次复杂度：标准Transformer的自注意力机制具有 O(T²)的时间和空间复杂度（T为序列长度）。在处理长文本时，计算成本和内存占用会急剧上升。 RWKV架构的提出，正是为了结合两者的优点，同时缓解这些已知的限制。 RWKV的核心创新：线性注意力机制 上一节我们了解了现有模型的瓶颈，本节中我们来看看RWKV的核心解决方案。它受到苹果公司“Attention Free Transformer (AFT)”工作的启发，提出了一种线性复杂度的注意力机制。 Transformer 的记忆模式称为寻址记忆。它通过 Query 搜索 Key 来寻找地址，再取出对应 Value，类似于计算机的工作方式。其优点是可以不断拼接新的记忆，理论上只要硬件允许，可以拥有无限大的上下文。 RWKV 的记忆模式是联想记忆。它有一个状态 S_t 来存储所有信息。存入信息时，将 Key 和 Value 的外积加到状态中。检索信息时，用当前查询的 Key 与状态 S_t 进行内积，由于不同 Key 之间设计为正交，其他项内积为零，从而能检索出对应的 Value。这类似于用一个残缺的“9”就能从记忆中联想出完整的“9”。",
+          "uri": "https://www.cnblogs.com/apachecn/p/19575844",
+          "source": "web",
+          "published_at": "2026-02-04"
+        },
+        {
+          "id": "W7",
+          "title": "元始智能“最佳拍档”罗璇与彭博：为AI大脑设计 更先进神经系统_腾讯新闻",
+          "content": "深圳新闻网2025年3月7日讯（深圳特区报记者 沈勇）“在这里办公，享两年免租，我们可以说是‘拎包入驻’。”近日，在南山区西丽街道的云科技大厦六楼，深圳元始智能有限公司联合创始人、首席运营官罗璇告诉记者，就在同一楼层，众多人工智能企业入驻其中，互通有无，产业生态效应显现。 有创意就有机会落地 中午时分，熙熙攘攘的人群结束在外午餐返回云科技大厦，场景十分热闹。元始智能位于大厦六楼的“深圳模力营AI生态社区”，办公区不过百余平方米，但对一家初创公司而言已经够用了。 记者留意到，云科技大厦对外招租的租金是以天计算的，百余平方米的办公室1个月租金要万余元。对于能省则省的初创企业，“免费入驻”无疑是降低了创业成本。 “深圳模力营AI生态社区”去年6月揭牌，是大湾区首个专注大模型领域的旗舰孵化器，元始智能成为首批11家签约入驻的人工智能企业。“这里创新创业的气氛很好。”罗璇向记者表示，“模力营”里的企业覆盖了从上游基础算法供给到下游创新场景应用的多个人工智能产业链环节，“往往一个创意，在‘模力营’里就有机会落地实践。”罗璇说。 深圳不会辜负奋斗者的拼搏。目前，元始智能已完成数千万元级天使轮融资，大模型架构也迭代至RWKV-7。“全球有多家大公司、独角兽公司在用RWKV架构训练模型，并落地到实际商用上。斯坦福大学、上海交大、腾讯、阿里等机构用RWKV架构做多模态、多智能体等前沿技术，今年前两个月的RWKV论文就有12篇。”罗璇略带骄傲地说。",
+          "uri": "https://news.qq.com/rain/a/20250307A06Y1B00",
+          "source": "web",
+          "published_at": "2025-03-07"
+        },
+        {
+          "id": "W8",
+          "title": "RWKV 文档首页 - RWKV",
+          "content": "RWKV 文档首页 欢迎来到 RWKV 中文文档，可在此处了解 RWKV 的概念性知识，包括但不限于： - RWKV 的介绍，比如架构迭代历史、模型版本、训练数据集、本地部署的显存需求等 - RWKV 的基准测试表现如何？在不同设备（如各种 GPU/CPU/NPU 等）的推理速度如何？ - RWKV 社区有哪些优秀的项目？如何参与 RWKV 社区并贡献您的力量？ RWKV 是一个大语言模型架构，基于这个架构训练出来的 RWKV 模型可以理解并生成文本。此外，还有一些 RWKV 多模态模型可以理解或生成图像、声音等多种模态的内容。 快速了解 RWKV 速览 RWKV 的架构版本、模型和论文发布等信息 RWKV 的架构和历史 RWKV 从 V1 到 V8 的架构变更和设计思路 RWKV 推理的显存需求 本地部署 RWKV 模型，需要多少显存？ 若您有任何文档相关的问题（包括但不限于：错别字、文档不完整、文档难以理解或希望看到某一类文档等），请通过以下渠道向我们反馈： - 通过 GitHub Issue 向我们反馈 - 向我们发送邮件 - 加入 RWKV QQ 交流群 224287095 讨论",
+          "uri": "https://www.rwkv.cn/docs",
+          "source": "web",
+          "published_at": "2026-01-01"
+        }
+      ]
+    },
+    "answer": "找到了一些相关信息，但现有证据不足以支持可靠结论。",
+    "trace": {
+      "state_runtime": {
+        "home_url": "http://127.0.0.1:8517",
+        "root_prefill_once": true,
+        "forked_states": 4,
+        "tensor_state_merge": false,
+        "semantic_reduce_to_root": true,
+        "release": {
+          "status": "ok",
+          "released": 5,
+          "state_ids": [
+            "state-8444087736fe4c8caadc2a23c8297c03",
+            "state-e38681e2372b4821b3dcd4ab26b3aac0",
+            "state-26cc687fb0c84fdb82a410b093f23054",
+            "state-f54d4d25fb2c401eabff183da2311f55",
+            "state-0ea73cef27624e0e83853e02fc46244a"
+          ]
+        }
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "branches": [
+            {
+              "state_id": "state-e38681e2372b4821b3dcd4ab26b3aac0",
+              "branch": "branch-1",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "model",
+                "query_view": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式",
+                  "strategy": "model",
+                  "branch_index": 0,
+                  "round_index": 1,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [
+                    "上海浦东新区",
+                    "rwkv"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 7,
+              "evidence_admission": {
+                "anchors": [
+                  "rwkv"
+                ],
+                "admitted": 7,
+                "rejected": 1,
+                "rejected_ids": [
+                  "W1"
+                ],
+                "rejection_counts": {
+                  "entity_mismatch": 1
+                }
+              },
+              "seen_tokens": 268
+            },
+            {
+              "state_id": "state-26cc687fb0c84fdb82a410b093f23054",
+              "branch": "branch-2",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "\"上海浦东新区\" 唐镇 如何 \"rwkv\""
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "exact_anchors",
+                "query_view": {
+                  "query": "\"上海浦东新区\" 唐镇 如何 \"rwkv\"",
+                  "strategy": "exact_anchors",
+                  "branch_index": 1,
+                  "round_index": 1,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "empty",
+              "evidence_count": 0,
+              "evidence_admission": {
+                "anchors": [
+                  "rwkv"
+                ],
+                "admitted": 0,
+                "rejected": 8,
+                "rejected_ids": [
+                  "W1",
+                  "W2",
+                  "W3",
+                  "W4",
+                  "W5",
+                  "W6",
+                  "W7",
+                  "W8"
+                ],
+                "rejection_counts": {
+                  "entity_mismatch": 8
+                }
+              },
+              "seen_tokens": 273
+            },
+            {
+              "state_id": "state-f54d4d25fb2c401eabff183da2311f55",
+              "branch": "branch-3",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式 官网 官方"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "primary_source",
+                "query_view": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式 官网 官方",
+                  "strategy": "primary_source",
+                  "branch_index": 2,
+                  "round_index": 1,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [
+                    "上海浦东新区",
+                    "rwkv"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "evidence_admission": {
+                "anchors": [
+                  "rwkv"
+                ],
+                "admitted": 8,
+                "rejected": 0,
+                "rejected_ids": [],
+                "rejection_counts": {}
+              },
+              "seen_tokens": 268
+            },
+            {
+              "state_id": "state-0ea73cef27624e0e83853e02fc46244a",
+              "branch": "branch-4",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "raw_question",
+                "query_view": {
+                  "query": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）",
+                  "strategy": "raw_question",
+                  "branch_index": 3,
+                  "round_index": 1,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "empty",
+              "evidence_count": 0,
+              "evidence_admission": {
+                "anchors": [
+                  "rwkv"
+                ],
+                "admitted": 0,
+                "rejected": 8,
+                "rejected_ids": [
+                  "W1",
+                  "W2",
+                  "W3",
+                  "W4",
+                  "W5",
+                  "W6",
+                  "W7",
+                  "W8"
+                ],
+                "rejection_counts": {
+                  "entity_mismatch": 8
+                }
+              },
+              "seen_tokens": 271
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "branches": [
+            {
+              "state_id": "state-e38681e2372b4821b3dcd4ab26b3aac0",
+              "branch": "branch-1",
+              "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式 原文 来源"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "gap_original",
+                "query_view": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式 原文 来源",
+                  "strategy": "gap_original",
+                  "branch_index": 0,
+                  "round_index": 2,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [
+                    "上海浦东新区",
+                    "rwkv"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "evidence_admission": {
+                "anchors": [
+                  "rwkv"
+                ],
+                "admitted": 8,
+                "rejected": 0,
+                "rejected_ids": [],
+                "rejection_counts": {}
+              },
+              "seen_tokens": 2776
+            },
+            {
+              "state_id": "state-26cc687fb0c84fdb82a410b093f23054",
+              "branch": "branch-2",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 办公地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 办公地址 联系方式 官网 官方"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 办公地址 联系方式"
+                },
+                "query_strategy": "gap_primary",
+                "query_view": {
+                  "query": "rwkv 公司 上海 深圳 办公地址 联系方式 官网 官方",
+                  "strategy": "gap_primary",
+                  "branch_index": 1,
+                  "round_index": 2,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [
+                    "上海浦东新区",
+                    "rwkv"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "evidence_admission": {
+                "anchors": [
+                  "rwkv"
+                ],
+                "admitted": 8,
+                "rejected": 0,
+                "rejected_ids": [],
+                "rejection_counts": {}
+              },
+              "seen_tokens": 420
+            },
+            {
+              "state_id": "state-f54d4d25fb2c401eabff183da2311f55",
+              "branch": "branch-3",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": false,
+                "tool": "web_search",
+                "arguments": {},
+                "error": "query coordinator rejected all views",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "skipped_duplicate",
+                "query_view": {
+                  "query": "",
+                  "strategy": "skipped_duplicate",
+                  "branch_index": 2,
+                  "round_index": 2,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [],
+                  "evidence_based": false,
+                  "accepted": false,
+                  "rejection_reasons": [
+                    "duplicate_query"
+                  ]
+                }
+              },
+              "tool_status": "invalid",
+              "evidence_count": 0,
+              "evidence_admission": null,
+              "seen_tokens": 2784
+            },
+            {
+              "state_id": "state-0ea73cef27624e0e83853e02fc46244a",
+              "branch": "branch-4",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 办公地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 办公地址 联系方式"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 办公地址 联系方式"
+                },
+                "query_strategy": "model_gap",
+                "query_view": {
+                  "query": "rwkv 公司 上海 深圳 办公地址 联系方式",
+                  "strategy": "model_gap",
+                  "branch_index": 3,
+                  "round_index": 2,
+                  "anchors": [
+                    "上海浦东新区",
+                    "唐镇",
+                    "如何",
+                    "rwkv",
+                    "公司",
+                    "上海"
+                  ],
+                  "retained_anchors": [
+                    "上海浦东新区",
+                    "rwkv"
+                  ],
+                  "evidence_based": false,
+                  "accepted": true,
+                  "rejection_reasons": []
+                }
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "evidence_admission": {
+                "anchors": [
+                  "rwkv"
+                ],
+                "admitted": 8,
+                "rejected": 0,
+                "rejected_ids": [],
+                "rejection_counts": {}
+              },
+              "seen_tokens": 418
+            }
+          ]
+        }
+      ],
+      "answer_completion": {
+        "state_id": "state-8444087736fe4c8caadc2a23c8297c03",
+        "branch": "root",
+        "stop_reason": "</answer>",
+        "seen_tokens": 5196,
+        "output_chars": 243,
+        "output_tokens": 234
+      },
+      "answer_evidence_profile": {
+        "name": "compact-question-span-v1",
+        "sources": 8,
+        "max_chars_per_source": 900,
+        "selector": "query_view_mmr_v1",
+        "scorer_model": ""
+      },
+      "answer_protocol": {
+        "format": "answer_envelope_v1",
+        "primary": {
+          "valid": false,
+          "answer": "",
+          "errors": [
+            "unsupported_claim"
+          ],
+          "citations": [
+            "W1",
+            "W4",
+            "W5",
+            "W6",
+            "W7"
+          ],
+          "invalid_citations": [],
+          "citation_repaired": true,
+          "citation_reattributed_count": 0,
+          "citation_sanitized": false,
+          "claim_verification": [
+            {
+              "text": "上海浦东新区唐镇站到RWKV公司（上海）：无法确定。",
+              "feature_count": 15,
+              "claim_shape": "sentence",
+              "citations": [
+                "W4",
+                "W5"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.214286,
+              "support_reason": "insufficient_lexical_support"
+            },
+            {
+              "text": "RWKV公司在上海的办公地址未在证据中提供，因此无法给出具体路线。",
+              "feature_count": 26,
+              "claim_shape": "sentence",
+              "citations": [
+                "W5",
+                "W6"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.269231,
+              "support_reason": "insufficient_lexical_support"
+            },
+            {
+              "text": "建议使用地图应用（如高德地图、百度地图）搜索“RWKV公司 上海”并输入“唐镇站”作为起点，获取实时导航路线。",
+              "feature_count": 32,
+              "claim_shape": "sentence",
+              "citations": [
+                "W1"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.03125,
+              "support_reason": "insufficient_lexical_support"
+            },
+            {
+              "text": "上海浦东新区唐镇站到RWKV公司（深圳）：无法确定。",
+              "feature_count": 15,
+              "claim_shape": "sentence",
+              "citations": [
+                "W4",
+                "W7"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.266667,
+              "support_reason": "insufficient_lexical_support"
+            },
+            {
+              "text": "RWKV公司在深圳的办公地址未在证据中提供，因此无法给出具体路线。",
+              "feature_count": 26,
+              "claim_shape": "sentence",
+              "citations": [
+                "W4",
+                "W5"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.192308,
+              "support_reason": "insufficient_lexical_support"
+            },
+            {
+              "text": "建议使用地图应用（如高德地图、百度地图）搜索“RWKV公司 深圳”并输入“唐镇站”作为起点，获取实时导航路线。",
+              "feature_count": 32,
+              "claim_shape": "sentence",
+              "citations": [
+                "W1"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.03125,
+              "support_reason": "insufficient_lexical_support"
+            }
+          ],
+          "unsupported_claim_count": 6,
+          "dropped_claim_count": 0,
+          "salvaged_claim_count": 0,
+          "partial_answer": false
+        },
+        "fallback_used": true,
+        "fallback": {
+          "valid": false,
+          "answer": "",
+          "errors": [
+            "unsupported_claim"
+          ],
+          "citations": [
+            "W2",
+            "W3",
+            "W4",
+            "W5",
+            "W6",
+            "W7"
+          ],
+          "invalid_citations": [],
+          "citation_repaired": true,
+          "citation_reattributed_count": 0,
+          "citation_sanitized": false,
+          "claim_verification": [
+            {
+              "text": "上海浦东新区唐镇站到RWKV公司（上海和深圳）的路线如下：",
+              "feature_count": 19,
+              "claim_shape": "heading",
+              "citations": [
+                "W4",
+                "W7"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.210526,
+              "support_reason": "insufficient_lexical_support"
+            },
+            {
+              "text": "从上海浦东新区唐镇站出发，乘坐地铁2号线（往龙阳路方向）至上海站，换乘地铁1号线（往莘庄方向）至上海南站。",
+              "feature_count": 37,
+              "claim_shape": "sentence",
+              "citations": [
+                "W7",
+                "W3"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.0,
+              "support_reason": "number_mismatch"
+            },
+            {
+              "text": "在上海南站换乘地铁11号线（往浦东国际机场方向）至龙阳路站，换乘地铁16号线（往迪士尼方向）至世博会博物馆站。",
+              "feature_count": 39,
+              "claim_shape": "sentence",
+              "citations": [
+                "W3",
+                "W7"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.0,
+              "support_reason": "number_mismatch"
+            },
+            {
+              "text": "从世博会博物馆站出站后，步行约1.2公里至上海市浦东新区世博大道1000号的RWKV公司上海办公室。",
+              "feature_count": 35,
+              "claim_shape": "sentence",
+              "citations": [
+                "W7",
+                "W3"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.0,
+              "support_reason": "number_mismatch"
+            },
+            {
+              "text": "如果需要前往深圳办公室，可以从上海浦东新区唐镇站乘坐飞机至深圳宝安国际机场，然后乘坐地铁11号线至深圳北站，换乘地铁1号线至深圳南山站，步行约1.5公里至深圳市南山区南山云科技大厦的RWKV公司深圳办公室。",
+              "feature_count": 83,
+              "claim_shape": "sentence",
+              "citations": [
+                "W7",
+                "W4"
+              ],
+              "requires_citation": true,
+              "supported": false,
+              "verifier": "fitgen-claim-lexical-v1",
+              "support_score": 0.0,
+              "support_reason": "number_mismatch"
+            }
+          ],
+          "unsupported_claim_count": 5,
+          "dropped_claim_count": 0,
+          "salvaged_claim_count": 0,
+          "partial_answer": false
+        },
+        "fallback_error": "",
+        "fallback_completion": {
+          "stop": "</answer>",
+          "output_tokens": 296,
+          "model_elapsed_ms": 13729.048,
+          "request_elapsed_ms": 13734.191,
+          "model": "rwkv7-g1i-preview4922-13.3b",
+          "url": "http://127.0.0.1:8517",
+          "output_chars": 308
+        }
+      },
+      "elapsed_ms": 52819.873
+    }
+  },
+  "raw_error_body": "",
+  "error": ""
+}

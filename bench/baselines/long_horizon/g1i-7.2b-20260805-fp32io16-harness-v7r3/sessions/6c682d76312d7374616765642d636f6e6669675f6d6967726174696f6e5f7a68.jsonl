@@ -1,0 +1,1 @@
+{"user":"阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。","assistant":"Completed the workspace task. Final verification passed: python3 migrate.py --check service.json worker.json exited successfully"}

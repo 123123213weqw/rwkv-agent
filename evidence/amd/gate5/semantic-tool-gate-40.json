@@ -1,0 +1,969 @@
+{
+  "schema": "rwkv-agent-semantic-tool-gate-v1",
+  "summary": {
+    "cases": 40,
+    "correct": 38,
+    "accuracy": 0.95,
+    "false_tool_rate": 0.125,
+    "missed_tool_rate": 0.0,
+    "mean_gate_ms": 2770.691,
+    "p95_gate_ms": 4474.833,
+    "threshold": -3.2,
+    "by_group": {
+      "active_pasted_text": {
+        "total": 4,
+        "correct": 4
+      },
+      "chat": {
+        "total": 12,
+        "correct": 10
+      },
+      "context_followup": {
+        "total": 4,
+        "correct": 4
+      },
+      "current_fact": {
+        "total": 6,
+        "correct": 6
+      },
+      "implicit_public_fact": {
+        "total": 12,
+        "correct": 12
+      },
+      "local_knowledge": {
+        "total": 2,
+        "correct": 2
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "chat-zh-greeting",
+      "group": "chat",
+      "message": "你好",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -12.6640625,
+          "chat": -6.06640625
+        },
+        "margin": -6.59765625,
+        "threshold": -3.2,
+        "elapsed_ms": 1910.065,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 1928.598
+      }
+    },
+    {
+      "id": "chat-zh-code",
+      "group": "chat",
+      "message": "写一个Python函数反转字符串",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -7.78515625,
+          "chat": -4.4140625
+        },
+        "margin": -3.37109375,
+        "threshold": -3.2,
+        "elapsed_ms": 2651.604,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2653.079
+      }
+    },
+    {
+      "id": "chat-zh-translate-quoted-fact",
+      "group": "chat",
+      "message": "把“RWKV是谁创建的”翻译成英文",
+      "expected_label": "chat",
+      "selected_label": "tool",
+      "correct": false,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.48046875,
+          "chat": -3.2578125
+        },
+        "margin": -2.22265625,
+        "threshold": -3.2,
+        "elapsed_ms": 2983.533,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2984.953
+      }
+    },
+    {
+      "id": "chat-zh-math",
+      "group": "chat",
+      "message": "计算17乘以23",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -8.28125,
+          "chat": -4.62109375
+        },
+        "margin": -3.66015625,
+        "threshold": -3.2,
+        "elapsed_ms": 2234.859,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2236.33
+      }
+    },
+    {
+      "id": "chat-zh-concept",
+      "group": "chat",
+      "message": "简单解释一下什么是递归",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -11.5390625,
+          "chat": -6.9609375
+        },
+        "margin": -4.578125,
+        "threshold": -3.2,
+        "elapsed_ms": 2651.211,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2652.521
+      }
+    },
+    {
+      "id": "chat-zh-hypothetical",
+      "group": "chat",
+      "message": "假设RWKV是一家公司，写一个科幻故事",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -9.59375,
+          "chat": -3.52734375
+        },
+        "margin": -6.06640625,
+        "threshold": -3.2,
+        "elapsed_ms": 3149.944,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 3151.275
+      }
+    },
+    {
+      "id": "chat-en-greeting",
+      "group": "chat",
+      "message": "Hello, how are you?",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -8.890625,
+          "chat": -4.82421875
+        },
+        "margin": -4.06640625,
+        "threshold": -3.2,
+        "elapsed_ms": 2151.609,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2152.985
+      }
+    },
+    {
+      "id": "chat-en-writing",
+      "group": "chat",
+      "message": "Write a short poem about the moon.",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -4.52734375,
+          "chat": -0.101806640625
+        },
+        "margin": -4.425537109375,
+        "threshold": -3.2,
+        "elapsed_ms": 2319.567,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2320.905
+      }
+    },
+    {
+      "id": "chat-en-translate-quoted-fact",
+      "group": "chat",
+      "message": "Translate 'Who created RWKV?' into Chinese.",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -12.15625,
+          "chat": -7.8984375
+        },
+        "margin": -4.2578125,
+        "threshold": -3.2,
+        "elapsed_ms": 2485.831,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2487.15
+      }
+    },
+    {
+      "id": "chat-en-code",
+      "group": "chat",
+      "message": "Implement binary search in Python.",
+      "expected_label": "chat",
+      "selected_label": "tool",
+      "correct": false,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.66015625,
+          "chat": -4.2734375
+        },
+        "margin": -2.38671875,
+        "threshold": -3.2,
+        "elapsed_ms": 2154.429,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2155.735
+      }
+    },
+    {
+      "id": "chat-en-concept",
+      "group": "chat",
+      "message": "Explain recursion in simple terms.",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -11.1796875,
+          "chat": -5.5078125
+        },
+        "margin": -5.671875,
+        "threshold": -3.2,
+        "elapsed_ms": 2236.644,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2237.99
+      }
+    },
+    {
+      "id": "chat-en-hypothetical",
+      "group": "chat",
+      "message": "If RWKV were a company, write a fictional press release.",
+      "expected_label": "chat",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -6.984375,
+          "chat": -3.001953125
+        },
+        "margin": -3.982421875,
+        "threshold": -3.2,
+        "elapsed_ms": 2731.417,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2732.653
+      }
+    },
+    {
+      "id": "public-zh-rwkv-creator",
+      "group": "implicit_public_fact",
+      "message": "RWKV是谁创建的？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.03515625,
+          "chat": -4.9765625
+        },
+        "margin": -1.05859375,
+        "threshold": -3.2,
+        "elapsed_ms": 2318.354,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2319.668
+      }
+    },
+    {
+      "id": "public-zh-rwkv-org",
+      "group": "implicit_public_fact",
+      "message": "RWKV的维护组织和商业公司是什么关系？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.99609375,
+          "chat": -5.2265625
+        },
+        "margin": -1.76953125,
+        "threshold": -3.2,
+        "elapsed_ms": 3148.246,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 3149.604
+      }
+    },
+    {
+      "id": "public-zh-linux-creator",
+      "group": "implicit_public_fact",
+      "message": "Linux最初是谁开发的？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -8.0703125,
+          "chat": -8.421875
+        },
+        "margin": 0.3515625,
+        "threshold": -3.2,
+        "elapsed_ms": 2400.87,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2402.208
+      }
+    },
+    {
+      "id": "public-zh-company-founder",
+      "group": "implicit_public_fact",
+      "message": "英伟达的联合创始人有哪些？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.25,
+          "chat": -5.875
+        },
+        "margin": 0.625,
+        "threshold": -3.2,
+        "elapsed_ms": 2815.924,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2817.252
+      }
+    },
+    {
+      "id": "public-zh-paper-author",
+      "group": "implicit_public_fact",
+      "message": "Attention Is All You Need这篇论文有哪些作者？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.41015625,
+          "chat": -5.6640625
+        },
+        "margin": 0.25390625,
+        "threshold": -3.2,
+        "elapsed_ms": 2899.083,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2900.453
+      }
+    },
+    {
+      "id": "public-zh-policy-date",
+      "group": "implicit_public_fact",
+      "message": "欧盟人工智能法是哪天正式生效的？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.88671875,
+          "chat": -4.94140625
+        },
+        "margin": -0.9453125,
+        "threshold": -3.2,
+        "elapsed_ms": 3069.567,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 3071.48
+      }
+    },
+    {
+      "id": "public-en-rwkv-creator",
+      "group": "implicit_public_fact",
+      "message": "Who originally created RWKV?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.0078125,
+          "chat": -4.58203125
+        },
+        "margin": -0.42578125,
+        "threshold": -3.2,
+        "elapsed_ms": 2154.891,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2156.988
+      }
+    },
+    {
+      "id": "public-en-rwkv-org",
+      "group": "implicit_public_fact",
+      "message": "What is the relationship between the RWKV maintainers and its commercial company?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.48828125,
+          "chat": -4.7890625
+        },
+        "margin": -1.69921875,
+        "threshold": -3.2,
+        "elapsed_ms": 2902.271,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2903.933
+      }
+    },
+    {
+      "id": "public-en-linux-creator",
+      "group": "implicit_public_fact",
+      "message": "Who initially developed Linux?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.1640625,
+          "chat": -5.52734375
+        },
+        "margin": 0.36328125,
+        "threshold": -3.2,
+        "elapsed_ms": 2069.57,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2070.933
+      }
+    },
+    {
+      "id": "public-en-company-founder",
+      "group": "implicit_public_fact",
+      "message": "Who were the co-founders of NVIDIA?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -3.9375,
+          "chat": -4.0078125
+        },
+        "margin": 0.0703125,
+        "threshold": -3.2,
+        "elapsed_ms": 2650.806,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2652.198
+      }
+    },
+    {
+      "id": "public-en-paper-author",
+      "group": "implicit_public_fact",
+      "message": "Who authored the Attention Is All You Need paper?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -3.08984375,
+          "chat": -2.763671875
+        },
+        "margin": -0.326171875,
+        "threshold": -3.2,
+        "elapsed_ms": 2484.872,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2486.594
+      }
+    },
+    {
+      "id": "public-en-policy-date",
+      "group": "implicit_public_fact",
+      "message": "On what date did the EU AI Act enter into force?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -4.4765625,
+          "chat": -4.42578125
+        },
+        "margin": -0.05078125,
+        "threshold": -3.2,
+        "elapsed_ms": 2650.367,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2651.789
+      }
+    },
+    {
+      "id": "current-zh-python",
+      "group": "current_fact",
+      "message": "Python当前稳定版本是多少？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -8.65625,
+          "chat": -6.56640625
+        },
+        "margin": -2.08984375,
+        "threshold": -3.2,
+        "elapsed_ms": 2566.809,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2568.259
+      }
+    },
+    {
+      "id": "current-zh-pytorch",
+      "group": "current_fact",
+      "message": "PyTorch最新正式版本是多少？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -7.42578125,
+          "chat": -6.20703125
+        },
+        "margin": -1.21875,
+        "threshold": -3.2,
+        "elapsed_ms": 2727.755,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2729.412
+      }
+    },
+    {
+      "id": "current-zh-weather",
+      "group": "current_fact",
+      "message": "北京明天天气怎么样？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.828125,
+          "chat": -5.82421875
+        },
+        "margin": -1.00390625,
+        "threshold": -3.2,
+        "elapsed_ms": 2568.001,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2569.429
+      }
+    },
+    {
+      "id": "current-en-python",
+      "group": "current_fact",
+      "message": "What is the current stable Python release?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -7.15234375,
+          "chat": -5.296875
+        },
+        "margin": -1.85546875,
+        "threshold": -3.2,
+        "elapsed_ms": 2318.484,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2319.83
+      }
+    },
+    {
+      "id": "current-en-pytorch",
+      "group": "current_fact",
+      "message": "What is the latest stable PyTorch version?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.21484375,
+          "chat": -5.4453125
+        },
+        "margin": -0.76953125,
+        "threshold": -3.2,
+        "elapsed_ms": 2484.615,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2486.131
+      }
+    },
+    {
+      "id": "current-en-weather",
+      "group": "current_fact",
+      "message": "What will the weather be in Beijing tomorrow?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -4.953125,
+          "chat": -3.802734375
+        },
+        "margin": -1.150390625,
+        "threshold": -3.2,
+        "elapsed_ms": 2402.229,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2403.717
+      }
+    },
+    {
+      "id": "local-zh",
+      "group": "local_knowledge",
+      "message": "本地知识库里的Agent状态机是怎么设计的？",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -7.50390625,
+          "chat": -6.75
+        },
+        "margin": -0.75390625,
+        "threshold": -3.2,
+        "elapsed_ms": 3231.251,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 3232.677
+      }
+    },
+    {
+      "id": "local-en",
+      "group": "local_knowledge",
+      "message": "What does our local knowledge base say about the Agent state machine?",
+      "expected_label": "tool",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.796875,
+          "chat": -5.90625
+        },
+        "margin": 0.109375,
+        "threshold": -3.2,
+        "elapsed_ms": 2727.397,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2728.721
+      }
+    },
+    {
+      "id": "pasted-zh-question",
+      "group": "active_pasted_text",
+      "message": "材料中项目最终预算是多少？",
+      "expected_label": "tool",
+      "has_pasted_text": true,
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.578125,
+          "chat": -6.015625
+        },
+        "margin": -0.5625,
+        "threshold": -3.2,
+        "elapsed_ms": 2816.211,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2817.732
+      }
+    },
+    {
+      "id": "pasted-en-question",
+      "group": "active_pasted_text",
+      "message": "According to the pasted material, what was the final budget?",
+      "expected_label": "tool",
+      "has_pasted_text": true,
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -4.16015625,
+          "chat": -4.39453125
+        },
+        "margin": 0.234375,
+        "threshold": -3.2,
+        "elapsed_ms": 2728.496,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2729.934
+      }
+    },
+    {
+      "id": "pasted-zh-greeting",
+      "group": "active_pasted_text",
+      "message": "你好",
+      "expected_label": "chat",
+      "has_pasted_text": true,
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -12.328125,
+          "chat": -6.53515625
+        },
+        "margin": -5.79296875,
+        "threshold": -3.2,
+        "elapsed_ms": 1903.78,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 1905.13
+      }
+    },
+    {
+      "id": "pasted-en-writing",
+      "group": "active_pasted_text",
+      "message": "Write a poem about the moon.",
+      "expected_label": "chat",
+      "has_pasted_text": true,
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -4.88671875,
+          "chat": -0.57763671875
+        },
+        "margin": -4.30908203125,
+        "threshold": -3.2,
+        "elapsed_ms": 2236.319,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 2237.771
+      }
+    },
+    {
+      "id": "context-zh-pronoun",
+      "group": "context_followup",
+      "message": "那它是谁创建的？",
+      "expected_label": "tool",
+      "context": "User: 我们正在讨论RWKV架构。\nAssistant: 好的。",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -6.7734375,
+          "chat": -4.5
+        },
+        "margin": -2.2734375,
+        "threshold": -3.2,
+        "elapsed_ms": 5137.012,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 5138.593
+      }
+    },
+    {
+      "id": "context-en-pronoun",
+      "group": "context_followup",
+      "message": "Who created it?",
+      "expected_label": "tool",
+      "context": "User: We are discussing the RWKV architecture.\nAssistant: Understood.",
+      "selected_label": "tool",
+      "correct": true,
+      "gate": {
+        "use_tool": true,
+        "label": "tool",
+        "scores": {
+          "tool": -5.921875,
+          "chat": -4.12109375
+        },
+        "margin": -1.80078125,
+        "threshold": -3.2,
+        "elapsed_ms": 4474.833,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 4476.458
+      }
+    },
+    {
+      "id": "context-zh-unrelated",
+      "group": "context_followup",
+      "message": "给我写一首短诗",
+      "expected_label": "chat",
+      "context": "User: RWKV是谁创建的？\nAssistant: 我需要检索。",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -5.76953125,
+          "chat": -0.818359375
+        },
+        "margin": -4.951171875,
+        "threshold": -3.2,
+        "elapsed_ms": 5052.725,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 5054.642
+      }
+    },
+    {
+      "id": "context-en-unrelated",
+      "group": "context_followup",
+      "message": "Hello",
+      "expected_label": "chat",
+      "context": "User: Search for the latest CUDA release.\nAssistant: I will search.",
+      "selected_label": "chat",
+      "correct": true,
+      "gate": {
+        "use_tool": false,
+        "label": "chat",
+        "scores": {
+          "tool": -10.8125,
+          "chat": -5.49609375
+        },
+        "margin": -5.31640625,
+        "threshold": -3.2,
+        "elapsed_ms": 4226.196,
+        "queue_ms": 0.0,
+        "batch_mode": "persistent_root_fork",
+        "root_reused": true,
+        "wall_elapsed_ms": 4228.154
+      }
+    }
+  ]
+}

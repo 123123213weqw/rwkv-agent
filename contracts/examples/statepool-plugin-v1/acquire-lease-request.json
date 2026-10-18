@@ -1,0 +1,8 @@
+{
+  "contract_version": "statepool-acquire-lease-request.v1",
+  "session_id": "assistant-001",
+  "owner_id": "session:assistant-001",
+  "holder_id": "worker-v100-01/request-001",
+  "expected_state_version": 42,
+  "ttl_ms": 30000
+}

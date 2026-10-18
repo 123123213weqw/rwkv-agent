@@ -1,0 +1,24 @@
+{
+  "schema_version": "long-knowledge-hybrid-manifest.v1",
+  "name": "finewiki-hybrid-v1",
+  "inputs": {
+    "compat-en-dense-v1-summary.json": "f0f2c39ed1d47172668463ae20515891aa379090a1a78524d1006760945db01d",
+    "compat-zh-dense-v1-summary.json": "fcd77cd23804898cf0d17bc4dda9bcf071f4aa16da102b13908554e95043a0ca",
+    "miracl-en-dense-v1-summary.json": "bc72767891e81ef00f8e407369c73998c7441de732b5abf37d30248fe463a2fe",
+    "miracl-zh-dense-v1-summary.json": "9fae4d7dc39b90182972b5a099e18f5195357f026955141013f6e75442f4dee6",
+    "compat-en-rerank-v1-summary.json": "797b0e9f6de3509167b07f53df22dc8deee8fbd173950bfb53eedde9116db3d6",
+    "compat-zh-rerank-v1-summary.json": "e10dc2a3a07cef9170e6c7678241b5b0c76053623bee56a0a800dfa76fe5b015",
+    "miracl-en-rerank-v1-summary.json": "428aaa45a5d10d926207d78738f42c071627e05b2fee3a447e5d000b377b099e",
+    "miracl-zh-rerank-v1-summary.json": "df8f343e727bb784783d578a9a161ac7d23bdaff570421df394174e811e1910d"
+  },
+  "files": {
+    "README.md": "5b928040a5d2e205a6dcc902e8fd76e67b60bf0218455c29b7a8bc16fe52158d",
+    "comparison.json": "c094d85ab59a4543fcfdb469aa0ff08d00111f9ebd665e787e183fafa8377df7",
+    "resources.json": "2b92654f4d887a64316b80742ecdb08648f7ada4561b2f737becd9fbeec23b18",
+    "threshold.json": "54b3cdc993a25c82d4a2a293f48e851ef35d6d21062bc13aa1987c07d6673216"
+  },
+  "raw_traces_included": false,
+  "queries_included": false,
+  "model_weights_included": false,
+  "production_changed": false
+}

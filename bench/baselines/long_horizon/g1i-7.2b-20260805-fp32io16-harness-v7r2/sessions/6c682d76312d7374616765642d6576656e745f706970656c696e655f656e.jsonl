@@ -1,0 +1,1 @@
+{"user":"Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.","assistant":"Completed the workspace task. Final verification passed: python3 summarize.py events.csv summary.json checksum.txt exited successfully"}

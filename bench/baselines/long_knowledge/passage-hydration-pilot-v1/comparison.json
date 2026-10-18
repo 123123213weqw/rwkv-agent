@@ -1,0 +1,247 @@
+{
+  "schema_version": "passage-hydration-pilot-comparison.v1",
+  "status": "isolated_pilot_not_production",
+  "sample": {
+    "zh_cases": 40,
+    "en_cases": 21,
+    "selection": "sha256-stable sample from cases with frozen Hybrid Top-8 page hit and available MIRACL passage gold",
+    "page_recall_scope": "conditional; must not be presented as full retrieval recall"
+  },
+  "gold": {
+    "source": "MIRACL positive passage qrels and miracl/miracl-corpus",
+    "zh_fetched": "116/116 positive passages for 40 sampled qids",
+    "en_fetched": "36/111 requested positive passages; Dataset Viewer English export is partial",
+    "en_evaluable_cases": 21
+  },
+  "model": "BAAI/bge-reranker-v2-m3",
+  "page_limit": 8,
+  "depths": {
+    "zh": {
+      "6": {
+        "cases": 40,
+        "hydration_mean_ms": 288.8676201342605,
+        "hydration_p95_ms": 333.7744786404073,
+        "returned_page_rate": 1.0,
+        "strategies": {
+          "lead": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6889702804949887,
+            "conditional_relevant_passage_mean_recall": 0.610166940022602,
+            "case_hit_at_recall_0_5": 0.725,
+            "case_hit_at_recall_0_8": 0.625
+          },
+          "lexical": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6647767321078919,
+            "conditional_relevant_passage_mean_recall": 0.5950459722806665,
+            "case_hit_at_recall_0_5": 0.7,
+            "case_hit_at_recall_0_8": 0.6
+          },
+          "cross_encoder": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7181804345362386,
+            "conditional_relevant_passage_mean_recall": 0.6529976369246653,
+            "case_hit_at_recall_0_5": 0.75,
+            "case_hit_at_recall_0_8": 0.675
+          },
+          "lead_plus_cross": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7376488940053405,
+            "conditional_relevant_passage_mean_recall": 0.6922397690783758,
+            "case_hit_at_recall_0_5": 0.775,
+            "case_hit_at_recall_0_8": 0.675
+          }
+        }
+      },
+      "12": {
+        "cases": 40,
+        "hydration_mean_ms": 351.25053661176935,
+        "hydration_p95_ms": 465.6717977486551,
+        "returned_page_rate": 1.0,
+        "strategies": {
+          "lead": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6889702804949887,
+            "conditional_relevant_passage_mean_recall": 0.610166940022602,
+            "case_hit_at_recall_0_5": 0.725,
+            "case_hit_at_recall_0_8": 0.625
+          },
+          "lexical": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6647767321078919,
+            "conditional_relevant_passage_mean_recall": 0.5950459722806665,
+            "case_hit_at_recall_0_5": 0.7,
+            "case_hit_at_recall_0_8": 0.6
+          },
+          "cross_encoder": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7268378905153898,
+            "conditional_relevant_passage_mean_recall": 0.6874756219667403,
+            "case_hit_at_recall_0_5": 0.775,
+            "case_hit_at_recall_0_8": 0.675
+          },
+          "lead_plus_cross": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7517812264075752,
+            "conditional_relevant_passage_mean_recall": 0.7301395518848779,
+            "case_hit_at_recall_0_5": 0.8,
+            "case_hit_at_recall_0_8": 0.675
+          }
+        }
+      },
+      "20": {
+        "cases": 40,
+        "hydration_mean_ms": 412.03380207298324,
+        "hydration_p95_ms": 596.8450671061873,
+        "returned_page_rate": 1.0,
+        "strategies": {
+          "lead": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6889702804949887,
+            "conditional_relevant_passage_mean_recall": 0.610166940022602,
+            "case_hit_at_recall_0_5": 0.725,
+            "case_hit_at_recall_0_8": 0.625
+          },
+          "lexical": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6647767321078919,
+            "conditional_relevant_passage_mean_recall": 0.5950459722806665,
+            "case_hit_at_recall_0_5": 0.7,
+            "case_hit_at_recall_0_8": 0.6
+          },
+          "cross_encoder": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7022794953553043,
+            "conditional_relevant_passage_mean_recall": 0.6644508382158554,
+            "case_hit_at_recall_0_5": 0.75,
+            "case_hit_at_recall_0_8": 0.65
+          },
+          "lead_plus_cross": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7517812264075752,
+            "conditional_relevant_passage_mean_recall": 0.7345759993370006,
+            "case_hit_at_recall_0_5": 0.8,
+            "case_hit_at_recall_0_8": 0.675
+          }
+        }
+      }
+    },
+    "en": {
+      "6": {
+        "cases": 21,
+        "hydration_mean_ms": 390.37295945343516,
+        "hydration_p95_ms": 503.4917276352644,
+        "returned_page_rate": 1.0,
+        "strategies": {
+          "lead": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7606456973045805,
+            "conditional_relevant_passage_mean_recall": 0.7300998543318782,
+            "case_hit_at_recall_0_5": 0.8571428571428571,
+            "case_hit_at_recall_0_8": 0.5238095238095238
+          },
+          "lexical": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6464428022100742,
+            "conditional_relevant_passage_mean_recall": 0.6357552245748699,
+            "case_hit_at_recall_0_5": 0.6666666666666666,
+            "case_hit_at_recall_0_8": 0.3333333333333333
+          },
+          "cross_encoder": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7878769901557101,
+            "conditional_relevant_passage_mean_recall": 0.7648907874817548,
+            "case_hit_at_recall_0_5": 0.8095238095238095,
+            "case_hit_at_recall_0_8": 0.6190476190476191
+          },
+          "lead_plus_cross": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7987071448919452,
+            "conditional_relevant_passage_mean_recall": 0.7747791896322304,
+            "case_hit_at_recall_0_5": 0.9047619047619048,
+            "case_hit_at_recall_0_8": 0.5714285714285714
+          }
+        }
+      },
+      "12": {
+        "cases": 21,
+        "hydration_mean_ms": 516.2850230311354,
+        "hydration_p95_ms": 754.4207219034433,
+        "returned_page_rate": 1.0,
+        "strategies": {
+          "lead": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7606456973045805,
+            "conditional_relevant_passage_mean_recall": 0.7300998543318782,
+            "case_hit_at_recall_0_5": 0.8571428571428571,
+            "case_hit_at_recall_0_8": 0.5238095238095238
+          },
+          "lexical": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6464428022100742,
+            "conditional_relevant_passage_mean_recall": 0.6357552245748699,
+            "case_hit_at_recall_0_5": 0.6666666666666666,
+            "case_hit_at_recall_0_8": 0.3333333333333333
+          },
+          "cross_encoder": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.817189931877411,
+            "conditional_relevant_passage_mean_recall": 0.7916547777493947,
+            "case_hit_at_recall_0_5": 0.8571428571428571,
+            "case_hit_at_recall_0_8": 0.6666666666666666
+          },
+          "lead_plus_cross": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.828020086613646,
+            "conditional_relevant_passage_mean_recall": 0.8015431798998702,
+            "case_hit_at_recall_0_5": 0.9523809523809523,
+            "case_hit_at_recall_0_8": 0.6190476190476191
+          }
+        }
+      },
+      "20": {
+        "cases": 21,
+        "hydration_mean_ms": 607.0984599313566,
+        "hydration_p95_ms": 880.7006510905921,
+        "returned_page_rate": 1.0,
+        "strategies": {
+          "lead": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.7606456973045805,
+            "conditional_relevant_passage_mean_recall": 0.7300998543318782,
+            "case_hit_at_recall_0_5": 0.8571428571428571,
+            "case_hit_at_recall_0_8": 0.5238095238095238
+          },
+          "lexical": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.6464428022100742,
+            "conditional_relevant_passage_mean_recall": 0.6357552245748699,
+            "case_hit_at_recall_0_5": 0.6666666666666666,
+            "case_hit_at_recall_0_8": 0.3333333333333333
+          },
+          "cross_encoder": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.817189931877411,
+            "conditional_relevant_passage_mean_recall": 0.7916547777493947,
+            "case_hit_at_recall_0_5": 0.8571428571428571,
+            "case_hit_at_recall_0_8": 0.6666666666666666
+          },
+          "lead_plus_cross": {
+            "nonempty_rate": 1.0,
+            "case_mean_best_gold_recall": 0.828020086613646,
+            "conditional_relevant_passage_mean_recall": 0.8015431798998702,
+            "case_hit_at_recall_0_5": 0.9523809523809523,
+            "case_hit_at_recall_0_8": 0.6190476190476191
+          }
+        }
+      }
+    }
+  },
+  "decision": {
+    "selected_chunks_per_page": 12,
+    "selected_evidence_strategy": "lead_plus_cross",
+    "reason": "depth 12 improves bilingual gold-passage recall over depth 6; depth 20 adds latency without further combined-evidence gain",
+    "production_enabled": false,
+    "chat_connected": false
+  }
+}

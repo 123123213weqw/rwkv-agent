@@ -1,0 +1,25 @@
+[workspace]
+members = [
+    "crates/agent-cli",
+    "crates/agent-core",
+    "crates/agent-runtime",
+    "crates/agent-server",
+    "crates/state-runtime",
+    "crates/statepool-plugin-api",
+    "crates/statepool-cloud-plugin",
+]
+default-members = [
+    "crates/agent-cli",
+    "crates/agent-core",
+    "crates/agent-runtime",
+    "crates/agent-server",
+    "crates/state-runtime",
+    "crates/statepool-plugin-api",
+    "crates/statepool-cloud-plugin",
+]
+resolver = "3"
+
+[workspace.package]
+version = "0.3.0-beta.2"
+edition = "2024"
+license = "MIT"

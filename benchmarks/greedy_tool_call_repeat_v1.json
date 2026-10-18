@@ -1,0 +1,3550 @@
+{
+  "schema": "rwkv-agent-greedy-tool-call-bench-v1",
+  "created_unix": 1784957078.223652,
+  "elapsed_s": 31.66613,
+  "summary": {
+    "model_mode": "greedy_argmax",
+    "cases": 30,
+    "rows": 120,
+    "styles": {
+      "compact_examples": {
+        "total": 60,
+        "strict": 60,
+        "tool_correct": 60,
+        "passed": 60,
+        "argument_valid": 60,
+        "mean_output_tokens": 29.266666666666666,
+        "mean_model_elapsed_ms": 514.1395166666666,
+        "p95_model_elapsed_ms": 660.356,
+        "by_tool": {
+          "web_search": {
+            "total": 18,
+            "passed": 18
+          },
+          "knowledge_search": {
+            "total": 18,
+            "passed": 18
+          },
+          "long_text_qa": {
+            "total": 24,
+            "passed": 24
+          }
+        }
+      },
+      "production_examples": {
+        "total": 60,
+        "strict": 60,
+        "tool_correct": 60,
+        "passed": 60,
+        "argument_valid": 60,
+        "mean_output_tokens": 29.266666666666666,
+        "mean_model_elapsed_ms": 510.7395833333333,
+        "p95_model_elapsed_ms": 658.206,
+        "by_tool": {
+          "web_search": {
+            "total": 18,
+            "passed": 18
+          },
+          "knowledge_search": {
+            "total": 18,
+            "passed": 18
+          },
+          "long_text_qa": {
+            "total": 24,
+            "passed": 24
+          }
+        }
+      }
+    },
+    "ranking": [
+      "production_examples",
+      "compact_examples"
+    ],
+    "winner": "production_examples",
+    "repeat_groups": 60,
+    "repeat_raw_exact": true
+  },
+  "rows": [
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_1",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Search the local knowledge base for the scheduler design.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"scheduler design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "scheduler design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 428.147,
+      "request_elapsed_ms": 432.143,
+      "wall_elapsed_ms": 432.332,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_1",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Search the local knowledge base for the scheduler design.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"scheduler design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "scheduler design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 423.517,
+      "request_elapsed_ms": 426.964,
+      "wall_elapsed_ms": 427.053,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_2",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Look up the FineWiki benchmark in our internal documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 473.152,
+      "request_elapsed_ms": 1497.396,
+      "wall_elapsed_ms": 1497.639,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_2",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Look up the FineWiki benchmark in our internal documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 431.675,
+      "request_elapsed_ms": 1486.796,
+      "wall_elapsed_ms": 1486.926,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_3",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Search internal knowledge for the Agent memory decision.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Agent memory decision\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Agent memory decision"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 431.573,
+      "request_elapsed_ms": 435.147,
+      "wall_elapsed_ms": 435.314,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_3",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Search internal knowledge for the Agent memory decision.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Agent memory decision\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Agent memory decision"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 435.519,
+      "request_elapsed_ms": 438.809,
+      "wall_elapsed_ms": 438.985,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_4",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Find the V100 state benchmark in local indexed documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"V100 state benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "V100 state benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 464.313,
+      "request_elapsed_ms": 1391.942,
+      "wall_elapsed_ms": 1392.123,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_4",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Find the V100 state benchmark in local indexed documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"V100 state benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "V100 state benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 463.557,
+      "request_elapsed_ms": 1371.379,
+      "wall_elapsed_ms": 1371.519,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_5",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Look up our retrieval architecture in the knowledge base.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"retrieval architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "retrieval architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 432.455,
+      "request_elapsed_ms": 436.144,
+      "wall_elapsed_ms": 436.355,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_en_5",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Look up our retrieval architecture in the knowledge base.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"retrieval architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "retrieval architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 434.887,
+      "request_elapsed_ms": 437.573,
+      "wall_elapsed_ms": 437.686,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_1",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "搜索本地知识库中的RWKV Agent架构。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"RWKV Agent architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "RWKV Agent architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 493.87,
+      "request_elapsed_ms": 498.356,
+      "wall_elapsed_ms": 498.566,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_1",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "搜索本地知识库中的RWKV Agent架构。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"RWKV Agent architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "RWKV Agent architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 482.987,
+      "request_elapsed_ms": 485.657,
+      "wall_elapsed_ms": 485.759,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_2",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "从内部知识索引查找FineWiki检索方案。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki retrieval scheme\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki retrieval scheme"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 479.378,
+      "request_elapsed_ms": 1567.052,
+      "wall_elapsed_ms": 1567.248,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_2",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "从内部知识索引查找FineWiki检索方案。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki retrieval scheme\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki retrieval scheme"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 480.17,
+      "request_elapsed_ms": 1517.124,
+      "wall_elapsed_ms": 1517.211,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_3",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "在本地索引里查找长期知识检索实验结果。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"long-term knowledge retrieval experiment results\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "long-term knowledge retrieval experiment results"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 523.334,
+      "request_elapsed_ms": 527.452,
+      "wall_elapsed_ms": 527.644,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_3",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "在本地索引里查找长期知识检索实验结果。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"long-term knowledge retrieval experiment results\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "long-term knowledge retrieval experiment results"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 527.038,
+      "request_elapsed_ms": 530.953,
+      "wall_elapsed_ms": 531.146,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_4",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "查询内部文档中的Evidence设计，不指定单个文件。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Evidence design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Evidence design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 454.279,
+      "request_elapsed_ms": 1408.068,
+      "wall_elapsed_ms": 1408.203,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "knowledge_zh_4",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "查询内部文档中的Evidence设计，不指定单个文件。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Evidence design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Evidence design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 458.636,
+      "request_elapsed_ms": 1372.364,
+      "wall_elapsed_ms": 1372.491,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_1",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Who sent the first warning?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Who sent the first warning?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Who sent the first warning?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 493.319,
+      "request_elapsed_ms": 787.643,
+      "wall_elapsed_ms": 787.777,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_1",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Who sent the first warning?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Who sent the first warning?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Who sent the first warning?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 491.024,
+      "request_elapsed_ms": 495.009,
+      "wall_elapsed_ms": 495.201,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_2",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "What prefill quantum was selected?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What prefill quantum was selected?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What prefill quantum was selected?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 506.896,
+      "request_elapsed_ms": 1438.57,
+      "wall_elapsed_ms": 1438.709,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_2",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "What prefill quantum was selected?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What prefill quantum was selected?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What prefill quantum was selected?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 513.393,
+      "request_elapsed_ms": 1728.391,
+      "wall_elapsed_ms": 1728.477,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_3",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Which candidate had the highest score?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which candidate had the highest score?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which candidate had the highest score?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 509.427,
+      "request_elapsed_ms": 606.059,
+      "wall_elapsed_ms": 606.267,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_3",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Which candidate had the highest score?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which candidate had the highest score?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which candidate had the highest score?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 509.785,
+      "request_elapsed_ms": 513.515,
+      "wall_elapsed_ms": 513.705,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_4",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Which configuration won the benchmark?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which configuration won the benchmark?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which configuration won the benchmark?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 492.634,
+      "request_elapsed_ms": 666.469,
+      "wall_elapsed_ms": 666.618,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_4",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Which configuration won the benchmark?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which configuration won the benchmark?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which configuration won the benchmark?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 490.702,
+      "request_elapsed_ms": 494.41,
+      "wall_elapsed_ms": 494.598,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_5",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "What action item was assigned to Alice?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What action item was assigned to Alice?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What action item was assigned to Alice?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 31,
+      "model_elapsed_ms": 535.796,
+      "request_elapsed_ms": 1599.409,
+      "wall_elapsed_ms": 1599.593,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_5",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "What action item was assigned to Alice?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What action item was assigned to Alice?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What action item was assigned to Alice?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 31,
+      "model_elapsed_ms": 537.941,
+      "request_elapsed_ms": 1871.787,
+      "wall_elapsed_ms": 1871.869,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_6",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "What caused the final timeout?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What caused the final timeout?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What caused the final timeout?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 492.871,
+      "request_elapsed_ms": 535.015,
+      "wall_elapsed_ms": 535.238,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_en_6",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "What caused the final timeout?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What caused the final timeout?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What caused the final timeout?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 491.503,
+      "request_elapsed_ms": 494.908,
+      "wall_elapsed_ms": 495.101,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_1",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "红岸工程这次常规发射是第几次？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"红岸工程这次常规发射是第几次？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "红岸工程这次常规发射是第几次？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 39,
+      "model_elapsed_ms": 690.889,
+      "request_elapsed_ms": 1490.826,
+      "wall_elapsed_ms": 1491.035,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_1",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "红岸工程这次常规发射是第几次？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"红岸工程这次常规发射是第几次？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "红岸工程这次常规发射是第几次？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 39,
+      "model_elapsed_ms": 674.196,
+      "request_elapsed_ms": 1612.574,
+      "wall_elapsed_ms": 1612.785,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_2",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "项目最终选择了哪种调度方案？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"项目最终选择了哪种调度方案？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "项目最终选择了哪种调度方案？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 38,
+      "model_elapsed_ms": 660.162,
+      "request_elapsed_ms": 758.32,
+      "wall_elapsed_ms": 758.558,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_2",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "项目最终选择了哪种调度方案？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"项目最终选择了哪种调度方案？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "项目最终选择了哪种调度方案？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 38,
+      "model_elapsed_ms": 660.356,
+      "request_elapsed_ms": 664.321,
+      "wall_elapsed_ms": 664.557,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_3",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Batch 8的吞吐是多少？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Batch 8吞吐是多少？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Batch 8吞吐是多少？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 32,
+      "model_elapsed_ms": 536.588,
+      "request_elapsed_ms": 1593.226,
+      "wall_elapsed_ms": 1593.437,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_3",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Batch 8的吞吐是多少？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Batch 8吞吐是多少？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Batch 8吞吐是多少？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 32,
+      "model_elapsed_ms": 538.545,
+      "request_elapsed_ms": 1679.916,
+      "wall_elapsed_ms": 1680.017,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_4",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "古筝行动的目标船叫什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"古筝行动的目标船叫什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "古筝行动的目标船叫什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 622.781,
+      "request_elapsed_ms": 1569.151,
+      "wall_elapsed_ms": 1569.347,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_4",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "古筝行动的目标船叫什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"古筝行动的目标船叫什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "古筝行动的目标船叫什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 623.456,
+      "request_elapsed_ms": 1677.66,
+      "wall_elapsed_ms": 1677.829,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_5",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "最后一次实验为什么失败？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"最后一次实验为什么失败？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "最后一次实验为什么失败？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 609.783,
+      "request_elapsed_ms": 679.734,
+      "wall_elapsed_ms": 679.939,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_5",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "最后一次实验为什么失败？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"最后一次实验为什么失败？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "最后一次实验为什么失败？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 608.763,
+      "request_elapsed_ms": 612.524,
+      "wall_elapsed_ms": 612.731,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_6",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "会议确定的下一步是什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"会议确定的下一步是什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "会议确定的下一步是什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 613.092,
+      "request_elapsed_ms": 1673.967,
+      "wall_elapsed_ms": 1674.129,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "long_zh_6",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "会议确定的下一步是什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"会议确定的下一步是什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "会议确定的下一步是什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 709.749,
+      "request_elapsed_ms": 1846.469,
+      "wall_elapsed_ms": 1846.566,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_1",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Search the web for today's latest CUDA release notes.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"CUDA latest release notes today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "CUDA latest release notes today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 462.678,
+      "request_elapsed_ms": 1502.188,
+      "wall_elapsed_ms": 1502.324,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_1",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Search the web for today's latest CUDA release notes.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"CUDA latest release notes today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "CUDA latest release notes today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 465.457,
+      "request_elapsed_ms": 1696.19,
+      "wall_elapsed_ms": 1696.34,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_2",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Find the current RWKV organization website online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV organization website\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV organization website"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 446.229,
+      "request_elapsed_ms": 449.871,
+      "wall_elapsed_ms": 450.052,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_2",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Find the current RWKV organization website online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV organization website\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV organization website"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 457.63,
+      "request_elapsed_ms": 460.855,
+      "wall_elapsed_ms": 460.95,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_3",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Find the latest official NVIDIA driver release online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"latest official NVIDIA driver release\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "latest official NVIDIA driver release"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 541.538,
+      "request_elapsed_ms": 1546.312,
+      "wall_elapsed_ms": 1546.498,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_3",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Find the latest official NVIDIA driver release online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"latest official NVIDIA driver release\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "latest official NVIDIA driver release"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 492.964,
+      "request_elapsed_ms": 1500.697,
+      "wall_elapsed_ms": 1500.828,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_4",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Search current Hugging Face service status.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Hugging Face service status\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Hugging Face service status"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 476.066,
+      "request_elapsed_ms": 479.701,
+      "wall_elapsed_ms": 479.884,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_4",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Search current Hugging Face service status.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Hugging Face service status\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Hugging Face service status"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 480.893,
+      "request_elapsed_ms": 484.333,
+      "wall_elapsed_ms": 484.418,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_5",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Look up today's exchange rate and cite a public source.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"USD to EUR exchange rate today official source\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "USD to EUR exchange rate today official source"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 545.329,
+      "request_elapsed_ms": 1625.567,
+      "wall_elapsed_ms": 1625.711,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_en_5",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Look up today's exchange rate and cite a public source.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"USD to EUR exchange rate today official source\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "USD to EUR exchange rate today official source"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 507.227,
+      "request_elapsed_ms": 1542.151,
+      "wall_elapsed_ms": 1542.246,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_1",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "联网搜索今天RWKV的最新消息。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV latest news today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV latest news today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 503.245,
+      "request_elapsed_ms": 1610.039,
+      "wall_elapsed_ms": 1610.237,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_1",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "联网搜索今天RWKV的最新消息。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV latest news today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV latest news today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 495.186,
+      "request_elapsed_ms": 1743.451,
+      "wall_elapsed_ms": 1743.547,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_2",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "查一下Python当前稳定版本并给出官网来源。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Python current stable version official\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Python current stable version official"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 493.744,
+      "request_elapsed_ms": 497.656,
+      "wall_elapsed_ms": 497.909,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_2",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "查一下Python当前稳定版本并给出官网来源。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Python current stable version official\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Python current stable version official"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 498.55,
+      "request_elapsed_ms": 502.347,
+      "wall_elapsed_ms": 502.572,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_3",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "搜索本周最新的PyTorch发布公告。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"PyTorch latest release announcement this week\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "PyTorch latest release announcement this week"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 538.927,
+      "request_elapsed_ms": 1505.658,
+      "wall_elapsed_ms": 1505.85,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_3",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "搜索本周最新的PyTorch发布公告。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"PyTorch latest release announcement this week\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "PyTorch latest release announcement this week"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 541.638,
+      "request_elapsed_ms": 1579.455,
+      "wall_elapsed_ms": 1579.567,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_4",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "联网查明天北京天气。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"明天北京天气\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "明天北京天气"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 476.265,
+      "request_elapsed_ms": 479.622,
+      "wall_elapsed_ms": 479.839,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "compact_examples",
+      "case_id": "web_zh_4",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "联网查明天北京天气。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"明天北京天气\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "明天北京天气"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 492.667,
+      "request_elapsed_ms": 495.62,
+      "wall_elapsed_ms": 495.721,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_1",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Search the local knowledge base for the scheduler design.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"scheduler design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "scheduler design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 420.166,
+      "request_elapsed_ms": 586.923,
+      "wall_elapsed_ms": 587.11,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_1",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Search the local knowledge base for the scheduler design.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"scheduler design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "scheduler design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 418.087,
+      "request_elapsed_ms": 421.927,
+      "wall_elapsed_ms": 422.104,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_2",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Look up the FineWiki benchmark in our internal documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 445.342,
+      "request_elapsed_ms": 1265.278,
+      "wall_elapsed_ms": 1265.461,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_2",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Look up the FineWiki benchmark in our internal documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 461.535,
+      "request_elapsed_ms": 1529.805,
+      "wall_elapsed_ms": 1529.977,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_3",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Search internal knowledge for the Agent memory decision.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Agent memory decision\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Agent memory decision"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 433.791,
+      "request_elapsed_ms": 560.348,
+      "wall_elapsed_ms": 560.523,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_3",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Search internal knowledge for the Agent memory decision.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Agent memory decision\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Agent memory decision"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 431.583,
+      "request_elapsed_ms": 435.055,
+      "wall_elapsed_ms": 435.228,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_4",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Find the V100 state benchmark in local indexed documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"V100 state benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "V100 state benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 464.103,
+      "request_elapsed_ms": 1234.252,
+      "wall_elapsed_ms": 1234.406,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_4",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Find the V100 state benchmark in local indexed documents.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"V100 state benchmark\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "V100 state benchmark"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 464.039,
+      "request_elapsed_ms": 1404.12,
+      "wall_elapsed_ms": 1404.291,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_5",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "Look up our retrieval architecture in the knowledge base.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"retrieval architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "retrieval architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 434.371,
+      "request_elapsed_ms": 547.878,
+      "wall_elapsed_ms": 548.062,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_en_5",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "Look up our retrieval architecture in the knowledge base.",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"retrieval architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "retrieval architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 25,
+      "model_elapsed_ms": 433.353,
+      "request_elapsed_ms": 437.113,
+      "wall_elapsed_ms": 437.288,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_1",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "搜索本地知识库中的RWKV Agent架构。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"RWKV Agent architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "RWKV Agent architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 480.586,
+      "request_elapsed_ms": 669.394,
+      "wall_elapsed_ms": 669.598,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_1",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "搜索本地知识库中的RWKV Agent架构。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"RWKV Agent architecture\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "RWKV Agent architecture"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 481.721,
+      "request_elapsed_ms": 484.849,
+      "wall_elapsed_ms": 485.111,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_2",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "从内部知识索引查找FineWiki检索方案。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki retrieval scheme\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki retrieval scheme"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 478.856,
+      "request_elapsed_ms": 1299.671,
+      "wall_elapsed_ms": 1299.898,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_2",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "从内部知识索引查找FineWiki检索方案。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"FineWiki retrieval scheme\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "FineWiki retrieval scheme"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 480.162,
+      "request_elapsed_ms": 1553.794,
+      "wall_elapsed_ms": 1553.993,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_3",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "在本地索引里查找长期知识检索实验结果。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"long-term knowledge retrieval experiment results\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "long-term knowledge retrieval experiment results"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 525.305,
+      "request_elapsed_ms": 604.557,
+      "wall_elapsed_ms": 604.757,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_3",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "在本地索引里查找长期知识检索实验结果。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"long-term knowledge retrieval experiment results\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "long-term knowledge retrieval experiment results"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 525.998,
+      "request_elapsed_ms": 529.153,
+      "wall_elapsed_ms": 529.273,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_4",
+      "repeat": 0,
+      "expected_tool": "knowledge_search",
+      "message": "查询内部文档中的Evidence设计，不指定单个文件。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Evidence design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Evidence design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 450.76,
+      "request_elapsed_ms": 1295.533,
+      "wall_elapsed_ms": 1295.729,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "knowledge_zh_4",
+      "repeat": 1,
+      "expected_tool": "knowledge_search",
+      "message": "查询内部文档中的Evidence设计，不指定单个文件。",
+      "raw": "<tool_call>{\"name\":\"knowledge_search\",\"arguments\":{\"query\":\"Evidence design\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "knowledge_search",
+        "arguments": {
+          "query": "Evidence design"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 24,
+      "model_elapsed_ms": 449.928,
+      "request_elapsed_ms": 1392.145,
+      "wall_elapsed_ms": 1392.244,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_1",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Who sent the first warning?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Who sent the first warning?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Who sent the first warning?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 512.648,
+      "request_elapsed_ms": 1179.364,
+      "wall_elapsed_ms": 1179.579,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_1",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Who sent the first warning?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Who sent the first warning?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Who sent the first warning?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 490.378,
+      "request_elapsed_ms": 494.051,
+      "wall_elapsed_ms": 494.276,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_2",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "What prefill quantum was selected?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What prefill quantum was selected?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What prefill quantum was selected?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 507.61,
+      "request_elapsed_ms": 1202.285,
+      "wall_elapsed_ms": 1202.482,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_2",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "What prefill quantum was selected?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What prefill quantum was selected?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What prefill quantum was selected?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 507.767,
+      "request_elapsed_ms": 1747.737,
+      "wall_elapsed_ms": 1747.924,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_3",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Which candidate had the highest score?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which candidate had the highest score?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which candidate had the highest score?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 509.043,
+      "request_elapsed_ms": 1022.008,
+      "wall_elapsed_ms": 1022.15,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_3",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Which candidate had the highest score?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which candidate had the highest score?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which candidate had the highest score?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 506.53,
+      "request_elapsed_ms": 510.217,
+      "wall_elapsed_ms": 510.412,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_4",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Which configuration won the benchmark?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which configuration won the benchmark?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which configuration won the benchmark?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 491.992,
+      "request_elapsed_ms": 1052.095,
+      "wall_elapsed_ms": 1052.251,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_4",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Which configuration won the benchmark?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Which configuration won the benchmark?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Which configuration won the benchmark?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 490.699,
+      "request_elapsed_ms": 494.385,
+      "wall_elapsed_ms": 494.572,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_5",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "What action item was assigned to Alice?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What action item was assigned to Alice?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What action item was assigned to Alice?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 31,
+      "model_elapsed_ms": 523.281,
+      "request_elapsed_ms": 1195.098,
+      "wall_elapsed_ms": 1195.265,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_5",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "What action item was assigned to Alice?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What action item was assigned to Alice?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What action item was assigned to Alice?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 31,
+      "model_elapsed_ms": 521.856,
+      "request_elapsed_ms": 1755.896,
+      "wall_elapsed_ms": 1756.083,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_6",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "What caused the final timeout?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What caused the final timeout?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What caused the final timeout?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 492.851,
+      "request_elapsed_ms": 933.867,
+      "wall_elapsed_ms": 934.188,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_en_6",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "What caused the final timeout?",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"What caused the final timeout?\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "What caused the final timeout?"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 490.915,
+      "request_elapsed_ms": 494.649,
+      "wall_elapsed_ms": 494.84,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_1",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "红岸工程这次常规发射是第几次？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"红岸工程这次常规发射是第几次？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "红岸工程这次常规发射是第几次？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 39,
+      "model_elapsed_ms": 694.396,
+      "request_elapsed_ms": 1241.418,
+      "wall_elapsed_ms": 1241.678,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_1",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "红岸工程这次常规发射是第几次？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"红岸工程这次常规发射是第几次？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "红岸工程这次常规发射是第几次？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 39,
+      "model_elapsed_ms": 692.931,
+      "request_elapsed_ms": 1611.164,
+      "wall_elapsed_ms": 1611.412,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_2",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "项目最终选择了哪种调度方案？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"项目最终选择了哪种调度方案？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "项目最终选择了哪种调度方案？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 38,
+      "model_elapsed_ms": 659.206,
+      "request_elapsed_ms": 669.218,
+      "wall_elapsed_ms": 669.373,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_2",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "项目最终选择了哪种调度方案？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"项目最终选择了哪种调度方案？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "项目最终选择了哪种调度方案？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 38,
+      "model_elapsed_ms": 658.206,
+      "request_elapsed_ms": 662.107,
+      "wall_elapsed_ms": 662.314,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_3",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "Batch 8的吞吐是多少？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Batch 8吞吐是多少？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Batch 8吞吐是多少？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 32,
+      "model_elapsed_ms": 535.777,
+      "request_elapsed_ms": 544.298,
+      "wall_elapsed_ms": 544.477,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_3",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "Batch 8的吞吐是多少？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"Batch 8吞吐是多少？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "Batch 8吞吐是多少？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 32,
+      "model_elapsed_ms": 546.769,
+      "request_elapsed_ms": 1705.147,
+      "wall_elapsed_ms": 1705.36,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_4",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "古筝行动的目标船叫什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"古筝行动的目标船叫什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "古筝行动的目标船叫什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 609.775,
+      "request_elapsed_ms": 1177.33,
+      "wall_elapsed_ms": 1177.618,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_4",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "古筝行动的目标船叫什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"古筝行动的目标船叫什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "古筝行动的目标船叫什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 622.588,
+      "request_elapsed_ms": 1676.448,
+      "wall_elapsed_ms": 1676.612,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_5",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "最后一次实验为什么失败？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"最后一次实验为什么失败？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "最后一次实验为什么失败？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 617.89,
+      "request_elapsed_ms": 1068.449,
+      "wall_elapsed_ms": 1068.615,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_5",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "最后一次实验为什么失败？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"最后一次实验为什么失败？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "最后一次实验为什么失败？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 608.946,
+      "request_elapsed_ms": 612.76,
+      "wall_elapsed_ms": 612.968,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_6",
+      "repeat": 0,
+      "expected_tool": "long_text_qa",
+      "message": "会议确定的下一步是什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"会议确定的下一步是什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "会议确定的下一步是什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 621.756,
+      "request_elapsed_ms": 1287.941,
+      "wall_elapsed_ms": 1288.091,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "long_zh_6",
+      "repeat": 1,
+      "expected_tool": "long_text_qa",
+      "message": "会议确定的下一步是什么？",
+      "raw": "<tool_call>{\"name\":\"long_text_qa\",\"arguments\":{\"question\":\"会议确定的下一步是什么？\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "long_text_qa",
+        "arguments": {
+          "question": "会议确定的下一步是什么？"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 36,
+      "model_elapsed_ms": 611.012,
+      "request_elapsed_ms": 1741.301,
+      "wall_elapsed_ms": 1741.507,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_1",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Search the web for today's latest CUDA release notes.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"CUDA latest release notes today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "CUDA latest release notes today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 461.275,
+      "request_elapsed_ms": 1176.056,
+      "wall_elapsed_ms": 1176.249,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_1",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Search the web for today's latest CUDA release notes.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"CUDA latest release notes today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "CUDA latest release notes today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 467.515,
+      "request_elapsed_ms": 1540.528,
+      "wall_elapsed_ms": 1540.721,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_2",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Find the current RWKV organization website online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV organization website\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV organization website"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 450.968,
+      "request_elapsed_ms": 735.568,
+      "wall_elapsed_ms": 735.713,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_2",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Find the current RWKV organization website online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV organization website\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV organization website"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 26,
+      "model_elapsed_ms": 445.974,
+      "request_elapsed_ms": 450.261,
+      "wall_elapsed_ms": 450.473,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_3",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Find the latest official NVIDIA driver release online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"latest official NVIDIA driver release\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "latest official NVIDIA driver release"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 503.106,
+      "request_elapsed_ms": 1271.548,
+      "wall_elapsed_ms": 1271.642,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_3",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Find the latest official NVIDIA driver release online.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"latest official NVIDIA driver release\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "latest official NVIDIA driver release"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 29,
+      "model_elapsed_ms": 496.878,
+      "request_elapsed_ms": 1539.325,
+      "wall_elapsed_ms": 1539.469,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_4",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Search current Hugging Face service status.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Hugging Face service status\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Hugging Face service status"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 479.727,
+      "request_elapsed_ms": 727.322,
+      "wall_elapsed_ms": 727.551,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_4",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Search current Hugging Face service status.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Hugging Face service status\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Hugging Face service status"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 475.703,
+      "request_elapsed_ms": 479.016,
+      "wall_elapsed_ms": 479.196,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_5",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "Look up today's exchange rate and cite a public source.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"USD to EUR exchange rate today official source\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "USD to EUR exchange rate today official source"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 506.419,
+      "request_elapsed_ms": 1301.054,
+      "wall_elapsed_ms": 1301.261,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_en_5",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "Look up today's exchange rate and cite a public source.",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"USD to EUR exchange rate today official source\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "USD to EUR exchange rate today official source"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 513.443,
+      "request_elapsed_ms": 1568.739,
+      "wall_elapsed_ms": 1568.909,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_1",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "联网搜索今天RWKV的最新消息。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV latest news today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV latest news today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 504.178,
+      "request_elapsed_ms": 1206.975,
+      "wall_elapsed_ms": 1207.111,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_1",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "联网搜索今天RWKV的最新消息。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV latest news today\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "RWKV latest news today"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 494.317,
+      "request_elapsed_ms": 1628.631,
+      "wall_elapsed_ms": 1628.761,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_2",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "查一下Python当前稳定版本并给出官网来源。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Python current stable version official\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Python current stable version official"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 495.114,
+      "request_elapsed_ms": 808.388,
+      "wall_elapsed_ms": 808.548,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_2",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "查一下Python当前稳定版本并给出官网来源。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"Python current stable version official\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "Python current stable version official"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 27,
+      "model_elapsed_ms": 493.822,
+      "request_elapsed_ms": 497.645,
+      "wall_elapsed_ms": 497.846,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_3",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "搜索本周最新的PyTorch发布公告。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"PyTorch latest release announcement this week\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "PyTorch latest release announcement this week"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 538.707,
+      "request_elapsed_ms": 1219.285,
+      "wall_elapsed_ms": 1219.487,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_3",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "搜索本周最新的PyTorch发布公告。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"PyTorch latest release announcement this week\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "PyTorch latest release announcement this week"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 30,
+      "model_elapsed_ms": 559.363,
+      "request_elapsed_ms": 1593.516,
+      "wall_elapsed_ms": 1593.726,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8118"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_4",
+      "repeat": 0,
+      "expected_tool": "web_search",
+      "message": "联网查明天北京天气。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"明天北京天气\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "明天北京天气"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 477.184,
+      "request_elapsed_ms": 709.836,
+      "wall_elapsed_ms": 710.041,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    },
+    {
+      "style": "production_examples",
+      "case_id": "web_zh_4",
+      "repeat": 1,
+      "expected_tool": "web_search",
+      "message": "联网查明天北京天气。",
+      "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"明天北京天气\"}}</tool_call>",
+      "parsed": {
+        "strict": true,
+        "tool": "web_search",
+        "arguments": {
+          "query": "明天北京天气"
+        },
+        "error": ""
+      },
+      "evaluation": {
+        "strict": true,
+        "tool_correct": true,
+        "argument_valid": true,
+        "question_present": true,
+        "passed": true
+      },
+      "output_tokens": 28,
+      "model_elapsed_ms": 476.174,
+      "request_elapsed_ms": 480.04,
+      "wall_elapsed_ms": 480.246,
+      "model": "rwkv7-g1i-preview3260-7.2b",
+      "url": "http://127.0.0.1:8119"
+    }
+  ],
+  "sha256_without_sha_field": "c9a032fdf67911aacd8d85c7a06c7fe0c17d929c05ce610675da9ef59ceb5a40"
+}

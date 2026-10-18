@@ -1,0 +1,2605 @@
+{
+  "schema_version": "search-reasoning-ac-dev-v2-case-matrix.v1",
+  "cases": [
+    {
+      "id": "retrieval-en-101",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-102",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-103",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_reference",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-104",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-105",
+      "language": "en",
+      "query_style": "terse",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-106",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-107",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-108",
+      "language": "en",
+      "query_style": "terse",
+      "category": "official_docs",
+      "task_family": "technical_reference",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-109",
+      "language": "en",
+      "query_style": "terse",
+      "category": "standards_specification",
+      "task_family": "language_specification",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-110",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "software_release",
+      "task_family": "software_release",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-111",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-112",
+      "language": "en",
+      "query_style": "terse",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-113",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-114",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-115",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-116",
+      "language": "en",
+      "query_style": "terse",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-117",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-118",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-119",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-120",
+      "language": "en",
+      "query_style": "terse",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-121",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": true,
+        "target_page_hit_at_20": true
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-122",
+      "language": "en",
+      "query_style": "terse",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-123",
+      "language": "en",
+      "query_style": "terse",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-124",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-125",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-126",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-127",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "government_policy",
+      "task_family": "government_publication",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-128",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-129",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_recall",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-130",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "realtime_public_info",
+      "task_family": "public_recall",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-131",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-132",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-133",
+      "language": "en",
+      "query_style": "terse",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-134",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-135",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-136",
+      "language": "en",
+      "query_style": "canonical",
+      "category": "realtime_public_info",
+      "task_family": "health_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-137",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "company_filing",
+      "task_family": "company_filing",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-138",
+      "language": "en",
+      "query_style": "terse",
+      "category": "company_filing",
+      "task_family": "company_filing",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-139",
+      "language": "en",
+      "query_style": "terse",
+      "category": "company_filing",
+      "task_family": "company_filing",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-140",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "newsroom",
+      "task_family": "incident_report",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-141",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "product_support",
+      "task_family": "product_support",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-142",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "health_guideline",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-143",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "newsroom",
+      "task_family": "official_news",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-144",
+      "language": "en",
+      "query_style": "terse",
+      "category": "academic_paper",
+      "task_family": "academic_source",
+      "source_policy": "original_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": true
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-145",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-146",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-en-147",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "user_experience",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 0,
+      "feedback_query_count": 0
+    },
+    {
+      "id": "retrieval-en-148",
+      "language": "en",
+      "query_style": "noisy",
+      "category": "community_discussion",
+      "task_family": "user_experience",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-en-149",
+      "language": "en",
+      "query_style": "noisy",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 0,
+      "feedback_query_count": 0
+    },
+    {
+      "id": "retrieval-en-150",
+      "language": "en",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 0,
+      "feedback_query_count": 0
+    },
+    {
+      "id": "retrieval-zh-101",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-102",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": true,
+        "target_page_hit_at_20": true
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": true,
+        "target_page_hit_at_20": true
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-103",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_reference",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-104",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-105",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-106",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-107",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "technical_howto",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-108",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "official_docs",
+      "task_family": "technical_reference",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-109",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "standards_specification",
+      "task_family": "language_specification",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-110",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "software_release",
+      "task_family": "software_release",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-111",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-112",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-113",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-114",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-115",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-116",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-117",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-118",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-119",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-120",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "security_advisory",
+      "task_family": "security_advisory",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-121",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-122",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-123",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-124",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-125",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "standards_specification",
+      "task_family": "standards_lookup",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-126",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-127",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "government_policy",
+      "task_family": "government_publication",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-128",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-129",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_recall",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-130",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "realtime_public_info",
+      "task_family": "public_recall",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-131",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-132",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-133",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-134",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "statistics",
+      "task_family": "public_statistics",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-135",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "realtime_public_info",
+      "task_family": "public_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-136",
+      "language": "zh",
+      "query_style": "canonical",
+      "category": "realtime_public_info",
+      "task_family": "health_warning",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-137",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "company_filing",
+      "task_family": "company_filing",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-138",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "company_filing",
+      "task_family": "company_filing",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-139",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "company_filing",
+      "task_family": "company_filing",
+      "source_policy": "primary_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-140",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "newsroom",
+      "task_family": "incident_report",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-141",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "product_support",
+      "task_family": "product_support",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-142",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "official_docs",
+      "task_family": "health_guideline",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-143",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "newsroom",
+      "task_family": "official_news",
+      "source_policy": "official_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-144",
+      "language": "zh",
+      "query_style": "terse",
+      "category": "academic_paper",
+      "task_family": "academic_source",
+      "source_policy": "original_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": true,
+        "target_page_hit_at_20": true
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": true,
+        "target_page_hit_at_20": true
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-145",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-146",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-147",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "user_experience",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": true,
+        "domain_hit_at_10": true,
+        "domain_hit_at_20": true,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-148",
+      "language": "zh",
+      "query_style": "noisy",
+      "category": "community_discussion",
+      "task_family": "user_experience",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    },
+    {
+      "id": "retrieval-zh-149",
+      "language": "zh",
+      "query_style": "noisy",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": true,
+      "feedback_query_executed": true,
+      "direct_query_count": 1,
+      "feedback_query_count": 2
+    },
+    {
+      "id": "retrieval-zh-150",
+      "language": "zh",
+      "query_style": "conversational",
+      "category": "community_discussion",
+      "task_family": "developer_community",
+      "source_policy": "community_required",
+      "direct": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback": {
+        "domain_hit_at_5": false,
+        "domain_hit_at_10": false,
+        "domain_hit_at_20": false,
+        "target_page_hit_at_10": false,
+        "target_page_hit_at_20": false
+      },
+      "feedback_gate_triggered": false,
+      "feedback_query_executed": false,
+      "direct_query_count": 1,
+      "feedback_query_count": 1
+    }
+  ]
+}

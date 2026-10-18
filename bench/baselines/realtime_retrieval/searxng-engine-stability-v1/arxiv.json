@@ -1,0 +1,146 @@
+{
+  "schema_version": "searxng-engine-bench-summary.v1",
+  "record_count": 2,
+  "engine_count": 1,
+  "engines": {
+    "arxiv": {
+      "spec": {
+        "name": "arxiv",
+        "categories": [
+          "science",
+          "scientific publications"
+        ],
+        "language_support": false,
+        "paging": true,
+        "time_range_support": false,
+        "timeout": 3.0
+      },
+      "overall": {
+        "requests": 2,
+        "request_success_rate": 1.0,
+        "nonempty_rate": 1.0,
+        "domain_recall_at_10": 1.0,
+        "target_page_recall_at_20": 1.0,
+        "candidate_count": 20,
+        "average_candidate_count": 10.0,
+        "garbage_result_count": 0,
+        "garbage_result_rate": 0.0,
+        "average_unique_domain_ratio": 0.1,
+        "average_elapsed_ms": 416.42,
+        "p95_elapsed_ms": 433.727,
+        "case_count": 1,
+        "stable_request_success_rate": 1.0,
+        "stable_nonempty_rate": 1.0,
+        "stable_domain_recall_at_10": 1.0,
+        "stable_target_page_recall_at_20": 1.0,
+        "intermittent_domain_hit_cases": 0,
+        "intermittent_target_hit_cases": 0,
+        "intermittent_nonempty_cases": 0
+      },
+      "languages": {
+        "zh": {
+          "requests": 2,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 1.0,
+          "domain_recall_at_10": 1.0,
+          "target_page_recall_at_20": 1.0,
+          "candidate_count": 20,
+          "average_candidate_count": 10.0,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.1,
+          "average_elapsed_ms": 416.42,
+          "p95_elapsed_ms": 433.727,
+          "case_count": 1,
+          "stable_request_success_rate": 1.0,
+          "stable_nonempty_rate": 1.0,
+          "stable_domain_recall_at_10": 1.0,
+          "stable_target_page_recall_at_20": 1.0,
+          "intermittent_domain_hit_cases": 0,
+          "intermittent_target_hit_cases": 0,
+          "intermittent_nonempty_cases": 0
+        },
+        "en": {
+          "requests": 0,
+          "case_count": 0
+        }
+      },
+      "repetitions": {
+        "1": {
+          "requests": 1,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 1.0,
+          "domain_recall_at_10": 1.0,
+          "target_page_recall_at_20": 1.0,
+          "candidate_count": 10,
+          "average_candidate_count": 10.0,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.1,
+          "average_elapsed_ms": 433.727,
+          "p95_elapsed_ms": 433.727
+        },
+        "2": {
+          "requests": 1,
+          "request_success_rate": 1.0,
+          "nonempty_rate": 1.0,
+          "domain_recall_at_10": 1.0,
+          "target_page_recall_at_20": 1.0,
+          "candidate_count": 10,
+          "average_candidate_count": 10.0,
+          "garbage_result_count": 0,
+          "garbage_result_rate": 0.0,
+          "average_unique_domain_ratio": 0.1,
+          "average_elapsed_ms": 399.113,
+          "p95_elapsed_ms": 399.113
+        }
+      }
+    }
+  },
+  "generated_at": "2026-07-22T07:09:10.757085+00:00",
+  "bench": "bench/realtime_web_retrieval.jsonl",
+  "bench_sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc",
+  "model_queries": "bench/runs/query_formation_p4_queries_v1.jsonl",
+  "model_queries_sha256": "c58e6241939d79dad6afb6bf5ea215f5087324453c41820cefe9ae8d8c84722d",
+  "case_count": 1,
+  "repetition_count": 2,
+  "selected_engines": [
+    "arxiv"
+  ],
+  "general_engine_ranking": {
+    "zh": [],
+    "en": []
+  },
+  "case_matrix": [
+    {
+      "id": "retrieval-zh-024",
+      "engine": "arxiv",
+      "repetition": 1,
+      "language": "zh",
+      "category": "academic_paper",
+      "request_success": true,
+      "nonempty": true,
+      "domain_hit_at_10": true,
+      "target_page_hit_at_20": true,
+      "candidate_count": 10,
+      "garbage_result_count": 0,
+      "elapsed_ms": 433.727,
+      "error_type": ""
+    },
+    {
+      "id": "retrieval-zh-024",
+      "engine": "arxiv",
+      "repetition": 2,
+      "language": "zh",
+      "category": "academic_paper",
+      "request_success": true,
+      "nonempty": true,
+      "domain_hit_at_10": true,
+      "target_page_hit_at_20": true,
+      "candidate_count": 10,
+      "garbage_result_count": 0,
+      "elapsed_ms": 399.113,
+      "error_type": ""
+    }
+  ]
+}

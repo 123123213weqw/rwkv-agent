@@ -1,0 +1,13 @@
+{
+  "schema_version": "agent-knowledge-shadow-manifest.v1",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "ad080bc36b8f1b599489b2c555ac57086f9af30a4989d2b5a0d6372f837c3b6e"
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "e02ecb01f5662c44d3522a70aff2b7401999ef0fc8b34b7dc2f784f2fb0f45ce"
+    }
+  ]
+}

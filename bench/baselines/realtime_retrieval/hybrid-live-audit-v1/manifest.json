@@ -1,0 +1,61 @@
+{
+  "schema_version": "hybrid-live-audit-public-summary.v1",
+  "status": "public_summary",
+  "benchmark": {
+    "path": "bench/realtime_web_retrieval.jsonl",
+    "sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc",
+    "case_count": 50
+  },
+  "run_count": 2,
+  "headline_ranges": {
+    "candidate_domain_recall_at_10": {
+      "min": 0.44,
+      "max": 0.48
+    },
+    "candidate_target_page_recall_at_20": {
+      "min": 0.12,
+      "max": 0.2
+    },
+    "result_domain_recall_at_10": {
+      "min": 0.16,
+      "max": 0.22
+    },
+    "result_target_page_recall_at_20": {
+      "min": 0.02,
+      "max": 0.04
+    },
+    "nonempty_result_rate": {
+      "min": 0.7,
+      "max": 0.76
+    },
+    "garbage_result_rate": {
+      "min": 0.0,
+      "max": 0.0091
+    },
+    "fetch_success_rate": {
+      "min": 0.4416,
+      "max": 0.452
+    },
+    "average_total_elapsed_ms": {
+      "min": 4990.779,
+      "max": 5303.831
+    },
+    "p95_total_elapsed_ms": {
+      "min": 8013.996,
+      "max": 8018.501
+    }
+  },
+  "frozen_files": {
+    "README.md": "ee52e01250d340f57d0f10a1596a5b0bdad22f1f3680ecc366a27cbe3912728f",
+    "comparison.json": "3eb20c36a78b8216b979df1b6e4e209c8c5029ce2decbe14933caa01fc5546f5",
+    "run1_summary.json": "1f9ba26fe2269dd9b6cdbfc7fa418338c1119576545fce787e58348e6bfb4e56",
+    "run2_summary.json": "1d9014864bafa0c409fd29158f462f027cb89a81a514ab701fa6b2913c4780b6",
+    "attribution_summary.json": "a35dbe08c516e737cc2f983662ca200579a29c3192864d07d13263b076e4581c",
+    "case_matrix.json": "5cba8547c2aa801468142a6cb70fa5a3f7eb46c93f543b5fb867bb15a25b5763"
+  },
+  "publication": {
+    "full_web_content_included": false,
+    "candidate_urls_included": false,
+    "private_machine_config_included": false
+  }
+}

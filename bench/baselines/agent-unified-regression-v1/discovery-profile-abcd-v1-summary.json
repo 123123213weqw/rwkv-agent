@@ -1,0 +1,177 @@
+{
+  "schema_version": "rwkv-agent-discovery-profile-abcd-summary.v1",
+  "created_at": "2026-07-28",
+  "status": "isolated_experiment_not_for_production",
+  "scope": {
+    "webwalkerqa_cases": 40,
+    "frames_cases": 40,
+    "model": "rwkv7-g1i-preview3260-7.2b",
+    "concurrency": 2,
+    "rounds": 2,
+    "branch_width": 4,
+    "search_backend": "Bing HTML fallback",
+    "searxng_status": "127.0.0.1:8888 unavailable during C/D runs"
+  },
+  "arms": {
+    "A": {
+      "name": "pre_p0_legacy",
+      "description": "Frozen historical baseline before strict scope, page-shape filtering and evidence abstention."
+    },
+    "B": {
+      "name": "p0_legacy",
+      "description": "P0 evidence correctness with the legacy Web profile."
+    },
+    "C": {
+      "name": "p0_balanced",
+      "features": [
+        "candidate_admission",
+        "query_compaction",
+        "domain_pivot"
+      ]
+    },
+    "D": {
+      "name": "p0_enhanced",
+      "features": [
+        "candidate_admission",
+        "query_compaction",
+        "domain_pivot",
+        "source_channels",
+        "one_hop_link_expansion"
+      ]
+    }
+  },
+  "metrics": {
+    "webwalkerqa": {
+      "A": {
+        "answer_token_f1": 0.227145,
+        "source_domain_recall": 0.225,
+        "exact_page_recall": 0.025,
+        "evidence_nonempty": 1.0,
+        "answered_cases": 40,
+        "supported_claim_rate": 0.03625,
+        "unsupported_claim_rate": 0.96375,
+        "latency_p95_ms": 19377.881,
+        "request_count_mean": 7.8,
+        "evidence_items": 320,
+        "current_page_quality_rejected_items": 96,
+        "results_sha256": "74b7c8b59eebe12365bc815883fb4cbd5e1d9d53a3cdc60692711972a0676887"
+      },
+      "B": {
+        "answer_token_f1": 0.017343,
+        "source_domain_recall": 0.2,
+        "exact_page_recall": 0.0,
+        "evidence_nonempty": 0.2,
+        "answered_cases": 0,
+        "supported_claim_rate": null,
+        "unsupported_claim_rate": null,
+        "latency_p95_ms": 18739.534,
+        "request_count_mean": 6.35,
+        "evidence_items": 11,
+        "current_page_quality_rejected_items": 0,
+        "results_sha256": "2f386d5d7dc78fed830da7b410b4e3e985300d8deda1a85b6216d5122ed1c378"
+      },
+      "C": {
+        "answer_token_f1": 0.015919,
+        "source_domain_recall": 0.225,
+        "exact_page_recall": 0.025,
+        "evidence_nonempty": 0.225,
+        "answered_cases": 0,
+        "supported_claim_rate": null,
+        "unsupported_claim_rate": null,
+        "latency_p95_ms": 13468.911,
+        "request_count_mean": 6.175,
+        "evidence_items": 16,
+        "current_page_quality_rejected_items": 0,
+        "results_sha256": "70a67862e2049cecf4098d125d5ad36406cfae978737d7ba45d71f5dba4f1293"
+      },
+      "D": {
+        "answer_token_f1": 0.064254,
+        "source_domain_recall": 0.8,
+        "exact_page_recall": 0.025,
+        "evidence_nonempty": 0.8,
+        "answered_cases": 14,
+        "supported_claim_rate": 0.759524,
+        "unsupported_claim_rate": 0.240476,
+        "latency_p95_ms": 29188.029,
+        "request_count_mean": 6.175,
+        "evidence_items": 127,
+        "same_root_evidence_rate": 0.944882,
+        "current_page_quality_rejected_items": 0,
+        "results_sha256": "4e4e60681b648960d79c5996380253e669d4d0b3cce9499aa112eb13c56dfa83"
+      }
+    },
+    "frames": {
+      "A": {
+        "answer_token_f1": 0.07293,
+        "source_domain_recall": 0.0,
+        "exact_page_recall": 0.0,
+        "evidence_nonempty": 1.0,
+        "answered_cases": 40,
+        "supported_claim_rate": 0.009375,
+        "unsupported_claim_rate": 0.990625,
+        "latency_p95_ms": 20851.88,
+        "request_count_mean": 8.0,
+        "evidence_items": 320,
+        "current_page_quality_rejected_items": 175,
+        "results_sha256": "c38b6d3f3d46a2b9fe3943d92249dfce039dd271841dadadf956fcce42a0f175"
+      },
+      "B": {
+        "answer_token_f1": 0.01004,
+        "source_domain_recall": 0.0,
+        "exact_page_recall": 0.0,
+        "evidence_nonempty": 0.725,
+        "answered_cases": 3,
+        "supported_claim_rate": 0.916667,
+        "unsupported_claim_rate": 0.083333,
+        "latency_p95_ms": 24114.562,
+        "request_count_mean": 6.35,
+        "evidence_items": 155,
+        "current_page_quality_rejected_items": 0,
+        "results_sha256": "647bb27af5f7ac697966beea5e72ac956bd03d21887790a7071efc8b1c664e33"
+      },
+      "C": {
+        "answer_token_f1": 0.012313,
+        "source_domain_recall": 0.0,
+        "exact_page_recall": 0.0,
+        "evidence_nonempty": 0.925,
+        "answered_cases": 3,
+        "supported_claim_rate": 0.666667,
+        "unsupported_claim_rate": 0.333333,
+        "latency_p95_ms": 25751.68,
+        "request_count_mean": 6.3,
+        "evidence_items": 233,
+        "current_page_quality_rejected_items": 0,
+        "results_sha256": "7df83d8126226425a2e8b2f4426652bfc58fd97ab8b962c36a10d26c780ebcf7"
+      },
+      "D": {
+        "answer_token_f1": 0.015254,
+        "source_domain_recall": 0.0,
+        "exact_page_recall": 0.0,
+        "evidence_nonempty": 0.925,
+        "answered_cases": 5,
+        "supported_claim_rate": 0.666667,
+        "unsupported_claim_rate": 0.333333,
+        "latency_p95_ms": 27334.884,
+        "request_count_mean": 6.3,
+        "evidence_items": 235,
+        "current_page_quality_rejected_items": 0,
+        "results_sha256": "a8ffaa646b8b4a797a6fe82471e52da1c1f6fa42b12c317bfec9adf58f58f7d5"
+      }
+    }
+  },
+  "findings": [
+    "P0 removes page-shape garbage and unsupported free answering, but exposes the low live-discovery recall that the old baseline hid.",
+    "Balanced restores one WebWalkerQA exact target page and lowers Web P95 in this run, but it does not recover any answerable Web case.",
+    "Enhanced raises WebWalkerQA root-domain recall to 80%, but exact-page recall stays at 2.5% and P95 rises to 29.2 seconds.",
+    "The Enhanced Web gain is dominated by benchmark root_url seeding and one-hop expansion: 94.49% of its accepted evidence is on the supplied root site. Normal chat does not normally have this root_url oracle.",
+    "FRAMES has no root_url scope. Enhanced leaves domain and exact-page recall at zero, raises F1 only from 1.23% to 1.53%, and increases P95 from 25.8 to 27.3 seconds versus Balanced.",
+    "Enhanced answered 14 Web cases, but Web F1 is only 6.43% and exact-page recall is unchanged; generic page support is not equivalent to answering the requested historical fact.",
+    "No profile is production-ready. Keep P0 evidence admission, do not enable Enhanced globally, and optimize exact target-page discovery before relaxing abstention."
+  ],
+  "comparison_limitations": [
+    "A and B are frozen historical live runs; C and D are new sequential live Bing runs, so upstream result fluctuation is not controlled across all four arms.",
+    "A predates the exact_page_recall metric; its 2.5% value was recomputed from normalized gold and evidence URLs.",
+    "Supported-claim rate only checks whether generated claims are supported by selected evidence; it does not establish that the evidence answers the benchmark question.",
+    "WebWalkerQA supplies root_url to the scoped Agent. The Enhanced root seed is therefore useful for bounded site walking but should not be interpreted as general Web search recall."
+  ]
+}

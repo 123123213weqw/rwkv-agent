@@ -1,0 +1,23 @@
+{
+  "memory_used_mib": {
+    "max": 14080.0,
+    "mean": 14079.462,
+    "min": 14060.0
+  },
+  "power_draw_w": {
+    "max": 204.17,
+    "mean": 159.609,
+    "min": 4.79
+  },
+  "samples": 212,
+  "temperature_gpu_c": {
+    "max": 61.0,
+    "mean": 52.844,
+    "min": 35.0
+  },
+  "utilization_gpu_pct": {
+    "max": 100.0,
+    "mean": 80.642,
+    "min": 0.0
+  }
+}

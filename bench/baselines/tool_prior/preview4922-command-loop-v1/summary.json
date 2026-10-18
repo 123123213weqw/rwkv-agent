@@ -1,0 +1,104 @@
+{
+  "schema": "rwkv-agent-run-command-state-loop-summary.v1",
+  "date": "2026-08-01",
+  "status": "isolated_benchmark_only_not_deployed",
+  "model": "rwkv7-g1i-preview4922-13.3b",
+  "decoder": "greedy_argmax",
+  "interface": "run_command(command)",
+  "design": {
+    "cases": 6,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "prompt_styles": [
+      "instruction_only",
+      "one_loop_example"
+    ],
+    "repeats": 2,
+    "formal_runs": 24,
+    "concurrency": 4,
+    "max_command_actions": 6,
+    "real_commands_executed": true,
+    "persistent_state_continuation": true
+  },
+  "formal_results": {
+    "instruction_only": {
+      "passed": 0,
+      "total": 12,
+      "protocol_valid": 0,
+      "task_verified": 0,
+      "minimum_actions_met": 12,
+      "state_constant": 12,
+      "released": 12,
+      "repeat_command_answer_exact": 6,
+      "repeat_groups": 6,
+      "mean_actions": 6.0,
+      "mean_elapsed_ms": 27326.403833,
+      "terminal_counts": {
+        "step_limit": 12
+      }
+    },
+    "one_loop_example": {
+      "passed": 10,
+      "total": 12,
+      "protocol_valid": 10,
+      "task_verified": 10,
+      "minimum_actions_met": 12,
+      "state_constant": 12,
+      "released": 12,
+      "repeat_command_answer_exact": 5,
+      "repeat_groups": 6,
+      "mean_actions": 2.666667,
+      "mean_elapsed_ms": 18217.586,
+      "terminal_counts": {
+        "answer": 10,
+        "step_limit": 2
+      }
+    }
+  },
+  "focused_fix_and_test": {
+    "sequential": {
+      "passed": 4,
+      "total": 4,
+      "repeat_command_answer_exact": 1,
+      "repeat_groups": 1,
+      "mean_actions": 6.0,
+      "mean_elapsed_ms": 7925.47975
+    },
+    "homogeneous_c4": {
+      "passed": 4,
+      "total": 4,
+      "repeat_command_answer_exact": 1,
+      "repeat_groups": 1,
+      "mean_actions": 6.0,
+      "mean_elapsed_ms": 31350.67375
+    }
+  },
+  "findings": [
+    "Instructions alone produced valid repeated tool calls but never closed the loop with a final answer.",
+    "One complete Tool Call to Tool Result to Answer example raised formal task success from 0/12 to 10/12.",
+    "All 24 formal runs retained one State ID and released it successfully.",
+    "The same fix-and-test prompt passed 4/4 sequentially and 4/4 in a homogeneous C4 probe but failed 2/2 in the mixed formal C4 matrix, indicating batch-composition-sensitive greedy trajectories."
+  ],
+  "decision": {
+    "loop_mechanism_validated": true,
+    "production_integration_approved": false,
+    "required_before_integration": [
+      "batch-invariance and bounded recovery gate",
+      "real OS isolation rather than regex command validation",
+      "policy, audit, cancellation and resource controls"
+    ]
+  },
+  "raw_results": {
+    "formal_bilingual_c4_sha256": "7beec2a85989db252e2d0d5a39b0f791166bfd1e573d429aae5e8517e5206bbe",
+    "focused_sequential_sha256": "1388f2ee85c246d76db3b15feb655042c2850f70ae79298e5cbff5f39f749dc0",
+    "focused_homogeneous_c4_sha256": "6b781434e15362e25fa983dbbc209326f2c88e59f9dac28fc52b12bf27fdf1e9"
+  },
+  "limitations": [
+    "The six fixture tasks are a focused loop probe, not a general-agent benchmark.",
+    "The executor is benchmark-only and is not a hardened sandbox.",
+    "Latency is descriptive because requests share one continuous-batching V100 runtime.",
+    "The focused probes establish an association with batch composition; they do not identify the exact numerical kernel or token-margin cause."
+  ]
+}

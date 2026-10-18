@@ -1,0 +1,322 @@
+{
+  "request": {
+    "session_id": "e2e-current-q2-fixed-20260728",
+    "message": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）",
+    "branch_width": 4,
+    "max_rounds": 2
+  },
+  "started_at": "2026-07-28T06:41:23.744000+00:00",
+  "http_status": 200,
+  "elapsed_seconds": 39.077,
+  "response": {
+    "status": "ok",
+    "session_id": "e2e-current-q2-fixed-20260728",
+    "message": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）",
+    "route": {
+      "mode": "state_parallel_search",
+      "tool": "web_search",
+      "branch_width": 4,
+      "rounds": 2
+    },
+    "tool_result": {
+      "status": "ok",
+      "tool": "web_search",
+      "evidence": [
+        {
+          "id": "W1",
+          "title": "体验 RWKV -7训练全过程，只需400行代码训练3分钟",
+          "content": "- 训练环境与超参数设置 - 自定义 CUDA 算子 (WindBackstepping) - RWKV 核心的 Time Mix 机制 (RWKV_Tmix_x070) - 生成“数字翻转”训练数据的代码 (batch) - RWKV 的 Channel Mix 模块 (FFN) - RWKV 的模型结构定义 (MODEL) - 训练代码 (优化器与反向传播) - 模型效果评估 下面我们将对每个模块进行带注释的详细介绍。 Line 1 ~ 28负责训练环境与超参数设置，包括： - 导入所有必需的库（如 torch,wandb,numpy等） return x, v_first # 返回输出和 v_first Line 183 ~ 193定义了 batch 函数，一个动态的数据生成器。由于这是一个简单的演示脚本，我们不从磁盘加载训练数据，而是即时创建“数字翻转”数据：生成随机数n，跟一个逗号，然后是该数字的反向序列，最后是结束符#。例如582,285#。 模型将以“预测下一个 token”的方式学习这个序列，从而学会这个算法。 # 词表：'0'-'9' (token 0-9), ',' (token10), '#' (token11) Line 216 ~ 256(MODEL) 的 MODEL 类是完整的 RWKV 神经网络模型。它将前面定义的所有构建模块（nn.Embedding、LayerNorm、RWKV_Tmix_x070 和 FFN）组装在一起。 本文的模型是 2 层 RWKV 网络，和 RWKV-7 论文的架构定义一致（由于这里是极小的模型，因此没有在 Embedding 后面加 LayerNorm）： class MODEL(nn.Module): def __init__(s): # 使用 's' 代替 'self' super().__init__()",
+          "uri": "https://blog.csdn.net/rwkvteam/article/details/154942631",
+          "source": "web",
+          "published_at": "2025-11-17"
+        },
+        {
+          "id": "W2",
+          "title": "上海 必去的17个地方，去过8个以上才算真正到过 上海 ，你去 ...",
+          "content": "上海迪士尼乐园是中国大陆首个迪士尼主题公园，位于上海市浦东新区。这座梦幻般的乐园包括六大主题园区：米奇大街、奇想花园、探险岛、宝藏湾、明日世界和梦幻世界。每个园区都拥有独特的游乐设施和景点，乐园的标志性建筑是奇幻童话城堡，这是全球最高、最大、最具互动性的迪士尼城堡。 2、东方明珠塔 东方明珠塔是上海市的标志性建筑之一，位于浦东新区陆家嘴地区，毗邻黄浦江，与外滩隔江相望。东方明珠塔始建于1991年，1995年投入使用，总高度为468米，是当时亚洲第一、世界第三的高塔。东方明珠塔由11个大小不一的球体串联而成，造型独特，融汇了现代科技与东方文化之美。 3、豫园·城隍庙 5、上海科技馆 上海科技馆位于浦东新区，是一座大型综合性科普场馆。馆内设有多个展厅，涵盖了自然、人体、科技、天文等多个领域。在这里可以通过互动式的展览、实验、演示等方式，学习科学知识，体验科技魅力。科技馆内设有多个特色展厅，展示了现代科技的最新成果和发展趋势，还设有IMAX影院、天文台、动植物标本馆等配套设施。 6、上海野生动物园 上海野生动物园是上海市最大的动物园之一，位于上海市浦东新区，该动物园以展示野生动物为主，集保护、研究、教育、娱乐等功能于一体。园内设有多个展区，包括猛兽区、食草动物区、鸟类区、灵长类动物区等，展示了世界各地的珍稀野生动物。 7、静安寺 上海东林寺位于金山区朱泾镇，是一座具有悠久历史和深厚文化积淀的佛教寺庙。东林寺始建于元朝至大年间（1308-1311年），距今已有700多年的历史，2007年寺庙重修并扩建。东林寺依山而建，景色秀丽，是我国江南地区著名的佛教圣地。 12、上海世纪公园 上海世纪公园位于浦东新区，是新世纪伊始建成的一座大型城市公园，公园以自然生态为主题，公园地势平坦，河湖交错，绿化覆盖率高。园内设有中央湖岛区、鸟类保护区、花卉展馆、森林游乐区等多个功能区域，人们可以在湖边漫步，欣赏湖光山色；亦可以沿着步道骑行，感受自然气息。 13、思南公馆",
+          "uri": "https://www.sohu.com/a/800755976_121948408",
+          "source": "web",
+          "published_at": "2024-08-14"
+        },
+        {
+          "id": "W3",
+          "title": "RWKV 文档首页 - RWKV",
+          "content": "RWKV 文档首页 - RWKV RWKV RWKV 文档首页 欢迎来到 RWKV 中文文档，可在此处了解 RWKV 的 概念性知识 ，包括但不限于： RWKV 的介绍，比如 架构迭代历史 、模型版本、 训练数据集 、本地部署的显存需求等 RWKV 的基准测试表现如何？在不同设备（如各种 GPU/CPU/NPU 等）的推理速度如何？ RWKV 社区有哪些 优秀的项目 ？如何 参与 RWKV 社区 并贡献您的力量？ RWKV 文档 不包含实操教程 ，如果您需要学习 RWKV 的具体用法，比如本地部署、微调训练，请参考 RWKV 教程 。 了解 RWKV 通过使用 RWKV 偏好的提示词格式，可以改善模型的输出质量 RWKV 的提示词示例 尝试我们精心挑选的提示词示例。 聊天模式的提示词示例 续写模式的提示词示例 RWKV 基准测试表现 RWKV 的 benchmark 测试数据 查看 RWKV 模型在各种基准测试中的表现 Uncheatable Eval MMLU MMLU-PRO GSM8K MATH500 IFEval RWKV 长文本基准测试数据 查看 RWKV 模型在长文本基准测试中的表现 RULER LongBench RWKV 的端侧推理性能 RWKV 端侧推理性能 加入 RWKV QQ 交流群 224287095 讨论 这份文档对您有帮助吗？ 有帮助 没有帮助 编辑此页 联系我们 © 2026 RWKV. All rights reserved. 粤ICP备2024242518号-1 粤公网安备44030002010697号 On this page 了解 RWKV 改善模型的生成质量 RWKV 基准测试表现 RWKV 的端侧推理性能 加入 RWKV 社区 如何反馈文档问题？",
+          "uri": "https://www.rwkv.cn/docs",
+          "source": "web",
+          "published_at": "2026-01-01"
+        },
+        {
+          "id": "W4",
+          "title": "市政府门户网站_ 上海 市人民政府",
+          "content": "2026年6月30日 · 上海市人民政府发展研究中心 上海市人民政府参事室 上海市文史研究馆 上海市粮食局 上海市监狱管理局 上海市社会团体管理局 上海市公务员局 上海市人民政府征兵办公室 上海市城市管 …",
+          "uri": "https://www.shanghai.gov.cn/nw42858/index.html",
+          "source": "bing"
+        },
+        {
+          "id": "W5",
+          "title": "2026年7月 上海 景点攻略- 上海 旅游必去景点- 上海 景点大全-猫途鹰",
+          "content": "猫途鹰为你提供2026年7月27日猫途鹰为你提供2731个上海旅游景点攻略信息，它们包含：上海必去旅游景点、景点图片、景点星级、景点类型、景点点评。 景点旅游种草、旅游攻略就上猫途鹰。",
+          "uri": "https://www.tripadvisor.cn/Attractions-g308272-Activities-Shanghai.html",
+          "source": "web",
+          "published_at": "2026-01-01"
+        },
+        {
+          "id": "W6",
+          "title": "上海 市文化和旅游局， 上海 官方中国旅游网站， 上海 旅游网站 ...",
+          "content": "音乐厅新玩法!《鬼吹灯》《浪浪山小妖怪》沉浸式XR体验来袭→ 即日起，上海音乐厅4楼“响空间”VR体验空间迎来两大顶流IP项目《鬼吹灯之精绝古城VR》《浪浪山小妖怪：幻境奇旅》XR，带上VR眼镜，冒险即刻启程。 2026-07-27",
+          "uri": "https://www.meet-in-shanghai.net/cn/index.html",
+          "source": "web",
+          "published_at": "2026-07-27"
+        },
+        {
+          "id": "W7",
+          "title": "Transformer 架构平替-- RWKV 架构详解 -CSDN博客",
+          "content": "一、引言 Transformer 结构是当前大语言模型的主流模型架构，其具备构建灵活、易并 行、易扩展等优势。但是，Transformer也并非完美。其并行输入的机制会导致模型 规模随输入序列长度平方增长，导致其在处理长序列时面临计算瓶颈。为了提高计 算效率和性能，解决Transformer在长序列处理中的瓶颈问题，可以选择基于RNN 的语言模型。RNN在生成输出时，只考虑之前的隐藏状态和当前输入，理论上可 以处理无限长的序列。然而，传统的RNN模型（如GRU、LSTM等）在处理长序 列时可能难以捕捉到长期依赖关系，且面临着梯度消失或爆炸问题。为了克服这 些问题，近年来，研究者提出了两类现代RNN变 RWKV模型的核心模块有两个：时间混合模块和通道混合模块。时间混合模 块主要处理序列中不同时间步之间的关系，通道混合模块则关注同一时间步内不同特征通道之间的交互。时间混合模块和通道混合模块的设计基于四个基本元 素：接收向量R、键向量K、值向量V和权重W，下面将根据RWKV 架构图，介绍这些元素在两个模块中的计算流程和作用。 首先说明𝑢 , 𝑤是时间偏置。WKV是核心状态变量，承担着时序信息的记忆与传递功能，通过引入时间衰减权重和递归计算方式，实现了高效的序列建模。在接下来的过程中当按照数据处理流程进行公式讲解，给定输入序列 ，每个时间步执行以下操作： Step 1: LayerNorm 这就是跟标准 Transformer attention 类似的 二次时间复杂度瓶颈。 而RWKV 引入了 递推变量，即隐藏状态 (at,bt)(a_t, b_t)(at,bt)，使得上述公式可以重写为一种 线性时间复杂度的递归更新方式。 每个时间步的计算 只依赖于前一步的状态和当前输入，不需要访问整个历史（不像 Transformer），每步是常数次操作（加法、乘法、指数），所以总复杂度是：",
+          "uri": "https://blog.csdn.net/weixin_44729653/article/details/148424496",
+          "source": "web",
+          "published_at": "2025-06-04"
+        },
+        {
+          "id": "W8",
+          "title": "GitHub - BlinkDL/ RWKV -LM: RWKV (pronounced RwaKuv) is an …",
+          "content": "RWKV is a Linux Foundation AI project, so totally free. RWKV runtime is already in Windows & Office. You are welcome to ask the RWKV community (such as RWKV discord) for advice on upgrading your …",
+          "uri": "https://github.com/BlinkDL/RWKV-LM",
+          "source": "bing"
+        }
+      ]
+    },
+    "answer": "根据提供的证据，无法确定如何从上海浦东新区唐镇站到达RWKV公司（上海和深圳）。 [W7][W2]证据中没有提供任何关于RWKV公司地址、交通路线或从唐镇站到达该公司的具体信息。 [W7][W3]因此，无法回答这个问题。 [W1][W7]",
+    "trace": {
+      "state_runtime": {
+        "home_url": "http://127.0.0.1:8517",
+        "root_prefill_once": true,
+        "forked_states": 4,
+        "tensor_state_merge": false,
+        "semantic_reduce_to_root": true,
+        "release": {
+          "status": "ok",
+          "released": 5,
+          "state_ids": [
+            "state-9f633943a92245188ef7c06de1437ad2",
+            "state-d0a9bdfef5654758a6ba2612f0ac516a",
+            "state-f3a1e5150a0741178de946f9ec3f7b05",
+            "state-dca7665901aa48b69294b9f1226484ab",
+            "state-e49ca82f4e744d0190f965fa1ae617cc"
+          ]
+        }
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "branches": [
+            {
+              "state_id": "state-d0a9bdfef5654758a6ba2612f0ac516a",
+              "branch": "branch-1",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "model"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 268
+            },
+            {
+              "state_id": "state-f3a1e5150a0741178de946f9ec3f7b05",
+              "branch": "branch-2",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "raw_fallback"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 273
+            },
+            {
+              "state_id": "state-dca7665901aa48b69294b9f1226484ab",
+              "branch": "branch-3",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "model_duplicate"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 268
+            },
+            {
+              "state_id": "state-e49ca82f4e744d0190f965fa1ae617cc",
+              "branch": "branch-4",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "model_duplicate"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 271
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "branches": [
+            {
+              "state_id": "state-d0a9bdfef5654758a6ba2612f0ac516a",
+              "branch": "branch-1",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式 体验 RWKV -7训练全过程，只需400行代码训练3分钟 RWKV: Reinventing RNNs for the Transformer Era"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "evidence_pivot"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 1721
+            },
+            {
+              "state_id": "state-f3a1e5150a0741178de946f9ec3f7b05",
+              "branch": "branch-2",
+              "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式 上海 必去的17个地方，去过8个以上才算真正到过 上海 ，你去 ... 上海 市人民政府"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "evidence_pivot"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 2209
+            },
+            {
+              "state_id": "state-dca7665901aa48b69294b9f1226484ab",
+              "branch": "branch-3",
+              "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式 体验 RWKV -7训练全过程，只需400行代码训练3分钟 Transformer 架构平替-- RWKV 架构详解 -CSDN博客"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "evidence_pivot"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 2292
+            },
+            {
+              "state_id": "state-e49ca82f4e744d0190f965fa1ae617cc",
+              "branch": "branch-4",
+              "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"rwkv 公司 上海 深圳 地址 联系方式\"}}\n</tool_call>",
+              "route": {
+                "strict": true,
+                "tool": "web_search",
+                "arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "error": "",
+                "model_arguments": {
+                  "query": "rwkv 公司 上海 深圳 地址 联系方式"
+                },
+                "query_strategy": "model_duplicate"
+              },
+              "tool_status": "ok",
+              "evidence_count": 8,
+              "seen_tokens": 2273
+            }
+          ]
+        }
+      ],
+      "answer_completion": {
+        "state_id": "state-9f633943a92245188ef7c06de1437ad2",
+        "branch": "root",
+        "stop_reason": "</answer>",
+        "seen_tokens": 3867,
+        "output_chars": 94,
+        "output_tokens": 92
+      },
+      "answer_evidence_profile": {
+        "name": "compact-question-span-v1",
+        "sources": 8,
+        "max_chars_per_source": 900,
+        "selector": "query_view_mmr_v1",
+        "scorer_model": ""
+      },
+      "answer_protocol": {
+        "format": "answer_envelope_v1",
+        "primary": {
+          "valid": true,
+          "answer": "根据提供的证据，无法确定如何从上海浦东新区唐镇站到达RWKV公司（上海和深圳）。 [W7][W2]证据中没有提供任何关于RWKV公司地址、交通路线或从唐镇站到达该公司的具体信息。 [W7][W3]因此，无法回答这个问题。 [W1][W7]",
+          "errors": [],
+          "citations": [
+            "W1",
+            "W2",
+            "W3",
+            "W7"
+          ],
+          "invalid_citations": [],
+          "citation_repaired": true,
+          "citation_sanitized": false
+        },
+        "fallback_used": false,
+        "fallback": null,
+        "fallback_error": "",
+        "fallback_completion": null
+      },
+      "elapsed_ms": 39067.824
+    }
+  },
+  "raw_error_body": null,
+  "error": null
+}

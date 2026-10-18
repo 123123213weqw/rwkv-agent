@@ -1,0 +1,36 @@
+{
+  "schema_version": "frozen-baseline-manifest.v1",
+  "name": "searxng-candidate-engines-v1",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "a1ee80a469c6e3e4c26d0cfdd7dc790516d6f5b9361806472961bb64c52c12a4",
+      "bytes": 2133
+    },
+    {
+      "path": "bing-cn.json",
+      "sha256": "91ae4c046c0896143866f3014e9218a39cd27a50a8b581dea189ad6ba6bc3054",
+      "bytes": 43623
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "4de009fe1b173ba3c612bf95ce35484f8173cde494a0860638b72c6acce6ada1",
+      "bytes": 25887
+    },
+    {
+      "path": "duckduckgo-v100-proxy.json",
+      "sha256": "70e9b710abf10816ed493eb106b1be9b4d3a82e4d3f4e922cf29aea662a1cc04",
+      "bytes": 44268
+    },
+    {
+      "path": "smoke.json",
+      "sha256": "8d739fe9e2e14776ff2628638ca271ec84651bf0181a353db4e5b221552202fc",
+      "bytes": 34376
+    },
+    {
+      "path": "v100-proxy-smoke.json",
+      "sha256": "da58b968fc190725ef5aad9de097c3ecbee65e2b58d5b85ccbce4176cbba15a9",
+      "bytes": 28820
+    }
+  ]
+}

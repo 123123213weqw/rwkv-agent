@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/state-reference-v1.schema.json",
+  "title": "StatePool State Reference v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "state_id",
+    "session_id",
+    "owner_id",
+    "version",
+    "provider_mode",
+    "model_ref",
+    "placement",
+    "checksum",
+    "size_bytes",
+    "atomic",
+    "created_at_ms",
+    "last_active_at_ms"
+  ],
+  "properties": {
+    "contract_version": { "const": "statepool-state-reference.v1" },
+    "state_id": { "type": "string", "minLength": 1 },
+    "session_id": { "type": "string", "minLength": 1 },
+    "owner_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "integer", "minimum": 0 },
+    "fencing_token": { "type": ["integer", "null"], "minimum": 1 },
+    "provider_mode": {
+      "enum": ["rwkv_recurrent", "qwen_native_kv", "qwen_transcript_reprefill", "contract_test"]
+    },
+    "model_ref": { "$ref": "stateful-inference-session-v1.schema.json#/$defs/model_ref" },
+    "placement": { "enum": ["hot", "warm", "cold", "dropped"] },
+    "worker_id": { "type": ["string", "null"], "minLength": 1 },
+    "object_uri": {
+      "oneOf": [
+        { "type": "string", "pattern": "^(s3|file)://" },
+        { "type": "null" }
+      ]
+    },
+    "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "size_bytes": { "type": "integer", "minimum": 0 },
+    "atomic": { "const": true },
+    "created_at_ms": { "type": "integer", "minimum": 0 },
+    "last_active_at_ms": { "type": "integer", "minimum": 0 },
+    "encryption": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["scheme", "key_ref"],
+      "properties": {
+        "scheme": { "enum": ["aes-256-gcm", "provider_managed"] },
+        "key_ref": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "placement": { "const": "hot" } }, "required": ["placement"] },
+      "then": { "required": ["worker_id"] }
+    },
+    {
+      "if": { "properties": { "placement": { "const": "cold" } }, "required": ["placement"] },
+      "then": { "required": ["object_uri"] }
+    }
+  ]
+}

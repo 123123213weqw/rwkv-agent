@@ -1,0 +1,22 @@
+{
+  "schema": "rwkv-agent-gpu-window.v1",
+  "window_end_local": "2026-08-08T12:45:59.052847",
+  "samples": 649,
+  "window_start_local": "2026/08/08 12:34:55.725",
+  "memory_used_mib": {
+    "mean": 9198.0,
+    "peak": 9198.0
+  },
+  "gpu_util_percent": {
+    "mean": 61.946,
+    "peak": 69.0
+  },
+  "temperature_c": {
+    "mean": 49.576,
+    "peak": 54.0
+  },
+  "power_w": {
+    "mean": 108.257,
+    "peak": 121.88
+  }
+}

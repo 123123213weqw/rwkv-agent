@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rwkv-statepool.fullname" . }}
+  labels:
+    {{- include "rwkv-statepool.labels" . | nindent 4 }}
+    app.kubernetes.io/component: statepool-plugin
+spec:
+  selector:
+    app.kubernetes.io/name: {{ include "rwkv-statepool.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: statepool-plugin
+  ports:
+    - name: http
+      port: {{ .Values.plugin.port }}
+      targetPort: http

@@ -1,0 +1,228 @@
+{
+  "schema_version": "agent-web-recall-5h-comparison.v1",
+  "benchmark": {
+    "case_count": 50,
+    "languages": {
+      "zh": 25,
+      "en": 25
+    },
+    "dataset_sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc",
+    "raw_rows_sha256": "d585a0bca23aab3318bfad97b22a657747acdbd28a19917c18d6b56fe76e7d66",
+    "answer_model_called": false,
+    "execution_order_alternated": true
+  },
+  "runtime": {
+    "durable_searxng_pool_validated": false,
+    "searxng_attempt_result": "bounded public engines became unavailable under sustained load through the experiment proxy; timeouts, connection resets, and anti-bot responses were preserved as a rejected diagnostic run",
+    "accepted_discovery_backend": "existing Bing HTML fallback, with no paid search API",
+    "enhanced_changes": [
+      "generic English query compaction",
+      "recall-protected candidate reranking",
+      "process-shared discovery cache",
+      "auditable empty-evidence fallback",
+      "stage failure attribution"
+    ],
+    "important_limitation": "The accepted run validates the retrieval changes and fallback behavior, not durable multi-engine SearXNG operation."
+  },
+  "reference_5g_legacy": {
+    "candidate_domain_hit_at_10_rate": 0.32,
+    "result_domain_hit_at_10_rate": 0.24,
+    "nonempty_result_rate": 0.86,
+    "garbage_result_rate": 0.1756,
+    "fetch_success_rate": 0.7299,
+    "average_total_elapsed_ms": 2820.513,
+    "p95_total_elapsed_ms": 7223.455
+  },
+  "rejected_searxng_diagnostic_enhanced": {
+    "candidate_domain_hit_at_10_rate": 0.36,
+    "result_domain_hit_at_10_rate": 0.26,
+    "nonempty_result_rate": 0.52,
+    "garbage_result_rate": 0.0,
+    "fetch_success_rate": 0.5976,
+    "average_total_elapsed_ms": 5084.269,
+    "p95_total_elapsed_ms": 9345.783
+  },
+  "arms": {
+    "legacy": {
+      "candidate_domain_hit_at_5_rate": 0.26,
+      "candidate_domain_hit_at_10_rate": 0.3,
+      "candidate_domain_hit_at_20_rate": 0.3,
+      "candidate_target_page_hit_at_10_rate": 0.08,
+      "candidate_target_page_hit_at_20_rate": 0.08,
+      "result_domain_hit_at_5_rate": 0.22,
+      "result_domain_hit_at_10_rate": 0.24,
+      "result_domain_hit_at_20_rate": 0.24,
+      "result_target_page_hit_at_10_rate": 0.06,
+      "result_target_page_hit_at_20_rate": 0.06,
+      "nonempty_result_rate": 0.72,
+      "garbage_result_rate": 0.0915,
+      "fetch_success_rate": 0.5652,
+      "average_total_elapsed_ms": 3291.259,
+      "p95_total_elapsed_ms": 8008.351,
+      "candidate_count": 412,
+      "result_count": 164,
+      "fetch_attempted": 368,
+      "fetch_succeeded": 208,
+      "fetch_failed": 152,
+      "fetch_cancelled": 8
+    },
+    "enhanced": {
+      "candidate_domain_hit_at_5_rate": 0.48,
+      "candidate_domain_hit_at_10_rate": 0.5,
+      "candidate_domain_hit_at_20_rate": 0.5,
+      "candidate_target_page_hit_at_10_rate": 0.14,
+      "candidate_target_page_hit_at_20_rate": 0.14,
+      "result_domain_hit_at_5_rate": 0.38,
+      "result_domain_hit_at_10_rate": 0.4,
+      "result_domain_hit_at_20_rate": 0.4,
+      "result_target_page_hit_at_10_rate": 0.1,
+      "result_target_page_hit_at_20_rate": 0.1,
+      "nonempty_result_rate": 0.88,
+      "garbage_result_rate": 0.0112,
+      "fetch_success_rate": 0.7135,
+      "average_total_elapsed_ms": 3301.53,
+      "p95_total_elapsed_ms": 6901.903,
+      "candidate_count": 478,
+      "result_count": 179,
+      "fetch_attempted": 356,
+      "fetch_succeeded": 254,
+      "fetch_failed": 102,
+      "fetch_cancelled": 0
+    }
+  },
+  "language_breakdown": {
+    "legacy": {
+      "zh": {
+        "candidate_domain_hit_at_10_rate": 0.6,
+        "result_domain_hit_at_10_rate": 0.48,
+        "nonempty_result_rate": 0.84,
+        "garbage_result_rate": 0.0194,
+        "fetch_success_rate": 0.6811,
+        "average_total_elapsed_ms": 3192.138
+      },
+      "en": {
+        "candidate_domain_hit_at_10_rate": 0.0,
+        "result_domain_hit_at_10_rate": 0.0,
+        "nonempty_result_rate": 0.6,
+        "garbage_result_rate": 0.2131,
+        "fetch_success_rate": 0.4481,
+        "average_total_elapsed_ms": 3390.379
+      }
+    },
+    "enhanced": {
+      "zh": {
+        "candidate_domain_hit_at_10_rate": 0.6,
+        "result_domain_hit_at_10_rate": 0.48,
+        "nonempty_result_rate": 0.84,
+        "garbage_result_rate": 0.0104,
+        "fetch_success_rate": 0.7247,
+        "average_total_elapsed_ms": 2931.257
+      },
+      "en": {
+        "candidate_domain_hit_at_10_rate": 0.4,
+        "result_domain_hit_at_10_rate": 0.32,
+        "nonempty_result_rate": 0.92,
+        "garbage_result_rate": 0.012,
+        "fetch_success_rate": 0.7022,
+        "average_total_elapsed_ms": 3671.802
+      }
+    }
+  },
+  "paired": {
+    "candidate_domain_hit_at_5": {
+      "enhanced_wins": 11,
+      "legacy_wins": 0
+    },
+    "candidate_domain_hit_at_10": {
+      "enhanced_wins": 10,
+      "legacy_wins": 0
+    },
+    "candidate_domain_hit_at_20": {
+      "enhanced_wins": 10,
+      "legacy_wins": 0
+    },
+    "candidate_target_page_hit_at_10": {
+      "enhanced_wins": 3,
+      "legacy_wins": 0
+    },
+    "candidate_target_page_hit_at_20": {
+      "enhanced_wins": 3,
+      "legacy_wins": 0
+    },
+    "result_domain_hit_at_5": {
+      "enhanced_wins": 8,
+      "legacy_wins": 0
+    },
+    "result_domain_hit_at_10": {
+      "enhanced_wins": 8,
+      "legacy_wins": 0
+    },
+    "result_domain_hit_at_20": {
+      "enhanced_wins": 8,
+      "legacy_wins": 0
+    },
+    "result_target_page_hit_at_10": {
+      "enhanced_wins": 2,
+      "legacy_wins": 0
+    },
+    "result_target_page_hit_at_20": {
+      "enhanced_wins": 2,
+      "legacy_wins": 0
+    },
+    "nonempty_result": {
+      "enhanced_wins": 8,
+      "legacy_wins": 0
+    },
+    "enhanced_errors": 0,
+    "legacy_errors": 0
+  },
+  "by_execution_order": {
+    "legacy_first": {
+      "cases": 25,
+      "legacy_nonempty": 18,
+      "enhanced_nonempty": 22,
+      "legacy_candidate_domain_at_10": 10,
+      "enhanced_candidate_domain_at_10": 15
+    },
+    "enhanced_first": {
+      "cases": 25,
+      "legacy_nonempty": 18,
+      "enhanced_nonempty": 22,
+      "legacy_candidate_domain_at_10": 5,
+      "enhanced_candidate_domain_at_10": 10
+    }
+  },
+  "failure_stages": {
+    "legacy": {
+      "discovery_empty": 2,
+      "fetch_failed": 5,
+      "final_ranking_empty": 7,
+      "ok": 36
+    },
+    "enhanced": {
+      "discovery_empty": 1,
+      "fetch_failed": 1,
+      "final_ranking_empty": 4,
+      "ok": 44
+    }
+  },
+  "evidence": {
+    "raw_nonempty_rate": {
+      "legacy": 0.96,
+      "enhanced": 0.98
+    },
+    "effective_nonempty_rate": {
+      "legacy": 0.96,
+      "enhanced": 0.98
+    },
+    "enhanced_legacy_fallback_count": 0
+  },
+  "decision": {
+    "enhanced_retrieval_gate_passed": true,
+    "enhanced_default_switch_passed": false,
+    "durable_searxng_pool_validated": false,
+    "production_enabled": false,
+    "reason": "On the same 50 cases, Enhanced beat its paired Legacy arm 10-0 on candidate Domain Recall@10 and 8-0 on result Domain Recall@10 and non-empty results. It reached 50% candidate Domain Recall@10, 88% non-empty results, and 1.12% garbage, but remains Shadow because durable metasearch and production rollout were outside this milestone.",
+    "next_step_requires_owner_authorization": "Run a user-visible answer A/B or authorize a bounded production canary; do not switch automatically."
+  }
+}

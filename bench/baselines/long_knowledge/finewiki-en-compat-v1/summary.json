@@ -1,0 +1,217 @@
+{
+  "schema_version": "long-knowledge-benchmark.v1",
+  "index": "rwkv-finewiki-en-full-v1",
+  "language_filter": "en",
+  "channel_size": 100,
+  "limit": 10,
+  "qrel_index_coverage": {
+    "relevant_pages": 18,
+    "indexed_relevant_pages": 18,
+    "page_rate": 1.0,
+    "qrel_cases": 20,
+    "eligible_cases": 20,
+    "case_rate": 1.0
+  },
+  "cases_total": 24,
+  "positive_cases": 20,
+  "expected_missing_cases": 4,
+  "expected_missing_accuracy": 0.0,
+  "overall": {
+    "cases": 20,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 1805.1881346153095,
+      "p50": 1439.2039440572262,
+      "p95": 3497.772125992924
+    },
+    "hit_at_1": 0.35,
+    "hit_at_5": 0.45,
+    "hit_at_10": 0.45,
+    "recall_at_1": 0.3,
+    "recall_at_5": 0.4,
+    "recall_at_10": 0.4,
+    "mrr_at_10": 0.3875,
+    "ndcg_at_10": 0.3475082528393248
+  },
+  "by_language": {
+    "en": {
+      "cases": 20,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1805.1881346153095,
+        "p50": 1439.2039440572262,
+        "p95": 3497.772125992924
+      },
+      "hit_at_1": 0.35,
+      "hit_at_5": 0.45,
+      "hit_at_10": 0.45,
+      "recall_at_1": 0.3,
+      "recall_at_5": 0.4,
+      "recall_at_10": 0.4,
+      "mrr_at_10": 0.3875,
+      "ndcg_at_10": 0.3475082528393248
+    }
+  },
+  "by_query_type": {
+    "alias": {
+      "cases": 1,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1189.8290570825338,
+        "p50": 1189.8290570825338,
+        "p95": 1189.8290570825338
+      },
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.0,
+      "hit_at_10": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr_at_10": 0.0,
+      "ndcg_at_10": 0.0
+    },
+    "ambiguous": {
+      "cases": 1,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 2578.754414105788,
+        "p50": 2578.754414105788,
+        "p95": 2578.754414105788
+      },
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.0,
+      "hit_at_10": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr_at_10": 0.0,
+      "ndcg_at_10": 0.0
+    },
+    "comparison": {
+      "cases": 1,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 3770.8173249848187,
+        "p50": 3770.8173249848187,
+        "p95": 3770.8173249848187
+      },
+      "hit_at_1": 1.0,
+      "hit_at_5": 1.0,
+      "hit_at_10": 1.0,
+      "recall_at_1": 0.5,
+      "recall_at_5": 0.5,
+      "recall_at_10": 0.5,
+      "mrr_at_10": 1.0,
+      "ndcg_at_10": 0.6131471927654584
+    },
+    "cross_language": {
+      "cases": 2,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1274.5552280684933,
+        "p50": 1109.9065120797604,
+        "p95": 1439.2039440572262
+      },
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.0,
+      "hit_at_10": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr_at_10": 0.0,
+      "ndcg_at_10": 0.0
+    },
+    "descriptive": {
+      "cases": 5,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 2344.1919351927936,
+        "p50": 1943.207103991881,
+        "p95": 3497.772125992924
+      },
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.2,
+      "hit_at_10": 0.2,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.2,
+      "recall_at_10": 0.2,
+      "mrr_at_10": 0.05,
+      "ndcg_at_10": 0.08613531161467862
+    },
+    "entity": {
+      "cases": 5,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1318.7112594489008,
+        "p50": 1295.8155339583755,
+        "p95": 1754.3570841662586
+      },
+      "hit_at_1": 0.8,
+      "hit_at_5": 0.8,
+      "hit_at_10": 0.8,
+      "recall_at_1": 0.8,
+      "recall_at_5": 0.8,
+      "recall_at_10": 0.8,
+      "mrr_at_10": 0.8,
+      "ndcg_at_10": 0.8
+    },
+    "natural_question": {
+      "cases": 4,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1674.8287656810135,
+        "p50": 1494.4734880700707,
+        "p95": 2184.3362478539348
+      },
+      "hit_at_1": 0.5,
+      "hit_at_5": 0.75,
+      "hit_at_10": 0.75,
+      "recall_at_1": 0.375,
+      "recall_at_5": 0.625,
+      "recall_at_10": 0.625,
+      "mrr_at_10": 0.625,
+      "ndcg_at_10": 0.476585326486911
+    },
+    "noisy": {
+      "cases": 1,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1001.4204040635377,
+        "p50": 1001.4204040635377,
+        "p95": 1001.4204040635377
+      },
+      "hit_at_1": 0.0,
+      "hit_at_5": 0.0,
+      "hit_at_10": 0.0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "recall_at_10": 0.0,
+      "mrr_at_10": 0.0,
+      "ndcg_at_10": 0.0
+    }
+  },
+  "conditional_on_index_coverage": {
+    "cases": 20,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 1805.1881346153095,
+      "p50": 1439.2039440572262,
+      "p95": 3497.772125992924
+    },
+    "hit_at_1": 0.35,
+    "hit_at_5": 0.45,
+    "hit_at_10": 0.45,
+    "recall_at_1": 0.3,
+    "recall_at_5": 0.4,
+    "recall_at_10": 0.4,
+    "mrr_at_10": 0.3875,
+    "ndcg_at_10": 0.3475082528393248
+  },
+  "test_set": "bench/long_knowledge_compat_v1/cases.jsonl",
+  "limitations": [
+    "This small product regression set is manually curated and is not a substitute for the public MIRACL benchmark.",
+    "Expected-missing accuracy currently treats any returned page as a failure; the candidate index has no calibrated abstention threshold.",
+    "No dense retriever, learned reranker, answer generation, or production routing is included.",
+    "Query-type groups contain only one to five positive cases and are diagnostic rather than statistically conclusive."
+  ]
+}

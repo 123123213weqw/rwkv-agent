@@ -1,0 +1,9 @@
+apiVersion: v2
+name: rwkv-statepool
+description: Optional StatePool Cloud Plugin control plane for rwkv-agent
+type: application
+version: 0.1.0
+appVersion: "0.3.0-beta.2"
+annotations:
+  statepool.rwkv.dev/profile: localfs-single-replica
+  statepool.rwkv.dev/remote-state-claim: "false"

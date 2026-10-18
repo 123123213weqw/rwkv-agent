@@ -1,0 +1,274 @@
+{
+  "ledger_schema_version": 1,
+  "task_id": "lh-v1-staged-inventory_cascade_en",
+  "session_id": "lh-v1-staged-inventory_cascade_en",
+  "task_spec": {
+    "schema_version": 1,
+    "objective": "Work only in long-horizon/staged/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+    "acceptance_criteria": [
+      "Both focused tests and the full unittest discovery pass.",
+      "REPORT.md has the required two exact lines."
+    ],
+    "constraints": [
+      "Do not modify files under tests/."
+    ],
+    "verification_commands": [
+      "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+    ],
+    "requires_mutation": true,
+    "working_directory": "long-horizon/staged/inventory_cascade_en",
+    "stages": [
+      {
+        "id": "repair_parser",
+        "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "The parser test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_parse -v"
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "repair_total",
+        "objective": "Inspect the remaining inventory total behavior, run its focused test, repair the total calculation, and prove the focused total test passes.",
+        "depends_on": [
+          "repair_parser"
+        ],
+        "acceptance_criteria": [
+          "The total test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_total -v"
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "full_regression",
+        "objective": "Run the complete test suite, then create REPORT.md with exactly status=pass and total=14 on separate lines and validate the artifact.",
+        "depends_on": [
+          "repair_total"
+        ],
+        "acceptance_criteria": [
+          "Full regression passes and REPORT.md is exact."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+        ],
+        "requires_mutation": true
+      }
+    ]
+  },
+  "status": "failed",
+  "current_stage": "repair_parser",
+  "stages": [
+    {
+      "spec": {
+        "id": "repair_parser",
+        "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "The parser test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_parse -v"
+        ],
+        "requires_mutation": true
+      },
+      "status": "failed",
+      "attempts": 1,
+      "started_unix_ms": 1786148220993,
+      "completed_unix_ms": 1786148245338,
+      "response": {
+        "answer": "",
+        "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+        "error_code": "protocol_error",
+        "message": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-staged-inventory_cascade_en",
+        "status": "error",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-b9e334292a6acb74-0000000000000004",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-9574c8fe26f241728565631e226e1ddc",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-1cac71643e314947a253121ffcb5d5b3",
+                "type": "state_opened"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-1cac71643e314947a253121ffcb5d5b3",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-9574c8fe26f241728565631e226e1ddc",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 24343.530989000003,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "The parser test passes without changing tests."
+            ],
+            "constraints": [
+              "Do not modify files under tests/.",
+              "Do not modify files under tests/."
+            ],
+            "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 -m unittest tests.test_parse -v"
+            ],
+            "working_directory": "long-horizon/staged/inventory_cascade_en"
+          }
+        }
+      },
+      "error": "protocol error: output must contain exactly one strict tool-call or answer envelope"
+    },
+    {
+      "spec": {
+        "id": "repair_total",
+        "objective": "Inspect the remaining inventory total behavior, run its focused test, repair the total calculation, and prove the focused total test passes.",
+        "depends_on": [
+          "repair_parser"
+        ],
+        "acceptance_criteria": [
+          "The total test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_total -v"
+        ],
+        "requires_mutation": true
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    },
+    {
+      "spec": {
+        "id": "full_regression",
+        "objective": "Run the complete test suite, then create REPORT.md with exactly status=pass and total=14 on separate lines and validate the artifact.",
+        "depends_on": [
+          "repair_total"
+        ],
+        "acceptance_criteria": [
+          "Full regression passes and REPORT.md is exact."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+        ],
+        "requires_mutation": true
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    }
+  ],
+  "created_unix_ms": 1786148220991,
+  "updated_unix_ms": 1786148245338,
+  "revision": 3,
+  "recovery_count": 0,
+  "final_response": null,
+  "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+  "events": [
+    {
+      "sequence": 1,
+      "unix_ms": 1786148220991,
+      "kind": "created",
+      "stage_id": null,
+      "detail": "task persisted before execution"
+    },
+    {
+      "sequence": 2,
+      "unix_ms": 1786148220992,
+      "kind": "task_started",
+      "stage_id": null,
+      "detail": "stage controller claimed task"
+    },
+    {
+      "sequence": 3,
+      "unix_ms": 1786148220993,
+      "kind": "stage_started",
+      "stage_id": "repair_parser",
+      "detail": "checkpoint before execution"
+    },
+    {
+      "sequence": 4,
+      "unix_ms": 1786148245338,
+      "kind": "stage_failed",
+      "stage_id": "repair_parser",
+      "detail": "protocol error: output must contain exactly one strict tool-call or answer envelope"
+    }
+  ]
+}

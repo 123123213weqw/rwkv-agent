@@ -1,0 +1,40 @@
+{"id":"chat-zh-greeting","group":"chat","message":"你好","expected_label":"chat"}
+{"id":"chat-zh-code","group":"chat","message":"写一个Python函数反转字符串","expected_label":"chat"}
+{"id":"chat-zh-translate-quoted-fact","group":"chat","message":"把“RWKV是谁创建的”翻译成英文","expected_label":"chat"}
+{"id":"chat-zh-math","group":"chat","message":"计算17乘以23","expected_label":"chat"}
+{"id":"chat-zh-concept","group":"chat","message":"简单解释一下什么是递归","expected_label":"chat"}
+{"id":"chat-zh-hypothetical","group":"chat","message":"假设RWKV是一家公司，写一个科幻故事","expected_label":"chat"}
+{"id":"chat-en-greeting","group":"chat","message":"Hello, how are you?","expected_label":"chat"}
+{"id":"chat-en-writing","group":"chat","message":"Write a short poem about the moon.","expected_label":"chat"}
+{"id":"chat-en-translate-quoted-fact","group":"chat","message":"Translate 'Who created RWKV?' into Chinese.","expected_label":"chat"}
+{"id":"chat-en-code","group":"chat","message":"Implement binary search in Python.","expected_label":"chat"}
+{"id":"chat-en-concept","group":"chat","message":"Explain recursion in simple terms.","expected_label":"chat"}
+{"id":"chat-en-hypothetical","group":"chat","message":"If RWKV were a company, write a fictional press release.","expected_label":"chat"}
+{"id":"public-zh-rwkv-creator","group":"implicit_public_fact","message":"RWKV是谁创建的？","expected_label":"tool"}
+{"id":"public-zh-rwkv-org","group":"implicit_public_fact","message":"RWKV的维护组织和商业公司是什么关系？","expected_label":"tool"}
+{"id":"public-zh-linux-creator","group":"implicit_public_fact","message":"Linux最初是谁开发的？","expected_label":"tool"}
+{"id":"public-zh-company-founder","group":"implicit_public_fact","message":"英伟达的联合创始人有哪些？","expected_label":"tool"}
+{"id":"public-zh-paper-author","group":"implicit_public_fact","message":"Attention Is All You Need这篇论文有哪些作者？","expected_label":"tool"}
+{"id":"public-zh-policy-date","group":"implicit_public_fact","message":"欧盟人工智能法是哪天正式生效的？","expected_label":"tool"}
+{"id":"public-en-rwkv-creator","group":"implicit_public_fact","message":"Who originally created RWKV?","expected_label":"tool"}
+{"id":"public-en-rwkv-org","group":"implicit_public_fact","message":"What is the relationship between the RWKV maintainers and its commercial company?","expected_label":"tool"}
+{"id":"public-en-linux-creator","group":"implicit_public_fact","message":"Who initially developed Linux?","expected_label":"tool"}
+{"id":"public-en-company-founder","group":"implicit_public_fact","message":"Who were the co-founders of NVIDIA?","expected_label":"tool"}
+{"id":"public-en-paper-author","group":"implicit_public_fact","message":"Who authored the Attention Is All You Need paper?","expected_label":"tool"}
+{"id":"public-en-policy-date","group":"implicit_public_fact","message":"On what date did the EU AI Act enter into force?","expected_label":"tool"}
+{"id":"current-zh-python","group":"current_fact","message":"Python当前稳定版本是多少？","expected_label":"tool"}
+{"id":"current-zh-pytorch","group":"current_fact","message":"PyTorch最新正式版本是多少？","expected_label":"tool"}
+{"id":"current-zh-weather","group":"current_fact","message":"北京明天天气怎么样？","expected_label":"tool"}
+{"id":"current-en-python","group":"current_fact","message":"What is the current stable Python release?","expected_label":"tool"}
+{"id":"current-en-pytorch","group":"current_fact","message":"What is the latest stable PyTorch version?","expected_label":"tool"}
+{"id":"current-en-weather","group":"current_fact","message":"What will the weather be in Beijing tomorrow?","expected_label":"tool"}
+{"id":"local-zh","group":"local_knowledge","message":"本地知识库里的Agent状态机是怎么设计的？","expected_label":"tool"}
+{"id":"local-en","group":"local_knowledge","message":"What does our local knowledge base say about the Agent state machine?","expected_label":"tool"}
+{"id":"pasted-zh-question","group":"active_pasted_text","message":"材料中项目最终预算是多少？","expected_label":"tool","has_pasted_text":true}
+{"id":"pasted-en-question","group":"active_pasted_text","message":"According to the pasted material, what was the final budget?","expected_label":"tool","has_pasted_text":true}
+{"id":"pasted-zh-greeting","group":"active_pasted_text","message":"你好","expected_label":"chat","has_pasted_text":true}
+{"id":"pasted-en-writing","group":"active_pasted_text","message":"Write a poem about the moon.","expected_label":"chat","has_pasted_text":true}
+{"id":"context-zh-pronoun","group":"context_followup","message":"那它是谁创建的？","expected_label":"tool","context":"User: 我们正在讨论RWKV架构。\nAssistant: 好的。"}
+{"id":"context-en-pronoun","group":"context_followup","message":"Who created it?","expected_label":"tool","context":"User: We are discussing the RWKV architecture.\nAssistant: Understood."}
+{"id":"context-zh-unrelated","group":"context_followup","message":"给我写一首短诗","expected_label":"chat","context":"User: RWKV是谁创建的？\nAssistant: 我需要检索。"}
+{"id":"context-en-unrelated","group":"context_followup","message":"Hello","expected_label":"chat","context":"User: Search for the latest CUDA release.\nAssistant: I will search."}

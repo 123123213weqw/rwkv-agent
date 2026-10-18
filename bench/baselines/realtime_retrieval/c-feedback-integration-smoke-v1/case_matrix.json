@@ -1,0 +1,105 @@
+{
+  "schema_version": "c-feedback-integration-case-matrix.v1",
+  "cases": [
+    {
+      "id": "retrieval-zh-013",
+      "language": "zh",
+      "category": "statistics",
+      "discovery_request_count": 2,
+      "feedback_query_executed": true,
+      "feedback_candidate_count": 9,
+      "feedback_candidate_provenance": true,
+      "model_plan_stop_reasons": [
+        "planned",
+        "planned"
+      ],
+      "strict_plan_count": 2,
+      "plan_count": 2,
+      "candidate_count": 15,
+      "fetch_attempted": 6,
+      "fetch_succeeded": 2,
+      "result_count": 0,
+      "total_elapsed_ms": 9202.622
+    },
+    {
+      "id": "retrieval-zh-020",
+      "language": "zh",
+      "category": "company_filing",
+      "discovery_request_count": 2,
+      "feedback_query_executed": true,
+      "feedback_candidate_count": 8,
+      "feedback_candidate_provenance": true,
+      "model_plan_stop_reasons": [
+        "planned",
+        "planned"
+      ],
+      "strict_plan_count": 2,
+      "plan_count": 2,
+      "candidate_count": 8,
+      "fetch_attempted": 6,
+      "fetch_succeeded": 5,
+      "result_count": 5,
+      "total_elapsed_ms": 4646.578
+    },
+    {
+      "id": "retrieval-en-003",
+      "language": "en",
+      "category": "software_release",
+      "discovery_request_count": 2,
+      "feedback_query_executed": true,
+      "feedback_candidate_count": 9,
+      "feedback_candidate_provenance": true,
+      "model_plan_stop_reasons": [
+        "planned",
+        "planned"
+      ],
+      "strict_plan_count": 2,
+      "plan_count": 2,
+      "candidate_count": 13,
+      "fetch_attempted": 6,
+      "fetch_succeeded": 5,
+      "result_count": 5,
+      "total_elapsed_ms": 7292.233
+    },
+    {
+      "id": "retrieval-en-007",
+      "language": "en",
+      "category": "official_docs",
+      "discovery_request_count": 2,
+      "feedback_query_executed": true,
+      "feedback_candidate_count": 10,
+      "feedback_candidate_provenance": true,
+      "model_plan_stop_reasons": [
+        "planned",
+        "planned"
+      ],
+      "strict_plan_count": 2,
+      "plan_count": 2,
+      "candidate_count": 10,
+      "fetch_attempted": 6,
+      "fetch_succeeded": 2,
+      "result_count": 2,
+      "total_elapsed_ms": 8560.01
+    },
+    {
+      "id": "retrieval-en-014",
+      "language": "en",
+      "category": "government_policy",
+      "discovery_request_count": 1,
+      "feedback_query_executed": false,
+      "feedback_candidate_count": 0,
+      "feedback_candidate_provenance": false,
+      "model_plan_stop_reasons": [
+        "planned",
+        "invalid_feedback_action"
+      ],
+      "strict_plan_count": 2,
+      "plan_count": 2,
+      "candidate_count": 4,
+      "fetch_attempted": 4,
+      "fetch_succeeded": 2,
+      "result_count": 2,
+      "total_elapsed_ms": 8030.149
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": "stateful-memory-audit.v1",
+  "gpu": {
+    "host": "wzu-SYS-4029GP-TRT",
+    "index": 0,
+    "name": "Tesla V100-PCIE-32GB",
+    "driver": "580.173.02",
+    "total_bytes": 34359738368,
+    "free_bytes": 34068234240
+  },
+  "primary_comparison_same_hardware": true,
+  "primary_arms": [
+    {
+      "arm_id": "qwen3.5-9b-fp16-primary",
+      "model_path": "/home/wzu/.cache/modelscope/hub/models/Qwen/Qwen3___5-9B",
+      "dtype": "fp16",
+      "quantization": "none",
+      "provider_mode": "qwen_transcript_reprefill",
+      "weight_file_bytes": 19306310880,
+      "reserve_bytes": 2147483648,
+      "minimum_required_bytes": 21453794528,
+      "safe_to_attempt_load": true,
+      "status": "ready_for_live_probe",
+      "reason": "weight bytes plus reserve fit the currently free VRAM; live load is still required"
+    },
+    {
+      "arm_id": "rwkv-7.2b-fp32io16-primary",
+      "model_path": "/home/data/wangyue/models/rwkv7/sources/g1i-20260805/rwkv7-g1i-7.2b-20260805-ctx16384.pth",
+      "dtype": "fp32io16",
+      "quantization": "none",
+      "provider_mode": "rwkv_recurrent",
+      "weight_file_bytes": 14400007869,
+      "reserve_bytes": 2147483648,
+      "minimum_required_bytes": 16547491517,
+      "safe_to_attempt_load": true,
+      "status": "ready_for_live_probe",
+      "reason": "weight bytes plus reserve fit the currently free VRAM; live load is still required"
+    }
+  ],
+  "historical_reference": {
+    "arm_id": "qwen3.5-9b-nf4-historical",
+    "gpu": "RTX 4080 16GB",
+    "peak_vram_mib": 8429,
+    "primary_comparator": false
+  },
+  "limitation": "This is an OOM-prevention lower-bound audit, not a live VRAM or capability result."
+}

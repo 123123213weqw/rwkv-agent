@@ -1,0 +1,448 @@
+{
+  "ledger_schema_version": 1,
+  "task_id": "lh-v1-staged-inventory_cascade_en",
+  "session_id": "lh-v1-staged-inventory_cascade_en",
+  "task_spec": {
+    "schema_version": 1,
+    "objective": "Work only in long-horizon/staged/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+    "acceptance_criteria": [
+      "Both focused tests and the full unittest discovery pass.",
+      "REPORT.md has the required two exact lines."
+    ],
+    "constraints": [
+      "Do not modify files under tests/."
+    ],
+    "verification_commands": [
+      "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+    ],
+    "requires_mutation": true,
+    "working_directory": "long-horizon/staged/inventory_cascade_en",
+    "stages": [
+      {
+        "id": "repair_parser",
+        "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "The parser test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_parse -v"
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "repair_total",
+        "objective": "Inspect the remaining inventory total behavior, run its focused test, repair the total calculation, and prove the focused total test passes.",
+        "depends_on": [
+          "repair_parser"
+        ],
+        "acceptance_criteria": [
+          "The total test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_total -v"
+        ],
+        "requires_mutation": true
+      },
+      {
+        "id": "full_regression",
+        "objective": "Run the complete test suite, then create REPORT.md with exactly status=pass and total=14 on separate lines and validate the artifact.",
+        "depends_on": [
+          "repair_total"
+        ],
+        "acceptance_criteria": [
+          "Full regression passes and REPORT.md is exact."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+        ],
+        "requires_mutation": true
+      }
+    ]
+  },
+  "status": "failed",
+  "current_stage": "repair_parser",
+  "stages": [
+    {
+      "spec": {
+        "id": "repair_parser",
+        "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+        "depends_on": [],
+        "acceptance_criteria": [
+          "The parser test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_parse -v"
+        ],
+        "requires_mutation": true
+      },
+      "status": "failed",
+      "attempts": 1,
+      "started_unix_ms": 1786149809305,
+      "completed_unix_ms": 1786149842942,
+      "response": {
+        "answer": "",
+        "error": "protocol error: invalid tool-call JSON: invalid escape at line 1 column 243",
+        "error_code": "protocol_error",
+        "message": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 5,
+          "strict": false,
+          "tool": "read_file"
+        },
+        "session_id": "lh-v1-staged-inventory_cascade_en",
+        "status": "error",
+        "tool_result": {
+          "bytes": 212,
+          "content": "import unittest\nfrom inventory import parse\n\nclass ParseTest(unittest.TestCase):\n    def test_parse(self):\n        self.assertEqual(parse('apple=5'), ('apple', 5))\n\nif __name__ == '__main__':\n    unittest.main()\n",
+          "path": "tests/test_parse.py",
+          "status": "ok",
+          "stdout": "import unittest\nfrom inventory import parse\n\nclass ParseTest(unittest.TestCase):\n    def test_parse(self):\n        self.assertEqual(parse('apple=5'), ('apple', 5))\n\nif __name__ == '__main__':\n    unittest.main()\n"
+        },
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-b9e334292a6acb74-0000000000000004",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-5b1204fcba9c455eab821c86844a5d28",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-a0f9382ae68c40759a4120a040415c65",
+                "type": "state_opened"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-a0f9382ae68c40759a4120a040415c65",
+                "turn": 1,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 1,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 1,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-a0f9382ae68c40759a4120a040415c65",
+                "turn": 2,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 2,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 2,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-a0f9382ae68c40759a4120a040415c65",
+                "turn": 3,
+                "type": "model_completed"
+              },
+              {
+                "name": "run_command",
+                "step": 3,
+                "type": "tool_started"
+              },
+              {
+                "name": "run_command",
+                "status": "error",
+                "step": 3,
+                "type": "tool_completed"
+              },
+              {
+                "state_id": "state-97534895eb454a0e81164e725d9e3aaf",
+                "type": "state_opened"
+              },
+              {
+                "error": "",
+                "state_id": "state-a0f9382ae68c40759a4120a040415c65",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-97534895eb454a0e81164e725d9e3aaf",
+                "turn": 4,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 4,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 4,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-97534895eb454a0e81164e725d9e3aaf",
+                "turn": 5,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 5,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 5,
+                "type": "tool_completed"
+              },
+              {
+                "message": "invalid tool-call JSON: invalid escape at line 1 column 243",
+                "retry": 1,
+                "turn": 6,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "invalid tool-call JSON: invalid escape at line 1 column 243",
+                "retry": 2,
+                "turn": 7,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: invalid tool-call JSON: invalid escape at line 1 column 243",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-97534895eb454a0e81164e725d9e3aaf",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-5b1204fcba9c455eab821c86844a5d28",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 5,
+            "tool_steps": [
+              {
+                "arguments": {
+                  "path": "inventory.py"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 154,
+                  "content": "def parse(line):\n    name, qty = line.strip().split(':', 1)\n    return name, int(qty)\n\ndef total(lines):\n    return max(parse(line)[1] for line in lines)\n",
+                  "path": "inventory.py",
+                  "status": "ok",
+                  "stdout": "def parse(line):\n    name, qty = line.strip().split(':', 1)\n    return name, int(qty)\n\ndef total(lines):\n    return max(parse(line)[1] for line in lines)\n"
+                },
+                "step": 1
+              },
+              {
+                "arguments": {
+                  "path": "tests/test_parse.py"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 212,
+                  "content": "import unittest\nfrom inventory import parse\n\nclass ParseTest(unittest.TestCase):\n    def test_parse(self):\n        self.assertEqual(parse('apple=5'), ('apple', 5))\n\nif __name__ == '__main__':\n    unittest.main()\n",
+                  "path": "tests/test_parse.py",
+                  "status": "ok",
+                  "stdout": "import unittest\nfrom inventory import parse\n\nclass ParseTest(unittest.TestCase):\n    def test_parse(self):\n        self.assertEqual(parse('apple=5'), ('apple', 5))\n\nif __name__ == '__main__':\n    unittest.main()\n"
+                },
+                "step": 2
+              },
+              {
+                "arguments": {
+                  "command": "python3 -m unittest tests.test_parse -v"
+                },
+                "name": "run_command",
+                "result": {
+                  "exit_code": 1,
+                  "standalone_test_runner_rewritten": false,
+                  "status": "error",
+                  "stderr": "test_parse (tests.test_parse.ParseTest) ... ERROR\n\n======================================================================\nERROR: test_parse (tests.test_parse.ParseTest)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/tests/test_parse.py\", line 6, in test_parse\n    self.assertEqual(parse('apple=5'), ('apple', 5))\n  File \"/workspace/inventory.py\", line 2, in parse\n    name, qty = line.strip().split(':', 1)\nValueError: not enough values to unpack (expected 2, got 1)\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+                  "stdout": "",
+                  "truncated": false,
+                  "workspace_alias_rewritten": false
+                },
+                "step": 3
+              },
+              {
+                "arguments": {
+                  "path": "inventory.py"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 154,
+                  "content": "def parse(line):\n    name, qty = line.strip().split(':', 1)\n    return name, int(qty)\n\ndef total(lines):\n    return max(parse(line)[1] for line in lines)\n",
+                  "path": "inventory.py",
+                  "status": "ok",
+                  "stdout": "def parse(line):\n    name, qty = line.strip().split(':', 1)\n    return name, int(qty)\n\ndef total(lines):\n    return max(parse(line)[1] for line in lines)\n"
+                },
+                "step": 4
+              },
+              {
+                "arguments": {
+                  "path": "tests/test_parse.py"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 212,
+                  "content": "import unittest\nfrom inventory import parse\n\nclass ParseTest(unittest.TestCase):\n    def test_parse(self):\n        self.assertEqual(parse('apple=5'), ('apple', 5))\n\nif __name__ == '__main__':\n    unittest.main()\n",
+                  "path": "tests/test_parse.py",
+                  "status": "ok",
+                  "stdout": "import unittest\nfrom inventory import parse\n\nclass ParseTest(unittest.TestCase):\n    def test_parse(self):\n        self.assertEqual(parse('apple=5'), ('apple', 5))\n\nif __name__ == '__main__':\n    unittest.main()\n"
+                },
+                "step": 5
+              }
+            ]
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 33636.423978000006,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "The parser test passes without changing tests."
+            ],
+            "constraints": [
+              "Do not modify files under tests/.",
+              "Do not modify files under tests/."
+            ],
+            "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 -m unittest tests.test_parse -v"
+            ],
+            "working_directory": "long-horizon/staged/inventory_cascade_en"
+          }
+        }
+      },
+      "error": "protocol error: invalid tool-call JSON: invalid escape at line 1 column 243"
+    },
+    {
+      "spec": {
+        "id": "repair_total",
+        "objective": "Inspect the remaining inventory total behavior, run its focused test, repair the total calculation, and prove the focused total test passes.",
+        "depends_on": [
+          "repair_parser"
+        ],
+        "acceptance_criteria": [
+          "The total test passes without changing tests."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest tests.test_total -v"
+        ],
+        "requires_mutation": true
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    },
+    {
+      "spec": {
+        "id": "full_regression",
+        "objective": "Run the complete test suite, then create REPORT.md with exactly status=pass and total=14 on separate lines and validate the artifact.",
+        "depends_on": [
+          "repair_total"
+        ],
+        "acceptance_criteria": [
+          "Full regression passes and REPORT.md is exact."
+        ],
+        "constraints": [
+          "Do not modify files under tests/."
+        ],
+        "verification_commands": [
+          "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+        ],
+        "requires_mutation": true
+      },
+      "status": "pending",
+      "attempts": 0,
+      "started_unix_ms": null,
+      "completed_unix_ms": null,
+      "response": null,
+      "error": ""
+    }
+  ],
+  "created_unix_ms": 1786149809303,
+  "updated_unix_ms": 1786149842942,
+  "revision": 3,
+  "recovery_count": 0,
+  "final_response": null,
+  "error": "protocol error: invalid tool-call JSON: invalid escape at line 1 column 243",
+  "events": [
+    {
+      "sequence": 1,
+      "unix_ms": 1786149809303,
+      "kind": "created",
+      "stage_id": null,
+      "detail": "task persisted before execution"
+    },
+    {
+      "sequence": 2,
+      "unix_ms": 1786149809304,
+      "kind": "task_started",
+      "stage_id": null,
+      "detail": "stage controller claimed task"
+    },
+    {
+      "sequence": 3,
+      "unix_ms": 1786149809305,
+      "kind": "stage_started",
+      "stage_id": "repair_parser",
+      "detail": "checkpoint before execution"
+    },
+    {
+      "sequence": 4,
+      "unix_ms": 1786149842942,
+      "kind": "stage_failed",
+      "stage_id": "repair_parser",
+      "detail": "protocol error: invalid tool-call JSON: invalid escape at line 1 column 243"
+    }
+  ]
+}

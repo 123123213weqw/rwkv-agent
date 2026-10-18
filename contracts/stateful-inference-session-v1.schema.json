@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/stateful-inference-session-v1.schema.json",
+  "title": "Stateful Inference Session Contract v1",
+  "description": "Opaque, owner-isolated, disposable inference state. Durable Agent state is the source of truth.",
+  "oneOf": [
+    { "$ref": "#/$defs/session_handle" },
+    { "$ref": "#/$defs/checkpoint_ref" },
+    { "$ref": "#/$defs/session_description" },
+    { "$ref": "#/$defs/operation_envelope" }
+  ],
+  "$defs": {
+    "model_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_id", "revision", "tokenizer", "state_abi"],
+      "properties": {
+        "model_id": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "minLength": 1 },
+        "tokenizer": { "type": "string", "minLength": 1 },
+        "state_abi": { "type": "string", "minLength": 1 }
+      }
+    },
+    "provider_mode": {
+      "enum": [
+        "rwkv_recurrent",
+        "qwen_native_kv",
+        "qwen_transcript_reprefill",
+        "contract_test"
+      ]
+    },
+    "session_handle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "session_id",
+        "owner_id",
+        "provider_mode",
+        "model_ref"
+      ],
+      "properties": {
+        "contract_version": { "const": "stateful-inference-session.v1" },
+        "session_id": { "type": "string", "minLength": 1 },
+        "owner_id": { "type": "string", "minLength": 1 },
+        "provider_mode": { "$ref": "#/$defs/provider_mode" },
+        "model_ref": { "$ref": "#/$defs/model_ref" }
+      }
+    },
+    "checkpoint_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "checkpoint_id",
+        "owner_id",
+        "provider_mode",
+        "model_ref",
+        "placement",
+        "checksum",
+        "size_bytes",
+        "created_at_ms",
+        "last_active_at_ms",
+        "atomic"
+      ],
+      "properties": {
+        "contract_version": { "const": "stateful-inference-session.v1" },
+        "checkpoint_id": { "type": "string", "minLength": 1 },
+        "owner_id": { "type": "string", "minLength": 1 },
+        "provider_mode": { "$ref": "#/$defs/provider_mode" },
+        "model_ref": { "$ref": "#/$defs/model_ref" },
+        "placement": { "enum": ["cpu", "disk"] },
+        "checksum": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "created_at_ms": { "type": "integer", "minimum": 0 },
+        "last_active_at_ms": { "type": "integer", "minimum": 0 },
+        "atomic": { "const": true }
+      }
+    },
+    "session_description": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_handle",
+        "durable_session_ref",
+        "placement",
+        "created_at_ms",
+        "last_active_at_ms",
+        "state_bytes",
+        "seen_tokens"
+      ],
+      "properties": {
+        "session_handle": { "$ref": "#/$defs/session_handle" },
+        "durable_session_ref": { "type": "string", "minLength": 1 },
+        "placement": { "enum": ["gpu", "cpu", "disk", "dropped"] },
+        "created_at_ms": { "type": "integer", "minimum": 0 },
+        "last_active_at_ms": { "type": "integer", "minimum": 0 },
+        "state_bytes": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
+        },
+        "seen_tokens": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "operation_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "operation", "request_id", "request"],
+      "properties": {
+        "contract_version": { "const": "stateful-inference-session.v1" },
+        "operation": {
+          "enum": ["create", "continue", "snapshot", "restore", "describe", "release"]
+        },
+        "request_id": { "type": "string", "minLength": 1 },
+        "request": { "type": "object" }
+      }
+    }
+  }
+}

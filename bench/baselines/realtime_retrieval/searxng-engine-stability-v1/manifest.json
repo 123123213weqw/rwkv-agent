@@ -1,0 +1,36 @@
+{
+  "schema_version": "frozen-baseline-manifest.v1",
+  "name": "searxng-engine-stability-v1",
+  "files": [
+    {
+      "path": "360search.json",
+      "sha256": "d462b13b8a1a32d150bfc4b2a5b74cca650f9a8025f6deb2616f3d57becc4167",
+      "bytes": 44050
+    },
+    {
+      "path": "README.md",
+      "sha256": "b4d98146da67de92238c2d474b47357bc187872f27f804ac99ebb6779b86fbf6",
+      "bytes": 1676
+    },
+    {
+      "path": "arxiv.json",
+      "sha256": "dd9ee9b854a603f0c0fd400f659226668bba5fece1d0371b2b7877c1ce04b567",
+      "bytes": 4398
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "aae374b62e1782c91fa087e14266a1db5a0e0e890ea7735fd8344dedcfca76d2",
+      "bytes": 10726
+    },
+    {
+      "path": "github.json",
+      "sha256": "2500229404f58cbf359bfccb8b76773458dfa87b3ef77e96360468f6cecfd5d3",
+      "bytes": 8305
+    },
+    {
+      "path": "mwmbl.json",
+      "sha256": "52a6d242f1fe078e41e150e3584cfb723a3c0259b80d1a93fae28f18249d38ea",
+      "bytes": 43727
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "rwkv-agent-native-tool-prior-summary.v1",
+  "date": "2026-08-01",
+  "status": "isolated_probe_only_not_deployed",
+  "model": "rwkv7-g1i-preview4922-13.3b",
+  "decoder": "greedy_argmax",
+  "design": {
+    "cases": 12,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "task_kinds": [
+      "read",
+      "write",
+      "run"
+    ],
+    "arms": 7,
+    "prefix_modes": [
+      "none",
+      "token_id_0"
+    ],
+    "repeats": 2,
+    "completion_rows": 336,
+    "commands_executed": 0
+  },
+  "results": {
+    "native_trio": {
+      "interface": "read_file(path), write_file(path, content), run_command(command)",
+      "passed": 48,
+      "total": 48,
+      "pass_rate": 1.0,
+      "repeat_raw_exact_rate": 1.0,
+      "mean_output_tokens": 33.5,
+      "mean_model_elapsed_ms": 2857.323
+    },
+    "run_command_only": {
+      "interface": "run_command(command)",
+      "passed": 48,
+      "total": 48,
+      "pass_rate": 1.0,
+      "repeat_raw_exact_rate": 1.0,
+      "mean_output_tokens": 33.667,
+      "mean_model_elapsed_ms": 2720.992
+    },
+    "execute_command_only": {
+      "interface": "execute_command(command)",
+      "passed": 48,
+      "total": 48,
+      "pass_rate": 1.0,
+      "repeat_raw_exact_rate": 1.0,
+      "mean_output_tokens": 33.583,
+      "mean_model_elapsed_ms": 2726.215
+    },
+    "shell_only": {
+      "interface": "shell(command)",
+      "passed": 48,
+      "total": 48,
+      "pass_rate": 1.0,
+      "repeat_raw_exact_rate": 1.0,
+      "mean_output_tokens": 31.5,
+      "mean_model_elapsed_ms": 2620.186
+    },
+    "bash_only": {
+      "interface": "bash(command)",
+      "passed": 48,
+      "total": 48,
+      "pass_rate": 1.0,
+      "repeat_raw_exact_rate": 1.0,
+      "mean_output_tokens": 30.917,
+      "mean_model_elapsed_ms": 2588.402
+    },
+    "python_only": {
+      "interface": "python(code)",
+      "passed": 40,
+      "total": 48,
+      "pass_rate": 0.833333,
+      "repeat_raw_exact_rate": 1.0,
+      "mean_output_tokens": 51.958,
+      "mean_model_elapsed_ms": 3915.499
+    },
+    "workspace_only": {
+      "interface": "workspace(op, input)",
+      "passed": 34,
+      "total": 48,
+      "pass_rate": 0.708333,
+      "repeat_raw_exact_rate": 1.0,
+      "mean_output_tokens": 34.0,
+      "mean_model_elapsed_ms": 2723.024
+    }
+  },
+  "native_continuation": {
+    "tool_schema_format": "OpenAI-style type=function/function/name/description/parameters",
+    "unconstrained_first_tool": "get_weather",
+    "read_stem": "read_file(path)",
+    "write_stem": "write_file(path, content)",
+    "run_stem": "run_command(command, optional timeout)",
+    "execute_stem": "execute_sql(database, query)"
+  },
+  "decision": {
+    "selected_general_action": "run_command(command)",
+    "reason": "It is the only one-function execution interface that both reconstructed from the model's token-0 native schema continuation and passed every read/write/run case without demonstrations in both prefix modes. The backend should own timeout rather than asking the model to emit it.",
+    "rejected_first_choice": "workspace(op, input)",
+    "rejected_reason": "The invented abstraction changed argument shape or operation semantics on 14 of 48 rows."
+  },
+  "limitations": [
+    "The probe validates generation, schema and static instruction preservation; it never executes a generated command.",
+    "The 12 cases are a focused interface probe, not a general-agent task-success benchmark.",
+    "Latency comes from one shared batched V100 run and is descriptive, not a causal arm comparison."
+  ],
+  "raw_result_sha256": "b17ba3f96b93f531beedf72ae3a3fdbfd9c931318c88022fd2fd15f1362d0d7e"
+}

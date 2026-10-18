@@ -1,0 +1,37 @@
+{
+  "schema_version": "frozen-baseline-manifest.v1",
+  "name": "search-reasoning-ac-dev-v2-v1",
+  "status": "frozen",
+  "benchmark": {
+    "path": "bench/realtime_web_retrieval_dev_v2.jsonl",
+    "sha256": "1c288697abd81882c41039028c7dbccc11d0f5b8860f2610b9c7228d7bc945f6",
+    "case_count": 100,
+    "origin": "manually_curated_realistic",
+    "is_user_log": false,
+    "is_blind_test": false
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "5fa9ba9e5ac0f4e246e232ab6b96a6fcd4daa820ef4a45e8bfaa7fce77ce60eb",
+      "bytes": 1662
+    },
+    {
+      "path": "case_matrix.json",
+      "sha256": "f2356691d7a974b10538159ebd309b6023a3c35b96770ffdf160db58c2776cf6",
+      "bytes": 79030
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "0c6c085b03bfadc72e14c312cac18ab0c388cbc67dfc08de3e8c95b4dbd9b807",
+      "bytes": 2170
+    },
+    {
+      "path": "summary.json",
+      "sha256": "4a7831a894f97463a7f45342e192ebb0677fa3632a57ca30259a7f358fba11e1",
+      "bytes": 52114
+    }
+  ],
+  "raw_traces_included": false,
+  "production_changed": false
+}

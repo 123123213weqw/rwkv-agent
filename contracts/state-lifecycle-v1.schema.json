@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rwkv-agent.local/contracts/state-lifecycle-v1.schema.json",
+  "title": "StatePool lease and State lifecycle contracts v1",
+  "$defs": {
+    "lease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "lease_id", "session_id", "owner_id", "holder_id", "fencing_token", "expected_state_version", "expires_at_ms"],
+      "properties": {
+        "contract_version": { "const": "statepool-lease.v1" },
+        "lease_id": { "type": "string", "minLength": 1 },
+        "session_id": { "type": "string", "minLength": 1 },
+        "owner_id": { "type": "string", "minLength": 1 },
+        "holder_id": { "type": "string", "minLength": 1 },
+        "fencing_token": { "type": "integer", "minimum": 1 },
+        "expected_state_version": { "type": "integer", "minimum": 0 },
+        "expires_at_ms": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "acquire_lease_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "session_id", "owner_id", "holder_id", "expected_state_version", "ttl_ms"],
+      "properties": {
+        "contract_version": { "const": "statepool-acquire-lease-request.v1" },
+        "session_id": { "type": "string", "minLength": 1 },
+        "owner_id": { "type": "string", "minLength": 1 },
+        "holder_id": { "type": "string", "minLength": 1 },
+        "expected_state_version": { "type": "integer", "minimum": 0 },
+        "ttl_ms": { "type": "integer", "minimum": 1000 }
+      }
+    },
+    "renew_lease_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "lease", "ttl_ms"],
+      "properties": {
+        "contract_version": { "const": "statepool-renew-lease-request.v1" },
+        "lease": { "$ref": "#/$defs/lease" },
+        "ttl_ms": { "type": "integer", "minimum": 1000 }
+      }
+    },
+    "release_lease_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "lease"],
+      "properties": {
+        "contract_version": { "const": "statepool-release-lease-request.v1" },
+        "lease": { "$ref": "#/$defs/lease" }
+      }
+    },
+    "snapshot_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "provider_mode", "model_ref", "target_tier", "lease", "expected_state_version", "payload_base64"],
+      "properties": {
+        "contract_version": { "const": "statepool-snapshot-request.v1" },
+        "provider_mode": { "type": "string", "minLength": 1 },
+        "model_ref": { "$ref": "stateful-inference-session-v1.schema.json#/$defs/model_ref" },
+        "target_tier": { "enum": ["warm", "cold"] },
+        "lease": { "$ref": "#/$defs/lease" },
+        "expected_state_version": { "type": "integer", "minimum": 0 },
+        "payload_base64": { "type": "string", "minLength": 1, "contentEncoding": "base64" },
+        "expected_checksum": {
+          "type": ["string", "null"],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "restore_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "state_ref", "expected_model_ref", "target_worker_id", "lease"],
+      "properties": {
+        "contract_version": { "const": "statepool-restore-request.v1" },
+        "state_ref": { "$ref": "state-reference-v1.schema.json" },
+        "expected_model_ref": { "$ref": "stateful-inference-session-v1.schema.json#/$defs/model_ref" },
+        "target_worker_id": { "type": "string", "minLength": 1 },
+        "lease": { "$ref": "#/$defs/lease" }
+      }
+    },
+    "restore_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_version", "state_ref", "payload_base64"],
+      "properties": {
+        "contract_version": { "const": "statepool-restore-response.v1" },
+        "state_ref": { "$ref": "state-reference-v1.schema.json" },
+        "payload_base64": { "type": "string", "minLength": 1, "contentEncoding": "base64" }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/acquire_lease_request" },
+    { "$ref": "#/$defs/lease" },
+    { "$ref": "#/$defs/renew_lease_request" },
+    { "$ref": "#/$defs/release_lease_request" },
+    { "$ref": "#/$defs/snapshot_request" },
+    { "$ref": "#/$defs/restore_request" },
+    { "$ref": "#/$defs/restore_response" }
+  ]
+}

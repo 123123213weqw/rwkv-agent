@@ -1,0 +1,110 @@
+{
+  "schema_version": "rwkv-agent-p0-13b-preview4922-summary.v1",
+  "created_at": "2026-07-29",
+  "status": "experiment_only_not_production_release",
+  "benchmark": {
+    "name": "RWKV-Agent-Unified-Regression-v1",
+    "cases": 200,
+    "cases_per_track": 40,
+    "case_set_matches_p0_7b_baseline": true
+  },
+  "runtime": {
+    "model": "rwkv7-g1i-preview4922-13.3b",
+    "context": 12288,
+    "sidecars": 1,
+    "concurrency": 1,
+    "device": "single V100 GPU 1",
+    "web_profile": "legacy",
+    "web_fallback_engines": [
+      "bing"
+    ],
+    "api_discovery_providers": [
+      "tavily",
+      "github",
+      "mediawiki",
+      "crossref"
+    ],
+    "run_id": "agent-unified-regression-v1-p0-13b-preview4922-full-v1"
+  },
+  "tracks": {
+    "bfcl": {
+      "status_ok": 37,
+      "status_error": 3,
+      "official_ast_exact_match_rescored": 0.875,
+      "tool_protocol_valid": 0.925,
+      "tool_call_exact_match": 0.575,
+      "tool_sequence_exact_match": 0.525,
+      "parse_errors": 3,
+      "p95_latency_ms": 4329.703,
+      "rescore_note": "The first summary recorded zero AST because the runner environment lacked bfcl_eval. Replaying the 40 stored decoded calls with pinned bfcl-eval==2026.3.23 produced 35/40 without new model inference."
+    },
+    "webwalkerqa": {
+      "status_ok": 40,
+      "answer_token_f1": 0.026278,
+      "domain_recall": 0.2,
+      "exact_page_recall": 0.025,
+      "evidence_nonempty_rate": 0.2,
+      "answered_cases": 2,
+      "abstained_cases": 38,
+      "p95_latency_ms": 24632.283
+    },
+    "frames": {
+      "status_ok": 40,
+      "answer_token_f1": 0.109042,
+      "domain_recall": 0.575,
+      "exact_page_recall": 0.147917,
+      "citation_exact_page_recall": 0.083333,
+      "evidence_nonempty_rate": 0.85,
+      "supported_claim_rate_answered_only": 0.844828,
+      "unsupported_claim_rate_answered_only": 0.155172,
+      "answered_cases": 29,
+      "abstained_cases": 11,
+      "p95_latency_ms": 33222.77
+    },
+    "longbench_v2": {
+      "status_ok": 40,
+      "choice_accuracy": 0.275,
+      "p95_latency_ms": 4534.652
+    },
+    "alce": {
+      "status_ok": 39,
+      "status_error": 1,
+      "answer_token_f1": 0.175708,
+      "citation_exact_page_recall": 0.355,
+      "citation_presence": 0.85,
+      "supported_claim_rate_answered_only": 1.0,
+      "unsupported_claim_rate_answered_only": 0.0,
+      "answered_cases": 35,
+      "abstained_or_error_cases": 5,
+      "p95_latency_ms": 2383.757
+    }
+  },
+  "reliability": {
+    "http_409_count": 0,
+    "route_error_count": 0,
+    "state_leak_count": 0,
+    "protocol_leak_count": 0,
+    "budget_overrun_count": 0,
+    "sidecar_pool_allocated_after_run": 0,
+    "persistent_states_allocated_after_run": 0
+  },
+  "cleanup": {
+    "benchmark_sidecar_8617": "closed",
+    "retained_services_unchanged": true
+  },
+  "interpretation": {
+    "strongest_gain": "FRAMES multi-step answer coverage, F1, domain recall and exact-page recall",
+    "small_gains": [
+      "BFCL semantic/tool accuracy after official rescore",
+      "WebWalkerQA exact-page recall",
+      "LongBench v2 choice accuracy"
+    ],
+    "not_improved": [
+      "WebWalkerQA evidence coverage and domain recall",
+      "ALCE answer F1 and exact-page citation recall"
+    ],
+    "new_regression": "Three BFCL generations were malformed JSON, reducing protocol validity from 100% to 92.5%.",
+    "conclusion": "The 13.3B model is a material contributor to the observed multi-step improvement, but model size alone does not solve discovery coverage, exact-page recall, or citation-grounded answer quality."
+  },
+  "comparison_caveat": "This is an end-to-end current-stack comparison against the frozen 7.2B P0 run. Cases, P0 path and benchmark settings match, but the old manifest did not record API discovery-provider environment variables and used two sidecars/concurrency 2. Quality deltas are useful; throughput and pure model causality are not fully isolated."
+}

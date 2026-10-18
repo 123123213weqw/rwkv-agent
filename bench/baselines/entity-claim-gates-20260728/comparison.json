@@ -1,0 +1,79 @@
+{
+  "schema_version": "entity-claim-gates-comparison.v1",
+  "date": "2026-07-28",
+  "model": "rwkv7-g1i-preview4922-13.3b",
+  "questions": {
+    "q1": "rwkv的创始人是谁，他的github项目都是那些，最新的更新是什么。",
+    "q2": "上海浦东新区唐镇站如何到rwkv公司（上海和深圳，看他会如何做）"
+  },
+  "stages": [
+    {
+      "name": "current_before",
+      "q1": {
+        "status": "ok",
+        "elapsed_seconds": 49.817,
+        "founder_correct": false,
+        "reported_founder": "Zhuangfei Xu",
+        "cocos_creator_contamination": true,
+        "official_repository_index_present": false,
+        "latest_commit_present": true,
+        "unsupported_claims_blocked": false
+      },
+      "q2": {
+        "status": "ok",
+        "elapsed_seconds": 39.077,
+        "fabricated_route_released": false,
+        "safe_abstention": true
+      }
+    },
+    {
+      "name": "query_coordinator_p0",
+      "q1": {
+        "status": "ok",
+        "elapsed_seconds": 44.569,
+        "founder_correct": false,
+        "reported_founder": "Leo501",
+        "cocos_creator_contamination": true,
+        "official_repository_index_present": false,
+        "latest_commit_present": false,
+        "unsupported_claims_blocked": false
+      },
+      "q2": {
+        "status": "ok",
+        "elapsed_seconds": 39.31,
+        "fabricated_route_released": true,
+        "safe_abstention": false
+      }
+    },
+    {
+      "name": "entity_and_claim_gates",
+      "q1": {
+        "status": "ok",
+        "elapsed_seconds": 50.443,
+        "founder_correct": true,
+        "reported_founder": "Peng Bo",
+        "cocos_creator_contamination": false,
+        "official_repository_index_present": true,
+        "repository_count": 35,
+        "latest_commit_present": true,
+        "latest_commit_timestamp": "2026-07-23T08:56:31Z",
+        "unsupported_claims_blocked": true,
+        "answer_is_partial": true,
+        "remaining_failure": "The model combined the latest commit with an unsupported release assertion; the gate dropped that sentence instead of exposing it."
+      },
+      "q2": {
+        "status": "insufficient_evidence",
+        "elapsed_seconds": 52.831,
+        "fabricated_route_released": false,
+        "safe_abstention": true,
+        "primary_unsupported_claims": 6,
+        "fallback_unsupported_claims": 5
+      }
+    }
+  ],
+  "regression": {
+    "local_targeted": "64 passed, 5 subtests passed",
+    "local_non_torch_suite": "192 passed, 6 skipped, 5 subtests passed",
+    "remote_isolated": "64 passed, 5 subtests passed"
+  }
+}

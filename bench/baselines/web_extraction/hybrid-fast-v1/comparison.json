@@ -1,0 +1,90 @@
+{
+  "schema_version": "web-extraction-hybrid-comparison.v1",
+  "baseline": "static-extractors-v1/current",
+  "candidate": "hybrid_fast",
+  "same_cases": true,
+  "same_snapshot_manifest": true,
+  "same_repetitions": true,
+  "frozen_baseline_current": {
+    "pass_rate": 0.7857,
+    "usable_success_rate": 0.8696,
+    "content_marker_hit_rate": 0.9565,
+    "forbidden_leak_rate": 0.087,
+    "author_hit_rate": 0.5,
+    "published_at_hit_rate": 0.8,
+    "average_elapsed_ms": 112.087,
+    "p95_elapsed_ms": 536.022
+  },
+  "same_run": {
+    "current": {
+      "pass_rate": 0.7857,
+      "usable_success_rate": 0.8696,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.087,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.8,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_elapsed_ms": 197.83,
+      "p95_elapsed_ms": 787.17
+    },
+    "hybrid_fast": {
+      "pass_rate": 0.8571,
+      "usable_success_rate": 0.8696,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.087,
+      "author_hit_rate": 1.0,
+      "published_at_hit_rate": 1.0,
+      "table_hit_rate": 0.75,
+      "code_hit_rate": 1.0,
+      "average_elapsed_ms": 70.135,
+      "p95_elapsed_ms": 197.946,
+      "fallback_trigger_rate": 0.1429,
+      "fallback_use_rate": 0.0357,
+      "fallback_reasons": {
+        "generic_boilerplate": 1,
+        "generic_boilerplate_tail": 1,
+        "low_main_content_ratio": 1,
+        "low_quality": 1
+      }
+    },
+    "resiliparse": {
+      "pass_rate": 0.75,
+      "usable_success_rate": 0.8696,
+      "content_marker_hit_rate": 0.9565,
+      "forbidden_leak_rate": 0.1304,
+      "author_hit_rate": 0.5,
+      "published_at_hit_rate": 0.2,
+      "average_elapsed_ms": 25.218,
+      "p95_elapsed_ms": 109.3
+    },
+    "trafilatura": {
+      "pass_rate": 0.7143,
+      "usable_success_rate": 0.7391,
+      "content_marker_hit_rate": 0.7391,
+      "forbidden_leak_rate": 0.0,
+      "author_hit_rate": 1.0,
+      "published_at_hit_rate": 0.8,
+      "average_elapsed_ms": 164.285,
+      "p95_elapsed_ms": 638.856
+    }
+  },
+  "candidate_minus_current": {
+    "pass_rate": 0.0714,
+    "usable_success_rate": 0.0,
+    "content_marker_hit_rate": 0.0,
+    "forbidden_leak_rate": 0.0,
+    "author_hit_rate": 0.5,
+    "published_at_hit_rate": 0.2,
+    "average_elapsed_ms": -127.695,
+    "p95_elapsed_ms": -589.224,
+    "average_elapsed_reduction_rate": 0.6455
+  },
+  "finding": {
+    "quality_gate": "pass",
+    "resource_gate": "pass",
+    "candidate_for": "separately-authorized shadow evaluation",
+    "production_switched": false,
+    "browser_fallback_added": false
+  }
+}

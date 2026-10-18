@@ -1,0 +1,14 @@
+# StatePool PostgreSQL adapter integration — 2026-08-27
+# Host: WZU_Server; image: postgres:17.6-bookworm
+# Image digest: sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+# Test: concurrent first acquire, two clients, one writer, CAS, fencing
+887ce76d21acf126a2826e5ce88875d8dd3c567580c7079ff17ff75b287cbf8c
+/var/run/postgresql:55432 - accepting connections
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running tests/durable_adapters.rs (target/debug/deps/durable_adapters-4fb98f4f77a80d60)
+
+running 1 test
+test postgres_enforces_cross_instance_lease_and_state_cas ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.02s
+

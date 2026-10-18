@@ -1,0 +1,13 @@
+{
+  "schema_version": "passage-hydration-pilot-manifest.v1",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "456a56daadfb1d8bf30393b12c462decce29d915af011c21e8802c9352c70284"
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "5a49a73db0ac28805fdbeee0c6cf484a99d84de86995a058c80c82067d74beb2"
+    }
+  ]
+}

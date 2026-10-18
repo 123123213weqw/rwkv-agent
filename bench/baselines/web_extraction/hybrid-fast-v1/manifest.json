@@ -1,0 +1,46 @@
+{
+  "schema_version": "web-extraction-baseline-manifest.v1",
+  "raw_web_bodies_included": false,
+  "files": [
+    {
+      "path": "bench/web_extraction_cases.jsonl",
+      "sha256": "cc5aa0fb5970a67befae2f3727f1f86829885c6b3de64a3557da16508afbdcf1",
+      "bytes": 14243
+    },
+    {
+      "path": "bench/web_extraction_schema.py",
+      "sha256": "9a116cb7e6e95231dcc8087f40333131c2bc07a2df6273be62d45a410b964476",
+      "bytes": 6548
+    },
+    {
+      "path": "bench/web_extraction.py",
+      "sha256": "f6554706c21970d536bcb4296f467a3ae5b46b4c1b131153bef92d5d3c45d532",
+      "bytes": 40056
+    },
+    {
+      "path": "bench/run_web_extraction_bench.py",
+      "sha256": "88ca9d415a9b32ac52e1ec6da23b0233ad089220acc282f52e3743cb3eb07511",
+      "bytes": 4864
+    },
+    {
+      "path": "bench/baselines/web_extraction/hybrid-fast-v1/README.md",
+      "sha256": "5564fa932b78134726de0c35b6ad9ee0d6d211cb390fdf4a833ea2f4f7d3c577",
+      "bytes": 2799
+    },
+    {
+      "path": "bench/baselines/web_extraction/hybrid-fast-v1/summary.json",
+      "sha256": "5a9c9458f0e310b5e34b863e15cf1e38c73141c7e280d80ecfa81b35e00d89d5",
+      "bytes": 11643
+    },
+    {
+      "path": "bench/baselines/web_extraction/hybrid-fast-v1/comparison.json",
+      "sha256": "4f2bdf998d1950b5eb0a502021bd5e18d275ce181f9b5be1d8da671a4a6a9e03",
+      "bytes": 2650
+    },
+    {
+      "path": "bench/baselines/web_extraction/hybrid-fast-v1/case_matrix.json",
+      "sha256": "49b70203e6060fdc856e52211d508fcdf59ed38619163b6338b855b411b00866",
+      "bytes": 68669
+    }
+  ]
+}

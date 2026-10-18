@@ -1,0 +1,33 @@
+name: Feature or adapter proposal
+description: Propose a capability without duplicating an upstream project
+title: "[proposal] "
+labels: ["proposal"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem and measurable outcome
+    validations: { required: true }
+  - type: textarea
+    id: upstream
+    attributes:
+      label: Existing upstream solutions reviewed
+      description: Explain why an adapter/configuration is insufficient, or propose that thin integration.
+    validations: { required: true }
+  - type: dropdown
+    id: boundary
+    attributes:
+      label: Intended boundary
+      options: [Core contract, Optional adapter, Deployment profile, Benchmark/evidence, Documentation]
+    validations: { required: true }
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and fallback
+      description: State effect on default local behavior, protocol version and failure semantics.
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Reproducible acceptance criteria
+    validations: { required: true }

@@ -1,0 +1,13 @@
+{
+  "total": 100,
+  "expected_search": 50,
+  "routed_search": 52,
+  "route_accuracy": 0.96,
+  "search_recall": 0.98,
+  "query_generation_success_rate": 0.98,
+  "query_decode_success_when_attempted": 1.0,
+  "query_protocol_failure_count": 0,
+  "average_total_elapsed_ms": 157.024,
+  "average_query_generation_ms": 223.814,
+  "average_query_tokens": 11.942
+}

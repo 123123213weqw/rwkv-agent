@@ -1,0 +1,203 @@
+{
+  "schema_version": "realtime-retrieval-attribution.v1",
+  "run_count": 2,
+  "runs": [
+    {
+      "domain_outcomes": {
+        "domain_fetch_or_extraction_failed": 13,
+        "domain_final_ranking_drop": 1,
+        "domain_not_discovered": 28,
+        "success_result": 8
+      },
+      "target_outcomes": {
+        "exact_page_not_discovered_after_precision": 11,
+        "initial_domain_miss": 28,
+        "success_result": 2,
+        "target_fetch_or_extraction_failed": 5,
+        "target_final_ranking_drop": 2,
+        "target_not_scheduled": 2
+      },
+      "domain_fetch_failure_types": {
+        "ConnectionTimeoutError": 31,
+        "ExtractionError": 3,
+        "FetchError": 13,
+        "TimeoutError": 4,
+        "TimeoutOrCancellation": 14
+      },
+      "target_fetch_failure_types": {
+        "ConnectionTimeoutError": 8,
+        "FetchError": 8,
+        "TimeoutError": 2,
+        "TimeoutOrCancellation": 6
+      },
+      "stage_recall": {
+        "initial_domain": 0.44,
+        "post_pivot_domain": 0.44,
+        "final_candidate_domain": 0.44,
+        "result_domain": 0.16,
+        "initial_target": 0.16,
+        "post_pivot_target": 0.22,
+        "final_candidate_target": 0.22,
+        "result_target": 0.04
+      },
+      "stage_gains": {
+        "pivot_domain_additions": 0,
+        "one_hop_domain_additions": 0,
+        "pivot_target_additions": 3,
+        "one_hop_target_additions": 0
+      },
+      "resource_totals": {
+        "discovery_requests": 83,
+        "fetch_attempted": 317,
+        "fetch_usable": 139
+      },
+      "average_total_elapsed_ms": 5303.831,
+      "p95_total_elapsed_ms": 8013.996,
+      "case_count": 50,
+      "run_index": 1,
+      "path": "bench/runs/realtime_retrieval_hybrid_live_run1.jsonl"
+    },
+    {
+      "domain_outcomes": {
+        "domain_fetch_or_extraction_failed": 11,
+        "domain_final_ranking_drop": 1,
+        "domain_not_discovered": 26,
+        "domain_not_scheduled": 1,
+        "success_result": 11
+      },
+      "target_outcomes": {
+        "exact_page_not_discovered_after_precision": 18,
+        "initial_domain_miss": 26,
+        "success_result": 1,
+        "target_fetch_or_extraction_failed": 4,
+        "target_final_ranking_drop": 1
+      },
+      "domain_fetch_failure_types": {
+        "ClientConnectorError": 1,
+        "ConnectionTimeoutError": 40,
+        "ExtractionError": 4,
+        "FetchError": 6,
+        "TimeoutError": 6,
+        "TimeoutOrCancellation": 5
+      },
+      "target_fetch_failure_types": {
+        "ClientConnectorError": 1,
+        "ConnectionTimeoutError": 9,
+        "FetchError": 2,
+        "TimeoutError": 2,
+        "TimeoutOrCancellation": 1
+      },
+      "stage_recall": {
+        "initial_domain": 0.48,
+        "post_pivot_domain": 0.48,
+        "final_candidate_domain": 0.48,
+        "result_domain": 0.22,
+        "initial_target": 0.1,
+        "post_pivot_target": 0.1,
+        "final_candidate_target": 0.12,
+        "result_target": 0.02
+      },
+      "stage_gains": {
+        "pivot_domain_additions": 0,
+        "one_hop_domain_additions": 0,
+        "pivot_target_additions": 0,
+        "one_hop_target_additions": 1
+      },
+      "resource_totals": {
+        "discovery_requests": 86,
+        "fetch_attempted": 323,
+        "fetch_usable": 145
+      },
+      "average_total_elapsed_ms": 4990.779,
+      "p95_total_elapsed_ms": 8018.501,
+      "case_count": 50,
+      "run_index": 2,
+      "path": "bench/runs/realtime_retrieval_hybrid_live_run2.jsonl"
+    }
+  ],
+  "across_runs": {
+    "stage_recall_ranges": {
+      "initial_domain": {
+        "mean": 0.46,
+        "min": 0.44,
+        "max": 0.48
+      },
+      "post_pivot_domain": {
+        "mean": 0.46,
+        "min": 0.44,
+        "max": 0.48
+      },
+      "final_candidate_domain": {
+        "mean": 0.46,
+        "min": 0.44,
+        "max": 0.48
+      },
+      "result_domain": {
+        "mean": 0.19,
+        "min": 0.16,
+        "max": 0.22
+      },
+      "initial_target": {
+        "mean": 0.13,
+        "min": 0.1,
+        "max": 0.16
+      },
+      "post_pivot_target": {
+        "mean": 0.16,
+        "min": 0.1,
+        "max": 0.22
+      },
+      "final_candidate_target": {
+        "mean": 0.17,
+        "min": 0.12,
+        "max": 0.22
+      },
+      "result_target": {
+        "mean": 0.03,
+        "min": 0.02,
+        "max": 0.04
+      }
+    }
+  },
+  "reference": {
+    "schema_version": "precision-discovery-baseline-manifest.v1",
+    "status": "frozen_pending_owner_review",
+    "generated_at": "2026-07-21T02:19:50.549284+00:00",
+    "benchmark": {
+      "path": "bench/realtime_web_retrieval.jsonl",
+      "sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc",
+      "case_count": 50
+    },
+    "planner": {
+      "path": "bench/runs/query_formation_p4_queries_v1.jsonl",
+      "sha256": "c58e6241939d79dad6afb6bf5ea215f5087324453c41820cefe9ae8d8c84722d",
+      "strict_success": "50/50"
+    },
+    "headline_metrics": {
+      "candidate_domain_recall_at_10": 0.48,
+      "candidate_target_page_recall_at_20": 0.12,
+      "result_domain_recall_at_10": 0.32,
+      "result_target_page_recall_at_20": 0.0,
+      "nonempty_result_rate": 0.68,
+      "garbage_result_rate": 0.0097,
+      "fetch_success_rate": 0.5395,
+      "average_total_elapsed_ms": 5066.747,
+      "p95_total_elapsed_ms": 8010.197
+    },
+    "decision": {
+      "production_enabled": false,
+      "owner_reviewed": false,
+      "next_milestone_started": false
+    },
+    "frozen_files": {
+      "README.md": "5bfb4cfb6947319b5f983f6cb5d9e50740606077dc3b44d057fc4c4024eaf98c",
+      "baseline_config.json": "541c495b628070eae8ecbd4083c203bce7d0f25e64362392f7512c96554e2b0f",
+      "precision_config.json": "c76af4bf257c22e423d0e5dff99c22ac5e378a8eb7040317234fa42312f289aa",
+      "baseline_summary.json": "67bbbbce6611ad47b354d619e4774ed0e94fe97ab6a6de3725aa9754d1f3e540",
+      "precision_summary.json": "a7ab839f838c917a32c227b8ec611801aa0aac433215f22c48900115822843f4",
+      "baseline_cases.jsonl": "d0ad54d9a585e880e21b923be1da2b07fe672943ed08cf4bd8fd666c26bf1c52",
+      "precision_cases.jsonl": "318cdbb1bb112b0ddb62544de429f3b28452930edffddfe8823e04c94487b15d",
+      "comparison.json": "8c8a2df0acdfef7f4d54cd9b488e65aed201e06f1ce80c6f81a3da4df732c7d3"
+    }
+  }
+}

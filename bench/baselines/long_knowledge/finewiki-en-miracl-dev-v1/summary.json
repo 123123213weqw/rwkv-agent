@@ -1,0 +1,98 @@
+{
+  "schema_version": "long-knowledge-benchmark.v1",
+  "index": "rwkv-finewiki-en-full-v1",
+  "language_filter": "en",
+  "channel_size": 100,
+  "limit": 10,
+  "qrel_index_coverage": {
+    "relevant_pages": 1838,
+    "indexed_relevant_pages": 1787,
+    "page_rate": 0.9722524483133841,
+    "qrel_cases": 799,
+    "eligible_cases": 793,
+    "case_rate": 0.9924906132665833
+  },
+  "cases_total": 799,
+  "positive_cases": 799,
+  "expected_missing_cases": 0,
+  "expected_missing_accuracy": null,
+  "overall": {
+    "cases": 799,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 1933.9828311074618,
+      "p50": 1902.2359759546816,
+      "p95": 2952.046297956258
+    },
+    "hit_at_1": 0.34167709637046306,
+    "hit_at_5": 0.47434292866082606,
+    "hit_at_10": 0.5369211514392991,
+    "recall_at_1": 0.22420982577428136,
+    "recall_at_5": 0.32251276397083656,
+    "recall_at_10": 0.37263692711127006,
+    "mrr_at_10": 0.39929376005721434,
+    "ndcg_at_10": 0.3284263633315726
+  },
+  "by_language": {
+    "en": {
+      "cases": 799,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1933.9828311074618,
+        "p50": 1902.2359759546816,
+        "p95": 2952.046297956258
+      },
+      "hit_at_1": 0.34167709637046306,
+      "hit_at_5": 0.47434292866082606,
+      "hit_at_10": 0.5369211514392991,
+      "recall_at_1": 0.22420982577428136,
+      "recall_at_5": 0.32251276397083656,
+      "recall_at_10": 0.37263692711127006,
+      "mrr_at_10": 0.39929376005721434,
+      "ndcg_at_10": 0.3284263633315726
+    }
+  },
+  "by_query_type": {
+    "unspecified": {
+      "cases": 799,
+      "empty_rate": 0.0,
+      "latency_ms": {
+        "mean": 1933.9828311074618,
+        "p50": 1902.2359759546816,
+        "p95": 2952.046297956258
+      },
+      "hit_at_1": 0.34167709637046306,
+      "hit_at_5": 0.47434292866082606,
+      "hit_at_10": 0.5369211514392991,
+      "recall_at_1": 0.22420982577428136,
+      "recall_at_5": 0.32251276397083656,
+      "recall_at_10": 0.37263692711127006,
+      "mrr_at_10": 0.39929376005721434,
+      "ndcg_at_10": 0.3284263633315726
+    }
+  },
+  "conditional_on_index_coverage": {
+    "cases": 793,
+    "empty_rate": 0.0,
+    "latency_ms": {
+      "mean": 1936.1957357908643,
+      "p50": 1906.921235844493,
+      "p95": 2952.046297956258
+    },
+    "hit_at_1": 0.3442622950819672,
+    "hit_at_5": 0.47793190416141235,
+    "hit_at_10": 0.5409836065573771,
+    "recall_at_1": 0.2259062431193579,
+    "recall_at_5": 0.32495296142837127,
+    "recall_at_10": 0.37545637422686606,
+    "mrr_at_10": 0.40231489821653754,
+    "ndcg_at_10": 0.33091130428994514
+  },
+  "test_set": "bench/external/miracl-v1/miracl_long_knowledge_dev_v1.jsonl",
+  "limitations": [
+    "MIRACL passage qrels are collapsed to Wikipedia page IDs; this run scores page discovery, not exact passage matching.",
+    "FineWiki and MIRACL use different Wikipedia snapshots, so unconditional metrics include corpus-version coverage loss.",
+    "This is lexical/alias candidate retrieval only; no dense retriever or learned reranker was used.",
+    "Latency was measured on the isolated V100 index host and must not be compared with Chinese latency as a hardware-neutral model benchmark."
+  ]
+}

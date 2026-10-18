@@ -1,0 +1,13 @@
+metric,unit,qwen3.5-9b-nf4,rwkv-7.2b-fp32io16,qwen_status,rwkv_status
+strict_task_success,cases,3/6,0/6,partial,fail
+flat_task_success,cases,2/3,0/3,partial,fail
+staged_task_success,cases,1/3,0/3,partial,fail
+artifact_success,cases,4/6,0/6,partial,fail
+protocol_compliance,cases,6/6,6/6,pass,pass
+lifecycle_release,cases,6/6,6/6,pass,pass
+adjacent_repeats,count,0,0,pass,pass
+state_mechanism,text,transcript_replay_compatibility,native_recurrent_state,partial,pass
+peak_vram,MiB,8429,14080,observed,observed
+flat_mean_latency,ms,19742.171,20269.751,observed,observed
+staged_mean_latency,ms,44643.397,23263.793,observed,observed
+raw_result_sha256,sha256,461a482a8fcf2ce06338c7312e3ad00dffd651800bb989db5cdad7bd764468d9,22735cc14d750b581186fea23e2fdf743d6fc0009255a2cd107c498a336c71dd,source,source

@@ -1,0 +1,102 @@
+{
+  "schema_version": "candidate-rerank-comparison.v1",
+  "input": {
+    "case_count": 50,
+    "record_count": 100,
+    "repetitions": [
+      1,
+      2
+    ],
+    "input_sha256": "f20d8f551f3a61f5f1fa6a1f1ff6be820c5c5d096c532425d9603cc0af82d875"
+  },
+  "model": {
+    "name": "BAAI/bge-reranker-v2-m3",
+    "fp16": true,
+    "batch_size": 16,
+    "max_length": 512,
+    "peak_gpu_memory_mb": 1119.706,
+    "model_load_elapsed_ms": 7231.221
+  },
+  "strategies": {
+    "raw": {
+      "records": 100,
+      "domain_recall_at_5": 0.48,
+      "domain_recall_at_10": 0.56,
+      "target_page_recall_at_10": 0.08,
+      "target_page_recall_at_20": 0.08,
+      "domain_mrr": 0.372413,
+      "target_mrr": 0.026857,
+      "top8_garbage_count": 138,
+      "top8_garbage_rate": 0.1738,
+      "rejected_expected_domain_count": 0,
+      "rejected_useful_expected_domain_count": 0,
+      "rejected_target_page_count": 0,
+      "average_rerank_elapsed_ms": 0.0,
+      "p95_rerank_elapsed_ms": 0.0
+    },
+    "admission": {
+      "records": 100,
+      "domain_recall_at_5": 0.5,
+      "domain_recall_at_10": 0.56,
+      "target_page_recall_at_10": 0.08,
+      "target_page_recall_at_20": 0.08,
+      "domain_mrr": 0.41619,
+      "target_mrr": 0.029524,
+      "top8_garbage_count": 0,
+      "top8_garbage_rate": 0.0,
+      "rejected_expected_domain_count": 4,
+      "rejected_useful_expected_domain_count": 0,
+      "rejected_target_page_count": 0,
+      "average_rerank_elapsed_ms": 2.289,
+      "p95_rerank_elapsed_ms": 2.756
+    },
+    "semantic": {
+      "records": 100,
+      "domain_recall_at_5": 0.48,
+      "domain_recall_at_10": 0.56,
+      "target_page_recall_at_10": 0.08,
+      "target_page_recall_at_20": 0.08,
+      "domain_mrr": 0.327167,
+      "target_mrr": 0.047857,
+      "top8_garbage_count": 126,
+      "top8_garbage_rate": 0.1587,
+      "rejected_expected_domain_count": 0,
+      "rejected_useful_expected_domain_count": 0,
+      "rejected_target_page_count": 0,
+      "average_rerank_elapsed_ms": 23.963,
+      "p95_rerank_elapsed_ms": 24.649
+    },
+    "hybrid": {
+      "records": 100,
+      "domain_recall_at_5": 0.56,
+      "domain_recall_at_10": 0.56,
+      "target_page_recall_at_10": 0.08,
+      "target_page_recall_at_20": 0.08,
+      "domain_mrr": 0.411333,
+      "target_mrr": 0.05,
+      "top8_garbage_count": 0,
+      "top8_garbage_rate": 0.0,
+      "rejected_expected_domain_count": 4,
+      "rejected_useful_expected_domain_count": 0,
+      "rejected_target_page_count": 0,
+      "average_rerank_elapsed_ms": 23.963,
+      "p95_rerank_elapsed_ms": 24.649
+    }
+  },
+  "hybrid_delta_vs_raw": {
+    "domain_recall_at_5": 0.08,
+    "domain_recall_at_10": 0.0,
+    "target_page_recall_at_10": 0.0,
+    "target_page_recall_at_20": 0.0,
+    "domain_mrr": 0.03892,
+    "target_mrr": 0.023143,
+    "top8_garbage_rate": -0.1738
+  },
+  "decision": {
+    "quality_gates_passed": true,
+    "selected_offline_candidate": "hybrid",
+    "semantic_only_selected": false,
+    "production_changed": false,
+    "next_step": "shadow integration requires separate owner authorization"
+  }
+}

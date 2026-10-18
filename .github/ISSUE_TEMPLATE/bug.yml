@@ -1,0 +1,37 @@
+name: Bug report
+description: Reproducible local Agent or optional StatePool defect
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed credentials, private prompts/States, model paths and server addresses.
+          required: true
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Profile
+      options: [Local/default, StatePool LocalFS, Cloud Lite, Kubernetes, Other]
+    validations: { required: true }
+  - type: textarea
+    id: version
+    attributes:
+      label: Version and environment
+      description: Commit/tag, dirty status, OS, hardware and relevant component versions.
+    validations: { required: true }
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected versus observed
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized logs or contract payload

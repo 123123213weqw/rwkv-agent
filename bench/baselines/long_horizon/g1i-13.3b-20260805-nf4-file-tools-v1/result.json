@@ -1,0 +1,3497 @@
+{
+  "schema": "rwkv-agent-long-horizon.v1",
+  "status": "isolated_benchmark_only_not_deployed",
+  "dataset": {
+    "path": "/home/wzu/codex-build/sreach/benchmarks/long_horizon_agent_v1.jsonl",
+    "sha256": "4d08d278a11d567d87b0136baf6c193f16ab01634b1fce4d3c9725a05ed1618b",
+    "cases": 3
+  },
+  "runner_sha256": "18d3b230f143857b95301cf6e699a5337a46542c28819add294c29d4d63e2ae4",
+  "endpoint": "http://127.0.0.1:19120",
+  "arms": [
+    "flat",
+    "staged"
+  ],
+  "elapsed_seconds": 146.028,
+  "summary": {
+    "flat": {
+      "cases": 3,
+      "passed": 0,
+      "success_rate": 0.0,
+      "artifact_rate": 0.0,
+      "protocol_rate": 0.333333,
+      "lifecycle_rate": 1.0,
+      "mean_actions": 6.0,
+      "mean_elapsed_ms": 30177.263,
+      "p95_elapsed_ms": 56405.803,
+      "adjacent_repeats": 13
+    },
+    "staged": {
+      "cases": 3,
+      "passed": 0,
+      "success_rate": 0.0,
+      "artifact_rate": 0.0,
+      "protocol_rate": 0.0,
+      "lifecycle_rate": 1.0,
+      "mean_actions": 0.0,
+      "mean_elapsed_ms": 18497.216,
+      "p95_elapsed_ms": 24731.811,
+      "adjacent_repeats": 0
+    },
+    "comparison": {
+      "success_rate_delta_staged_minus_flat": 0.0,
+      "mean_actions_delta_staged_minus_flat": -6.0,
+      "lifecycle_no_regression": true,
+      "protocol_no_regression": false
+    }
+  },
+  "rows": [
+    {
+      "case_id": "inventory_cascade_en",
+      "category": "fix_test",
+      "language": "en",
+      "arm": "flat",
+      "run_dir": "long-horizon/flat/inventory_cascade_en",
+      "task_id": "lh-v1-flat-inventory_cascade_en",
+      "http_status": 200,
+      "elapsed_ms": 9506.772,
+      "artifacts_ok": false,
+      "protected_inputs_ok": true,
+      "stdout_ok": false,
+      "protocol_valid": false,
+      "lifecycle_ok": true,
+      "protocol_leak_free": true,
+      "action_budget_ok": false,
+      "no_adjacent_repeat_loop": true,
+      "ledger_succeeded": false,
+      "passed": false,
+      "errors": [
+        "file_exact:REPORT.md",
+        "file_contains:inventory.py",
+        "artifacts_ok",
+        "stdout_ok",
+        "protocol_valid",
+        "action_budget_ok",
+        "ledger_succeeded"
+      ],
+      "action_count": 0,
+      "adjacent_repeats": 0,
+      "state_releases": 2,
+      "state_release_failures": 0,
+      "stage_count": 1,
+      "stage_attempts": [
+        1
+      ],
+      "commands": [],
+      "tool_results": [],
+      "response": {
+        "answer": "",
+        "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+        "error_code": "protocol_error",
+        "message": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-flat-inventory_cascade_en",
+        "status": "error",
+        "task_id": "lh-v1-flat-inventory_cascade_en",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-b9d2969f0f842bf0-0000000000000001",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-af16c539126b4ce9a756ec1a35231dfc",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-cb3eaf539b7a4851aebce6eea61c66b1",
+                "type": "state_opened"
+              },
+              {
+                "message": "invalid tool-call JSON: trailing characters at line 1 column 106",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "invalid tool-call JSON: trailing characters at line 1 column 106",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-cb3eaf539b7a4851aebce6eea61c66b1",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-af16c539126b4ce9a756ec1a35231dfc",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 9497.328327,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_ledger": {
+            "current_stage": "main",
+            "recovery_count": 0,
+            "revision": 3,
+            "stages": [
+              {
+                "attempts": 1,
+                "completed_unix_ms": 1786148139960,
+                "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+                "id": "main",
+                "started_unix_ms": 1786148130461,
+                "status": "failed"
+              }
+            ],
+            "status": "failed",
+            "task_id": "lh-v1-flat-inventory_cascade_en"
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "Both focused tests and the full unittest discovery pass.",
+              "REPORT.md has the required two exact lines."
+            ],
+            "constraints": [
+              "Do not modify files under tests/."
+            ],
+            "objective": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+            ],
+            "working_directory": "long-horizon/flat/inventory_cascade_en"
+          }
+        }
+      },
+      "ledger": {
+        "status": "ok",
+        "task": {
+          "created_unix_ms": 1786148130460,
+          "current_stage": "main",
+          "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+          "events": [
+            {
+              "detail": "task persisted before execution",
+              "kind": "created",
+              "sequence": 1,
+              "stage_id": null,
+              "unix_ms": 1786148130460
+            },
+            {
+              "detail": "stage controller claimed task",
+              "kind": "task_started",
+              "sequence": 2,
+              "stage_id": null,
+              "unix_ms": 1786148130461
+            },
+            {
+              "detail": "checkpoint before execution",
+              "kind": "stage_started",
+              "sequence": 3,
+              "stage_id": "main",
+              "unix_ms": 1786148130461
+            },
+            {
+              "detail": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+              "kind": "stage_failed",
+              "sequence": 4,
+              "stage_id": "main",
+              "unix_ms": 1786148139960
+            }
+          ],
+          "final_response": null,
+          "ledger_schema_version": 1,
+          "recovery_count": 0,
+          "revision": 3,
+          "session_id": "lh-v1-flat-inventory_cascade_en",
+          "stages": [
+            {
+              "attempts": 1,
+              "completed_unix_ms": 1786148139960,
+              "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+              "response": {
+                "answer": "",
+                "error": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+                "error_code": "protocol_error",
+                "message": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+                "route": {
+                  "mode": "tool_loop",
+                  "steps": 0,
+                  "strict": false,
+                  "tool": null
+                },
+                "session_id": "lh-v1-flat-inventory_cascade_en",
+                "status": "error",
+                "tool_result": null,
+                "trace": {
+                  "agent": {
+                    "events": [
+                      {
+                        "owner_id": "turn-b9d2969f0f842bf0-0000000000000001",
+                        "type": "run_started"
+                      },
+                      {
+                        "state_id": "state-af16c539126b4ce9a756ec1a35231dfc",
+                        "type": "state_opened"
+                      },
+                      {
+                        "state_id": "state-cb3eaf539b7a4851aebce6eea61c66b1",
+                        "type": "state_opened"
+                      },
+                      {
+                        "message": "invalid tool-call JSON: trailing characters at line 1 column 106",
+                        "retry": 1,
+                        "turn": 1,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "message": "invalid tool-call JSON: trailing characters at line 1 column 106",
+                        "retry": 2,
+                        "turn": 2,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "code": "protocol_error",
+                        "message": "protocol error: invalid tool-call JSON: trailing characters at line 1 column 106",
+                        "type": "run_failed"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-cb3eaf539b7a4851aebce6eea61c66b1",
+                        "success": true,
+                        "type": "state_released"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-af16c539126b4ce9a756ec1a35231dfc",
+                        "success": true,
+                        "type": "state_released"
+                      }
+                    ],
+                    "model_turns": 0,
+                    "tool_steps": []
+                  },
+                  "answer_protocol": null,
+                  "control_plane": "rust",
+                  "elapsed_ms": 9497.328327,
+                  "gate": {
+                    "label": "tool",
+                    "mode": "explicit_workspace",
+                    "tool": "run_command",
+                    "use_tool": true
+                  },
+                  "task_spec": {
+                    "acceptance_criteria": [
+                      "Both focused tests and the full unittest discovery pass.",
+                      "REPORT.md has the required two exact lines."
+                    ],
+                    "constraints": [
+                      "Do not modify files under tests/."
+                    ],
+                    "objective": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+                    "requires_mutation": true,
+                    "schema_version": 1,
+                    "stages": [],
+                    "verification_commands": [
+                      "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+                    ],
+                    "working_directory": "long-horizon/flat/inventory_cascade_en"
+                  }
+                }
+              },
+              "spec": {
+                "acceptance_criteria": [
+                  "Both focused tests and the full unittest discovery pass.",
+                  "REPORT.md has the required two exact lines."
+                ],
+                "constraints": [
+                  "Do not modify files under tests/."
+                ],
+                "depends_on": [],
+                "id": "main",
+                "objective": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+                ]
+              },
+              "started_unix_ms": 1786148130461,
+              "status": "failed"
+            }
+          ],
+          "status": "failed",
+          "task_id": "lh-v1-flat-inventory_cascade_en",
+          "task_spec": {
+            "acceptance_criteria": [
+              "Both focused tests and the full unittest discovery pass.",
+              "REPORT.md has the required two exact lines."
+            ],
+            "constraints": [
+              "Do not modify files under tests/."
+            ],
+            "objective": "Work only in long-horizon/flat/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+            ],
+            "working_directory": "long-horizon/flat/inventory_cascade_en"
+          },
+          "updated_unix_ms": 1786148139960
+        }
+      }
+    },
+    {
+      "case_id": "config_migration_zh",
+      "category": "migration",
+      "language": "zh",
+      "arm": "flat",
+      "run_dir": "long-horizon/flat/config_migration_zh",
+      "task_id": "lh-v1-flat-config_migration_zh",
+      "http_status": 200,
+      "elapsed_ms": 56405.803,
+      "artifacts_ok": false,
+      "protected_inputs_ok": true,
+      "stdout_ok": true,
+      "protocol_valid": true,
+      "lifecycle_ok": true,
+      "protocol_leak_free": true,
+      "action_budget_ok": true,
+      "no_adjacent_repeat_loop": false,
+      "ledger_succeeded": false,
+      "passed": false,
+      "errors": [
+        "file_contains:migrate.py",
+        "json_equals:service.json",
+        "json_equals:worker.json",
+        "json_equals:migration-report.json",
+        "artifacts_ok",
+        "no_adjacent_repeat_loop",
+        "ledger_succeeded"
+      ],
+      "action_count": 18,
+      "adjacent_repeats": 13,
+      "state_releases": 2,
+      "state_release_failures": 0,
+      "stage_count": 1,
+      "stage_attempts": [
+        1
+      ],
+      "commands": [
+        "read_file:{\"path\":\"/workspace/spec.json\"}",
+        "read_file:{\"path\":\"/workspace/validator.py\"}",
+        "read_file:{\"path\":\"/workspace/service.json\"}",
+        "read_file:{\"path\":\"/workspace/worker.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}",
+        "read_file:{\"path\":\"/workspace/migration-report.json\"}"
+      ],
+      "tool_results": [
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "bytes": 537,
+          "content": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n",
+          "path": "validator.py",
+          "status": "ok",
+          "stdout": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n"
+        },
+        {
+          "bytes": 46,
+          "content": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n",
+          "path": "service.json",
+          "status": "ok",
+          "stdout": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n"
+        },
+        {
+          "bytes": 49,
+          "content": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n",
+          "path": "worker.json",
+          "status": "ok",
+          "stdout": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        }
+      ],
+      "response": {
+        "answer": "",
+        "error": "tool-step budget exceeded: 18",
+        "error_code": "budget_exceeded",
+        "message": "只在long-horizon/flat/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 18,
+          "strict": true,
+          "tool": "read_file"
+        },
+        "session_id": "lh-v1-flat-config_migration_zh",
+        "status": "error",
+        "task_id": "lh-v1-flat-config_migration_zh",
+        "tool_result": {
+          "message": "workspace file does not exist: No such file or directory (os error 2)",
+          "status": "error"
+        },
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-0e4d98bafa43779f-0000000000000002",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-1dbac725ef724d7aa693438f1da8c392",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "type": "state_opened"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 1,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 1,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 1,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 2,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 2,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 2,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 3,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 3,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 3,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 4,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 4,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "ok",
+                "step": 4,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 5,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 5,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 5,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 6,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 6,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 6,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 7,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 7,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 7,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 8,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 8,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 8,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 9,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 9,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 9,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 10,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 10,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 10,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 11,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 11,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 11,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 12,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 12,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 12,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 13,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 13,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 13,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 14,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 14,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 14,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 15,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 15,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 15,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 16,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 16,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 16,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 17,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 17,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 17,
+                "type": "tool_completed"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 18,
+                "type": "model_completed"
+              },
+              {
+                "name": "read_file",
+                "step": 18,
+                "type": "tool_started"
+              },
+              {
+                "name": "read_file",
+                "status": "error",
+                "step": 18,
+                "type": "tool_completed"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 1,
+                "turn": 19,
+                "type": "protocol_rejected"
+              },
+              {
+                "action": "tool",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "turn": 20,
+                "type": "model_completed"
+              },
+              {
+                "code": "budget_exceeded",
+                "message": "tool-step budget exceeded: 18",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-1dbac725ef724d7aa693438f1da8c392",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 19,
+            "tool_steps": [
+              {
+                "arguments": {
+                  "path": "/workspace/spec.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 1
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/validator.py"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 537,
+                  "content": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n",
+                  "path": "validator.py",
+                  "status": "ok",
+                  "stdout": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n"
+                },
+                "step": 2
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/service.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 46,
+                  "content": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n",
+                  "path": "service.json",
+                  "status": "ok",
+                  "stdout": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n"
+                },
+                "step": 3
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/worker.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "bytes": 49,
+                  "content": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n",
+                  "path": "worker.json",
+                  "status": "ok",
+                  "stdout": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n"
+                },
+                "step": 4
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 5
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 6
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 7
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 8
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 9
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 10
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 11
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 12
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 13
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 14
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 15
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 16
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 17
+              },
+              {
+                "arguments": {
+                  "path": "/workspace/migration-report.json"
+                },
+                "name": "read_file",
+                "result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "step": 18
+              }
+            ]
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 56395.476856,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_ledger": {
+            "current_stage": "main",
+            "recovery_count": 0,
+            "revision": 3,
+            "stages": [
+              {
+                "attempts": 1,
+                "completed_unix_ms": 1786148196363,
+                "error": "tool-step budget exceeded: 18",
+                "id": "main",
+                "started_unix_ms": 1786148139966,
+                "status": "failed"
+              }
+            ],
+            "status": "failed",
+            "task_id": "lh-v1-flat-config_migration_zh"
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "可复用迁移脚本存在并实际处理两个配置。",
+              "validator.py 输出 MIGRATION_OK。"
+            ],
+            "constraints": [
+              "不得修改 validator.py。",
+              "不得用常量整体覆盖两个配置文件。"
+            ],
+            "objective": "只在long-horizon/flat/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 validator.py"
+            ],
+            "working_directory": "long-horizon/flat/config_migration_zh"
+          }
+        }
+      },
+      "ledger": {
+        "status": "ok",
+        "task": {
+          "created_unix_ms": 1786148139964,
+          "current_stage": "main",
+          "error": "tool-step budget exceeded: 18",
+          "events": [
+            {
+              "detail": "task persisted before execution",
+              "kind": "created",
+              "sequence": 1,
+              "stage_id": null,
+              "unix_ms": 1786148139964
+            },
+            {
+              "detail": "stage controller claimed task",
+              "kind": "task_started",
+              "sequence": 2,
+              "stage_id": null,
+              "unix_ms": 1786148139965
+            },
+            {
+              "detail": "checkpoint before execution",
+              "kind": "stage_started",
+              "sequence": 3,
+              "stage_id": "main",
+              "unix_ms": 1786148139966
+            },
+            {
+              "detail": "tool-step budget exceeded: 18",
+              "kind": "stage_failed",
+              "sequence": 4,
+              "stage_id": "main",
+              "unix_ms": 1786148196363
+            }
+          ],
+          "final_response": null,
+          "ledger_schema_version": 1,
+          "recovery_count": 0,
+          "revision": 3,
+          "session_id": "lh-v1-flat-config_migration_zh",
+          "stages": [
+            {
+              "attempts": 1,
+              "completed_unix_ms": 1786148196363,
+              "error": "tool-step budget exceeded: 18",
+              "response": {
+                "answer": "",
+                "error": "tool-step budget exceeded: 18",
+                "error_code": "budget_exceeded",
+                "message": "只在long-horizon/flat/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+                "route": {
+                  "mode": "tool_loop",
+                  "steps": 18,
+                  "strict": true,
+                  "tool": "read_file"
+                },
+                "session_id": "lh-v1-flat-config_migration_zh",
+                "status": "error",
+                "tool_result": {
+                  "message": "workspace file does not exist: No such file or directory (os error 2)",
+                  "status": "error"
+                },
+                "trace": {
+                  "agent": {
+                    "events": [
+                      {
+                        "owner_id": "turn-0e4d98bafa43779f-0000000000000002",
+                        "type": "run_started"
+                      },
+                      {
+                        "state_id": "state-1dbac725ef724d7aa693438f1da8c392",
+                        "type": "state_opened"
+                      },
+                      {
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "type": "state_opened"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 1,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 1,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 1,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 2,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 2,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "ok",
+                        "step": 2,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 3,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 3,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "ok",
+                        "step": 3,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 4,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 4,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "ok",
+                        "step": 4,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 5,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 5,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 5,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 6,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 6,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 6,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 7,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 7,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 7,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 8,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 8,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 8,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 9,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 9,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 9,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 10,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 10,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 10,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 11,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 11,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 11,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 12,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 12,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 12,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 13,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 13,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 13,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 14,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 14,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 14,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 15,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 15,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 15,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 16,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 16,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 16,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 17,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 17,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 17,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 18,
+                        "type": "model_completed"
+                      },
+                      {
+                        "name": "read_file",
+                        "step": 18,
+                        "type": "tool_started"
+                      },
+                      {
+                        "name": "read_file",
+                        "status": "error",
+                        "step": 18,
+                        "type": "tool_completed"
+                      },
+                      {
+                        "message": "output must contain exactly one strict tool-call or answer envelope",
+                        "retry": 1,
+                        "turn": 19,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "action": "tool",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "turn": 20,
+                        "type": "model_completed"
+                      },
+                      {
+                        "code": "budget_exceeded",
+                        "message": "tool-step budget exceeded: 18",
+                        "type": "run_failed"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-c3c86ce4fdaa49c395da23a9cd8951af",
+                        "success": true,
+                        "type": "state_released"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-1dbac725ef724d7aa693438f1da8c392",
+                        "success": true,
+                        "type": "state_released"
+                      }
+                    ],
+                    "model_turns": 19,
+                    "tool_steps": [
+                      {
+                        "arguments": {
+                          "path": "/workspace/spec.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 1
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/validator.py"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "bytes": 537,
+                          "content": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n",
+                          "path": "validator.py",
+                          "status": "ok",
+                          "stdout": "import json\nfrom pathlib import Path\nexpected = {\n 'service.json': {'name':'api','timeout_seconds':5,'log_level':'debug','schema_version':2},\n 'worker.json': {'name':'jobs','timeout_seconds':12,'log_level':'info','schema_version':2},\n}\nfor name, value in expected.items():\n    assert json.loads(Path(name).read_text()) == value, (name, json.loads(Path(name).read_text()))\nreport = json.loads(Path('migration-report.json').read_text())\nassert report == {'migrated':['service.json','worker.json'],'schema_version':2}\nprint('MIGRATION_OK')\n"
+                        },
+                        "step": 2
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/service.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "bytes": 46,
+                          "content": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n",
+                          "path": "service.json",
+                          "status": "ok",
+                          "stdout": "{\"name\":\"api\",\"timeout_ms\":5000,\"debug\":true}\n"
+                        },
+                        "step": 3
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/worker.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "bytes": 49,
+                          "content": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n",
+                          "path": "worker.json",
+                          "status": "ok",
+                          "stdout": "{\"name\":\"jobs\",\"timeout_ms\":12000,\"debug\":false}\n"
+                        },
+                        "step": 4
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 5
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 6
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 7
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 8
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 9
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 10
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 11
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 12
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 13
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 14
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 15
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 16
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 17
+                      },
+                      {
+                        "arguments": {
+                          "path": "/workspace/migration-report.json"
+                        },
+                        "name": "read_file",
+                        "result": {
+                          "message": "workspace file does not exist: No such file or directory (os error 2)",
+                          "status": "error"
+                        },
+                        "step": 18
+                      }
+                    ]
+                  },
+                  "answer_protocol": null,
+                  "control_plane": "rust",
+                  "elapsed_ms": 56395.476856,
+                  "gate": {
+                    "label": "tool",
+                    "mode": "explicit_workspace",
+                    "tool": "run_command",
+                    "use_tool": true
+                  },
+                  "task_spec": {
+                    "acceptance_criteria": [
+                      "可复用迁移脚本存在并实际处理两个配置。",
+                      "validator.py 输出 MIGRATION_OK。"
+                    ],
+                    "constraints": [
+                      "不得修改 validator.py。",
+                      "不得用常量整体覆盖两个配置文件。"
+                    ],
+                    "objective": "只在long-horizon/flat/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+                    "requires_mutation": true,
+                    "schema_version": 1,
+                    "stages": [],
+                    "verification_commands": [
+                      "python3 validator.py"
+                    ],
+                    "working_directory": "long-horizon/flat/config_migration_zh"
+                  }
+                }
+              },
+              "spec": {
+                "acceptance_criteria": [
+                  "可复用迁移脚本存在并实际处理两个配置。",
+                  "validator.py 输出 MIGRATION_OK。"
+                ],
+                "constraints": [
+                  "不得修改 validator.py。",
+                  "不得用常量整体覆盖两个配置文件。"
+                ],
+                "depends_on": [],
+                "id": "main",
+                "objective": "只在long-horizon/flat/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 validator.py"
+                ]
+              },
+              "started_unix_ms": 1786148139966,
+              "status": "failed"
+            }
+          ],
+          "status": "failed",
+          "task_id": "lh-v1-flat-config_migration_zh",
+          "task_spec": {
+            "acceptance_criteria": [
+              "可复用迁移脚本存在并实际处理两个配置。",
+              "validator.py 输出 MIGRATION_OK。"
+            ],
+            "constraints": [
+              "不得修改 validator.py。",
+              "不得用常量整体覆盖两个配置文件。"
+            ],
+            "objective": "只在long-horizon/flat/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 validator.py"
+            ],
+            "working_directory": "long-horizon/flat/config_migration_zh"
+          },
+          "updated_unix_ms": 1786148196363
+        }
+      }
+    },
+    {
+      "case_id": "event_pipeline_en",
+      "category": "build_verify",
+      "language": "en",
+      "arm": "flat",
+      "run_dir": "long-horizon/flat/event_pipeline_en",
+      "task_id": "lh-v1-flat-event_pipeline_en",
+      "http_status": 200,
+      "elapsed_ms": 24619.215,
+      "artifacts_ok": false,
+      "protected_inputs_ok": true,
+      "stdout_ok": false,
+      "protocol_valid": false,
+      "lifecycle_ok": true,
+      "protocol_leak_free": true,
+      "action_budget_ok": false,
+      "no_adjacent_repeat_loop": true,
+      "ledger_succeeded": false,
+      "passed": false,
+      "errors": [
+        "file_exact:summary.json",
+        "file_exact:checksum.txt",
+        "file_contains:summarize.py",
+        "artifacts_ok",
+        "stdout_ok",
+        "protocol_valid",
+        "action_budget_ok",
+        "ledger_succeeded"
+      ],
+      "action_count": 0,
+      "adjacent_repeats": 0,
+      "state_releases": 2,
+      "state_release_failures": 0,
+      "stage_count": 1,
+      "stage_attempts": [
+        1
+      ],
+      "commands": [],
+      "tool_results": [],
+      "response": {
+        "answer": "",
+        "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+        "error_code": "protocol_error",
+        "message": "Work only in long-horizon/flat/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-flat-event_pipeline_en",
+        "status": "error",
+        "task_id": "lh-v1-flat-event_pipeline_en",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-ed2d3e7de0455cdc-0000000000000003",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-550095b0c08a47d88de0758e52bc16be",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-209d166e22c7457b9a63e6f829b38d66",
+                "type": "state_opened"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-209d166e22c7457b9a63e6f829b38d66",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-550095b0c08a47d88de0758e52bc16be",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 24610.420938,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_ledger": {
+            "current_stage": "main",
+            "recovery_count": 0,
+            "revision": 3,
+            "stages": [
+              {
+                "attempts": 1,
+                "completed_unix_ms": 1786148220985,
+                "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "id": "main",
+                "started_unix_ms": 1786148196373,
+                "status": "failed"
+              }
+            ],
+            "status": "failed",
+            "task_id": "lh-v1-flat-event_pipeline_en"
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "summarize.py implements the specification rather than hard-coding the fixture result.",
+              "tests.py prints PIPELINE_OK."
+            ],
+            "constraints": [
+              "Do not modify SPEC.md, events.csv, or tests.py."
+            ],
+            "objective": "Work only in long-horizon/flat/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 tests.py"
+            ],
+            "working_directory": "long-horizon/flat/event_pipeline_en"
+          }
+        }
+      },
+      "ledger": {
+        "status": "ok",
+        "task": {
+          "created_unix_ms": 1786148196371,
+          "current_stage": "main",
+          "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+          "events": [
+            {
+              "detail": "task persisted before execution",
+              "kind": "created",
+              "sequence": 1,
+              "stage_id": null,
+              "unix_ms": 1786148196371
+            },
+            {
+              "detail": "stage controller claimed task",
+              "kind": "task_started",
+              "sequence": 2,
+              "stage_id": null,
+              "unix_ms": 1786148196372
+            },
+            {
+              "detail": "checkpoint before execution",
+              "kind": "stage_started",
+              "sequence": 3,
+              "stage_id": "main",
+              "unix_ms": 1786148196373
+            },
+            {
+              "detail": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+              "kind": "stage_failed",
+              "sequence": 4,
+              "stage_id": "main",
+              "unix_ms": 1786148220985
+            }
+          ],
+          "final_response": null,
+          "ledger_schema_version": 1,
+          "recovery_count": 0,
+          "revision": 3,
+          "session_id": "lh-v1-flat-event_pipeline_en",
+          "stages": [
+            {
+              "attempts": 1,
+              "completed_unix_ms": 1786148220985,
+              "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+              "response": {
+                "answer": "",
+                "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "error_code": "protocol_error",
+                "message": "Work only in long-horizon/flat/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+                "route": {
+                  "mode": "tool_loop",
+                  "steps": 0,
+                  "strict": false,
+                  "tool": null
+                },
+                "session_id": "lh-v1-flat-event_pipeline_en",
+                "status": "error",
+                "tool_result": null,
+                "trace": {
+                  "agent": {
+                    "events": [
+                      {
+                        "owner_id": "turn-ed2d3e7de0455cdc-0000000000000003",
+                        "type": "run_started"
+                      },
+                      {
+                        "state_id": "state-550095b0c08a47d88de0758e52bc16be",
+                        "type": "state_opened"
+                      },
+                      {
+                        "state_id": "state-209d166e22c7457b9a63e6f829b38d66",
+                        "type": "state_opened"
+                      },
+                      {
+                        "message": "output must contain exactly one strict tool-call or answer envelope",
+                        "retry": 1,
+                        "turn": 1,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "message": "output must contain exactly one strict tool-call or answer envelope",
+                        "retry": 2,
+                        "turn": 2,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "code": "protocol_error",
+                        "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                        "type": "run_failed"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-209d166e22c7457b9a63e6f829b38d66",
+                        "success": true,
+                        "type": "state_released"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-550095b0c08a47d88de0758e52bc16be",
+                        "success": true,
+                        "type": "state_released"
+                      }
+                    ],
+                    "model_turns": 0,
+                    "tool_steps": []
+                  },
+                  "answer_protocol": null,
+                  "control_plane": "rust",
+                  "elapsed_ms": 24610.420938,
+                  "gate": {
+                    "label": "tool",
+                    "mode": "explicit_workspace",
+                    "tool": "run_command",
+                    "use_tool": true
+                  },
+                  "task_spec": {
+                    "acceptance_criteria": [
+                      "summarize.py implements the specification rather than hard-coding the fixture result.",
+                      "tests.py prints PIPELINE_OK."
+                    ],
+                    "constraints": [
+                      "Do not modify SPEC.md, events.csv, or tests.py."
+                    ],
+                    "objective": "Work only in long-horizon/flat/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+                    "requires_mutation": true,
+                    "schema_version": 1,
+                    "stages": [],
+                    "verification_commands": [
+                      "python3 tests.py"
+                    ],
+                    "working_directory": "long-horizon/flat/event_pipeline_en"
+                  }
+                }
+              },
+              "spec": {
+                "acceptance_criteria": [
+                  "summarize.py implements the specification rather than hard-coding the fixture result.",
+                  "tests.py prints PIPELINE_OK."
+                ],
+                "constraints": [
+                  "Do not modify SPEC.md, events.csv, or tests.py."
+                ],
+                "depends_on": [],
+                "id": "main",
+                "objective": "Work only in long-horizon/flat/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 tests.py"
+                ]
+              },
+              "started_unix_ms": 1786148196373,
+              "status": "failed"
+            }
+          ],
+          "status": "failed",
+          "task_id": "lh-v1-flat-event_pipeline_en",
+          "task_spec": {
+            "acceptance_criteria": [
+              "summarize.py implements the specification rather than hard-coding the fixture result.",
+              "tests.py prints PIPELINE_OK."
+            ],
+            "constraints": [
+              "Do not modify SPEC.md, events.csv, or tests.py."
+            ],
+            "objective": "Work only in long-horizon/flat/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 tests.py"
+            ],
+            "working_directory": "long-horizon/flat/event_pipeline_en"
+          },
+          "updated_unix_ms": 1786148220985
+        }
+      }
+    },
+    {
+      "case_id": "inventory_cascade_en",
+      "category": "fix_test",
+      "language": "en",
+      "arm": "staged",
+      "run_dir": "long-horizon/staged/inventory_cascade_en",
+      "task_id": "lh-v1-staged-inventory_cascade_en",
+      "http_status": 200,
+      "elapsed_ms": 24353.992,
+      "artifacts_ok": false,
+      "protected_inputs_ok": true,
+      "stdout_ok": false,
+      "protocol_valid": false,
+      "lifecycle_ok": true,
+      "protocol_leak_free": true,
+      "action_budget_ok": false,
+      "no_adjacent_repeat_loop": true,
+      "ledger_succeeded": false,
+      "passed": false,
+      "errors": [
+        "file_exact:REPORT.md",
+        "file_contains:inventory.py",
+        "artifacts_ok",
+        "stdout_ok",
+        "protocol_valid",
+        "action_budget_ok",
+        "ledger_succeeded"
+      ],
+      "action_count": 0,
+      "adjacent_repeats": 0,
+      "state_releases": 2,
+      "state_release_failures": 0,
+      "stage_count": 3,
+      "stage_attempts": [
+        1,
+        0,
+        0
+      ],
+      "commands": [],
+      "tool_results": [],
+      "response": {
+        "answer": "",
+        "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+        "error_code": "protocol_error",
+        "message": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-staged-inventory_cascade_en",
+        "status": "error",
+        "task_id": "lh-v1-staged-inventory_cascade_en",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-b9e334292a6acb74-0000000000000004",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-9574c8fe26f241728565631e226e1ddc",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-1cac71643e314947a253121ffcb5d5b3",
+                "type": "state_opened"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-1cac71643e314947a253121ffcb5d5b3",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-9574c8fe26f241728565631e226e1ddc",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 24343.530989000003,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_ledger": {
+            "current_stage": "repair_parser",
+            "recovery_count": 0,
+            "revision": 3,
+            "stages": [
+              {
+                "attempts": 1,
+                "completed_unix_ms": 1786148245338,
+                "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "id": "repair_parser",
+                "started_unix_ms": 1786148220993,
+                "status": "failed"
+              },
+              {
+                "attempts": 0,
+                "completed_unix_ms": null,
+                "error": "",
+                "id": "repair_total",
+                "started_unix_ms": null,
+                "status": "pending"
+              },
+              {
+                "attempts": 0,
+                "completed_unix_ms": null,
+                "error": "",
+                "id": "full_regression",
+                "started_unix_ms": null,
+                "status": "pending"
+              }
+            ],
+            "status": "failed",
+            "task_id": "lh-v1-staged-inventory_cascade_en"
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "The parser test passes without changing tests."
+            ],
+            "constraints": [
+              "Do not modify files under tests/.",
+              "Do not modify files under tests/."
+            ],
+            "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 -m unittest tests.test_parse -v"
+            ],
+            "working_directory": "long-horizon/staged/inventory_cascade_en"
+          }
+        }
+      },
+      "ledger": {
+        "status": "ok",
+        "task": {
+          "created_unix_ms": 1786148220991,
+          "current_stage": "repair_parser",
+          "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+          "events": [
+            {
+              "detail": "task persisted before execution",
+              "kind": "created",
+              "sequence": 1,
+              "stage_id": null,
+              "unix_ms": 1786148220991
+            },
+            {
+              "detail": "stage controller claimed task",
+              "kind": "task_started",
+              "sequence": 2,
+              "stage_id": null,
+              "unix_ms": 1786148220992
+            },
+            {
+              "detail": "checkpoint before execution",
+              "kind": "stage_started",
+              "sequence": 3,
+              "stage_id": "repair_parser",
+              "unix_ms": 1786148220993
+            },
+            {
+              "detail": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+              "kind": "stage_failed",
+              "sequence": 4,
+              "stage_id": "repair_parser",
+              "unix_ms": 1786148245338
+            }
+          ],
+          "final_response": null,
+          "ledger_schema_version": 1,
+          "recovery_count": 0,
+          "revision": 3,
+          "session_id": "lh-v1-staged-inventory_cascade_en",
+          "stages": [
+            {
+              "attempts": 1,
+              "completed_unix_ms": 1786148245338,
+              "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+              "response": {
+                "answer": "",
+                "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "error_code": "protocol_error",
+                "message": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+                "route": {
+                  "mode": "tool_loop",
+                  "steps": 0,
+                  "strict": false,
+                  "tool": null
+                },
+                "session_id": "lh-v1-staged-inventory_cascade_en",
+                "status": "error",
+                "tool_result": null,
+                "trace": {
+                  "agent": {
+                    "events": [
+                      {
+                        "owner_id": "turn-b9e334292a6acb74-0000000000000004",
+                        "type": "run_started"
+                      },
+                      {
+                        "state_id": "state-9574c8fe26f241728565631e226e1ddc",
+                        "type": "state_opened"
+                      },
+                      {
+                        "state_id": "state-1cac71643e314947a253121ffcb5d5b3",
+                        "type": "state_opened"
+                      },
+                      {
+                        "message": "output must contain exactly one strict tool-call or answer envelope",
+                        "retry": 1,
+                        "turn": 1,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "message": "output must contain exactly one strict tool-call or answer envelope",
+                        "retry": 2,
+                        "turn": 2,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "code": "protocol_error",
+                        "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                        "type": "run_failed"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-1cac71643e314947a253121ffcb5d5b3",
+                        "success": true,
+                        "type": "state_released"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-9574c8fe26f241728565631e226e1ddc",
+                        "success": true,
+                        "type": "state_released"
+                      }
+                    ],
+                    "model_turns": 0,
+                    "tool_steps": []
+                  },
+                  "answer_protocol": null,
+                  "control_plane": "rust",
+                  "elapsed_ms": 24343.530989000003,
+                  "gate": {
+                    "label": "tool",
+                    "mode": "explicit_workspace",
+                    "tool": "run_command",
+                    "use_tool": true
+                  },
+                  "task_spec": {
+                    "acceptance_criteria": [
+                      "The parser test passes without changing tests."
+                    ],
+                    "constraints": [
+                      "Do not modify files under tests/.",
+                      "Do not modify files under tests/."
+                    ],
+                    "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+                    "requires_mutation": true,
+                    "schema_version": 1,
+                    "stages": [],
+                    "verification_commands": [
+                      "python3 -m unittest tests.test_parse -v"
+                    ],
+                    "working_directory": "long-horizon/staged/inventory_cascade_en"
+                  }
+                }
+              },
+              "spec": {
+                "acceptance_criteria": [
+                  "The parser test passes without changing tests."
+                ],
+                "constraints": [
+                  "Do not modify files under tests/."
+                ],
+                "depends_on": [],
+                "id": "repair_parser",
+                "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 -m unittest tests.test_parse -v"
+                ]
+              },
+              "started_unix_ms": 1786148220993,
+              "status": "failed"
+            },
+            {
+              "attempts": 0,
+              "completed_unix_ms": null,
+              "error": "",
+              "response": null,
+              "spec": {
+                "acceptance_criteria": [
+                  "The total test passes without changing tests."
+                ],
+                "constraints": [
+                  "Do not modify files under tests/."
+                ],
+                "depends_on": [
+                  "repair_parser"
+                ],
+                "id": "repair_total",
+                "objective": "Inspect the remaining inventory total behavior, run its focused test, repair the total calculation, and prove the focused total test passes.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 -m unittest tests.test_total -v"
+                ]
+              },
+              "started_unix_ms": null,
+              "status": "pending"
+            },
+            {
+              "attempts": 0,
+              "completed_unix_ms": null,
+              "error": "",
+              "response": null,
+              "spec": {
+                "acceptance_criteria": [
+                  "Full regression passes and REPORT.md is exact."
+                ],
+                "constraints": [
+                  "Do not modify files under tests/."
+                ],
+                "depends_on": [
+                  "repair_total"
+                ],
+                "id": "full_regression",
+                "objective": "Run the complete test suite, then create REPORT.md with exactly status=pass and total=14 on separate lines and validate the artifact.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+                ]
+              },
+              "started_unix_ms": null,
+              "status": "pending"
+            }
+          ],
+          "status": "failed",
+          "task_id": "lh-v1-staged-inventory_cascade_en",
+          "task_spec": {
+            "acceptance_criteria": [
+              "Both focused tests and the full unittest discovery pass.",
+              "REPORT.md has the required two exact lines."
+            ],
+            "constraints": [
+              "Do not modify files under tests/."
+            ],
+            "objective": "Work only in long-horizon/staged/inventory_cascade_en. Repair the inventory package completely. Inspect the repository and tests, establish the real failures, make the smallest source changes, run the focused tests while working, then run the full test suite. Finally create REPORT.md containing exactly two lines: status=pass and total=14. Do not finish until the full suite and the report check both pass.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [
+              {
+                "acceptance_criteria": [
+                  "The parser test passes without changing tests."
+                ],
+                "constraints": [
+                  "Do not modify files under tests/."
+                ],
+                "depends_on": [],
+                "id": "repair_parser",
+                "objective": "Inspect inventory.py and tests/test_parse.py, run the parser test to observe the failure, repair only the parser defect, and prove the focused parser test passes.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 -m unittest tests.test_parse -v"
+                ]
+              },
+              {
+                "acceptance_criteria": [
+                  "The total test passes without changing tests."
+                ],
+                "constraints": [
+                  "Do not modify files under tests/."
+                ],
+                "depends_on": [
+                  "repair_parser"
+                ],
+                "id": "repair_total",
+                "objective": "Inspect the remaining inventory total behavior, run its focused test, repair the total calculation, and prove the focused total test passes.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 -m unittest tests.test_total -v"
+                ]
+              },
+              {
+                "acceptance_criteria": [
+                  "Full regression passes and REPORT.md is exact."
+                ],
+                "constraints": [
+                  "Do not modify files under tests/."
+                ],
+                "depends_on": [
+                  "repair_total"
+                ],
+                "id": "full_regression",
+                "objective": "Run the complete test suite, then create REPORT.md with exactly status=pass and total=14 on separate lines and validate the artifact.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+                ]
+              }
+            ],
+            "verification_commands": [
+              "python3 -m unittest discover -s tests -v && printf 'status=pass\\ntotal=14\\n' > REPORT.md && python3 -c \"from pathlib import Path; assert Path('REPORT.md').read_text() == 'status=pass\\ntotal=14\\n'; print('LONG_OK')\""
+            ],
+            "working_directory": "long-horizon/staged/inventory_cascade_en"
+          },
+          "updated_unix_ms": 1786148245338
+        }
+      }
+    },
+    {
+      "case_id": "config_migration_zh",
+      "category": "migration",
+      "language": "zh",
+      "arm": "staged",
+      "run_dir": "long-horizon/staged/config_migration_zh",
+      "task_id": "lh-v1-staged-config_migration_zh",
+      "http_status": 200,
+      "elapsed_ms": 24731.811,
+      "artifacts_ok": false,
+      "protected_inputs_ok": true,
+      "stdout_ok": false,
+      "protocol_valid": false,
+      "lifecycle_ok": true,
+      "protocol_leak_free": true,
+      "action_budget_ok": false,
+      "no_adjacent_repeat_loop": true,
+      "ledger_succeeded": false,
+      "passed": false,
+      "errors": [
+        "file_contains:migrate.py",
+        "json_equals:service.json",
+        "json_equals:worker.json",
+        "json_equals:migration-report.json",
+        "artifacts_ok",
+        "stdout_ok",
+        "protocol_valid",
+        "action_budget_ok",
+        "ledger_succeeded"
+      ],
+      "action_count": 0,
+      "adjacent_repeats": 0,
+      "state_releases": 2,
+      "state_release_failures": 0,
+      "stage_count": 3,
+      "stage_attempts": [
+        1,
+        0,
+        0
+      ],
+      "commands": [],
+      "tool_results": [],
+      "response": {
+        "answer": "",
+        "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+        "error_code": "protocol_error",
+        "message": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-staged-config_migration_zh",
+        "status": "error",
+        "task_id": "lh-v1-staged-config_migration_zh",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-9fa5c75b62d1d000-0000000000000005",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-0e70bc8e10f341b49afbf2424564cd45",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-08bb3938b83b40ba991fc3998c590947",
+                "type": "state_opened"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "output must contain exactly one strict tool-call or answer envelope",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-08bb3938b83b40ba991fc3998c590947",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-0e70bc8e10f341b49afbf2424564cd45",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 24722.034470000002,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_ledger": {
+            "current_stage": "build_migrator",
+            "recovery_count": 0,
+            "revision": 3,
+            "stages": [
+              {
+                "attempts": 1,
+                "completed_unix_ms": 1786148270070,
+                "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "id": "build_migrator",
+                "started_unix_ms": 1786148245347,
+                "status": "failed"
+              },
+              {
+                "attempts": 0,
+                "completed_unix_ms": null,
+                "error": "",
+                "id": "apply_migration",
+                "started_unix_ms": null,
+                "status": "pending"
+              },
+              {
+                "attempts": 0,
+                "completed_unix_ms": null,
+                "error": "",
+                "id": "validate_migration",
+                "started_unix_ms": null,
+                "status": "pending"
+              }
+            ],
+            "status": "failed",
+            "task_id": "lh-v1-staged-config_migration_zh"
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "migrate.py 能接受文件路径参数并解析旧配置。"
+            ],
+            "constraints": [
+              "不得修改 validator.py。",
+              "不得用常量整体覆盖两个配置文件。",
+              "不得修改 validator.py 或现有 JSON。"
+            ],
+            "objective": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 migrate.py --check service.json worker.json"
+            ],
+            "working_directory": "long-horizon/staged/config_migration_zh"
+          }
+        }
+      },
+      "ledger": {
+        "status": "ok",
+        "task": {
+          "created_unix_ms": 1786148245345,
+          "current_stage": "build_migrator",
+          "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+          "events": [
+            {
+              "detail": "task persisted before execution",
+              "kind": "created",
+              "sequence": 1,
+              "stage_id": null,
+              "unix_ms": 1786148245345
+            },
+            {
+              "detail": "stage controller claimed task",
+              "kind": "task_started",
+              "sequence": 2,
+              "stage_id": null,
+              "unix_ms": 1786148245346
+            },
+            {
+              "detail": "checkpoint before execution",
+              "kind": "stage_started",
+              "sequence": 3,
+              "stage_id": "build_migrator",
+              "unix_ms": 1786148245347
+            },
+            {
+              "detail": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+              "kind": "stage_failed",
+              "sequence": 4,
+              "stage_id": "build_migrator",
+              "unix_ms": 1786148270070
+            }
+          ],
+          "final_response": null,
+          "ledger_schema_version": 1,
+          "recovery_count": 0,
+          "revision": 3,
+          "session_id": "lh-v1-staged-config_migration_zh",
+          "stages": [
+            {
+              "attempts": 1,
+              "completed_unix_ms": 1786148270070,
+              "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+              "response": {
+                "answer": "",
+                "error": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                "error_code": "protocol_error",
+                "message": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+                "route": {
+                  "mode": "tool_loop",
+                  "steps": 0,
+                  "strict": false,
+                  "tool": null
+                },
+                "session_id": "lh-v1-staged-config_migration_zh",
+                "status": "error",
+                "tool_result": null,
+                "trace": {
+                  "agent": {
+                    "events": [
+                      {
+                        "owner_id": "turn-9fa5c75b62d1d000-0000000000000005",
+                        "type": "run_started"
+                      },
+                      {
+                        "state_id": "state-0e70bc8e10f341b49afbf2424564cd45",
+                        "type": "state_opened"
+                      },
+                      {
+                        "state_id": "state-08bb3938b83b40ba991fc3998c590947",
+                        "type": "state_opened"
+                      },
+                      {
+                        "message": "output must contain exactly one strict tool-call or answer envelope",
+                        "retry": 1,
+                        "turn": 1,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "message": "output must contain exactly one strict tool-call or answer envelope",
+                        "retry": 2,
+                        "turn": 2,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "code": "protocol_error",
+                        "message": "protocol error: output must contain exactly one strict tool-call or answer envelope",
+                        "type": "run_failed"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-08bb3938b83b40ba991fc3998c590947",
+                        "success": true,
+                        "type": "state_released"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-0e70bc8e10f341b49afbf2424564cd45",
+                        "success": true,
+                        "type": "state_released"
+                      }
+                    ],
+                    "model_turns": 0,
+                    "tool_steps": []
+                  },
+                  "answer_protocol": null,
+                  "control_plane": "rust",
+                  "elapsed_ms": 24722.03447,
+                  "gate": {
+                    "label": "tool",
+                    "mode": "explicit_workspace",
+                    "tool": "run_command",
+                    "use_tool": true
+                  },
+                  "task_spec": {
+                    "acceptance_criteria": [
+                      "migrate.py 能接受文件路径参数并解析旧配置。"
+                    ],
+                    "constraints": [
+                      "不得修改 validator.py。",
+                      "不得用常量整体覆盖两个配置文件。",
+                      "不得修改 validator.py 或现有 JSON。"
+                    ],
+                    "objective": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+                    "requires_mutation": true,
+                    "schema_version": 1,
+                    "stages": [],
+                    "verification_commands": [
+                      "python3 migrate.py --check service.json worker.json"
+                    ],
+                    "working_directory": "long-horizon/staged/config_migration_zh"
+                  }
+                }
+              },
+              "spec": {
+                "acceptance_criteria": [
+                  "migrate.py 能接受文件路径参数并解析旧配置。"
+                ],
+                "constraints": [
+                  "不得修改 validator.py 或现有 JSON。"
+                ],
+                "depends_on": [],
+                "id": "build_migrator",
+                "objective": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 migrate.py --check service.json worker.json"
+                ]
+              },
+              "started_unix_ms": 1786148245347,
+              "status": "failed"
+            },
+            {
+              "attempts": 0,
+              "completed_unix_ms": null,
+              "error": "",
+              "response": null,
+              "spec": {
+                "acceptance_criteria": [
+                  "两个配置由脚本迁移且报告已生成。"
+                ],
+                "constraints": [
+                  "不得修改 validator.py。"
+                ],
+                "depends_on": [
+                  "build_migrator"
+                ],
+                "id": "apply_migration",
+                "objective": "使用 migrate.py 迁移 service.json 和 worker.json，并检查两个结果都符合 SPEC.md；同时生成 migration-report.json。",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 migrate.py service.json worker.json && python3 -c \"import json; from pathlib import Path; assert all(json.loads(Path(p).read_text())['schema_version']==2 for p in ('service.json','worker.json')); print('APPLY_OK')\""
+                ]
+              },
+              "started_unix_ms": null,
+              "status": "pending"
+            },
+            {
+              "attempts": 0,
+              "completed_unix_ms": null,
+              "error": "",
+              "response": null,
+              "spec": {
+                "acceptance_criteria": [
+                  "完整隐藏于实现之外的验证程序成功。"
+                ],
+                "constraints": [
+                  "不得修改 validator.py。"
+                ],
+                "depends_on": [
+                  "apply_migration"
+                ],
+                "id": "validate_migration",
+                "objective": "运行完整 validator.py；若失败则根据真实错误修复迁移实现或产物，直到输出 MIGRATION_OK。",
+                "requires_mutation": false,
+                "verification_commands": [
+                  "python3 validator.py"
+                ]
+              },
+              "started_unix_ms": null,
+              "status": "pending"
+            }
+          ],
+          "status": "failed",
+          "task_id": "lh-v1-staged-config_migration_zh",
+          "task_spec": {
+            "acceptance_criteria": [
+              "可复用迁移脚本存在并实际处理两个配置。",
+              "validator.py 输出 MIGRATION_OK。"
+            ],
+            "constraints": [
+              "不得修改 validator.py。",
+              "不得用常量整体覆盖两个配置文件。"
+            ],
+            "objective": "只在long-horizon/staged/config_migration_zh中工作。完成配置格式迁移：先检查规范、旧配置和验证程序，建立迁移脚本 migrate.py；再迁移 service.json 与 worker.json；最后运行完整验证并生成 migration-report.json。不得手工硬编码两个最终文件，也不得修改 validator.py。全部验证成功后才能结束。",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [
+              {
+                "acceptance_criteria": [
+                  "migrate.py 能接受文件路径参数并解析旧配置。"
+                ],
+                "constraints": [
+                  "不得修改 validator.py 或现有 JSON。"
+                ],
+                "depends_on": [],
+                "id": "build_migrator",
+                "objective": "阅读 SPEC.md、两个旧配置和 validator.py，编写可复用的 migrate.py。用 --check 模式或等价的非破坏检查证明脚本可以解析两个输入。",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 migrate.py --check service.json worker.json"
+                ]
+              },
+              {
+                "acceptance_criteria": [
+                  "两个配置由脚本迁移且报告已生成。"
+                ],
+                "constraints": [
+                  "不得修改 validator.py。"
+                ],
+                "depends_on": [
+                  "build_migrator"
+                ],
+                "id": "apply_migration",
+                "objective": "使用 migrate.py 迁移 service.json 和 worker.json，并检查两个结果都符合 SPEC.md；同时生成 migration-report.json。",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 migrate.py service.json worker.json && python3 -c \"import json; from pathlib import Path; assert all(json.loads(Path(p).read_text())['schema_version']==2 for p in ('service.json','worker.json')); print('APPLY_OK')\""
+                ]
+              },
+              {
+                "acceptance_criteria": [
+                  "完整隐藏于实现之外的验证程序成功。"
+                ],
+                "constraints": [
+                  "不得修改 validator.py。"
+                ],
+                "depends_on": [
+                  "apply_migration"
+                ],
+                "id": "validate_migration",
+                "objective": "运行完整 validator.py；若失败则根据真实错误修复迁移实现或产物，直到输出 MIGRATION_OK。",
+                "requires_mutation": false,
+                "verification_commands": [
+                  "python3 validator.py"
+                ]
+              }
+            ],
+            "verification_commands": [
+              "python3 validator.py"
+            ],
+            "working_directory": "long-horizon/staged/config_migration_zh"
+          },
+          "updated_unix_ms": 1786148270070
+        }
+      }
+    },
+    {
+      "case_id": "event_pipeline_en",
+      "category": "build_verify",
+      "language": "en",
+      "arm": "staged",
+      "run_dir": "long-horizon/staged/event_pipeline_en",
+      "task_id": "lh-v1-staged-event_pipeline_en",
+      "http_status": 200,
+      "elapsed_ms": 6405.846,
+      "artifacts_ok": false,
+      "protected_inputs_ok": true,
+      "stdout_ok": false,
+      "protocol_valid": false,
+      "lifecycle_ok": true,
+      "protocol_leak_free": true,
+      "action_budget_ok": false,
+      "no_adjacent_repeat_loop": true,
+      "ledger_succeeded": false,
+      "passed": false,
+      "errors": [
+        "file_exact:summary.json",
+        "file_exact:checksum.txt",
+        "file_contains:summarize.py",
+        "artifacts_ok",
+        "stdout_ok",
+        "protocol_valid",
+        "action_budget_ok",
+        "ledger_succeeded"
+      ],
+      "action_count": 0,
+      "adjacent_repeats": 0,
+      "state_releases": 2,
+      "state_release_failures": 0,
+      "stage_count": 3,
+      "stage_attempts": [
+        1,
+        0,
+        0
+      ],
+      "commands": [],
+      "tool_results": [],
+      "response": {
+        "answer": "",
+        "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+        "error_code": "protocol_error",
+        "message": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+        "route": {
+          "mode": "tool_loop",
+          "steps": 0,
+          "strict": false,
+          "tool": null
+        },
+        "session_id": "lh-v1-staged-event_pipeline_en",
+        "status": "error",
+        "task_id": "lh-v1-staged-event_pipeline_en",
+        "tool_result": null,
+        "trace": {
+          "agent": {
+            "events": [
+              {
+                "owner_id": "turn-9631a23e4e4a1a6e-0000000000000006",
+                "type": "run_started"
+              },
+              {
+                "state_id": "state-7c3313e2b87148779b7680188024616a",
+                "type": "state_opened"
+              },
+              {
+                "state_id": "state-153ccf4c29454eef93d76c3730854ba4",
+                "type": "state_opened"
+              },
+              {
+                "message": "invalid tool-call JSON: expected value at line 1 column 1",
+                "retry": 1,
+                "turn": 1,
+                "type": "protocol_rejected"
+              },
+              {
+                "message": "invalid tool-call JSON: expected value at line 1 column 1",
+                "retry": 2,
+                "turn": 2,
+                "type": "protocol_rejected"
+              },
+              {
+                "code": "protocol_error",
+                "message": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+                "type": "run_failed"
+              },
+              {
+                "error": "",
+                "state_id": "state-153ccf4c29454eef93d76c3730854ba4",
+                "success": true,
+                "type": "state_released"
+              },
+              {
+                "error": "",
+                "state_id": "state-7c3313e2b87148779b7680188024616a",
+                "success": true,
+                "type": "state_released"
+              }
+            ],
+            "model_turns": 0,
+            "tool_steps": []
+          },
+          "answer_protocol": null,
+          "control_plane": "rust",
+          "elapsed_ms": 6396.034443,
+          "gate": {
+            "label": "tool",
+            "mode": "explicit_workspace",
+            "tool": "run_command",
+            "use_tool": true
+          },
+          "task_ledger": {
+            "current_stage": "implement_parser",
+            "recovery_count": 0,
+            "revision": 3,
+            "stages": [
+              {
+                "attempts": 1,
+                "completed_unix_ms": 1786148276478,
+                "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+                "id": "implement_parser",
+                "started_unix_ms": 1786148270081,
+                "status": "failed"
+              },
+              {
+                "attempts": 0,
+                "completed_unix_ms": null,
+                "error": "",
+                "id": "verify_semantics",
+                "started_unix_ms": null,
+                "status": "pending"
+              },
+              {
+                "attempts": 0,
+                "completed_unix_ms": null,
+                "error": "",
+                "id": "final_regression",
+                "started_unix_ms": null,
+                "status": "pending"
+              }
+            ],
+            "status": "failed",
+            "task_id": "lh-v1-staged-event_pipeline_en"
+          },
+          "task_spec": {
+            "acceptance_criteria": [
+              "The script parses the CSV generically and creates its requested outputs."
+            ],
+            "constraints": [
+              "Do not modify SPEC.md, events.csv, or tests.py.",
+              "Do not modify SPEC.md, events.csv, or tests.py."
+            ],
+            "objective": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [],
+            "verification_commands": [
+              "python3 summarize.py events.csv summary.json checksum.txt"
+            ],
+            "working_directory": "long-horizon/staged/event_pipeline_en"
+          }
+        }
+      },
+      "ledger": {
+        "status": "ok",
+        "task": {
+          "created_unix_ms": 1786148270079,
+          "current_stage": "implement_parser",
+          "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+          "events": [
+            {
+              "detail": "task persisted before execution",
+              "kind": "created",
+              "sequence": 1,
+              "stage_id": null,
+              "unix_ms": 1786148270079
+            },
+            {
+              "detail": "stage controller claimed task",
+              "kind": "task_started",
+              "sequence": 2,
+              "stage_id": null,
+              "unix_ms": 1786148270080
+            },
+            {
+              "detail": "checkpoint before execution",
+              "kind": "stage_started",
+              "sequence": 3,
+              "stage_id": "implement_parser",
+              "unix_ms": 1786148270081
+            },
+            {
+              "detail": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+              "kind": "stage_failed",
+              "sequence": 4,
+              "stage_id": "implement_parser",
+              "unix_ms": 1786148276478
+            }
+          ],
+          "final_response": null,
+          "ledger_schema_version": 1,
+          "recovery_count": 0,
+          "revision": 3,
+          "session_id": "lh-v1-staged-event_pipeline_en",
+          "stages": [
+            {
+              "attempts": 1,
+              "completed_unix_ms": 1786148276478,
+              "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+              "response": {
+                "answer": "",
+                "error": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+                "error_code": "protocol_error",
+                "message": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+                "route": {
+                  "mode": "tool_loop",
+                  "steps": 0,
+                  "strict": false,
+                  "tool": null
+                },
+                "session_id": "lh-v1-staged-event_pipeline_en",
+                "status": "error",
+                "tool_result": null,
+                "trace": {
+                  "agent": {
+                    "events": [
+                      {
+                        "owner_id": "turn-9631a23e4e4a1a6e-0000000000000006",
+                        "type": "run_started"
+                      },
+                      {
+                        "state_id": "state-7c3313e2b87148779b7680188024616a",
+                        "type": "state_opened"
+                      },
+                      {
+                        "state_id": "state-153ccf4c29454eef93d76c3730854ba4",
+                        "type": "state_opened"
+                      },
+                      {
+                        "message": "invalid tool-call JSON: expected value at line 1 column 1",
+                        "retry": 1,
+                        "turn": 1,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "message": "invalid tool-call JSON: expected value at line 1 column 1",
+                        "retry": 2,
+                        "turn": 2,
+                        "type": "protocol_rejected"
+                      },
+                      {
+                        "code": "protocol_error",
+                        "message": "protocol error: invalid tool-call JSON: expected value at line 1 column 1",
+                        "type": "run_failed"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-153ccf4c29454eef93d76c3730854ba4",
+                        "success": true,
+                        "type": "state_released"
+                      },
+                      {
+                        "error": "",
+                        "state_id": "state-7c3313e2b87148779b7680188024616a",
+                        "success": true,
+                        "type": "state_released"
+                      }
+                    ],
+                    "model_turns": 0,
+                    "tool_steps": []
+                  },
+                  "answer_protocol": null,
+                  "control_plane": "rust",
+                  "elapsed_ms": 6396.034443,
+                  "gate": {
+                    "label": "tool",
+                    "mode": "explicit_workspace",
+                    "tool": "run_command",
+                    "use_tool": true
+                  },
+                  "task_spec": {
+                    "acceptance_criteria": [
+                      "The script parses the CSV generically and creates its requested outputs."
+                    ],
+                    "constraints": [
+                      "Do not modify SPEC.md, events.csv, or tests.py.",
+                      "Do not modify SPEC.md, events.csv, or tests.py."
+                    ],
+                    "objective": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+                    "requires_mutation": true,
+                    "schema_version": 1,
+                    "stages": [],
+                    "verification_commands": [
+                      "python3 summarize.py events.csv summary.json checksum.txt"
+                    ],
+                    "working_directory": "long-horizon/staged/event_pipeline_en"
+                  }
+                }
+              },
+              "spec": {
+                "acceptance_criteria": [
+                  "The script parses the CSV generically and creates its requested outputs."
+                ],
+                "constraints": [
+                  "Do not modify SPEC.md, events.csv, or tests.py."
+                ],
+                "depends_on": [],
+                "id": "implement_parser",
+                "objective": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 summarize.py events.csv summary.json checksum.txt"
+                ]
+              },
+              "started_unix_ms": 1786148270081,
+              "status": "failed"
+            },
+            {
+              "attempts": 0,
+              "completed_unix_ms": null,
+              "error": "",
+              "response": null,
+              "spec": {
+                "acceptance_criteria": [
+                  "The supplied semantic test prints PIPELINE_OK."
+                ],
+                "constraints": [
+                  "Do not modify SPEC.md, events.csv, or tests.py."
+                ],
+                "depends_on": [
+                  "implement_parser"
+                ],
+                "id": "verify_semantics",
+                "objective": "Inspect summary.json and checksum.txt, run tests.py, and correct ordering, compact serialization, newline, aggregation, or checksum defects based on real failures.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 tests.py"
+                ]
+              },
+              "started_unix_ms": null,
+              "status": "pending"
+            },
+            {
+              "attempts": 0,
+              "completed_unix_ms": null,
+              "error": "",
+              "response": null,
+              "spec": {
+                "acceptance_criteria": [
+                  "Final regression is green without changing protected inputs."
+                ],
+                "constraints": [
+                  "Do not modify SPEC.md, events.csv, or tests.py."
+                ],
+                "depends_on": [
+                  "verify_semantics"
+                ],
+                "id": "final_regression",
+                "objective": "Run the complete verifier again from the current durable workspace and report only after PIPELINE_OK is observed.",
+                "requires_mutation": false,
+                "verification_commands": [
+                  "python3 tests.py"
+                ]
+              },
+              "started_unix_ms": null,
+              "status": "pending"
+            }
+          ],
+          "status": "failed",
+          "task_id": "lh-v1-staged-event_pipeline_en",
+          "task_spec": {
+            "acceptance_criteria": [
+              "summarize.py implements the specification rather than hard-coding the fixture result.",
+              "tests.py prints PIPELINE_OK."
+            ],
+            "constraints": [
+              "Do not modify SPEC.md, events.csv, or tests.py."
+            ],
+            "objective": "Work only in long-horizon/staged/event_pipeline_en. Build and verify the event summarization pipeline described by SPEC.md. Inspect all inputs, implement summarize.py, make the supplied tests pass, execute the pipeline on events.csv, and create summary.json plus checksum.txt. Handle malformed and duplicate rows exactly as specified. Finish only after the full verifier prints PIPELINE_OK.",
+            "requires_mutation": true,
+            "schema_version": 1,
+            "stages": [
+              {
+                "acceptance_criteria": [
+                  "The script parses the CSV generically and creates its requested outputs."
+                ],
+                "constraints": [
+                  "Do not modify SPEC.md, events.csv, or tests.py."
+                ],
+                "depends_on": [],
+                "id": "implement_parser",
+                "objective": "Inspect SPEC.md, events.csv, and tests.py. Implement summarize.py to parse valid rows, ignore malformed points, and keep only the first valid occurrence of each id. Exercise the script on the fixture.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 summarize.py events.csv summary.json checksum.txt"
+                ]
+              },
+              {
+                "acceptance_criteria": [
+                  "The supplied semantic test prints PIPELINE_OK."
+                ],
+                "constraints": [
+                  "Do not modify SPEC.md, events.csv, or tests.py."
+                ],
+                "depends_on": [
+                  "implement_parser"
+                ],
+                "id": "verify_semantics",
+                "objective": "Inspect summary.json and checksum.txt, run tests.py, and correct ordering, compact serialization, newline, aggregation, or checksum defects based on real failures.",
+                "requires_mutation": true,
+                "verification_commands": [
+                  "python3 tests.py"
+                ]
+              },
+              {
+                "acceptance_criteria": [
+                  "Final regression is green without changing protected inputs."
+                ],
+                "constraints": [
+                  "Do not modify SPEC.md, events.csv, or tests.py."
+                ],
+                "depends_on": [
+                  "verify_semantics"
+                ],
+                "id": "final_regression",
+                "objective": "Run the complete verifier again from the current durable workspace and report only after PIPELINE_OK is observed.",
+                "requires_mutation": false,
+                "verification_commands": [
+                  "python3 tests.py"
+                ]
+              }
+            ],
+            "verification_commands": [
+              "python3 tests.py"
+            ],
+            "working_directory": "long-horizon/staged/event_pipeline_en"
+          },
+          "updated_unix_ms": 1786148276478
+        }
+      }
+    }
+  ]
+}

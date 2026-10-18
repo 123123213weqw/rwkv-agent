@@ -1,0 +1,86 @@
+{
+  "schema_version": "search-reasoning-ac-paired-comparison.v1",
+  "paired_case_count": 100,
+  "shared_q1_candidate_cases": 100,
+  "metrics": {
+    "domain_hit_at_5": {
+      "direct_hits": 35,
+      "feedback_hits": 38,
+      "gained_cases": 3,
+      "regressed_cases": 0,
+      "stable_hit_cases": 35,
+      "stable_miss_cases": 62,
+      "gain_case_ids": [
+        "retrieval-en-112",
+        "retrieval-en-119",
+        "retrieval-en-121"
+      ],
+      "regression_case_ids": []
+    },
+    "domain_hit_at_10": {
+      "direct_hits": 36,
+      "feedback_hits": 39,
+      "gained_cases": 3,
+      "regressed_cases": 0,
+      "stable_hit_cases": 36,
+      "stable_miss_cases": 61,
+      "gain_case_ids": [
+        "retrieval-en-112",
+        "retrieval-en-119",
+        "retrieval-en-121"
+      ],
+      "regression_case_ids": []
+    },
+    "domain_hit_at_20": {
+      "direct_hits": 36,
+      "feedback_hits": 40,
+      "gained_cases": 4,
+      "regressed_cases": 0,
+      "stable_hit_cases": 36,
+      "stable_miss_cases": 60,
+      "gain_case_ids": [
+        "retrieval-en-112",
+        "retrieval-en-119",
+        "retrieval-en-121",
+        "retrieval-en-144"
+      ],
+      "regression_case_ids": []
+    },
+    "target_page_hit_at_10": {
+      "direct_hits": 2,
+      "feedback_hits": 3,
+      "gained_cases": 1,
+      "regressed_cases": 0,
+      "stable_hit_cases": 2,
+      "stable_miss_cases": 97,
+      "gain_case_ids": [
+        "retrieval-en-121"
+      ],
+      "regression_case_ids": []
+    },
+    "target_page_hit_at_20": {
+      "direct_hits": 2,
+      "feedback_hits": 4,
+      "gained_cases": 2,
+      "regressed_cases": 0,
+      "stable_hit_cases": 2,
+      "stable_miss_cases": 96,
+      "gain_case_ids": [
+        "retrieval-en-121",
+        "retrieval-en-144"
+      ],
+      "regression_case_ids": []
+    }
+  },
+  "average_query_count": {
+    "direct": 0.97,
+    "feedback": 1.36,
+    "delta": 0.39
+  },
+  "average_total_elapsed_ms": {
+    "direct": 1598.035,
+    "feedback": 3067.182,
+    "delta": 1469.147
+  },
+  "decision": "C has a positive paired quality delta with no recall regressions, but absolute target-page recall remains too low."
+}

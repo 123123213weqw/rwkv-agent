@@ -1,0 +1,39 @@
+{
+  "schema_version": "frozen-baseline-manifest.v1",
+  "name": "search-reasoning-abcd-v1",
+  "status": "public_summary",
+  "benchmark": {
+    "path": "bench/realtime_web_retrieval.jsonl",
+    "case_count": 50,
+    "sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc"
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1628,
+      "sha256": "6a8cebff76cb5e66f38d5ea27b2c0fb66240f3a8fe5901a51d7d89a6c64dcda4"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 63901,
+      "sha256": "570c128c4824d000d75a4b8663e6fa8c296dc9c0e50f9e07a0ad24378df607d7"
+    },
+    {
+      "path": "comparison.json",
+      "bytes": 3914,
+      "sha256": "1fb957ba34c0049339d97ddd5d215b8a3ffbcce5728ea45f39773c1d6ca3f7a3"
+    },
+    {
+      "path": "case_matrix.json",
+      "bytes": 79182,
+      "sha256": "2a7aaa6f4674d1d3a8d9ce86785cab34c65f99c6494d47f5421b2ef0cf924016"
+    },
+    {
+      "path": "budget_sensitivity.json",
+      "bytes": 3500,
+      "sha256": "e268f35ec977f34e26522358044fee802484aee1a13cf2127992f73fd7b12256"
+    }
+  ],
+  "raw_traces_included": false,
+  "production_changed": false
+}

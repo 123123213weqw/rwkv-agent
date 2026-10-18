@@ -1,0 +1,36 @@
+{
+  "benchmark": "RWKV-Agent-S-Level-v1",
+  "cases": 80,
+  "language_groups": {
+    "en": {
+      "citation_exact_page_recall": 0.333333,
+      "domain_recall_at_10": 0.962963,
+      "exact_page_recall_at_20": 0.62963,
+      "final_evidence_exact_recall": 0.407407
+    },
+    "zh": {
+      "citation_exact_page_recall": 0.222222,
+      "domain_recall_at_10": 0.977778,
+      "exact_page_recall_at_20": 0.422222,
+      "final_evidence_exact_recall": 0.355556
+    }
+  },
+  "live_repetitions": 1,
+  "metrics": {
+    "citation_exact_page_recall": 0.23125,
+    "citation_validity_precision": 0.65,
+    "discovered_to_evidence_retention_rate": 0.775,
+    "domain_recall_at_10": 0.95,
+    "exact_page_recall_at_20": 0.39375,
+    "final_evidence_exact_recall": 0.30625,
+    "important_claim_citation_coverage": 0.873214,
+    "search_false_negative_rate": 0.05,
+    "search_p50_latency_ms": 28248.949,
+    "search_p95_latency_ms": 38223.079,
+    "state_leak_count": 0.0,
+    "status_ok_rate": 1.0,
+    "unsupported_claim_rate": 0.126786
+  },
+  "schema_version": "rwkv-agent-s-level-measurements.v1",
+  "source": "fitgen_partial_adapter"
+}

@@ -1,0 +1,308 @@
+{
+  "status": "ok",
+  "session_id": "passage-rwkv-founder-v4-1785208850",
+  "message": "RWKV的创始人是谁，他的GitHub项目都有哪些，最新的更新是什么？",
+  "route": {
+    "mode": "state_parallel_search",
+    "tool": "web_search",
+    "branch_width": 4,
+    "rounds": 2
+  },
+  "tool_result": {
+    "status": "ok",
+    "tool": "web_search",
+    "evidence": [
+      {
+        "id": "W1",
+        "title": "BlinkDL (PENG Bo) / Repositories · GitHub",
+        "content": "GitHub owner: BlinkDL. Public repositories (35): BlinkDL/RWKV-LM, BlinkDL/ChatRWKV, BlinkDL/Albatross, BlinkDL/RWKV.com, BlinkDL/Agen, BlinkDL/RWKV-CUDA, BlinkDL/zoology, BlinkDL/AI-Writer, BlinkDL/fast.c, BlinkDL/modded-nanogpt-rwkv, BlinkDL/nanoRWKV, BlinkDL/LinearAttentionArena, BlinkDL/Model_Leaderboard, BlinkDL/AntiAging, BlinkDL/FastChat, BlinkDL/LM-Trick-Questions, BlinkDL/WorldModel, BlinkDL/Hua, BlinkDL/OpenAudioTest, BlinkDL/RWKV-v2-RNN-Pile, BlinkDL/libai, BlinkDL/gpt-neox, BlinkDL/SmallInitEmb, BlinkDL/Nala, BlinkDL/minGPT-tuned, BlinkDL/ProjectIvory, BlinkDL/Basis, BlinkDL/BasisLang.com, BlinkDL/BookCNN, BlinkDL/BlinkColorTheme, BlinkDL/MathBook, BlinkDL/PathTracingJS, BlinkDL/BlinkToDo, BlinkDL/BlinkDL.github.io, BlinkDL/BlinkDL. Most recently pushed: BlinkDL/RWKV-LM at 2026-07-23T08:56:31Z.",
+        "uri": "https://github.com/BlinkDL?tab=repositories",
+        "source": "github",
+        "published_at": "2026-07-23T08:56:31Z"
+      },
+      {
+        "id": "W2",
+        "title": "BlinkDL (PENG Bo) / Repositories · GitHub",
+        "content": "GitHub owner: BlinkDL. Public repositories (35): BlinkDL/RWKV-LM, BlinkDL/ChatRWKV, BlinkDL/Albatross, BlinkDL/RWKV.com, BlinkDL/Agen, BlinkDL/RWKV-CUDA, BlinkDL/zoology, BlinkDL/AI-Writer, BlinkDL/fast.c, BlinkDL/modded-nanogpt-rwkv, BlinkDL/nanoRWKV, BlinkDL/LinearAttentionArena, BlinkDL/Model_Leaderboard, BlinkDL/AntiAging, BlinkDL/FastChat, BlinkDL/LM-Trick-Questions, BlinkDL/WorldModel, BlinkDL/Hua, BlinkDL/OpenAudioTest, BlinkDL/RWKV-v2-RNN-Pile, BlinkDL/libai, BlinkDL/gpt-neox, BlinkDL/SmallInitEmb, BlinkDL/Nala, BlinkDL/minGPT-tuned, BlinkDL/ProjectIvory, BlinkDL/Basis, BlinkDL/BasisLang.com, BlinkDL/BookCNN, BlinkDL/BlinkColorTheme, BlinkDL/MathBook, BlinkDL/PathTracingJS, BlinkDL/BlinkToDo, BlinkDL/BlinkDL.github.io, BlinkDL/BlinkDL. Most recently pushed: BlinkDL/RWKV-LM at 2026-07-23T08:56:31Z.",
+        "uri": "https://github.com/BlinkDL?tab=repositories",
+        "source": "github",
+        "published_at": "2026-07-23T08:56:31Z"
+      },
+      {
+        "id": "W3",
+        "title": "Commit 952102498e9e: Update README.md",
+        "content": "Update README.md",
+        "uri": "https://github.com/BlinkDL/RWKV-LM/commit/952102498e9ed367ea0a59ee64106916d474d30f",
+        "source": "github",
+        "published_at": "2026-07-23T08:56:31Z"
+      },
+      {
+        "id": "W4",
+        "title": "Commit b735c0b13d43: Update README.md",
+        "content": "Update README.md",
+        "uri": "https://github.com/BlinkDL/RWKV-LM/commit/b735c0b13d433995a8b3befbc02269973b67ca62",
+        "source": "github",
+        "published_at": "2026-07-22T16:22:10Z"
+      },
+      {
+        "id": "W5",
+        "title": "首页 - RWKV",
+        "content": "首页 - RWKV 新一代大模型架构 超越 Transformer 最新版本：RWKV-8 （ ROSA 机制 ， DeepEmbed 机制 ） 用 RWKV 训练模型的论文 RWKV 架构、多模态... 探索 RWKV 的论文生态 加载中... 下载 RWKV 模型 下载最新 RWKV-7 G系列 推理模型，几分钟内跑起来你的第一个 RWKV 应用 加载中... HuggingFace 魔搭 魔搭GGUF 为您介绍 RWKV RWKV 结合了 RNN 和 Transformer 的所有优点，既可高效并行推理训练，亦可高效串行推理训练 Parallel HuggingFace 续写模式 RWKV- 7 G 1 f 7.2B RWKV- 7 G 1 f 2.9B 对话模式 RWKV- 7 G 1 系列 Model",
+        "uri": "https://www.rwkv.cn/",
+        "source": "official_docs",
+        "published_at": "2014-05-02"
+      },
+      {
+        "id": "W6",
+        "title": "RWKV 文档首页 - RWKV",
+        "content": "RWKV 文档首页 欢迎来到 RWKV 中文文档，可在此处了解 RWKV 的概念性知识，包括但不限于： - RWKV 的介绍，比如架构迭代历史、模型版本、训练数据集、本地部署的显存需求等 - RWKV 的基准测试表现如何？在不同设备（如各种 GPU/CPU/NPU 等）的推理速度如何？ - RWKV 社区有哪些优秀的项目？如何参与 RWKV 社区并贡献您的力量？ RWKV 是一个大语言模型架构，基于这个架构训练出来的 RWKV 模型可以理解并生成文本。此外，还有一些 RWKV 多模态模型可以理解或生成图像、声音等多种模态的内容。",
+        "uri": "https://www.rwkv.cn/docs",
+        "source": "bing",
+        "published_at": "2026-01-01"
+      },
+      {
+        "id": "W7",
+        "title": "Transformer 架构平替-- RWKV 架构详解 -CSDN博客",
+        "content": "体，分别为状态空间模型（State Space Model，SSM）和测试时训练（Test-Time Training，TTT）。这两种范式都可以实现关于序列长度的线性时间复杂度，且避免了传统RNN中存在的问题。 状态空间模型（StateSpaceModel，SSM）[13] 范式可以有效处理长文本中存 在的长程依赖性（Long-RangeDependencies,LRDs）问题，并且可以有效降低语言 模型的计算和内存开销。基于SSM 范式的代表性模型有 RWKV和Mamba两类。本文 主要详解RWKV这一基于 SSM 范式的创新架构，其核心机制WKV的计算可以看作是两个SSM的比。RWKV的设计结合了RNNs 和Transformers 的优点，既保留了推理阶段的高效性，又实现了训练阶段的并行化。",
+        "uri": "https://blog.csdn.net/weixin_44729653/article/details/148424496",
+        "source": "bing",
+        "published_at": "2025-06-04"
+      },
+      {
+        "id": "W8",
+        "title": "体验 RWKV -7训练全过程，只需400行代码训练3分钟",
+        "content": "我们发布了 rwkv7_train_simplified.py ，演示 RWKV-7 “Goose” 架构的训练全过程，无需任何外部训练框架。 - https://github.com/BlinkDL/RWKV-LM/blob/main/RWKV-v7/train_temp/rwkv7_train_simplified.py 脚本将基于 2 层 RWKV-7 模型（仅 30860 个参数）训练“数字翻转”任务：给定随机数字（例如168,以逗号结尾），模型输出其反转（例如861#以#结尾）。这个任务可测试模型的长距离建模能力。",
+        "uri": "https://blog.csdn.net/rwkvteam/article/details/154942631",
+        "source": "bing",
+        "published_at": "2025-11-17"
+      }
+    ]
+  },
+  "answer": "RWKV的创始人是PENG Bo。他的GitHub项目包括：BlinkDL/RWKV-LM、BlinkDL/ChatRWKV、BlinkDL/Albatross、BlinkDL/RWKV.com、BlinkDL/Agen、BlinkDL/RWKV-CUDA、BlinkDL/zoology、BlinkDL/AI-Writer、BlinkDL/fast.c、BlinkDL/modded-nanogpt-rwkv、BlinkDL/nanoRWKV、BlinkDL/LinearAttentionArena、BlinkDL/Model_Leaderboard、BlinkDL/AntiAging、BlinkDL/FastChat、BlinkDL/LM-Trick-Questions、BlinkDL/WorldModel、BlinkDL/Hua、BlinkDL/OpenAudioTest、BlinkDL/RWKV-v2-RNN-Pile、BlinkDL/libai、BlinkDL/gpt-neox、BlinkDL/SmallInitEmb、BlinkDL/Nala、BlinkDL/minGPT-tuned、BlinkDL/ProjectIvory、BlinkDL/Basis、BlinkDL/BasisLang.com、BlinkDL/BookCNN、BlinkDL/BlinkColorTheme、BlinkDL/MathBook、BlinkDL/PathTracingJS、BlinkDL/BlinkToDo、BlinkDL/BlinkDL.github.io、BlinkDL/BlinkDL。最新的更新是：BlinkDL/RWKV-LM于2026-07-23T08:56:31Z更新了README.md，BlinkDL/RWKV-LM于2026-07-22T16:22:10Z更新了README.md。 [W1][W2]",
+  "trace": {
+    "state_runtime": {
+      "home_url": "http://127.0.0.1:8417",
+      "root_prefill_once": true,
+      "forked_states": 4,
+      "tensor_state_merge": false,
+      "semantic_reduce_to_root": true,
+      "release": {
+        "status": "ok",
+        "released": 5,
+        "state_ids": [
+          "state-376b10e079e34c138b02b93fd444a7c2",
+          "state-cfe789c3b8a44f4d91bc032159f9871c",
+          "state-d30f83d4ccd44b188c576dfee7d5f869",
+          "state-876ca998ea6e4eafa1347dd6d7d3e58b",
+          "state-152ab409561f41479a3931d6df00e3aa"
+        ]
+      }
+    },
+    "rounds": [
+      {
+        "round": 1,
+        "branches": [
+          {
+            "state_id": "state-cfe789c3b8a44f4d91bc032159f9871c",
+            "branch": "branch-1",
+            "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"RWKV 创始人 GitHub 项目 最新更新\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "RWKV 创始人 GitHub 项目 最新更新"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 GitHub 项目 最新更新"
+              },
+              "query_strategy": "model"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 258
+          },
+          {
+            "state_id": "state-d30f83d4ccd44b188c576dfee7d5f869",
+            "branch": "branch-2",
+            "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"RWKV 创始人 项目 最新更新\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "\"RWKV\" 创始人 \"GitHub\" 项目 RWKV 创始人 项目 最新更新"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 项目 最新更新"
+              },
+              "query_strategy": "exact_anchors"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 262
+          },
+          {
+            "state_id": "state-876ca998ea6e4eafa1347dd6d7d3e58b",
+            "branch": "branch-3",
+            "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"RWKV 创始人 项目 最新更新\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "RWKV 创始人 项目 最新更新 官网 官方"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 项目 最新更新"
+              },
+              "query_strategy": "official"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 257
+          },
+          {
+            "state_id": "state-152ab409561f41479a3931d6df00e3aa",
+            "branch": "branch-4",
+            "raw": "<tool_call>{\"name\": \"web_search\", \"arguments\": {\"query\": \"RWKV 创始人 GitHub 项目 最新更新\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "RWKV的创始人是谁，他的GitHub项目都有哪些，最新的更新是什么？"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 GitHub 项目 最新更新"
+              },
+              "query_strategy": "raw_question"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 261
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "branches": [
+          {
+            "state_id": "state-cfe789c3b8a44f4d91bc032159f9871c",
+            "branch": "branch-1",
+            "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV 创始人 姓名 身份\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "RWKV 创始人 姓名 身份"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 姓名 身份"
+              },
+              "query_strategy": "model_gap"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 1157
+          },
+          {
+            "state_id": "state-d30f83d4ccd44b188c576dfee7d5f869",
+            "branch": "branch-2",
+            "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV 创始人 BlinkDL 个人简介\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "RWKV 创始人 BlinkDL 个人简介 官网 官方"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 BlinkDL 个人简介"
+              },
+              "query_strategy": "gap_official"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 1009
+          },
+          {
+            "state_id": "state-876ca998ea6e4eafa1347dd6d7d3e58b",
+            "branch": "branch-3",
+            "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV 创始人 项目 最新更新\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "RWKV 创始人 项目 最新更新 原文 来源"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 项目 最新更新"
+              },
+              "query_strategy": "gap_source"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 1355
+          },
+          {
+            "state_id": "state-152ab409561f41479a3931d6df00e3aa",
+            "branch": "branch-4",
+            "raw": "<tool_call>{\"name\":\"web_search\",\"arguments\":{\"query\":\"RWKV 创始人 姓名 身份\"}}\n</tool_call>",
+            "route": {
+              "strict": true,
+              "tool": "web_search",
+              "arguments": {
+                "query": "\"RWKV\" 创始人 \"GitHub\" 项目 PENG Bo (@BlinkDL) BlinkDL GitHub repositories"
+              },
+              "error": "",
+              "model_arguments": {
+                "query": "RWKV 创始人 姓名 身份"
+              },
+              "query_strategy": "evidence_pivot"
+            },
+            "tool_status": "ok",
+            "evidence_count": 8,
+            "seen_tokens": 1007
+          }
+        ]
+      }
+    ],
+    "answer_completion": {
+      "state_id": "state-376b10e079e34c138b02b93fd444a7c2",
+      "branch": "root",
+      "stop_reason": "</answer>",
+      "seen_tokens": 2838,
+      "output_chars": 805,
+      "output_tokens": 394
+    },
+    "answer_evidence_profile": {
+      "name": "compact-question-span-v1",
+      "sources": 8,
+      "max_chars_per_source": 360
+    },
+    "answer_protocol": {
+      "format": "answer_envelope_v1",
+      "primary": {
+        "valid": true,
+        "answer": "RWKV的创始人是PENG Bo。他的GitHub项目包括：BlinkDL/RWKV-LM、BlinkDL/ChatRWKV、BlinkDL/Albatross、BlinkDL/RWKV.com、BlinkDL/Agen、BlinkDL/RWKV-CUDA、BlinkDL/zoology、BlinkDL/AI-Writer、BlinkDL/fast.c、BlinkDL/modded-nanogpt-rwkv、BlinkDL/nanoRWKV、BlinkDL/LinearAttentionArena、BlinkDL/Model_Leaderboard、BlinkDL/AntiAging、BlinkDL/FastChat、BlinkDL/LM-Trick-Questions、BlinkDL/WorldModel、BlinkDL/Hua、BlinkDL/OpenAudioTest、BlinkDL/RWKV-v2-RNN-Pile、BlinkDL/libai、BlinkDL/gpt-neox、BlinkDL/SmallInitEmb、BlinkDL/Nala、BlinkDL/minGPT-tuned、BlinkDL/ProjectIvory、BlinkDL/Basis、BlinkDL/BasisLang.com、BlinkDL/BookCNN、BlinkDL/BlinkColorTheme、BlinkDL/MathBook、BlinkDL/PathTracingJS、BlinkDL/BlinkToDo、BlinkDL/BlinkDL.github.io、BlinkDL/BlinkDL。最新的更新是：BlinkDL/RWKV-LM于2026-07-23T08:56:31Z更新了README.md，BlinkDL/RWKV-LM于2026-07-22T16:22:10Z更新了README.md。 [W1][W2]",
+        "errors": [],
+        "citations": [
+          "W1",
+          "W2"
+        ],
+        "invalid_citations": [],
+        "citation_repaired": true,
+        "citation_sanitized": false
+      },
+      "fallback_used": false,
+      "fallback": null,
+      "fallback_error": "",
+      "fallback_completion": null
+    },
+    "elapsed_ms": 43277.009
+  },
+  "smoke_elapsed_seconds": 43.29
+}

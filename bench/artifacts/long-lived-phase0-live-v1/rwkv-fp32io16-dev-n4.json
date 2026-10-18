@@ -1,0 +1,203 @@
+{
+  "allocated_after": 0,
+  "dtype": "fp32io16",
+  "endpoint": "http://127.0.0.1:19420",
+  "gpu": {
+    "power_w_peak": 192.78,
+    "samples": 19,
+    "temperature_c_peak": 49.0,
+    "used_memory_mib_min": 22409,
+    "used_memory_mib_peak": 22561,
+    "utilization_pct_mean": 86.10526315789474,
+    "utilization_pct_peak": 99.0
+  },
+  "gpu_samples": [
+    {
+      "power_w": 107.11,
+      "temperature_c": 43.0,
+      "timestamp_ms": 1787330620373,
+      "used_memory_mib": 22409,
+      "utilization_pct": 0.0
+    },
+    {
+      "power_w": 188.28,
+      "temperature_c": 47.0,
+      "timestamp_ms": 1787330620603,
+      "used_memory_mib": 22561,
+      "utilization_pct": 79.0
+    },
+    {
+      "power_w": 161.24,
+      "temperature_c": 46.0,
+      "timestamp_ms": 1787330620831,
+      "used_memory_mib": 22561,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 139.63,
+      "temperature_c": 47.0,
+      "timestamp_ms": 1787330621060,
+      "used_memory_mib": 22561,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 161.69,
+      "temperature_c": 47.0,
+      "timestamp_ms": 1787330621289,
+      "used_memory_mib": 22561,
+      "utilization_pct": 88.0
+    },
+    {
+      "power_w": 155.65,
+      "temperature_c": 47.0,
+      "timestamp_ms": 1787330621519,
+      "used_memory_mib": 22561,
+      "utilization_pct": 87.0
+    },
+    {
+      "power_w": 163.2,
+      "temperature_c": 47.0,
+      "timestamp_ms": 1787330621748,
+      "used_memory_mib": 22561,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 160.68,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330621975,
+      "used_memory_mib": 22561,
+      "utilization_pct": 93.0
+    },
+    {
+      "power_w": 192.78,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330622206,
+      "used_memory_mib": 22561,
+      "utilization_pct": 81.0
+    },
+    {
+      "power_w": 167.54,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330622434,
+      "used_memory_mib": 22561,
+      "utilization_pct": 95.0
+    },
+    {
+      "power_w": 168.27,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330622663,
+      "used_memory_mib": 22561,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 163.81,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330622892,
+      "used_memory_mib": 22561,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 163.61,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330623120,
+      "used_memory_mib": 22561,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 163.49,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330623349,
+      "used_memory_mib": 22561,
+      "utilization_pct": 92.0
+    },
+    {
+      "power_w": 163.81,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330623578,
+      "used_memory_mib": 22561,
+      "utilization_pct": 94.0
+    },
+    {
+      "power_w": 163.81,
+      "temperature_c": 49.0,
+      "timestamp_ms": 1787330623806,
+      "used_memory_mib": 22561,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 162.86,
+      "temperature_c": 49.0,
+      "timestamp_ms": 1787330624035,
+      "used_memory_mib": 22561,
+      "utilization_pct": 99.0
+    },
+    {
+      "power_w": 94.41,
+      "temperature_c": 48.0,
+      "timestamp_ms": 1787330624263,
+      "used_memory_mib": 22561,
+      "utilization_pct": 98.0
+    },
+    {
+      "power_w": 48.94,
+      "temperature_c": 47.0,
+      "timestamp_ms": 1787330624493,
+      "used_memory_mib": 22561,
+      "utilization_pct": 51.0
+    }
+  ],
+  "model_id": "rwkv-7.2b-fp32io16",
+  "provider_mode": "rwkv_recurrent",
+  "quantization": "none",
+  "requested_agents": 4,
+  "result": {
+    "correctness": {
+      "cross_talk": 0,
+      "events": 12,
+      "failed_events": 0,
+      "protocol_valid_events": 12,
+      "useful_events": 12
+    },
+    "errors": [],
+    "lifecycle": {
+      "checksum_failures": 0,
+      "restores": 0,
+      "snapshots": 0,
+      "state_leak_count": 0,
+      "states_created": 4,
+      "states_released": 4
+    },
+    "metrics": {
+      "event_completion_latency": {
+        "max_ms": 1906.54,
+        "p50_ms": 887.163,
+        "p95_ms": 1906.54,
+        "p99_ms": 1906.54
+      },
+      "events_per_second": 3.0762686536157378,
+      "queue_backpressure_count": 2,
+      "reprefill_bytes": 0,
+      "restore_bytes": 0,
+      "ttft": {
+        "available": false,
+        "reason": "provider v1 continuation is non-streaming"
+      },
+      "useful_events_per_second": 3.0762686536157378,
+      "wake_latency": {
+        "available": false,
+        "reason": "provider v1 has no explicit inference-ready signal"
+      },
+      "wall_ms": 3900.829658
+    },
+    "placement_policy": "keep_hot",
+    "provider_mode": "rwkv_recurrent",
+    "queue_capacity_per_worker": 2,
+    "schema_version": "long-lived-agent-result.v1",
+    "split": "dev",
+    "workers": 4
+  },
+  "revision": "0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8",
+  "schema_version": "rwkv-live-long-lived-bench.v1",
+  "tokenizer": "rwkv_vocab_v20230424",
+  "trace_sha256": "89f54a5e0d0b1adde3c00bd17a0fee0a7f3c45bde1581249cec6c19c2abe87f0"
+}

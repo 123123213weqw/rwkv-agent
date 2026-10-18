@@ -1,0 +1,5 @@
+{
+  "debug": false,
+  "timeout_seconds": 12,
+  "name": "jobs"
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": "long-knowledge-baseline-manifest.v1",
+  "name": "finewiki-en-miracl-dev-v1",
+  "corpus": {
+    "dataset": "HuggingFaceFW/finewiki",
+    "config": "enwiki",
+    "license": "CC BY-SA 4.0",
+    "raw_rows": 6614655,
+    "unique_pages": 6498759,
+    "aliases": 1166396,
+    "index": "rwkv-finewiki-en-full-v1",
+    "chunks": 18898488,
+    "store_bytes": 60249901240
+  },
+  "test_set": {
+    "source": "MIRACL",
+    "split": "dev",
+    "language": "en",
+    "cases": 799,
+    "sha256": "205aed4b5906db1b7d9f1f34155d6ee4c6e86a983da6b4ea0cf6b0b942a050bf"
+  },
+  "source_run_summary_sha256": "abbedc274b8cec624ab3c720756f459ea5bdd7e24326ad05c93b15a1981b5045",
+  "summary_sha256": "61eb2f79b3da4efcc6accacd41fe162ee6ac07ce85afc338b09f309fc8251563",
+  "raw_traces_included": false,
+  "production_changed": false
+}

@@ -1,0 +1,5 @@
+{
+  "name": "api",
+  "timeout_seconds": 5,
+  "log_level": "debug"
+}

@@ -1,0 +1,616 @@
+{
+  "schema_version": "no-tavily-self-hosted-public-summary.v2",
+  "status": "accepted_for_repository_default_not_production_deployed",
+  "dataset": {
+    "name": "realtime_web_retrieval",
+    "case_count": 50,
+    "languages": {
+      "zh": 25,
+      "en": 25
+    },
+    "sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc"
+  },
+  "engine_stability": {
+    "engine": "dogpile",
+    "transport": "local_searxng",
+    "repetitions": 2,
+    "requests": 100,
+    "request_success_rate": 1.0,
+    "stable_nonempty_rate": 0.96,
+    "stable_domain_recall_at_10": 0.94,
+    "stable_target_page_recall_at_20": 0.68,
+    "garbage_result_rate": 0.0077,
+    "average_request_elapsed_ms": 960.544,
+    "p95_request_elapsed_ms": 1406.121
+  },
+  "stable_local_knowledge": {
+    "dataset": "FRAMES development subset",
+    "case_count": 83,
+    "change": "remove standalone calendar years only from stable local-index queries",
+    "candidate_target_page_recall_at_20": {
+      "control": 0.4337,
+      "candidate": 0.5663,
+      "candidate_wins": 11,
+      "control_wins": 0,
+      "exact_binomial_p": 0.00097656
+    },
+    "result_target_page_recall_at_20": {
+      "control": 0.3133,
+      "candidate": 0.4337,
+      "candidate_wins": 10,
+      "control_wins": 0,
+      "exact_binomial_p": 0.00195312
+    },
+    "average_total_elapsed_ms": {
+      "control": 5472.337,
+      "candidate": 5489.262
+    }
+  },
+  "paired_end_to_end_retrieval": {
+    "common_features": [
+      "P4 plus raw dual-query recall",
+      "GitHub REST",
+      "MediaWiki API",
+      "Crossref API",
+      "FineWiki local discovery",
+      "calendar-year cleaning",
+      "Candidate Admission v2",
+      "Bing HTML fallback"
+    ],
+    "control_primary_discovery": "direct_bing_html",
+    "candidate_primary_discovery": "searxng_dogpile",
+    "control": {
+      "candidate_domain_recall_at_10": 0.52,
+      "candidate_target_page_recall_at_20": 0.1,
+      "result_domain_recall_at_10": 0.46,
+      "result_target_page_recall_at_20": 0.06,
+      "nonempty_result_rate": 0.98,
+      "garbage_result_rate": 0.0042,
+      "fetch_success_rate": 0.7364,
+      "average_total_elapsed_ms": 4979.306,
+      "p95_total_elapsed_ms": 12212.276
+    },
+    "dogpile": {
+      "candidate_domain_recall_at_10": 0.98,
+      "candidate_target_page_recall_at_20": 0.72,
+      "result_domain_recall_at_10": 0.68,
+      "result_target_page_recall_at_20": 0.36,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0,
+      "fetch_success_rate": 0.545,
+      "average_total_elapsed_ms": 8249.279,
+      "p95_total_elapsed_ms": 14515.055
+    },
+    "paired": {
+      "candidate_domain_at_10": {
+        "candidate_wins": 23,
+        "control_wins": 0,
+        "exact_binomial_p": 2.4e-07
+      },
+      "candidate_target_at_20": {
+        "candidate_wins": 32,
+        "control_wins": 1,
+        "exact_binomial_p": 1e-08
+      },
+      "result_domain_at_10": {
+        "candidate_wins": 13,
+        "control_wins": 2,
+        "exact_binomial_p": 0.00738525
+      },
+      "result_target_at_20": {
+        "candidate_wins": 16,
+        "control_wins": 1,
+        "exact_binomial_p": 0.00027466
+      }
+    }
+  },
+  "blocked_origin_resilience": {
+    "method": "Use a bounded, labeled search-result excerpt only after an origin access or network failure. Reject missing URLs, garbage page shapes and weak snippets; keep full-page fetch success separate in metrics.",
+    "shared_candidate_paired_run": {
+      "control": {
+        "candidate_domain_recall_at_10": 0.94,
+        "candidate_target_page_recall_at_20": 0.7,
+        "result_domain_recall_at_10": 0.7,
+        "result_target_page_recall_at_20": 0.38,
+        "nonempty_result_rate": 0.98,
+        "garbage_result_rate": 0.0
+      },
+      "candidate": {
+        "candidate_domain_recall_at_10": 0.94,
+        "candidate_target_page_recall_at_20": 0.7,
+        "result_domain_recall_at_10": 0.9,
+        "result_target_page_recall_at_20": 0.46,
+        "nonempty_result_rate": 1.0,
+        "garbage_result_rate": 0.0
+      },
+      "paired": {
+        "result_domain_at_10": {
+          "candidate_wins": 10,
+          "control_wins": 0,
+          "exact_binomial_p": 0.00195312
+        },
+        "result_target_at_20": {
+          "candidate_wins": 4,
+          "control_wins": 0,
+          "exact_binomial_p": 0.125
+        }
+      }
+    },
+    "replication_before_final_garbage_filter": {
+      "result_domain_recall_at_10": {
+        "control": 0.68,
+        "candidate": 0.9,
+        "candidate_wins": 11,
+        "control_wins": 0,
+        "exact_binomial_p": 0.00097656
+      },
+      "result_target_page_recall_at_20": {
+        "control": 0.38,
+        "candidate": 0.54,
+        "candidate_wins": 8,
+        "control_wins": 0,
+        "exact_binomial_p": 0.0078125
+      },
+      "note": "This replication exposed one CAPTCHA-bearing search excerpt; the final generic CAPTCHA filter removed it and a one-case regression check confirmed zero garbage results."
+    }
+  },
+  "decision": {
+    "default_searxng_engine": "dogpile",
+    "bing_role": "bounded_fallback",
+    "tavily_required": false,
+    "production_service_changed": false,
+    "snippet_fallback_default_in_repository_configs": true,
+    "next_bottleneck": "validate Fresh-Web generalization and claim-to-citation answer quality; do not tune further on the now-saturated 50-case retrieval set",
+    "fetch_schedule": "candidate_confidence_with_primary_source_quota",
+    "per_domain_limit": 4,
+    "domain_pivot_enabled": false,
+    "one_hop_link_expansion_enabled": false,
+    "github_detail_endpoint_selection": "declarative_query_capabilities",
+    "github_max_detail_scopes_per_query": 3,
+    "snippet_fallback_on_extraction_error": true,
+    "snippet_fallback_entity_bypass_score": 0.42,
+    "model_query_absolute_fact_policy": "delete introduced absolute facts when that is the only violation; otherwise use the original user query",
+    "default_searxng_engine_pool": [
+      "dogpile",
+      "naver"
+    ],
+    "engine_pool_execution": "independent_bounded_lanes_with_local_rrf",
+    "structured_source_evidence_reuse": true
+  },
+  "target_metric_semantics": {
+    "version": "locale-aware-path-segments-v2",
+    "change": "slash-delimited target patterns match complete path-segment sequences after optional locale prefixes",
+    "example_true": {
+      "pattern": "/newsroom/",
+      "path": "/cn/newsroom/example/"
+    },
+    "example_false": {
+      "pattern": "/newsroom/",
+      "path": "/newsroom-malware/"
+    },
+    "runtime_results_changed": false
+  },
+  "fetch_scheduling_same_candidate_ab": {
+    "case_count": 50,
+    "candidate_lists_identical": 50,
+    "control": {
+      "method": "display_order",
+      "candidate_domain_recall_at_10": 0.94,
+      "candidate_target_page_recall_at_20": 0.76,
+      "result_domain_recall_at_10": 0.9,
+      "result_target_page_recall_at_20": 0.56,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "candidate": {
+      "method": "candidate_confidence_then_rrf",
+      "candidate_domain_recall_at_10": 0.94,
+      "candidate_target_page_recall_at_20": 0.76,
+      "result_domain_recall_at_10": 0.96,
+      "result_target_page_recall_at_20": 0.64,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "paired_target_at_20": {
+      "candidate_wins": 4,
+      "control_wins": 0,
+      "exact_binomial_p": 0.125
+    },
+    "latency_causal_claim": false
+  },
+  "same_domain_limit_same_candidate_ab": {
+    "case_count": 50,
+    "candidate_lists_identical": 50,
+    "common_fetch_schedule": "candidate_confidence_then_rrf",
+    "control": {
+      "per_domain_limit": 2,
+      "candidate_domain_recall_at_10": 0.94,
+      "candidate_target_page_recall_at_20": 0.76,
+      "result_domain_recall_at_10": 0.96,
+      "result_target_page_recall_at_20": 0.66,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "candidate": {
+      "per_domain_limit": 3,
+      "candidate_domain_recall_at_10": 0.94,
+      "candidate_target_page_recall_at_20": 0.76,
+      "result_domain_recall_at_10": 0.96,
+      "result_target_page_recall_at_20": 0.72,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "paired_target_at_20": {
+      "candidate_wins": 3,
+      "control_wins": 0,
+      "exact_binomial_p": 0.25
+    },
+    "latency_causal_claim": false
+  },
+  "accepted_stack_current": {
+    "gold": "audited_v2",
+    "case_count": 50,
+    "candidate_domain_recall_at_10": 1.0,
+    "candidate_domain_recall_at_20": 1.0,
+    "candidate_target_page_recall_at_10": 1.0,
+    "candidate_target_page_recall_at_20": 1.0,
+    "result_domain_recall_at_10": 1.0,
+    "result_target_page_recall_at_10": 1.0,
+    "result_target_page_recall_at_20": 1.0,
+    "nonempty_result_rate": 1.0,
+    "garbage_result_rate": 0.0,
+    "average_total_elapsed_ms": 5656.878,
+    "p95_total_elapsed_ms": 8893.337,
+    "network_attempted": 388,
+    "structured_reused": 14,
+    "target_case_attribution": {
+      "success": 50,
+      "not_discovered": 0,
+      "final_evidence_drop": 0
+    },
+    "run_note": "One complete live V100 verification of the accepted no-Tavily stack. Live search remains network-variable; the paired A/B blocks are the causal evidence for individual changes.",
+    "production_changed": false
+  },
+  "rejected_precision_expansion": {
+    "scope": "15 previously missed cases",
+    "domain_pivot_plus_one_hop": {
+      "average_discovery_requests_control": 1.8,
+      "average_discovery_requests_candidate": 3.13,
+      "candidate_target_gain": 1,
+      "final_target_gain": 0,
+      "domain_recall_at_10_losses": 1,
+      "decision": "rejected"
+    },
+    "one_hop_only": {
+      "candidate_target_wins": 3,
+      "candidate_target_losses": 0,
+      "final_result_not_stable_enough_for_default": true,
+      "decision": "not_enabled"
+    }
+  },
+  "github_rest_endpoint_budgeting": {
+    "method": "declarative capability selection for profile, owner repositories, latest release and latest commits; repository search remains shared and cached",
+    "live_cases": 4,
+    "host": "RTX 4080 experiment host",
+    "control": {
+      "requests": 20,
+      "request_errors": 1
+    },
+    "candidate": {
+      "requests": 9,
+      "request_errors": 0
+    },
+    "request_reduction_rate": 0.55,
+    "required_stage_preserved_cases": 4,
+    "required_stage_total_cases": 4,
+    "latency_causal_claim": false,
+    "notes": "Arms were sequential; request count is deterministic, while latency and the one control timeout are not treated as causal.",
+    "provider_activation_audit": {
+      "dataset": "realtime_web_retrieval P4 plus raw query lanes",
+      "query_lanes": 100,
+      "github_lanes_control": 21,
+      "github_lanes_candidate": 9,
+      "github_lane_reduction_rate": 0.5714,
+      "planned_detail_calls_control_upper_bound": 84,
+      "planned_detail_calls_candidate_upper_bound": 14,
+      "planned_detail_call_reduction_rate": 0.8333,
+      "note": "Counts are deterministic planner outputs before repository-token cache reuse; they are not HTTP observations."
+    },
+    "activation_policy": "Only explicit repository/code-hosting-shaped queries activate GitHub REST; generic software releases remain on general discovery unless the query names a repository source."
+  },
+  "p4_runtime_constraint_alignment": {
+    "method": "prefer effective_query; revalidate legacy model_query with current runtime constraints and fall back to raw query on violation",
+    "legacy_cases_with_introduced_years": 4,
+    "diagnostic_case_ids": [
+      "retrieval-zh-007",
+      "retrieval-zh-014",
+      "retrieval-zh-015",
+      "retrieval-zh-016"
+    ],
+    "average_discovery_requests": {
+      "legacy_model_plus_raw": 2.0,
+      "runtime_raw_fallback": 1.0
+    },
+    "candidate_domain_recall_at_10": {
+      "legacy_model_plus_raw": 0.75,
+      "runtime_raw_fallback": 0.75
+    },
+    "candidate_target_page_recall_at_20": {
+      "legacy_model_plus_raw": 0.25,
+      "runtime_raw_fallback": 0.25
+    },
+    "scope_note": "Four-case diagnostic only; it validates runtime/benchmark parity and request removal, not a replacement 50-case quality score.",
+    "production_changed": false
+  },
+  "extraction_failure_snippet_fallback_ab": {
+    "case_count": 50,
+    "candidate_lists_identical": 50,
+    "shared_successful_page_response_cache": true,
+    "only_change": "allow the existing gated and labeled SERP excerpt after a fetched page yields no extractable document",
+    "control": {
+      "candidate_domain_recall_at_10": 0.98,
+      "candidate_target_page_recall_at_20": 0.76,
+      "result_domain_recall_at_10": 0.9,
+      "result_target_page_recall_at_20": 0.58,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "candidate": {
+      "candidate_domain_recall_at_10": 0.98,
+      "candidate_target_page_recall_at_20": 0.76,
+      "result_domain_recall_at_10": 0.94,
+      "result_target_page_recall_at_20": 0.64,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "paired": {
+      "result_domain_at_10": {
+        "candidate_wins": 2,
+        "control_wins": 0,
+        "exact_binomial_p": 0.5
+      },
+      "result_target_at_20": {
+        "candidate_wins": 3,
+        "control_wins": 0,
+        "exact_binomial_p": 0.25
+      }
+    },
+    "recovered_target_cases": [
+      "retrieval-zh-003",
+      "retrieval-en-003",
+      "retrieval-en-016"
+    ],
+    "additional_discovery_requests": 0,
+    "additional_page_gets": 0,
+    "latency_causal_claim": false,
+    "notes": "Successful page bytes and Discovery candidates were shared. Failed network requests were not cached, so latency and origin fetch-success counts are not causal metrics.",
+    "production_changed": false
+  },
+  "high_confidence_entity_bypass_ab": {
+    "case_count": 50,
+    "candidate_lists_identical": 50,
+    "shared_successful_page_response_cache": true,
+    "only_change": "candidate_score >= 0.42 may satisfy the snippet entity gate when lexical entity coverage is below 0.5",
+    "control": {
+      "result_domain_recall_at_10": 0.96,
+      "result_target_page_recall_at_20": 0.7,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "candidate": {
+      "result_domain_recall_at_10": 0.98,
+      "result_target_page_recall_at_20": 0.74,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "paired": {
+      "result_domain_at_10": {
+        "candidate_wins": 1,
+        "control_wins": 0,
+        "exact_binomial_p": 1.0
+      },
+      "result_target_at_20": {
+        "candidate_wins": 2,
+        "control_wins": 0,
+        "exact_binomial_p": 0.5
+      }
+    },
+    "recovered_target_cases": [
+      "retrieval-zh-004",
+      "retrieval-en-004"
+    ],
+    "additional_discovery_requests": 0,
+    "additional_page_gets": 0,
+    "statistical_significance_claim": false,
+    "production_changed": false
+  },
+  "final_same_domain_limit_3_4_ab": {
+    "case_count": 50,
+    "candidate_lists_identical": 50,
+    "shared_successful_page_response_cache": true,
+    "only_change": "search.per_domain_limit 3 versus 4",
+    "control": {
+      "per_domain_limit": 3,
+      "candidate_domain_recall_at_10": 0.98,
+      "candidate_target_page_recall_at_20": 0.78,
+      "result_domain_recall_at_10": 0.98,
+      "result_target_page_recall_at_20": 0.72,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "candidate": {
+      "per_domain_limit": 4,
+      "candidate_domain_recall_at_10": 0.98,
+      "candidate_target_page_recall_at_20": 0.78,
+      "result_domain_recall_at_10": 0.98,
+      "result_target_page_recall_at_20": 0.76,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "paired_target_at_20": {
+      "candidate_wins": 2,
+      "control_wins": 0,
+      "exact_binomial_p": 0.5
+    },
+    "recovered_target_cases": [
+      "retrieval-zh-010",
+      "retrieval-en-004"
+    ],
+    "additional_discovery_requests": 0,
+    "additional_page_gets": 0,
+    "statistical_significance_claim": false,
+    "latency_causal_claim": false,
+    "production_changed": false
+  },
+  "rejected_url_specificity_prior_ab": {
+    "case_count": 50,
+    "candidate_lists_identical": 50,
+    "only_change": "search.url_specificity_weight 0.0 versus 0.06",
+    "control_result_domain_recall_at_10": 0.98,
+    "candidate_result_domain_recall_at_10": 0.98,
+    "control_result_target_page_recall_at_20": 0.76,
+    "candidate_result_target_page_recall_at_20": 0.76,
+    "target_wins": 0,
+    "target_losses": 0,
+    "decision": "rejected_and_code_reverted",
+    "reason": "No quality change on the full paired set; do not add an unproven URL-shape feature.",
+    "production_changed": false
+  },
+  "p4_absolute_fact_repair_ab": {
+    "case_count": 50,
+    "changed_queries": 20,
+    "method": "delete only model-introduced dates, fiscal years, quarters, numeric versions and calendar years absent from the original user question; preserve the remaining model query, entities, translation and source wording",
+    "control": {
+      "behavior": "all-or-nothing raw-query fallback on any introduced absolute fact",
+      "candidate_domain_recall_at_10": 1.0,
+      "candidate_target_page_recall_at_20": 0.72,
+      "result_domain_recall_at_10": 1.0,
+      "result_target_page_recall_at_20": 0.72,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "candidate": {
+      "behavior": "deletion-only absolute-fact repair with raw fallback retained for non-repairable violations",
+      "candidate_domain_recall_at_10": 1.0,
+      "candidate_target_page_recall_at_20": 0.82,
+      "result_domain_recall_at_10": 1.0,
+      "result_target_page_recall_at_20": 0.82,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "paired_target_at_20": {
+      "candidate_wins": 5,
+      "control_wins": 0,
+      "ties": 45,
+      "exact_binomial_p": 0.0625
+    },
+    "recovered_target_cases": [
+      "retrieval-zh-002",
+      "retrieval-zh-009",
+      "retrieval-zh-010",
+      "retrieval-zh-021",
+      "retrieval-zh-023"
+    ],
+    "additional_discovery_requests_per_case": 0,
+    "additional_page_gets_per_case": 0,
+    "latency_causal_claim": false,
+    "statistical_significance_claim": false,
+    "agent_integration": {
+      "original_user_question_reaches_web_query_guard": true,
+      "direct_tool_call_without_original_question_remains_compatible": true,
+      "live_13_3b_smoke_cases": 2,
+      "live_13_3b_smoke_successes": 2
+    },
+    "production_changed": false
+  },
+  "gold_audit_v2": {
+    "base_dataset": "bench/realtime_web_retrieval.jsonl",
+    "audited_dataset": "bench/realtime_web_retrieval_audited_v2.jsonl",
+    "base_case_count": 50,
+    "changed_gold_cases": 9,
+    "query_or_runtime_result_changed": false,
+    "change_policy": "primary-source domain/path migrations and event-conditional official answer surfaces only",
+    "replayed_candidate_arm": {
+      "frozen_v1_candidate_target_page_recall_at_20": 0.82,
+      "audited_v2_candidate_target_page_recall_at_20": 0.98,
+      "frozen_v1_result_target_page_recall_at_20": 0.82,
+      "audited_v2_result_target_page_recall_at_20": 0.96,
+      "domain_recall_at_10": 1.0,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0
+    },
+    "audited_v2_candidate_misses": [
+      "retrieval-zh-015"
+    ],
+    "audited_v2_result_misses": [
+      "retrieval-zh-015",
+      "retrieval-zh-016"
+    ],
+    "interpretation": "Nine current official answer surfaces required primary-source domain/path re-verification. The ninth adds the official USGS Significant Earthquakes page as a valid exact answer surface; queries and runtime outputs remain unchanged.",
+    "production_changed": false,
+    "audited_dataset_sha256": "1d9b22592e610e86222951e9840ca8b057472525824c76232eb3aed32adfee7d"
+  },
+  "engine_pool_fanout_paired_ab": {
+    "case_count": 50,
+    "gold": "audited_v2",
+    "only_change": "dogpile alone versus independent dogpile plus naver lanes with local RRF, shared dogpile lane cache and one bounded local retry",
+    "control": {
+      "engine_pool": [
+        "dogpile"
+      ],
+      "candidate_domain_recall_at_10": 1.0,
+      "candidate_target_page_recall_at_20": 0.92,
+      "result_domain_recall_at_10": 0.98,
+      "result_target_page_recall_at_20": 0.84,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0,
+      "average_total_elapsed_ms": 5067.939,
+      "p95_total_elapsed_ms": 10079.132
+    },
+    "candidate": {
+      "engine_pool": [
+        "dogpile",
+        "naver"
+      ],
+      "candidate_domain_recall_at_10": 1.0,
+      "candidate_target_page_recall_at_20": 1.0,
+      "result_domain_recall_at_10": 0.94,
+      "result_target_page_recall_at_20": 0.84,
+      "nonempty_result_rate": 1.0,
+      "garbage_result_rate": 0.0,
+      "average_total_elapsed_ms": 5383.577,
+      "p95_total_elapsed_ms": 9337.375
+    },
+    "paired_candidate_target_at_20": {
+      "candidate_wins": 4,
+      "control_wins": 0,
+      "ties": 46
+    },
+    "interpretation": "The engine pool is accepted for Discovery because exact-page candidate recall improved from 92% to 100% with four wins and no loss. Final Evidence remained flat in this isolated A/B and was addressed separately by fetch scheduling and structured-source reuse.",
+    "combined_single_searxng_request_rejected": true,
+    "production_changed": false
+  },
+  "authoritative_fetch_quota": {
+    "method": "For official/original/primary source requests, reserve half of the unchanged network-fetch budget for generic primary-source page shapes, then fill remaining slots by candidate confidence.",
+    "additional_page_gets": 0,
+    "targeted_case_count": 8,
+    "candidate_target_hits": 8,
+    "result_target_hits": 8,
+    "garbage_result_count": 0,
+    "production_changed": false
+  },
+  "structured_source_evidence_reuse": {
+    "method": "Reuse bounded text already returned by GitHub, Crossref and MediaWiki adapters as labeled structured_api Evidence instead of requiring a redundant webpage GET.",
+    "full_run_structured_reused": 14,
+    "full_run_network_attempted": 388,
+    "additional_page_gets": 0,
+    "targeted_regression": {
+      "case_count": 2,
+      "candidate_target_hits": 2,
+      "result_target_hits": 2,
+      "garbage_result_count": 0,
+      "github_release_reuse_elapsed_ms": 1.86
+    },
+    "production_changed": false
+  }
+}

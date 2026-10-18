@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "standalone_test_runner_rewritten": false,
+  "status": "ok",
+  "stderr": "",
+  "stdout": "network_blocked OSError [Errno 101] Network is unreachable\nroot_entries=/bin /dev /etc /lib /lib64 /proc /tmp /usr /workspace \n",
+  "truncated": false,
+  "workspace_alias_rewritten": false
+}

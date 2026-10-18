@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Local-first RWKV State Agent control surface"
+    />
+    <title>RWKV State Agent</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <script type="module" src="/assets/app.js"></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <div class="eyebrow">LOCAL AGENT RUNTIME</div>
+            <div class="brand-name">RWKV <strong>STATE AGENT</strong></div>
+          </div>
+        </div>
+
+        <div class="topbar-center" aria-label="Runtime identity">
+          <span class="hardware-pill">AMD RADEON</span>
+          <span class="topbar-separator"></span>
+          <span id="top-model">G1I 13.3B</span>
+          <span class="muted">·</span>
+          <span id="top-backend" class="muted">ROCm</span>
+        </div>
+
+        <div class="connection" id="connection" data-status="loading">
+          <span class="status-dot"></span>
+          <span id="connection-label">CONNECTING</span>
+        </div>
+      </header>
+
+      <aside class="sidebar">
+        <button class="new-session" id="new-session" type="button">
+          <span class="new-session-icon">＋</span>
+          <span>New session</span>
+          <kbd>⌘ K</kbd>
+        </button>
+
+        <section class="side-section">
+          <div class="side-heading">
+            <span>ACTIVE SESSION</span>
+            <span class="live-label">LIVE</span>
+          </div>
+          <button class="session-card active" type="button">
+            <span class="session-glyph">›_</span>
+            <span class="session-copy">
+              <strong id="session-label">local-session</strong>
+              <small id="session-state">State ready</small>
+            </span>
+            <span class="session-pulse"></span>
+          </button>
+        </section>
+
+        <nav class="view-nav" aria-label="Workspace views">
+          <a href="/" data-view="chat"><span>›_</span><strong>Conversation</strong><small>Session workspace</small></a>
+          <a href="/tasks" data-view="tasks"><span>▦</span><strong>Task wall</strong><small>Live controller runs</small></a>
+        </nav>
+
+        <section class="side-section capabilities">
+          <div class="side-heading"><span>CAPABILITIES</span></div>
+          <div class="capability-row">
+            <span class="cap-icon">⌘</span>
+            <span><strong>Execute</strong><small>Sandboxed workspace</small></span>
+          </div>
+          <div class="capability-row">
+            <span class="cap-icon">◫</span>
+            <span><strong>Knowledge</strong><small>Local index</small></span>
+          </div>
+          <div class="capability-row">
+            <span class="cap-icon">≋</span>
+            <span><strong>Long text</strong><small>Grounded evidence</small></span>
+          </div>
+          <div class="capability-row">
+            <span class="cap-icon">◎</span>
+            <span><strong>Web</strong><small>Explicit opt-in</small></span>
+          </div>
+        </section>
+
+        <div class="privacy-card">
+          <div class="privacy-icon">◆</div>
+          <div>
+            <strong>Local by design</strong>
+            <p>Prompts, states and workspaces remain on the private runtime.</p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="conversation">
+        <div class="conversation-head" id="conversation-head">
+          <div>
+            <div class="eyebrow">CONVERSATION</div>
+            <h1>Stateful workspace</h1>
+          </div>
+          <div class="head-actions">
+            <button class="icon-button" id="refresh-health" type="button" title="Refresh runtime status">↻</button>
+            <button class="state-badge" id="state-badge" type="button">
+              <span class="state-badge-dot"></span>
+              <span>STATE READY</span>
+            </button>
+          </div>
+        </div>
+
+        <section class="task-view" id="task-view" hidden>
+          <div class="task-view-head">
+            <div>
+              <div class="eyebrow">CONTROLLER TASKS</div>
+              <h1>Live task wall</h1>
+              <p>Real Chat and Research runs tracked by the Rust Controller.</p>
+            </div>
+            <a class="back-to-chat" href="/">← Conversation</a>
+          </div>
+          <div class="task-kpis" aria-label="Task totals">
+            <div><span>TOTAL</span><strong id="tasks-total">0</strong></div>
+            <div><span>RUNNING</span><strong id="tasks-running">0</strong></div>
+            <div><span>COMPLETE</span><strong id="tasks-complete">0</strong></div>
+            <div><span>FAILED</span><strong id="tasks-failed">0</strong></div>
+          </div>
+          <div class="task-list" id="task-list">
+            <div class="task-empty">No tasks have reached this Controller yet.</div>
+          </div>
+        </section>
+
+        <div class="messages" id="messages" aria-live="polite">
+          <article class="welcome-card">
+            <div class="welcome-orbit"><span>R</span></div>
+            <div>
+              <div class="eyebrow">RWKV RECURRENT INTELLIGENCE</div>
+              <h2>What should we work on?</h2>
+              <p>
+                Chat normally, paste a long document, or ask the Agent to execute
+                and verify a workspace task. Tool calls stay visible and auditable.
+              </p>
+              <div class="starter-grid">
+                <button class="starter" data-prompt="你好，请用一句话介绍你自己。" type="button">
+                  <span>01</span><strong>Start a conversation</strong><small>Simple chat · no tool</small>
+                </button>
+                <button class="starter" data-prompt="根据我接下来粘贴的材料回答问题，并标出原文证据。" type="button">
+                  <span>02</span><strong>Analyze long text</strong><small>Evidence-grounded QA</small>
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="composer-wrap" id="composer-wrap">
+          <form class="composer" id="composer">
+            <textarea
+              id="message-input"
+              rows="1"
+              placeholder="Ask, paste, or describe a task…"
+              aria-label="Message"
+            ></textarea>
+            <div class="composer-foot">
+              <div class="composer-hint">
+                <span class="prompt-mark">❯</span>
+                <span>Enter for newline · ⌘ Enter to send</span>
+              </div>
+              <div class="composer-actions">
+                <span id="char-count">0</span>
+                <button id="send" type="submit" disabled>
+                  <span>Send</span><span class="send-arrow">↑</span>
+                </button>
+              </div>
+            </div>
+          </form>
+          <div class="runtime-note">
+            <span>Greedy decode</span><span>•</span><span>recurrent state</span><span>•</span><span>one tool call per turn</span>
+          </div>
+        </div>
+      </main>
+
+      <aside class="inspector">
+        <section class="inspector-section">
+          <div class="inspector-heading">
+            <span>RUNTIME</span>
+            <button id="runtime-refresh" type="button">REFRESH</button>
+          </div>
+          <div class="runtime-hero">
+            <div class="runtime-logo">R7</div>
+            <div><strong id="runtime-model">Loading model…</strong><small id="runtime-context">Context —</small></div>
+          </div>
+          <dl class="metric-list">
+            <div><dt>Controller</dt><dd id="metric-controller">Checking</dd></div>
+            <div><dt>Backend</dt><dd id="metric-backend">—</dd></div>
+            <div><dt>Session state</dt><dd id="metric-state">—</dd></div>
+            <div><dt>Sandbox</dt><dd id="metric-sandbox">—</dd></div>
+          </dl>
+        </section>
+
+        <section class="inspector-section">
+          <div class="inspector-heading"><span>TOOLS</span><span id="tool-count">0 READY</span></div>
+          <div class="tool-stack" id="tool-stack"></div>
+        </section>
+
+        <section class="inspector-section trace-section">
+          <div class="inspector-heading"><span>LAST TURN</span><span id="last-turn-status">IDLE</span></div>
+          <div class="trace-empty" id="trace-summary">
+            <span class="trace-line"></span>
+            <p>State and tool events will appear here after the next turn.</p>
+          </div>
+        </section>
+
+        <div class="endpoint-line">
+          <span>ENDPOINT</span>
+          <code id="endpoint-label">same-origin</code>
+        </div>
+      </aside>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+  </body>
+</html>

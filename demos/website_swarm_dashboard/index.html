@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RWKV State Swarm</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="scanline"></div>
+  <header>
+    <div class="brand">
+      <span class="brand-mark">R</span>
+      <div><small>AMD RADEON · LOCAL AGENT RUNTIME</small><h1>RWKV STATE SWARM</h1></div>
+    </div>
+    <div class="runtime"><i id="runtime-dot"></i><span id="run-status">CONNECTING</span></div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="kicker">GATE 04 / INDEPENDENT ARTIFACT WORKERS</p>
+        <h2><span id="completed-hero">000</span><em>/100</em> websites</h2>
+        <p id="claim">100 independent tasks · physical concurrency 32</p>
+      </div>
+      <a class="gallery-link" href="gallery/index.html" target="_blank" rel="noopener">OPEN GALLERY <span>↗</span></a>
+    </section>
+
+    <section class="metrics" aria-label="live runtime metrics">
+      <article><small>COMPLETED</small><strong id="completed">0</strong><span id="failed">0 failed</span></article>
+      <article><small>ACTIVE / QUEUED</small><strong><b id="active">0</b> / <b id="queued">100</b></strong><span>Scheduler rows</span></article>
+      <article><small>GPU BUSY</small><strong id="gpu-busy">0%</strong><span id="gpu-name">AMD Radeon</span></article>
+      <article><small>VRAM</small><strong id="vram">0.0 GB</strong><span id="vram-total">48 GB total</span></article>
+      <article><small>RESIDENT STATES</small><strong id="states">0</strong><span id="active-rows">0 active rows</span></article>
+      <article><small>ELAPSED</small><strong id="elapsed">00:00</strong><span id="model">RWKV G1I 13.3B</span></article>
+    </section>
+
+    <section class="wall-section">
+      <div class="section-head"><div><small>LIVE TASK WALL</small><h3>100 isolated owners and workspaces</h3></div><div class="legend"><span class="done"></span> done <span class="active"></span> active <span class="queued"></span> queued <span class="failed"></span> failed</div></div>
+      <div id="task-wall" class="task-wall" aria-live="polite"></div>
+    </section>
+
+    <section class="lower">
+      <article class="runtime-panel">
+        <div class="section-head"><div><small>RUNTIME</small><h3>Recurrent state telemetry</h3></div></div>
+        <dl>
+          <div><dt>MODEL</dt><dd id="runtime-model">—</dd></div>
+          <div><dt>BACKEND</dt><dd id="backend">—</dd></div>
+          <div><dt>CONTEXT</dt><dd id="context">—</dd></div>
+          <div><dt>BATCH PEAK</dt><dd id="batch-peak">—</dd></div>
+          <div><dt>ROCm</dt><dd id="rocm">—</dd></div>
+        </dl>
+      </article>
+      <article class="trace-panel">
+        <div class="section-head"><div><small>EVENT STREAM</small><h3>Recent state transitions</h3></div></div>
+        <ol id="events"></ol>
+      </article>
+    </section>
+  </main>
+  <footer><span>NO CLOUD MODEL · NO SHARED CONTEXT · REAL METRICS</span><span id="updated">waiting for tasks.json</span></footer>
+  <script src="app.js" defer></script>
+</body>
+</html>

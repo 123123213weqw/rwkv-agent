@@ -1,0 +1,31 @@
+{
+  "schema_version": "precision-discovery-public-summary.v1",
+  "status": "public_summary",
+  "benchmark": {
+    "path": "bench/realtime_web_retrieval.jsonl",
+    "sha256": "6900404d43deac290b599f10ee3b1f6e2fb8d8db06f821b346809049ab2e57dc",
+    "case_count": 50
+  },
+  "headline_metrics": {
+    "candidate_domain_recall_at_10": 0.48,
+    "candidate_target_page_recall_at_20": 0.12,
+    "result_domain_recall_at_10": 0.32,
+    "result_target_page_recall_at_20": 0.0,
+    "nonempty_result_rate": 0.68,
+    "garbage_result_rate": 0.0097,
+    "fetch_success_rate": 0.5395,
+    "average_total_elapsed_ms": 5066.747,
+    "p95_total_elapsed_ms": 8010.197
+  },
+  "publication": {
+    "full_web_content_included": false,
+    "raw_token_traces_included": false,
+    "private_machine_config_included": false
+  },
+  "frozen_files": {
+    "README.md": "8625ebb745f619ff144c3cfe8867766a041eb302c5d4313481b013b5280becd0",
+    "comparison.json": "d1f188a4bc792d28e5dc5bbd6760fbba6602a2ea5cd6e44a145aee2438aa1a7a",
+    "baseline_summary.json": "3009b09907f65d3261c2e459b22481b874fdae82d2625928c132ab1c1c109cd2",
+    "precision_summary.json": "94dcb5073c05b3bc14926f21df35078863dae8ac688a55c330d363a73e892d9a"
+  }
+}
