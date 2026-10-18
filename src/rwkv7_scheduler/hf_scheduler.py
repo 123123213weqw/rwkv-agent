@@ -32,12 +32,26 @@ def _tensor_bytes(value: torch.Tensor) -> int:
 def _cache_bytes(cache: Any) -> int:
     if cache is None:
         return 0
-    state, xpa, xpf, v_first = tuple(cache)
-    return sum(
+    if isinstance(cache, (tuple, list)):
+        state, xpa, xpf, v_first = tuple(cache)
+        return sum(
+            _tensor_bytes(value)
+            for values in (state, xpa, xpf)
+            for value in (values or [])
+        ) + (0 if v_first is None else _tensor_bytes(v_first))
+    total = 0
+    for layer in getattr(cache, "layer_states", None) or []:
+        total += sum(
+            _tensor_bytes(value)
+            for value in vars(layer).values()
+            if isinstance(value, torch.Tensor)
+        )
+    total += sum(
         _tensor_bytes(value)
-        for values in (state, xpa, xpf)
-        for value in (values or [])
-    ) + (0 if v_first is None else _tensor_bytes(v_first))
+        for value in vars(cache).values()
+        if isinstance(value, torch.Tensor)
+    )
+    return total
 
 
 def _set_cache_seen(cache: Any, seen_tokens: int) -> Any:
@@ -76,6 +90,9 @@ def _new_cache_like(
 def _concat_caches(caches: Sequence[Any]) -> Any:
     if not caches or any(cache is None for cache in caches):
         raise ValueError("batched continuation requires initialized caches")
+    if not isinstance(caches[0], (tuple, list)) and hasattr(type(caches[0]), "batch_stack"):
+        stacked = type(caches[0]).batch_stack(list(caches))
+        return _set_cache_seen(stacked, 0)
     values = [tuple(cache) for cache in caches]
     if any(len(parts) != 4 for parts in values):
         raise TypeError("RWKV HF cache must expose four recurrent components")
@@ -101,6 +118,10 @@ def _concat_caches(caches: Sequence[Any]) -> Any:
 
 def _select_cache_row(cache: Any, row: int, seen_tokens: int) -> Any:
     index = torch.tensor([int(row)], dtype=torch.long)
+    if hasattr(cache, "batch_select_indices"):
+        selected = cache.clone()
+        selected.batch_select_indices(index)
+        return _set_cache_seen(selected, seen_tokens)
     if hasattr(cache, "select_batch"):
         selected = cache.select_batch(index, inplace=False)
         return _set_cache_seen(selected, seen_tokens)

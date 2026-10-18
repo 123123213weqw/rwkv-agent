@@ -16,16 +16,33 @@
   "realtime_search": {
     "enabled": true,
     "searxng_url": "http://127.0.0.1:8888",
-    "searxng_engines": ["dogpile", "naver"],
-    "searxng_language_engines": {"zh": ["baidu"], "default": ["yandex"]},
-    "fallback_engines": ["bing"],
-    "api_discovery_providers": ["deepseek", "github", "mediawiki", "crossref"],
+    "searxng_engines": [
+      "dogpile",
+      "naver"
+    ],
+    "searxng_language_engines": {
+      "zh": [
+        "baidu"
+      ],
+      "default": [
+        "yandex"
+      ]
+    },
+    "fallback_engines": [
+      "bing"
+    ],
+    "api_discovery_providers": [
+      "deepseek",
+      "github",
+      "mediawiki",
+      "crossref"
+    ],
     "force_ipv4": true,
     "global_concurrency": 8,
     "per_host_concurrency": 2,
     "connect_timeout_seconds": 1.5,
     "page_timeout_seconds": 5.0,
-    "discovery_timeout_seconds": 3.5,
+    "discovery_timeout_seconds": 12,
     "max_redirects": 5,
     "max_compressed_bytes": 2097152,
     "max_decompressed_bytes": 4194304,
@@ -53,6 +70,7 @@
     "search_cache_ttl_seconds": 120,
     "page_cache_ttl_seconds": 300,
     "cache_max_bytes": 67108864,
-    "allow_private_networks": false
+    "allow_private_networks": false,
+    "api_provider_timeout_seconds": 12
   }
 }

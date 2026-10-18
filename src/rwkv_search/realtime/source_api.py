@@ -163,11 +163,14 @@ def parse_deepseek_results(value: Mapping[str, Any]) -> list[DiscoveredURL]:
         if not url or not title:
             continue
         summary = str(item.get("summary") or "") or str(item.get("snippet") or "")
+        compact = " ".join(summary.split())[:1800]
         output.append(
             DiscoveredURL(
                 url=url,
                 title=title[:500],
-                snippet=" ".join(summary.split())[:1800],
+                snippet=compact,
+                cached_text=compact if len(compact) > 200 else "",
+                cached_text_mode="deepseek_summary" if len(compact) > 200 else "",
                 engine="deepseek",
                 rank=rank,
                 published_hint=str(item.get("date") or "") or None,

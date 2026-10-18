@@ -1350,7 +1350,7 @@ class RealtimeSearchEngine:
         try:
             import aiohttp  # type: ignore
         except ImportError as exc:
-            raise RuntimeError("aiohttp 未安装，请安装 realtime 可选依赖") from exc
+            raise RuntimeError(f"aiohttp import failed: {type(exc).__name__}: {exc}") from exc
         timeout = aiohttp.ClientTimeout(
             total=None,
             connect=self.config.connect_timeout_seconds,

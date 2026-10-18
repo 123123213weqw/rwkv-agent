@@ -240,7 +240,6 @@ class NativeG1I:
 
     def _load_hf_recurrent(self) -> None:
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         if HF_DTYPE not in {"fp16", "bf16"}:
             raise ValueError("G1I_HF_DTYPE must be fp16 or bf16")
@@ -250,18 +249,42 @@ class NativeG1I:
                 f"G1I_HF_MODEL_PATH is not a directory: {model_path}"
             )
         dtype = torch.float16 if HF_DTYPE == "fp16" else torch.bfloat16
-        self.pipeline = AutoTokenizer.from_pretrained(
-            model_path,
-            trust_remote_code=True,
-            local_files_only=True,
-        )
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            trust_remote_code=True,
-            local_files_only=True,
-            dtype=dtype,
-            low_cpu_mem_usage=True,
-        ).to("cuda").eval()
+        loader = model_path / "inference" / "model_loader.py"
+        if loader.is_file():
+            # Bundled self-contained RWKV-7 runtime shipped inside the model
+            # repository (model_loader + runtime with native kernels). It
+            # remaps hub weights and exposes the transformers cache API the
+            # HFRecurrentScheduler already speaks.
+            import sys
+
+            package_root = str(model_path)
+            if package_root not in sys.path:
+                sys.path.insert(0, package_root)
+            from inference.model_loader import load_model_and_tokenizer
+
+            self.model, self.pipeline = load_model_and_tokenizer(
+                str(model_path),
+                device="cuda",
+                dtype=dtype,
+                backend=os.getenv("G1I_HF_KERNEL_BACKEND", "auto"),
+                state_dtype="float32",
+            )
+            self.model.eval()
+        else:
+            from transformers import AutoModelForCausalLM, AutoTokenizer
+
+            self.pipeline = AutoTokenizer.from_pretrained(
+                model_path,
+                trust_remote_code=True,
+                local_files_only=True,
+            )
+            self.model = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                trust_remote_code=True,
+                local_files_only=True,
+                dtype=dtype,
+                low_cpu_mem_usage=True,
+            ).to("cuda").eval()
         self.torch = torch
         self.pool = None
         self.scheduler = HFRecurrentScheduler(
