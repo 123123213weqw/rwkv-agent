@@ -34,6 +34,11 @@ _ACADEMIC_NOISE = {
     "original", "paper", "papers", "publication", "publications", "search",
 }
 _PROVIDER_CAPABILITIES = {
+    "deepseek": SourceCapability(
+        "deepseek",
+        "General live public web discovery across websites and news. 通用实时网页搜索。",
+        always=True,
+    ),
     "tavily": SourceCapability(
         "tavily",
         "General live public web discovery across websites and news. 通用实时网页搜索。",
@@ -148,6 +153,30 @@ def parse_tavily_results(value: Mapping[str, Any]) -> list[DiscoveredURL]:
         )
     return output
 
+def parse_deepseek_results(value: Mapping[str, Any]) -> list[DiscoveredURL]:
+    output: list[DiscoveredURL] = []
+    for rank, item in enumerate(value.get("results") or (), 1):
+        if not isinstance(item, Mapping):
+            continue
+        url = canonicalize_url(str(item.get("url") or ""))
+        title = " ".join(str(item.get("title") or "").split())
+        if not url or not title:
+            continue
+        summary = str(item.get("summary") or "") or str(item.get("snippet") or "")
+        output.append(
+            DiscoveredURL(
+                url=url,
+                title=title[:500],
+                snippet=" ".join(summary.split())[:1800],
+                engine="deepseek",
+                rank=rank,
+                published_hint=str(item.get("date") or "") or None,
+                engine_score=float(item.get("rerank_score") or 0.0),
+                engines=["deepseek"],
+                positions=[rank],
+            )
+        )
+    return output
 
 def parse_github_repositories(value: Mapping[str, Any]) -> list[DiscoveredURL]:
     output: list[DiscoveredURL] = []
@@ -437,6 +466,8 @@ class SourceAPIDiscovery:
         diagnostics: list[dict[str, str]] | None,
     ) -> list[DiscoveredURL]:
         try:
+            if provider == "deepseek":
+                return await self._deepseek(query)
             if provider == "tavily":
                 return await self._tavily(query)
             if provider == "github":
@@ -508,6 +539,22 @@ class SourceAPIDiscovery:
         if not isinstance(value, (Mapping, list)):
             raise RuntimeError("API response is not JSON object/list")
         return value
+
+    async def _deepseek(self, query: str) -> list[DiscoveredURL]:
+        key = os.getenv(self.config.deepseek_api_key_env, "").strip()
+        if not key:
+            return []
+        value = await self._request_json(
+            "post",
+            "https://api.deepseek.com/v1/tools/search",
+            headers={"Authorization": f"Bearer {key}"},
+            payload={
+                "query": query[:128],
+                "count": self.config.api_provider_max_results,
+                "need_content": False,
+            },
+        )
+        return parse_deepseek_results(value if isinstance(value, Mapping) else {})
 
     async def _tavily(self, query: str) -> list[DiscoveredURL]:
         key = os.getenv(self.config.tavily_api_key_env, "").strip()

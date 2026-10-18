@@ -79,6 +79,7 @@ class RealtimeSearchConfig:
     api_provider_timeout_seconds: float = 4.5
     api_provider_max_results: int = 10
     tavily_api_key_env: str = "TAVILY_API_KEY"
+    deepseek_api_key_env: str = "DEEPSEEK_API_KEY"
     github_token_env: str = "GITHUB_TOKEN"
     crossref_mailto: str = ""
     # Optional read-only local discovery source.  This is deliberately

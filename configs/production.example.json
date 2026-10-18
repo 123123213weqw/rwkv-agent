@@ -19,7 +19,7 @@
     "searxng_engines": ["dogpile", "naver"],
     "searxng_language_engines": {"zh": ["baidu"], "default": ["yandex"]},
     "fallback_engines": ["bing"],
-    "api_discovery_providers": ["github", "mediawiki", "crossref"],
+    "api_discovery_providers": ["deepseek", "github", "mediawiki", "crossref"],
     "force_ipv4": true,
     "global_concurrency": 8,
     "per_host_concurrency": 2,
