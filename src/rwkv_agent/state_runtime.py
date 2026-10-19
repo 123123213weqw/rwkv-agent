@@ -476,7 +476,7 @@ class PersistentStateRuntime:
         owner = self.registry.clean_owner(owner_id)
         if not items:
             raise ValueError("items must not be empty")
-        if max_tokens < 1 or max_tokens > 1024:
+        if max_tokens < 1 or max_tokens > 4096:
             raise ValueError("max_tokens out of range")
         stop_values = tuple(str(value) for value in stops if str(value))
         with self._lock:
