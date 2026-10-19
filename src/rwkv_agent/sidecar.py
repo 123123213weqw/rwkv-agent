@@ -739,7 +739,7 @@ def create_app():
             isinstance(item, str) for item in stop
         ):
             raise HTTPException(422, "stop must be string array")
-        if max_tokens < 1 or max_tokens > 1024:
+        if max_tokens < 1 or max_tokens > 4096:
             raise HTTPException(422, "max_tokens out of range")
         prefix = payload.get("prefix_token_ids", [])
         if (

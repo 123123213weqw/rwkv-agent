@@ -56,7 +56,7 @@ struct Args {
     #[arg(
         long,
         env = "RWKV_AGENT_MAX_MODEL_TOKENS_PER_TURN",
-        default_value_t = 192
+        default_value_t = 2048
     )]
     max_model_tokens_per_turn: u32,
     #[arg(long, env = "RWKV_AGENT_DIRECT_CHAT_MAX_TOKENS", default_value_t = 96)]

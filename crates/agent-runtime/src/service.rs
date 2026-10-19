@@ -58,7 +58,7 @@ impl Default for RuntimeConfig {
             chat_state_capacity: 3,
             max_tool_steps: 6,
             no_gate: false,
-            max_model_tokens_per_turn: 192,
+            max_model_tokens_per_turn: 2048,
             direct_chat_max_tokens: 96,
             max_run_elapsed: Duration::from_secs(600),
             shutdown_grace: Duration::from_secs(200),
