@@ -170,7 +170,7 @@ def parse_deepseek_results(value: Mapping[str, Any]) -> list[DiscoveredURL]:
                 title=title[:500],
                 snippet=compact,
                 cached_text=compact if len(compact) > 200 else "",
-                cached_text_mode="deepseek_summary" if len(compact) > 200 else "",
+                cached_text_mode="structured_api" if len(compact) > 200 else "",
                 engine="deepseek",
                 rank=rank,
                 published_hint=str(item.get("date") or "") or None,
