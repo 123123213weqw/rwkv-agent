@@ -2,305 +2,260 @@
 
 **A local, state-native Agent runtime for RWKV models**
 
-RWKV State Agent is a fully local, general-purpose Agent built around RWKV recurrent state. It reuses computed context across chat turns, executes strict Tool Calls, and advances many isolated Agent States through one AMD Radeon GPU scheduler.
+RWKV State Agent reuses computed context (recurrent state) across chat turns,
+executes strict tool calls, and advances many isolated agent states through one
+GPU scheduler. It runs entirely on your hardware — no cloud dependency, no
+data leaves the host.
 
-> **One-line pitch:** a private local Agent that remembers through recurrent state, acts through bounded tools, and can advance 100 isolated jobs on one Radeon GPU without sharing their context.
+## What it does
 
-> **Optional cloud story:** the assistant stays resident, but the GPU does not
-> have to. The opt-in StatePool Cloud Plugin turns long-lived recurrent State
-> into a cloud-native scheduling and lifecycle primitive while leaving the
-> default local assistant unchanged.
-
-## Release status
-
-The current public beta is [`v0.3.0-beta.2`](https://github.com/123123213weqw/rwkv-agent/releases/tag/v0.3.0-beta.2). It includes the Rust control plane and CLI, recurrent-State runtime, bounded tools, AMD ROCm configuration, benchmarks, and reviewed evidence summaries.
-
-**New in Beta 2:** the canonical Rust service pipeline now accepts versioned
-TaskSpec requests, owns durable task identity, resume/cancel, strict streaming
-termination and dependency readiness, and exposes an opt-in local Debug Trace.
-Debug capture is release-default `off`; `full` traces contain private bodies and
-must remain local. The CUDA model Sidecar and retrieval Data Plane are still
-narrow external Python providers, and this release makes no new load-capacity or
-production-deployment claim. See
-[`docs/SERVICE_PIPELINE.md`](docs/SERVICE_PIPELINE.md) and
-[`docs/DEBUG_TRACE.md`](docs/DEBUG_TRACE.md).
-
-The architecture and operating contract are documented in [`docs/PROJECT_SPECIFICATION.md`](docs/PROJECT_SPECIFICATION.md).
-
-## Optional StatePool Cloud integration
-
-This repository contains only the disabled-by-default StatePool **client and
-native RWKV Worker interface**. Without `--cloud-plugin`, no plugin client is
-constructed and the existing local routing path is unchanged. Wire types,
-JSON Schema and OpenAPI stay here so each `rwkv-agent` release can declare an
-exact client compatibility window.
-
-The independently released
-[`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud) repository
-owns the cloud control plane, PostgreSQL/S3 backends, OpenAI/vLLM adapter,
-Compose/Helm/KEDA deployment, FinOps benchmarks and competition evidence.
-No cloud control-plane source or upstream inference engine is vendored here.
-
-- client configuration: [`docs/STATEPOOL_CLOUD_PLUGIN.md`](docs/STATEPOOL_CLOUD_PLUGIN.md)
-- client schemas/OpenAPI: [`contracts/statepool-plugin-v1.openapi.json`](contracts/statepool-plugin-v1.openapi.json)
-- cloud product and deployment: [`statepool-cloud`](https://github.com/123123213weqw/statepool-cloud)
-
-## What you can verify
-
-- **Ordinary chat:** greetings remain on the direct path and do not call a tool.
-- **State-native memory:** the same session reuses its RWKV recurrent state and only computes new turns.
-- **Strict Tool Calls:** `web_search` (DeepSeek-ranked discovery), `knowledge_search`, `run_command` and the sandboxed file tools use one bounded call per model turn.
-- **Multi-step execution:** Action → Tool → Observation → repair → verification → final answer stays in one owned State.
-- **True streaming:** tokens flow from the Sidecar through the Rust Controller to any client as NDJSON deltas.
-- **Independent parallel States:** jobs have separate Owner, State, Session, Workspace, Trace, and release lifecycle.
-- **Live task wall:** [`/tasks`](http://127.0.0.1:18120/tasks) shows real Controller runs and their Route, State, Tool count, status, and elapsed time.
-- **100-job proof:** 100 independent website tasks completed with physical decode concurrency 32, without shared context or prebuilt answers.
-
-## Native state-memory scaling
-
-![Native inference-state memory scaling for Qwen3.5-9B and RWKV-7.2B](docs/assets/native-state-memory-scaling.png)
-
-The current RWKV engine measures **32.5 MiB per recurrent State slot** and reserves **4.06 GiB for 128 slots**, independent of history length. From the frozen [Qwen3.5-9B configuration](https://huggingface.co/Qwen/Qwen3.5-9B/blob/c202236235762e1c871ad0ccb60c8ee5ba337b9a/config.json) and the [Transformers 5.14.1 cache layout](https://github.com/huggingface/transformers/blob/v5.14.1/src/transformers/models/qwen3_5/modeling_qwen3_5.py), the Qwen FP16 native-cache lower bound is 49.5 MiB of fixed linear-attention state plus 32 MiB per 1K history tokens. At 4K history this is 177.5 MiB per session: the current RWKV slab crosses over near 24 concurrent sessions and uses **4.3× less inference-state memory at 100 sessions**.
-
-This figure isolates native inference State/KV memory; model weights, compute workspace, allocator overhead, and durable transcript storage are excluded. It is an analytical cache-layout comparison backed by measured RWKV State sizes, **not** a measured Qwen native-runtime or whole-process VRAM result. The existing low-concurrency process baseline still records Qwen at 18,339 MiB Ready versus RWKV at 22,393 MiB Ready; see the frozen [Phase 0 comparison](bench/artifacts/long-lived-phase0-live-v1/comparison-and-decision.json).
-
-## Frozen long-horizon comparison
-
-![Qwen3.5-9B NF4 versus RWKV-7.2B frozen Harness comparison](docs/assets/qwen9-vs-rwkv7-harness.png)
-
-The models use the same frozen dataset and runner, but different precision and runtimes, so this is an observed Harness comparison rather than an architecture-only ranking. See the [source CSV](bench/baselines/long_horizon/qwen9-nf4-vs-rwkv7-fp32io16-v7r4.csv) for full result hashes and preserved metrics.
+- **State-native memory:** the same session reuses its RWKV recurrent state;
+  later turns compute only new tokens, not the full transcript.
+- **Strict tool calls:** the model emits exactly one `<tool_call>` or
+  `<answer>` envelope per turn; the controller validates the schema, budget,
+  and protocol before execution.
+- **Evidence-grounded search:** `web_search` discovers pages through
+  DeepSeek's reranked API (or Bing/Mwmbl fallback), fetches and extracts
+  them, admits candidates, and returns claim-verified cited answers — or an
+  honest refusal when evidence is insufficient.
+- **Controller-side citations:** the model writes plain prose without
+  citation markers; the controller deterministically attaches `[W#]`
+  evidence pointers after generation.
+- **Deterministic recovery:** when the model repeats an already-completed
+  tool call instead of answering, the controller synthesises the final
+  answer from the last successful tool result.
+- **Sandboxed execution:** `run_command` and file tools (`read_file`,
+  `write_file`, `edit_file`) run in a Bubblewrap sandbox with no network,
+  bounded output, and a configured workspace.
+- **True streaming:** tokens flow from the sidecar through the Rust
+  controller to any client as NDJSON deltas.
+- **Independent parallel states:** jobs have separate owner, state, session,
+  workspace, trace, and release lifecycle.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     CLI["Rust CLI / HTTP API"] --> C["Rust Agent Controller"]
-    C --> G["Semantic Tool Gate\nprewarmed root State"]
-    G -->|direct chat| S["RWKV G1I 13.3B\nROCm Sidecar"]
+    C --> G["Semantic Tool Gate\nforked root State"]
+    G -->|direct chat| S["RWKV Model\nHF recurrent Sidecar"]
     G -->|tool task| L["Strict Agent loop"]
-    L --> T["Tool data plane"]
+    L --> T["Retrieval Data Plane\nDeepSeek discovery"]
     T --> O["Observation"]
     O --> L
     L --> S
-    C --> Q["Task wall / Trace"]
     S --> P["Recurrent State pool\nunified ready queue"]
-    P --> GPU["AMD Radeon gfx1100\nROCm 7.2.1"]
+    P --> GPU["CUDA or ROCm GPU"]
 ```
-
-The model never emits a large planner document. Each model turn produces either one strict Tool Call or one final answer. Runtime code owns budgets, state identity, workspace boundaries, validation, metrics, and release.
 
 ## Core tools
 
 | Tool | Purpose |
 |---|---|
-| `run_command` | Controlled file operations, commands, tests, and artifact validation |
-| `knowledge_search` | Local long-term knowledge index |
-| `long_text_qa` | Evidence-grounded questions over pasted long text |
-| `web_search` | Optional retrieval when the user explicitly requests current Web information |
+| `web_search` | DeepSeek-ranked discovery, evidence admission, cited answers |
+| `knowledge_search` | Local knowledge index (requires Elasticsearch) |
+| `run_command` | Bounded shell command in an isolated sandbox workspace |
+| `read_file` | Read one UTF-8 text file relative to `/workspace` |
+| `write_file` | Atomically create or replace one UTF-8 text file |
+| `edit_file` | Replace one exact text span (old_text → new_text) |
 
-State management, task metrics, artifact verification, and the task wall are runtime features, not model-visible tools.
+Citations, state management, task metrics, and artifact verification are
+runtime features, not model-visible tools.
 
-## AMD Radeon implementation
+## HTTP API
 
-### Model and runtime
+The controller exposes a loopback HTTP API with NDJSON streaming:
 
-| Component | Verified configuration |
-|---|---|
-| Model | RWKV-7 G1I Preview4922 13.3B |
-| Parameters | 13,269,245,952 |
-| Context | 12,288 tokens |
-| Decode | Greedy |
-| Precision | FP16 |
-| GPU | AMD Radeon `gfx1100`, 51,522,830,336 bytes VRAM |
-| ROCm | 7.2.1 |
-| PyTorch | 2.9.1 ROCm build |
-| Backend | RWKV-7 HF native recurrent backend |
-| Stable physical batch | 32 |
-
-The source checkpoint is distributed separately by RWKV and is not committed to Git. The verified checkpoint is [RWKV-7 G1I Preview4922 13.3B](https://huggingface.co/BlinkDL/temp-latest-training-models/blob/main/rwkv7-g1i_preview4922-13.3b-20260720-ctx12288.pth). The ROCm conversion used the RWKV HF adapter's AMD branch at commit `7fd669809cefa97c81f8e8cda6c6a59f9cf04635`.
-
-### Inference optimizations
-
-1. **Recurrent session state** — later turns continue from GPU State instead of prefilling the complete transcript.
-2. **B1 zero-copy continuation** — one-row decode reuses its cache directly instead of gathering and scattering about 62 MiB of State every token.
-3. **Vectorized chunk continuation** — existing recurrent cache can enter the native chunk-prefill path instead of falling back to token-by-token continuation.
-4. **Unified ready queue** — prompt chunks and decode rows are scheduled across independent requests up to physical batch 32.
-5. **Prewarmed semantic gate root** — static routing instructions are prefetched once; every request forks the root and appends only dynamic input.
-6. **Short direct-chat budget** — ordinary chat uses a 96-token ceiling and a visible-answer stop envelope.
-7. **End-to-end streaming** — each Greedy update becomes a Sidecar delta and is forwarded directly by Rust; clients receive real deltas.
-
-## Verified AMD results
-
-### State reuse and ordinary chat
-
-| Measurement | Before | Gate 5 |
-|---|---:|---:|
-| First-turn wall time | 63.648 s | **8.240 s** |
-| Second-turn wall time | 63.784 s | **7.028 s** |
-| First-turn speedup | — | **7.72×** |
-| Second-turn speedup | — | **9.08×** |
-| Second-turn State reuse | no | **yes** |
-| Output tokens, first / second | 78 / 97 | **6 / 6** |
-
-B1 streamed and non-streamed continuation produced identical text, token IDs, and stop reason. B1 gather/scatter workspace was zero.
-
-### Independent State scaling
-
-| Resident jobs | Physical batch | Aggregate output throughput |
-|---:|---:|---:|
-| 1 | 1 | 1.6661 tok/s |
-| 4 | 4 | 6.2571 tok/s |
-| 8 | 8 | 11.6955 tok/s |
-| 16 | 16 | 19.7453 tok/s |
-| 32 | 32 | **29.9838 tok/s** |
-| 64 | 32 | 25.7295 tok/s |
-| 100 | 32 | 24.0266 tok/s |
-
-At B32, concurrent execution was **10.5792×** faster than the same 32 jobs run serially, while all Greedy outputs remained exact. Decode GPU Busy averaged **88%**, peaked at **98%**, and peak VRAM was **37.87 GB**. A same-protocol Gate 5 warm regression measured 29.3472 tok/s, within 2.123% of the frozen baseline.
-
-### 100 independent Agent jobs
-
-- 100 unique prompts, owners, sessions, States, and workspaces;
-- physical decode concurrency 32;
-- 100/100 valid final artifacts;
-- 0 task failures in the frozen final run;
-- 0 protocol leaks, context crossovers, or prebuilt answers;
-- average / peak GPU Busy: 86.205% / 99%;
-- peak VRAM: 48,093,364,224 bytes;
-- final waiting, busy, decoding, and State counters: zero.
-
-The correct claim is **“100 independent tasks · physical concurrency 32”**, not “100-way concurrent decode.”
-
-## Quick evaluation path
-
-With the AMD services already configured:
-
-```bash
-# Terminal 1 — model Sidecar
-rwkv-g1i-sidecar --host 127.0.0.1 --port 18118
-
-# Terminal 2 — Knowledge / Long Text / optional Web data plane
-rwkv-agent-data-plane \
-  --host 127.0.0.1 \
-  --port 18121 \
-  --model-urls http://127.0.0.1:18118
-
-# Terminal 3 — Rust Controller and embedded Web UI
-./target/release/rwkv-agent-server-rs \
-  --host 127.0.0.1 \
-  --port 18120 \
-  --model-urls http://127.0.0.1:18118 \
-  --data-plane-url http://127.0.0.1:18121 \
-  --session-dir ./var/sessions \
-  --chat-state-capacity 3 \
-  --direct-chat-max-tokens 96
+```text
+GET  /live                     liveness
+GET  /ready                    component readiness
+GET  /v1/openapi.json          OpenAPI 3.1
+POST /v1/tasks                 synchronous task
+POST /v1/tasks/stream          NDJSON streaming task
+POST /v1/research              state-parallel multi-branch search
+POST /v1/tools/call            direct tool invocation
+GET  /v1/tasks/{id}            task detail
+POST /v1/tasks/{id}/resume     resume from checkpoint
+POST /v1/tasks/{id}/cancel     idempotent cancel
 ```
 
-Open:
+Requests carry identity fields (`api_version`, `request_id`, `owner_id`,
+`session_id`). See `contracts/agent-service-v1.openapi.json` for the full
+schema.
 
-- conversation: <http://127.0.0.1:18120/>
-- live task wall: <http://127.0.0.1:18120/tasks>
-- health: <http://127.0.0.1:18120/health>
+## Quick start
 
-Suggested evaluation:
+### Prerequisites
 
-1. Send `你好，只回复你好。` and observe direct streaming with no Tool Call.
-2. Send a second message in the same session and inspect `state reused`.
-3. Ask the Agent to create a small project, run tests, repair a failure, and verify the result.
-4. Paste a long document and ask for an answer with source evidence.
-5. Keep `/tasks` open during the runs and inspect live status transitions.
-6. Replay the frozen B32 and 100-State benchmarks on the AMD host.
+- Linux with an NVIDIA CUDA GPU (any VRAM ≥ 16 GB for a 7B model) or an
+  AMD ROCm GPU
+- Python 3.10+
+- Rust 1.75+ for the controller and CLI
+- A RWKV-7 model checkpoint (public weights from
+  [HuggingFace](https://huggingface.co/RWKV) work; no private runtime needed)
 
-## Install and dependencies
-
-### Required
-
-- Ubuntu 24.04 or another ROCm-compatible Linux distribution;
-- ROCm 7.2.1;
-- Python 3.10+;
-- ROCm PyTorch, Transformers, FastAPI, and Uvicorn;
-- Rust 1.97+ for the Controller and CLI;
-- RWKV G1I Preview4922 13.3B weights converted to the verified HF native format;
-- approximately 48 GB GPU memory for the verified 13.3B / 100-resident-State profile.
-
-### Python environment
-
-Install ROCm PyTorch using the package source appropriate for the target ROCm version, then install the project:
+### Install
 
 ```bash
+git clone https://github.com/123123213weqw/rwkv-agent.git
+cd rwkv-agent
+
+# Python sidecar and data plane
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-# Install the official ROCm PyTorch wheel before the project extras.
-python -m pip install -e '.[realtime,agent,dev]'
+pip install -e '.[realtime,agent]'
+
+# Rust controller
+cargo build --release --locked -p rwkv-agent-server -p rwkv-agent-cli
 ```
 
-### Rust Controller
+### Download a public model
 
 ```bash
-cargo build --release --workspace
-cargo test --workspace
+export HF_ENDPOINT=https://hf-mirror.com   # if in China
+python -c "from huggingface_hub import snapshot_download; \
+  snapshot_download(repo_id='RWKV/RWKV7-7.2B-20260805', \
+  local_dir='./models/RWKV7-7.2B')"
 ```
 
-### Radeon Sidecar environment
+### Start the three services
 
 ```bash
+# Terminal 1 — model sidecar (HF recurrent backend)
 export G1I_BACKEND=hf_recurrent
-export G1I_HF_MODEL_PATH=/absolute/path/to/preview4922-13.3b/hf-fp16
-export G1I_HF_DTYPE=fp16
-export G1I_MODEL_ID=rwkv7-g1i-preview4922-13.3b
-export G1I_CONTEXT=12288
-export G1I_STATE_CAPACITY=132
-export G1I_PERSISTENT_STATE_CAPACITY=101
-export G1I_MAX_BATCH_SIZE=32
-export G1I_PREFILL_CHUNK_SIZE=32
-export G1I_BATCH_WINDOW_MS=10
+export G1I_HF_MODEL_PATH=$PWD/models/RWKV7-7.2B
+export G1I_HF_DTYPE=bf16
+export G1I_MODEL_ID=rwkv7-7.2b-20260805
+export G1I_CONTEXT=16384
+export G1I_STATE_CAPACITY=8
+export G1I_MAX_BATCH_SIZE=8
+export G1I_PERSISTENT_STATE_CAPACITY=8
+python -m rwkv_agent.sidecar --host 127.0.0.1 --port 8417
+
+# Terminal 2 — retrieval data plane (set DEEPSEEK_API_KEY for search)
+export DEEPSEEK_API_KEY=sk-...
+python -m rwkv_agent.data_server \
+  --host 127.0.0.1 --port 8121 \
+  --model-urls http://127.0.0.1:8417 \
+  --web-config configs/production.example.json
+
+# Terminal 3 — Rust controller
+./target/release/rwkv-agent-server-rs \
+  --host 127.0.0.1 --port 8122 \
+  --model-urls http://127.0.0.1:8417 \
+  --data-plane-url http://127.0.0.1:8121 \
+  --session-dir ./var/sessions \
+  --tool-gate-threshold 0.0 \
+  --enable-command --command-workspace ./workspaces/demo
 ```
 
-Do not commit model weights, private prompts, credentials, `.env` files, or runtime State.
+### Try it
+
+```bash
+curl -sN -X POST http://127.0.0.1:8122/v1/tasks/stream \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/x-ndjson" \
+  -d '{"api_version":"rwkv-agent.service.v1","request_id":"1","owner_id":"me",
+       "session_id":"s1","message":"你好，只回复你好。"}'
+```
+
+## DeepSeek search (optional)
+
+`web_search` works without DeepSeek (falls back to Bing/Mwmbl), but
+DeepSeek's reranked search API produces measurably better evidence:
+
+1. Get an API key at [platform.deepseek.com](https://platform.deepseek.com)
+2. Set `DEEPSEEK_API_KEY` in the data-plane environment
+3. Search queries are billed at $0.75 / 1,000 requests
+
+Without the key, the provider is silently skipped.
+
+## Decode sampling (optional)
+
+The sidecar supports env-gated sampling for experimentation; greedy decoding
+is the default and is what all verified results use:
+
+```bash
+export G1I_TEMPERATURE=0.3
+export G1I_TOP_P=0.9
+export G1I_REPETITION_PENALTY=1.15
+export G1I_PENALTY_WINDOW=64
+```
+
+On the tested RWKV-7 7.2B checkpoint, no sampled configuration beat greedy
+decoding.
+
+## AMD ROCm configuration
+
+The project was originally verified on an AMD Radeon `gfx1100` with ROCm
+7.2.1. The historical verified configuration:
+
+| Component | Verified value |
+|---|---|
+| Model | RWKV-7 G1I Preview4922 13.3B |
+| Context | 12,288 tokens |
+| GPU | AMD Radeon gfx1100, 48 GB VRAM |
+| Stable physical batch | 32 |
+| Resident states | 100+ |
+
+See `bench/baselines/` for frozen benchmark evidence from the AMD
+configuration. The NVIDIA CUDA path (via the HF recurrent backend and
+bundled inference runtime) is now the primary deployment target.
+
+## State-memory scaling
+
+![Native inference-state memory scaling](docs/assets/native-state-memory-scaling.png)
+
+The RWKV engine measures **32.5 MiB per recurrent state slot** (independent
+of history length), versus a comparable attention-based model's 49.5 MiB
+fixed + 32 MiB per 1K tokens. At 100 concurrent sessions, RWKV uses
+**4.3× less inference-state memory**.
+
+## Privacy and execution boundaries
+
+- Model inference, recurrent state, transcript, workspace, and benchmark
+  artifacts stay on the local host.
+- `run_command` is opt-in and restricted to a configured workspace with
+  Bubblewrap sandboxing (no network, bounded output, timeout).
+- The HTTP controller has no public authentication. Keep it on loopback,
+  use SSH forwarding, or place it behind an authenticated gateway.
+- `web_search` is the only feature that uses external network sources.
+- DeepSeek API keys are never committed; the data plane reads them from
+  the environment.
 
 ## Repository map
 
 ```text
 crates/agent-cli/       Rust terminal client
-crates/agent-core/      strict Tool protocol, budgets, lifecycle, events
-crates/agent-runtime/   sessions, recurrent State, tools, sandbox, research
-crates/agent-server/    Rust HTTP Controller, streaming, embedded Web UI
-src/rwkv7_scheduler/    ROCm recurrent cache scheduler and State pool
-src/rwkv_agent/         Sidecar, data plane, routing, long text, retrieval
-demos/                  100-independent-State Agent demonstration
-benchmarks/             State scaling, reuse, routing, and Agent regressions
-web/                    RWKV conversation workspace, task wall and runtime status UI
-docs/                   architecture, setup, benchmark, and specification
+crates/agent-core/      strict tool protocol, budgets, lifecycle, events
+crates/agent-runtime/   sessions, state, tools, sandbox, research, recovery
+crates/agent-server/    Rust HTTP controller, streaming API
+src/rwkv7_scheduler/    recurrent cache scheduler and state pool
+src/rwkv_agent/         sidecar, data plane, routing, retrieval, prompts
+src/rwkv_search/        realtime web retrieval, evidence admission, claims
+bench/                  frozen benchmark datasets, runners, baselines
+contracts/              JSON Schema / OpenAPI service contracts
+docs/                   architecture, API, benchmarks, specification
 ```
-
-The main development map is [`docs/CODEMAP.md`](docs/CODEMAP.md). The canonical split-stack startup is documented in [`docs/QUICKSTART.md`](docs/QUICKSTART.md); the verified Radeon configuration is documented here.
-
-## Privacy and execution boundaries
-
-- Model inference, recurrent State, transcript, workspace, and benchmark artifacts stay on the local host.
-- Automatic cross-session preference extraction is intentionally disabled for this release.
-- `run_command` is opt-in and restricted to a configured workspace. The verified AMD environment uses an unprivileged user, user/network namespaces, PRoot, bounded output, a timeout, and no unsafe fallback.
-- The HTTP Controller has no public authentication. Keep it on loopback, use SSH forwarding, or place it behind an authenticated private gateway.
-- Optional `web_search` is the only feature that intentionally uses external network sources.
 
 ## Known limitations
 
-- The Radeon path uses the HF native recurrent PyTorch backend; the NVIDIA Albatross MMA extension is not claimed to run on ROCm.
-- The 40-case semantic routing set scored 95% with zero missed Tool requests and two false Tool routes.
-- The live task wall stores only the latest 100 runs in Controller memory and resets on restart; it is an operational view, not a task database.
-- Model weights are external to GitHub and must be converted separately.
-- Public authentication, distributed scheduling, and automatic long-term personal memory are outside this release.
+- The model's transition from tool success to final answer is the biggest
+  behavioral gap on current 7B checkpoints; the controller's
+  duplicate-exit recovery covers the repeat-loop mode.
+- `web_search` evidence quality depends on retrieval quality;
+  entity-collision on ambiguous names can produce confident but wrong
+  answers (the verifier grounds to evidence, not ground truth).
+- The semantic tool gate needs threshold calibration per checkpoint
+  (`--tool-gate-threshold`).
+- No public authentication; loopback or SSH forwarding only.
+- Model weights are external to Git.
 
-## Verification and evidence
-
-The project keeps frozen input hashes, runner hashes, raw JSONL, aggregate metrics, ROCm time series, failure traces, videos, and artifact checksums. Run:
+## Verification
 
 ```bash
 bash scripts/verify_release.sh
 ```
-
-Reviewed benchmark summaries and screenshots are available under [`evidence/`](evidence/). Raw traces, private prompts, model assets, and machine-local configuration remain outside the repository. Override `EVIDENCE_ROOT` when validating another environment.
 
 ## License
 
