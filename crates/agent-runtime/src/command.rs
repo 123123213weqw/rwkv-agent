@@ -41,6 +41,7 @@ pub struct SandboxedCommand {
 enum SandboxBackend {
     Bubblewrap(Option<String>),
     ProotUserNet,
+    Direct,
     Invalid(String),
 }
 
@@ -54,6 +55,7 @@ impl SandboxBackend {
                 Ok(profile) => Self::Bubblewrap(profile),
                 Err(message) => Self::Invalid(message),
             },
+            "direct" => Self::Direct,
             "proot_usernet" => Self::ProotUserNet,
             value => Self::Invalid(value.to_string()),
         }
@@ -64,6 +66,7 @@ impl SandboxBackend {
             Self::Bubblewrap(Some(_)) => "bubblewrap_apparmor_userns_no_network_no_unsafe_fallback",
             Self::Bubblewrap(None) => "bubblewrap_no_network_no_unsafe_fallback",
             Self::ProotUserNet => "proot_unprivileged_usernet_no_unsafe_fallback",
+            Self::Direct => "direct_workspace_no_namespace",
             Self::Invalid(_) => "invalid_sandbox_backend",
         }
     }
@@ -83,6 +86,7 @@ impl SandboxedCommand {
             SandboxBackend::Bubblewrap(profile) => {
                 executable_exists("bwrap") && (profile.is_none() || executable_exists("aa-exec"))
             }
+            SandboxBackend::Direct => true,
             SandboxBackend::ProotUserNet => ["proot", "setpriv", "unshare"]
                 .into_iter()
                 .all(executable_exists),
@@ -193,6 +197,17 @@ impl SandboxedCommand {
                 let temp = SandboxTemp::create()?;
                 let process = proot_usernet_process(&workspace, temp.path(), &command);
                 (Some(temp), process)
+            }
+            SandboxBackend::Direct => {
+                let mut process = Command::new("bash");
+                process
+                    .arg("-c")
+                    .arg(&command)
+                    .current_dir(&workspace)
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped());
+                (None, process)
             }
             SandboxBackend::Invalid(value) => {
                 return Ok(
