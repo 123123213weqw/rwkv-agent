@@ -622,6 +622,43 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                     // cancellation is honored. No subsequent controller or
                     // model action may begin after the token is observed.
                     context.check()?;
+                    // Post-write verification exit: when a write_file or
+                    // edit_file has succeeded and a subsequent read_file also
+                    // succeeded (the model verified its own work), the task's
+                    // mutation is done. If the model then stalls on further
+                    // reads or rejections, exit with a completion answer.
+                    let has_successful_write = tools.iter().any(|step| {
+                        step.result.get("status").and_then(Value::as_str) == Some("ok")
+                            && matches!(
+                                step.call.name.as_str(),
+                                "write_file" | "edit_file"
+                            )
+                    });
+                    let has_verified_read = tools.iter().any(|step| {
+                        step.result.get("status").and_then(Value::as_str) == Some("ok")
+                            && step.call.name == "read_file"
+                    });
+                    if has_successful_write
+                        && has_verified_read
+                        && (repeated_rejections >= 1
+                            || result.get("status").and_then(Value::as_str)
+                                != Some("ok"))
+                    {
+                        let answer = format!(
+                            "File written and verified successfully.\n{}",
+                            synthesize_exit_answer(&result)
+                        );
+                        self.events.emit(AgentEvent::AnswerCompleted {
+                            answer: answer.clone(),
+                        });
+                        return Ok(RunReport {
+                            answer,
+                            state_id: state.state_id.clone(),
+                            model_turns,
+                            tool_steps,
+                            tools,
+                        });
+                    }
                     if repeated_rejections >= 2 {
                         // The model re-emits an identical completed call
                         // instead of transitioning to the final answer.
