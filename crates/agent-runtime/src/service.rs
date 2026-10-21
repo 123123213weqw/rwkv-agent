@@ -297,7 +297,9 @@ impl WorkspaceExecution {
         state.inspection_target_count = if referenced_existing > 0 {
             referenced_existing.clamp(1, 4)
         } else {
-            nonempty_files.clamp(1, 4)
+            // An empty workspace has nothing to inspect; the mutation phase
+            // may open immediately for brand-new file targets.
+            nonempty_files.min(4)
         };
         state
     }
@@ -891,7 +893,7 @@ fn is_source_path(path: &str) -> bool {
     let lower = path.to_lowercase();
     [
         ".py", ".rs", ".js", ".jsx", ".ts", ".tsx", ".go", ".java", ".c", ".cc", ".cpp", ".h",
-        ".hpp", ".rb", ".php", ".sh", ".bash", ".zsh", ".lua", ".sql",
+        ".hpp", ".rb", ".php", ".sh", ".bash", ".zsh", ".lua", ".sql", ".html", ".htm", ".css",
     ]
     .into_iter()
     .any(|suffix| lower.ends_with(suffix))
@@ -3179,6 +3181,13 @@ impl AgentService {
         } else {
             Vec::new()
         };
+        let workspace_execution = workspace_label.map(|label| {
+            WorkspaceExecution::from_task_spec_with_inventory(task_spec, label, &workspace_inventory)
+        });
+        let first_turn_prefix = workspace_execution
+            .as_ref()
+            .map(WorkspaceExecution::tool_call_prefix)
+            .unwrap_or_else(|| TOOL_CALL_JSON_PREFIX.to_string());
         let (root_prompt, initial_input) = match workspace_label {
             Some(label) => prompt::workspace_agent_state_prompts_for_task(
                 task_spec,
@@ -3186,6 +3195,7 @@ impl AgentService {
                 label,
                 self.config.max_tool_steps,
                 &workspace_inventory,
+                &first_turn_prefix,
             ),
             None => (
                 prompt::agent_prompt(
@@ -3213,13 +3223,7 @@ impl AgentService {
         let mut tools = RuntimeTools {
             data: self.data.for_turn(session_id, message),
             command,
-            workspace: workspace_label.map(|label| {
-                WorkspaceExecution::from_task_spec_with_inventory(
-                    task_spec,
-                    label,
-                    &workspace_inventory,
-                )
-            }),
+            workspace: workspace_execution,
         };
         let registry = self.registry(command_only)?;
         let mut events = VecEventSink::default();
@@ -4218,8 +4222,7 @@ mod tests {
     #[test]
     fn workspace_phase_commits_mutation_then_verification_tool_names() {
         let mut state =
-            WorkspaceExecution::new("Inspect inputs, implement output.py, and test it.");
-        state.record(
+            WorkspaceExecution::new("Inspect inputs, implement output.py, and test it.");        state.record(
             "read_file(SPEC.md)",
             &json!({"status":"ok","stdout":"spec"}),
             false,
@@ -4248,6 +4251,18 @@ mod tests {
         assert_eq!(
             state.tool_call_prefix(),
             "<tool_call>{\"name\":\"run_command\",\"arguments\":{\"command\":"
+        );
+    }
+
+    #[test]
+    fn new_file_task_in_empty_workspace_is_mutation_ready_on_turn_one() {
+        let mut spec = TaskSpec::new("Write pong.html: a complete single-file HTML5 pong game.");
+        spec.requires_mutation = Some(true);
+        spec.working_directory = Some("games-e2e".into());
+        let state = WorkspaceExecution::from_task_spec_with_inventory(&spec, "games-e2e", &[]);
+        assert_eq!(
+            state.tool_call_prefix(),
+            "write_file(path=\"pong.html\", content=\""
         );
     }
 

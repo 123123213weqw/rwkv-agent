@@ -121,7 +121,7 @@ A Python test file supplied by the user is a standalone script and can be execut
 	The Controller supplies a bounded authoritative inventory of existing workspace files with the task. Use it to distinguish inputs from not-yet-created targets; do not guess a missing target is an input. List directories only if the inventory is truncated or a deeper detail is genuinely needed. \
 	Do not create or modify artifacts the user did not request. Use read_file for named text, edit_file for one exact replacement, write_file for complete file content, and run_command for listing, tests, or multi-file verification. \
 	The Controller may run the exact declared verifier after inspection or mutation and may read one grounded repair target after a failure. These controller actions are authoritative observations, not requests to repeat the same command. \
-	When the Controller enters MUTATE it may pre-fill `<answer>` and name one target path. In that phase, return only the complete replacement file text inside the strict answer envelope; the Controller will package it into the required edit_file/write_file call, validate the strict Tool schema, and execute it in the same Sandbox. Never include reasoning, Markdown fences, tests, specifications, role labels, or fake Tool results in replacement content. \
+	When the Controller enters MUTATE it may pre-fill a write_file call as `write_file(path=\"target\", content=\"` and expects the complete file body followed by the closing `\")` — no JSON, no Markdown fences, no role labels — or pre-fill `<answer>` and name one edit target, where only the exact replacement text inside the strict answer envelope is returned and the Controller packages it into the edit_file call. Either way the strict Tool schema, validation, and Sandbox execution are unchanged. Never include reasoning, tests, specifications, role labels, or fake Tool results in file content. \
 	You have at most {max_tool_steps} tool calls. Use the fewest necessary actions while following the user's requested order. Treat exact content as a byte contract: add no spaces, labels, or files that were not requested. \
 If a command fails, use its actual result to choose a different corrective action instead of repeating it unchanged. \
 After the requested verification succeeds, answer on the next turn instead of calling another command merely to restate the same result. \
@@ -144,7 +144,14 @@ pub fn workspace_agent_state_prompts(
     max_tool_steps: usize,
 ) -> (String, String) {
     let task = TaskSpec::legacy(message, Some(display_directory.to_string()));
-    workspace_agent_state_prompts_for_task(&task, context, display_directory, max_tool_steps, &[])
+    workspace_agent_state_prompts_for_task(
+        &task,
+        context,
+        display_directory,
+        max_tool_steps,
+        &[],
+        TOOL_CALL_JSON_PREFIX,
+    )
 }
 
 pub fn workspace_agent_state_prompts_for_task(
@@ -153,6 +160,7 @@ pub fn workspace_agent_state_prompts_for_task(
     display_directory: &str,
     max_tool_steps: usize,
     workspace_inventory: &[String],
+    first_turn_prefix: &str,
 ) -> (String, String) {
     let rendered =
         workspace_agent_prompt_for_task(task, context, display_directory, max_tool_steps);
@@ -175,7 +183,7 @@ pub fn workspace_agent_state_prompts_for_task(
             .join("\n")
     };
     let initial = format!(
-        "\n\nUser: Recent conversation:\n{context}\n\nWorkspace TaskSpec:\n{task}\n\nWorkspace inventory at task start (authoritative; a path not listed does not exist yet):\n{inventory}\n\nAssistant: {TOOL_CALL_JSON_PREFIX}"
+        "\n\nUser: Recent conversation:\n{context}\n\nWorkspace TaskSpec:\n{task}\n\nWorkspace inventory at task start (authoritative; a path not listed does not exist yet):\n{inventory}\n\nAssistant: {first_turn_prefix}"
     );
     (root, initial)
 }
@@ -321,6 +329,22 @@ mod tests {
     }
 
     #[test]
+    fn mutation_ready_write_task_opens_with_the_native_prefill() {
+        let mut task = TaskSpec::new("Write pong.html: a complete pong game.");
+        task.requires_mutation = Some(true);
+        task.working_directory = Some("games".into());
+        let (_, initial) = workspace_agent_state_prompts_for_task(
+            &task,
+            "",
+            "games",
+            8,
+            &[],
+            "write_file(path=\"pong.html\", content=\"",
+        );
+        assert!(initial.ends_with("Assistant: write_file(path=\"pong.html\", content=\""));
+    }
+
+    #[test]
     fn structured_task_spec_is_rendered_with_workspace_alias() {
         let mut task = TaskSpec::legacy("Fix /repo/calc.py", Some("/repo".into()));
         task.acceptance_criteria = vec!["/repo/calc.py passes its test".into()];
@@ -336,6 +360,7 @@ mod tests {
                 "calc.py (24 bytes)".into(),
                 "test_calc.py (41 bytes)".into(),
             ],
+            TOOL_CALL_JSON_PREFIX,
         );
         assert!(initial.contains("Fix /workspace/calc.py"));
         assert!(initial.contains("/workspace/calc.py passes its test"));
