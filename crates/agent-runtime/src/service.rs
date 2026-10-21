@@ -45,6 +45,15 @@ pub struct RuntimeConfig {
     pub cloud_plugin: CloudPluginConfig,
     pub command: CommandPolicy,
     pub debug_trace: DebugTraceConfig,
+    /// Ablation switch: neutralize the workspace phase machine (mutation
+    /// plans, controller-pinned prefills, scheduled verifiers) so the model
+    /// drives every tool turn itself.
+    pub ablate_phase: bool,
+    /// Ablation switch: disable the deterministic duplicate-exit and
+    /// post-write-verification exits in the run loop.
+    pub ablate_recovery: bool,
+    /// Ablation switch: run with zero protocol retries.
+    pub ablate_protocol_retry: bool,
 }
 
 impl Default for RuntimeConfig {
@@ -65,6 +74,9 @@ impl Default for RuntimeConfig {
             cloud_plugin: CloudPluginConfig::default(),
             command: CommandPolicy::default(),
             debug_trace: DebugTraceConfig::default(),
+            ablate_phase: false,
+            ablate_recovery: false,
+            ablate_protocol_retry: false,
         }
     }
 }
@@ -201,6 +213,9 @@ struct RuntimeTools {
 struct WorkspaceExecution {
     task_spec: TaskSpec,
     requires_mutation: bool,
+    /// Ablation switch: disable all controller-driven phase authority
+    /// (plans, prefills, scheduled calls) so the model alone drives tools.
+    ablate_phase: bool,
     calls: usize,
     mutations: usize,
     verification_attempts: usize,
@@ -249,6 +264,7 @@ impl WorkspaceExecution {
                 .requires_mutation
                 .unwrap_or_else(|| task_requires_mutation(&task_spec.objective)),
             task_spec,
+            ablate_phase: false,
             calls: 0,
             mutations: 0,
             verification_attempts: 0,
@@ -414,7 +430,7 @@ impl WorkspaceExecution {
     }
 
     fn next_instruction(&self) -> Option<String> {
-        if self.verification_passed {
+        if self.ablate_phase || self.verification_passed {
             return None;
         }
         let task = self
@@ -608,6 +624,9 @@ impl WorkspaceExecution {
     }
 
     fn controller_followup_call(&self) -> Option<ToolCall> {
+        if self.ablate_phase {
+            return None;
+        }
         if self.should_run_verifier() {
             let command = self
                 .task_spec
@@ -652,6 +671,9 @@ impl WorkspaceExecution {
     }
 
     fn tool_call_prefix(&self) -> String {
+        if self.ablate_phase {
+            return String::new();
+        }
         if self.verification_passed {
             return String::new();
         }
@@ -690,6 +712,9 @@ impl WorkspaceExecution {
     }
 
     fn controller_tool_from_answer(&self, answer: &str) -> Option<ToolCall> {
+        if self.ablate_phase {
+            return None;
+        }
         let plan = self.mutation_plan()?;
         if !self.mutation_ready(&plan) {
             return None;
@@ -742,6 +767,9 @@ impl WorkspaceExecution {
     }
 
     fn mutation_plan(&self) -> Option<MutationPlan> {
+        if self.ablate_phase {
+            return None;
+        }
         let protected = self.protected_paths();
         let safe = |path: &String| is_source_path(path) && !path_is_protected_by(path, &protected);
 
@@ -3181,8 +3209,14 @@ impl AgentService {
         } else {
             Vec::new()
         };
-        let workspace_execution = workspace_label.map(|label| {
-            WorkspaceExecution::from_task_spec_with_inventory(task_spec, label, &workspace_inventory)
+        let mut workspace_execution = workspace_label.map(|label| {
+            let mut execution = WorkspaceExecution::from_task_spec_with_inventory(
+                task_spec,
+                label,
+                &workspace_inventory,
+            );
+            execution.ablate_phase = self.config.ablate_phase;
+            execution
         });
         let first_turn_prefix = workspace_execution
             .as_ref()
@@ -3225,7 +3259,7 @@ impl AgentService {
         let mut events = VecEventSink::default();
         let limits = RunLimits {
             max_tool_steps: self.config.max_tool_steps,
-            max_protocol_retries: 2,
+            max_protocol_retries: usize::from(!self.config.ablate_protocol_retry) * 2,
             max_answer_retries: 3,
             observation_reminder: String::new(),
             max_tokens_per_turn: self.config.max_model_tokens_per_turn,
@@ -3236,6 +3270,7 @@ impl AgentService {
             answer_after_tool: !command_only,
             fork_from_root: command_only,
             capture_model_output: debug_trace.is_some(),
+            ablate_recovery: self.config.ablate_recovery,
         };
         let run_result = {
             let mut agent = AgentLoop::new(
@@ -4257,6 +4292,32 @@ mod tests {
             state.tool_call_prefix(),
             "write_file(path=\"pong.html\", content=\""
         );
+    }
+
+    #[test]
+    fn phase_ablation_neutralizes_controller_authority() {
+        let mut spec = TaskSpec::new("Fix calc.py so 2 + 2 returns 4.");
+        spec.requires_mutation = Some(true);
+        spec.verification_commands = vec!["python3 test_calc.py".into()];
+        spec.working_directory = Some("repo".into());
+        let mut state =
+            WorkspaceExecution::from_task_spec_with_inventory(&spec, "repo", &["calc.py (24 bytes)".into(), "test_calc.py (41 bytes)".into()]);
+        state.record(
+            "python3 test_calc.py",
+            &json!({"status":"error","stderr":"assert failed"}),
+            false,
+        );
+        assert!(state.mutation_plan().is_some());
+        assert!(state.controller_followup_call().is_some());
+        let authoritative = state.tool_call_prefix();
+        assert!(!authoritative.is_empty() || state.next_instruction().is_some());
+
+        state.ablate_phase = true;
+        assert!(state.mutation_plan().is_none());
+        assert!(state.controller_followup_call().is_none());
+        assert!(state.controller_tool_from_answer("body").is_none());
+        assert_eq!(state.tool_call_prefix(), "");
+        assert!(state.next_instruction().is_none());
     }
 
     #[test]

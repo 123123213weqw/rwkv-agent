@@ -101,6 +101,10 @@ pub struct RunLimits {
     /// Retain successful raw provider generations only for an explicitly
     /// enabled local Debug Trace. The release-default path leaves this false.
     pub capture_model_output: bool,
+    /// Ablation switch: disable the deterministic duplicate-exit and
+    /// post-write-verification exits so run success reflects the model's
+    /// own envelope behavior alone.
+    pub ablate_recovery: bool,
 }
 
 impl Default for RunLimits {
@@ -115,6 +119,7 @@ impl Default for RunLimits {
             answer_after_tool: false,
             fork_from_root: false,
             capture_model_output: false,
+            ablate_recovery: false,
         }
     }
 }

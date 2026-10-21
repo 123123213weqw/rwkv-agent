@@ -207,6 +207,12 @@ async fn main() -> Result<(), String> {
         direct_chat_max_tokens: args.direct_chat_max_tokens,
         max_run_elapsed: Duration::from_secs(args.max_run_seconds),
         shutdown_grace: Duration::from_secs(args.shutdown_grace_seconds),
+        ablate_phase: std::env::var("RWKV_AGENT_ABLATE_PHASE").ok().as_deref() == Some("1"),
+        ablate_recovery: std::env::var("RWKV_AGENT_ABLATE_RECOVERY").ok().as_deref() == Some("1"),
+        ablate_protocol_retry: std::env::var("RWKV_AGENT_ABLATE_PROTOCOL_RETRY")
+            .ok()
+            .as_deref()
+            == Some("1"),
         cloud_plugin: CloudPluginConfig {
             enabled: args.cloud_plugin,
             endpoint: args.cloud_plugin_url,

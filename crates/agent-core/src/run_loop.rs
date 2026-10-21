@@ -645,7 +645,8 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                         step.result.get("status").and_then(Value::as_str) == Some("ok")
                             && step.call.name == "read_file"
                     });
-                    if has_successful_write
+                    if !self.limits.ablate_recovery
+                        && has_successful_write
                         && has_verified_read
                         && (repeated_rejections >= 1
                             || result.get("status").and_then(Value::as_str)
@@ -671,9 +672,12 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                         // instead of transitioning to the final answer.
                         // Exit deterministically with the last successful
                         // tool output instead of failing the whole task.
-                        if let Some(last_ok) = tools.iter().rev().find(|step| {
-                            step.result.get("status").and_then(Value::as_str) == Some("ok")
-                        }) {
+                        if !self.limits.ablate_recovery
+                            && let Some(last_ok) = tools.iter().rev().find(|step| {
+                                step.result.get("status").and_then(Value::as_str)
+                                    == Some("ok")
+                            })
+                        {
                             let answer = synthesize_exit_answer(&last_ok.result);
                             self.events.emit(AgentEvent::AnswerCompleted {
                                 answer: answer.clone(),
