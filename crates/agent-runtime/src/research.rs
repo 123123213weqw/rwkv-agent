@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::time::{Duration, Instant};
 
-use rwkv_agent_core::{Action, CancellationToken, RunContext, TOOL_CALL_JSON_PREFIX, parse_action};
+use rwkv_agent_core::{Action, CancellationToken, RunContext, parse_action};
 use serde_json::{Value, json};
 use tokio::task::JoinSet;
 
@@ -239,7 +239,7 @@ impl ResearchRunner {
                     &root.home_url,
                     &root.owner_id,
                     items,
-                    &["</tool_call>".into()],
+                    &["</tool_call>".into(), "\")".into()],
                     96,
                 )
                 .await?;
@@ -481,19 +481,24 @@ async fn trace_record<F>(
 
 fn reconstruct_tool(row: &BatchContinuation) -> String {
     let raw = row.text.trim_start();
-    let opening = if raw.starts_with("<tool_call>") {
-        ""
-    } else if raw.starts_with("{\"name\":\"") {
-        "<tool_call>"
+    // Branch turns are prefilled `Assistant: web_search(query="`; the model
+    // emits the query and the closing `")`. Legacy JSON emissions and echoes
+    // stay accepted; parse_action's fallback validates the joined call.
+    if raw.starts_with("<tool_call>") || raw.starts_with("web_search(") || raw.starts_with('{') {
+        let opening = if raw.starts_with("<tool_call>") || raw.starts_with("web_search(") {
+            ""
+        } else {
+            "<tool_call>"
+        };
+        let closing = if raw.ends_with("</tool_call>") || raw.starts_with("web_search(") {
+            ""
+        } else {
+            "</tool_call>"
+        };
+        format!("{opening}{raw}{closing}")
     } else {
-        TOOL_CALL_JSON_PREFIX
-    };
-    let closing = if raw.ends_with("</tool_call>") {
-        ""
-    } else {
-        "</tool_call>"
-    };
-    format!("{opening}{raw}{closing}")
+        format!("web_search(query=\"{raw}")
+    }
 }
 
 fn compact_observation(result: &Value) -> Value {

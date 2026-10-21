@@ -1,5 +1,7 @@
 use crate::Exchange;
-use rwkv_agent_core::{TOOL_CALL_JSON_PREFIX, TaskSpec};
+use rwkv_agent_core::TaskSpec;
+#[cfg(test)]
+use rwkv_agent_core::TOOL_CALL_JSON_PREFIX;
 
 pub const CHAT_STOPS: &[&str] = &["</answer>", "\n\nUser:", "\nUser:", "\nSystem:", "</s>"];
 
@@ -65,9 +67,9 @@ pub fn agent_prompt(message: &str, context: &str, command: bool) -> String {
         ""
     };
     format!(
-        "System: You are a bounded RWKV tool agent. At every turn output exactly one strict envelope: \
-<tool_call>{{\"name\":...,\"arguments\":{{...}}}}</tool_call> or <answer>concise user-visible answer</answer>. \
-Never output reasoning or <think> blocks, role labels, Markdown, bullet lists, or protocol text outside the envelope. Keep every answer to one compact paragraph of plain text; do not add citation markers. Use tools when evidence or execution is needed, \
+        "System: You are a bounded RWKV tool agent. At every turn output exactly one native function call like run_command(command=\"ls\") \
+or one <answer>concise user-visible answer</answer>. Close every call with \")\". \
+Never output reasoning or <think> blocks, role labels, Markdown, bullet lists, or protocol text outside the call. Keep every answer to one compact paragraph of plain text; do not add citation markers. Use tools when evidence or execution is needed, \
 inspect each Tool Result, and stop when the task is complete. One tool call per turn.\nFunctions:\n\
 - web_search(query): live public Internet\n\
 - knowledge_search(query): local indexed knowledge\n\
@@ -112,8 +114,8 @@ pub fn workspace_agent_prompt_for_task(
     let rendered_task = render_workspace_task_spec(task, display_directory);
     format!(
         "System: You are a bounded workspace agent. Complete the user's task autonomously with the workspace tools and inspect every Tool Result before choosing the next action. \
-At each turn output exactly one strict envelope: <tool_call>{{\"name\":\"tool_name\",\"arguments\":{{...}}}}</tool_call> \
-or <answer>concise user-visible answer</answer>. Output no reasoning, role labels, Markdown fences, empty commands, or text outside the envelope. \
+At each turn output exactly one native function call like read_file(path=\"SPEC.md\") — closed with a final `\")` — \
+or one <answer>concise user-visible answer</answer>. Output no reasoning, role labels, Markdown fences, empty commands, or text outside the call. \
 Tool environment contract: the selected workspace is `/workspace`, every command starts there, and only files inside it persist between calls. \
 Each call is a new isolated process: `/tmp`, shell variables, and process state do not persist. Never use a temporary path to communicate between calls. \
 There is no network or package installation. Python is available only as `python3`; `python`, Pytest, and dependency installation are unavailable. \
@@ -233,14 +235,14 @@ pub fn branch_step(
     if round_index == 1 {
         return format!(
             "\n\nUser: Branch mission: {mission}\nOriginal question: {}\nProduce one focused web_search call now. \
-Output only {{\"name\":\"web_search\",\"arguments\":{{\"query\":\"...\"}}}}.\n\nAssistant: {TOOL_CALL_JSON_PREFIX}",
+Output only web_search(query=\"...\").\n\nAssistant: web_search(query=\"",
             question.trim()
         );
     }
     format!(
         "\n\nTool: <tool_result>{}</tool_result>\n\nUser: Continue the same mission. Do not repeat the prior query. \
 Search one missing entity, relation, value, date, contradiction, or primary source while retaining the original subject. \
-Output only {{\"name\":\"web_search\",\"arguments\":{{\"query\":\"...\"}}}}.\n\nAssistant: {TOOL_CALL_JSON_PREFIX}",
+Output only web_search(query=\"...\").\n\nAssistant: web_search(query=\"",
         observation
             .cloned()
             .unwrap_or_else(|| serde_json::json!({"status":"empty","evidence":[]}))

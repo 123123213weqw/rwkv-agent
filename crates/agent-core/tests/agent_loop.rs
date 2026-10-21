@@ -316,7 +316,7 @@ fn reusable_root_forks_one_task_worker_and_keeps_it_across_feedback() {
     assert_eq!(model.forked, 1);
     assert_eq!(model.released, 2);
     assert!(model.inputs[1].contains("fresh next-phase prompt"));
-    assert!(model.inputs[1].ends_with("Assistant: <tool_call>{\"name\":\""));
+    assert!(model.inputs[1].ends_with("Assistant:"));
 }
 
 #[test]
@@ -791,7 +791,7 @@ fn answer_validator_can_require_more_tool_work_in_the_same_state() {
 
     assert_eq!(report.answer, "executed.");
     assert_eq!(report.tool_steps, 1);
-    assert!(model.inputs[1].ends_with("Assistant: <tool_call>{\"name\":\""));
+    assert!(model.inputs[1].ends_with("Assistant:"));
     assert!(events.events.iter().any(|event| matches!(
         event,
         AgentEvent::AnswerRejected {

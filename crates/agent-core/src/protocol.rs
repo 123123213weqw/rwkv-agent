@@ -238,7 +238,7 @@ pub fn render_tool_observation_with_progress_reminder_and_prefix(
 ) -> String {
     let mut value =
         render_observation_with_progress_and_reminder(result, completed_steps, max_steps, reminder);
-    if value.ends_with("Assistant:") {
+    if value.ends_with("Assistant:") && !tool_prefix.is_empty() {
         value.push(' ');
         value.push_str(tool_prefix);
     }
@@ -274,7 +274,7 @@ fn render_observation_with_instruction(result: &Value, instruction: &str, suffix
         serde_json::to_string(&compact_value).expect("serde_json::Value is always serializable");
     format!(
         "\n\nTool: <tool_result>{compact}</tool_result>\n\n\
-         User: {instruction} Output exactly one protocol envelope and no reasoning.\n\n{suffix}"
+         User: {instruction} Output exactly one native tool call like name(argument=\"value\") or one <answer> envelope, and no reasoning.\n\n{suffix}"
     )
 }
 

@@ -7,7 +7,7 @@ use crate::protocol::normalize_tool_result;
 use crate::{
     Action, ActionKind, AgentError, AgentEvent, AgentRunRequest, AnswerDecision, CancellationToken,
     EventSink, ModelOutput, OpenStateRequest, RunContext, RunLimits, RunReport,
-    StateContinueRequest, StateHandle, TOOL_CALL_JSON_PREFIX, ToolCall, ToolRegistry, ToolStep,
+    StateContinueRequest, StateHandle, ToolCall, ToolRegistry, ToolStep,
     parse_action, render_answer_observation, render_answer_observation_with_reminder,
     render_observation_with_progress_and_reminder,
     render_tool_observation_with_progress_reminder_and_prefix,
@@ -96,10 +96,11 @@ pub trait ToolExecutor {
     }
 
     /// Structural prefix for a controller-required tool turn. Executors may
-    /// commit a more specific tool name at a deterministic phase boundary;
-    /// arguments and the completed envelope remain strictly validated.
+    /// commit a more specific native call such as `write_file(path="x",
+    /// content="`; an empty prefix leaves the tool choice to the model, whose
+    /// native function-call emission is parsed by the protocol fallback.
     fn tool_call_prefix(&self) -> String {
-        TOOL_CALL_JSON_PREFIX.to_string()
+        String::new()
     }
 
     /// Return a deterministic control-plane action that must run before the
@@ -525,7 +526,12 @@ Do not include reasoning or repeat a completed command.\n\nAssistant:",
                                 );
                             } else {
                                 let suffix = if require_tool {
-                                    format!(" {}", self.tools.tool_call_prefix())
+                                    let prefix = self.tools.tool_call_prefix();
+                                    if prefix.is_empty() {
+                                        String::new()
+                                    } else {
+                                        format!(" {prefix}")
+                                    }
                                 } else {
                                     " <answer>".into()
                                 };
@@ -778,7 +784,12 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                                     );
                                 } else {
                                     let suffix = if require_tool {
-                                        format!(" {}", self.tools.tool_call_prefix())
+                                        let prefix = self.tools.tool_call_prefix();
+                                        if prefix.is_empty() {
+                                            String::new()
+                                        } else {
+                                            format!(" {prefix}")
+                                        }
                                     } else {
                                         " <answer>".into()
                                     };
@@ -963,11 +974,16 @@ fn synthesize_exit_answer(result: &Value) -> String {
 }
 
 fn replacement_input(prompt: &str, prefix: &str, forked: bool) -> String {
+    let suffix = if prefix.is_empty() {
+        "Assistant:".to_string()
+    } else {
+        format!("Assistant: {prefix}")
+    };
     if forked {
         let phase = prompt.strip_prefix("System: ").unwrap_or(prompt);
-        format!("\n\nUser: Controller phase (authoritative):\n{phase}\n\nAssistant: {prefix}")
+        format!("\n\nUser: Controller phase (authoritative):\n{phase}\n\n{suffix}")
     } else {
-        format!("\n\nAssistant: {prefix}")
+        format!("\n\n{suffix}")
     }
 }
 

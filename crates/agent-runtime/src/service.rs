@@ -5,7 +5,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rwkv_agent_core::{
     AgentEvent, AgentLoop, AgentRunRequest, AnswerDecision, ArgumentSpec, CancellationToken,
-    RequestIdentity, RunContext, RunLimits, SERVICE_API_VERSION, TOOL_CALL_JSON_PREFIX, TaskSpec,
+    RequestIdentity, RunContext, RunLimits, SERVICE_API_VERSION, TaskSpec,
     ToolCall, ToolDefinition, ToolExecutor, ToolRegistry, VecEventSink,
 };
 use serde_json::{Value, json};
@@ -653,7 +653,7 @@ impl WorkspaceExecution {
 
     fn tool_call_prefix(&self) -> String {
         if self.verification_passed {
-            return TOOL_CALL_JSON_PREFIX.to_string();
+            return String::new();
         }
         if let Some(plan) = self.mutation_plan()
             && self.mutation_ready(&plan)
@@ -664,9 +664,9 @@ impl WorkspaceExecution {
             return "<answer>".into();
         }
         if self.should_request_model_verifier() {
-            return "<tool_call>{\"name\":\"run_command\",\"arguments\":{\"command\":".into();
+            return "run_command(command=\"".into();
         }
-        TOOL_CALL_JSON_PREFIX.to_string()
+        String::new()
     }
 
     fn next_inspection_path(&self) -> Option<String> {
@@ -1109,7 +1109,7 @@ impl ToolExecutor for RuntimeTools {
         self.workspace
             .as_ref()
             .map(WorkspaceExecution::tool_call_prefix)
-            .unwrap_or_else(|| TOOL_CALL_JSON_PREFIX.to_string())
+            .unwrap_or_default()
     }
 
     fn controller_tool_after_observation(&mut self) -> Option<ToolCall> {
@@ -3187,7 +3187,7 @@ impl AgentService {
         let first_turn_prefix = workspace_execution
             .as_ref()
             .map(WorkspaceExecution::tool_call_prefix)
-            .unwrap_or_else(|| TOOL_CALL_JSON_PREFIX.to_string());
+            .unwrap_or_default();
         let (root_prompt, initial_input) = match workspace_label {
             Some(label) => prompt::workspace_agent_state_prompts_for_task(
                 task_spec,
@@ -3203,11 +3203,7 @@ impl AgentService {
                     context,
                     self.config.command.enabled,
                 ),
-                if self.config.no_gate {
-                    "\n\nAssistant:".to_string()
-                } else {
-                    format!("\n\nAssistant: {TOOL_CALL_JSON_PREFIX}")
-                },
+                "\n\nAssistant:".to_string(),
             ),
         };
         debug_record(
@@ -4248,10 +4244,7 @@ mod tests {
         assert_eq!(write.arguments["path"], "output.py");
         assert_eq!(write.arguments["content"], "print('ready')");
         state.record("write_file(output.py)", &json!({"status":"ok"}), true);
-        assert_eq!(
-            state.tool_call_prefix(),
-            "<tool_call>{\"name\":\"run_command\",\"arguments\":{\"command\":"
-        );
+        assert_eq!(state.tool_call_prefix(), "run_command(command=\"");
     }
 
     #[test]
