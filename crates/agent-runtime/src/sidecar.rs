@@ -101,7 +101,10 @@ impl SidecarClient {
         }
         let http = Client::builder()
             .connect_timeout(Duration::from_secs(10))
-            .timeout(Duration::from_secs(190))
+            // Must exceed the sidecar's own G1I_REQUEST_TIMEOUT_SECONDS
+            // (600s default): a full-budget 4096-token decode on a loaded
+            // GPU legitimately takes several minutes.
+            .timeout(Duration::from_secs(620))
             .build()
             .map_err(|error| error.to_string())?;
         Ok(Self {
