@@ -656,6 +656,9 @@ impl WorkspaceExecution {
         if let Some(plan) = self.mutation_plan()
             && self.mutation_ready(&plan)
         {
+            if plan.tool == "write_file" {
+                return native_write_prefill(&plan.path);
+            }
             return "<answer>".into();
         }
         if self.should_request_model_verifier() {
@@ -896,6 +899,15 @@ fn is_source_path(path: &str) -> bool {
 
 fn unique_path(paths: BTreeSet<String>) -> Option<String> {
     (paths.len() == 1).then(|| paths.into_iter().next().expect("one path"))
+}
+
+/// Prefill for a controller-pinned write in the checkpoint's native
+/// function-call syntax, e.g. `write_file(path="out.html", content="`.
+/// The model completes the file body and the closing `")`; the protocol
+/// fallback parser converts the joined text into a registry-validated call.
+fn native_write_prefill(path: &str) -> String {
+    let escaped = path.replace('\\', "\\\\").replace('"', "\\\"");
+    format!("write_file(path=\"{escaped}\", content=\"")
 }
 
 fn unique_first(paths: BTreeSet<String>) -> Option<String> {
@@ -4222,7 +4234,10 @@ mod tests {
             &json!({"status":"ok","stdout":"assert True"}),
             false,
         );
-        assert_eq!(state.tool_call_prefix(), "<answer>");
+        assert_eq!(
+            state.tool_call_prefix(),
+            "write_file(path=\"output.py\", content=\""
+        );
         let write = state
             .controller_tool_from_answer("print('ready')\n")
             .unwrap();

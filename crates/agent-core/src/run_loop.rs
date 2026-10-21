@@ -361,13 +361,14 @@ where
                         String::new()
                     };
                     let max_tokens = self.limits.max_tokens_per_turn;
+                    let stops = generation_stops(&request_input);
                     let output = self
                         .model
                         .continue_state(
                             StateContinueRequest {
                                 state: state.clone(),
                                 input: request_input,
-                                stops: vec!["</tool_call>".into(), "</answer>".into()],
+                                stops,
                                 max_tokens,
                             },
                             context.clone(),
@@ -411,7 +412,7 @@ where
                                 max_tokens,
                             });
                             let feedback = format!(
-                                "The previous protocol envelope was rejected: {error}. Output a strict tool call whose arguments field is a JSON object like {{\"command\":\"...\"}}, never a JSON-encoded string."
+                                "The previous protocol envelope was rejected: {error}. Output one strict tool call whose arguments field is a JSON object like {{\"command\":\"...\"}}, or one direct function call like run_command(command=\"ls\"), never a JSON-encoded string."
                             );
                             if let Some(root_prompt) =
                                 self.tools.answer_retry_root_prompt(&feedback)
@@ -968,4 +969,27 @@ fn replacement_input(prompt: &str, prefix: &str, forked: bool) -> String {
     } else {
         format!("\n\nAssistant: {prefix}")
     }
+}
+
+/// Turn-level stop tokens. A native function-call prefill terminates at the
+/// closing `")`; JSON envelopes keep their own delimiters. `")` is unsafe for
+/// JSON turns because escaped quotes inside string values end with the same
+/// byte pair, so it is added only when the input pinned the call format.
+fn generation_stops(input: &str) -> Vec<String> {
+    let mut stops = vec!["</tool_call>".to_string(), "</answer>".to_string()];
+    let suffix = input.trim_end().rsplit_once("Assistant: ").map(|(_, s)| s);
+    let native_call = suffix.is_some_and(|s| {
+        let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_';
+        match s.find('(') {
+            Some(open) => {
+                let name = &s[..open];
+                !name.is_empty() && name.chars().all(is_ident) && !s.starts_with('<')
+            }
+            None => false,
+        }
+    });
+    if native_call {
+        stops.push("\")".to_string());
+    }
+    stops
 }

@@ -55,7 +55,105 @@ pub fn parse_action(raw: &str) -> Result<Action, ProtocolError> {
         }
         return Ok(Action::Answer(answer.to_string()));
     }
+    if let Some(action) = parse_function_call(value) {
+        return Ok(action);
+    }
     Err(ProtocolError::Envelope)
+}
+
+/// Native-format fallback for checkpoints trained on function-call syntax:
+/// `write_file(path="out.html", content="<html>…")`. Accepted only when the
+/// whole output is a single call, so prose that merely starts like a call
+/// still falls through to the protocol-retry path. Values follow JSON
+/// escaping; the final value may be unterminated when generation was bounded
+/// by max_tokens instead of the closing quote.
+fn parse_function_call(value: &str) -> Option<Action> {
+    let open = value.find('(')?;
+    let name = &value[..open];
+    if name.is_empty() || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return None;
+    }
+    let mut body = &value[open + 1..];
+    if let Some(stripped) = body.strip_suffix(')') {
+        body = stripped;
+    }
+    let is_arg = |c: char| c.is_ascii_alphanumeric() || c == '_';
+    let mut arguments = Map::new();
+    let mut pos = 0usize;
+    while pos < body.len() {
+        let rest = &body[pos..];
+        let first = rest.chars().next()?;
+        if first == ',' || first.is_whitespace() {
+            pos += first.len_utf8();
+            continue;
+        }
+        if !is_arg(first) {
+            return None;
+        }
+        let key_end = rest
+            .char_indices()
+            .find(|&(index, c)| index > 0 && !is_arg(c))
+            .map_or(rest.len(), |(index, _)| index);
+        let key = rest[..key_end].to_string();
+        let after_key = rest[key_end..].trim_start();
+        let value_start_in_rest = key_end + (rest.len() - key_end - after_key.len());
+        if !after_key.starts_with('=') {
+            return None;
+        }
+        let after_eq = after_key[1..].trim_start();
+        let value_start = pos + value_start_in_rest + 1 + (after_key.len() - 1 - after_eq.len());
+        let (raw_value, next_pos, terminated) = if after_eq.starts_with('"') {
+            let inner = value_start + 1;
+            match find_unescaped_quote(body, inner) {
+                Some(close) => (&body[inner..close], close + 1, true),
+                None => (body[inner..].trim_end(), body.len(), false),
+            }
+        } else {
+            let rest_from = &body[value_start..];
+            let end = rest_from.find(',').unwrap_or(rest_from.len());
+            (rest_from[..end].trim(), value_start + end, true)
+        };
+        let parsed = if after_eq.starts_with('"') {
+            unescape_value(raw_value)
+        } else {
+            serde_json::from_str::<Value>(raw_value)
+                .unwrap_or_else(|_| Value::String(raw_value.to_string()))
+        };
+        arguments.insert(key, parsed);
+        if !terminated {
+            break;
+        }
+        pos = next_pos;
+        let following = body[pos..].trim_start();
+        if !following.starts_with(',') {
+            // Tolerate role labels or prose the model appends after the
+            // closing quote; the registry still validates the call itself.
+            break;
+        }
+    }
+    if arguments.is_empty() {
+        return None;
+    }
+    Some(Action::Tool(ToolCall { name: name.to_string(), arguments }))
+}
+
+fn find_unescaped_quote(body: &str, from: usize) -> Option<usize> {
+    let mut escaped = false;
+    for (index, c) in body[from..].char_indices() {
+        match c {
+            '\\' => escaped = !escaped,
+            '"' if !escaped => return Some(from + index),
+            _ => escaped = false,
+        }
+    }
+    None
+}
+
+fn unescape_value(raw: &str) -> Value {
+    let quoted = format!("\"{}\"", raw.replace('\n', "\\n"));
+    serde_json::from_str::<String>(&quoted)
+        .map(Value::String)
+        .unwrap_or_else(|_| Value::String(raw.to_string()))
 }
 
 fn strict_envelope<'a>(value: &'a str, open: &str, close: &str) -> Option<&'a str> {
@@ -291,6 +389,51 @@ mod tests {
             ),
             Err(ProtocolError::Json(_))
         ));
+    }
+
+    #[test]
+    fn function_call_fallback_parses_native_syntax() {
+        let action = parse_action(
+            "write_file(path=\"card.html\", content=\"<div class=\\\"box\\\">hi</div>\")",
+        )
+        .unwrap();
+        let Action::Tool(call) = action else {
+            panic!("expected tool call");
+        };
+        assert_eq!(call.name, "write_file");
+        assert_eq!(call.arguments["path"], "card.html");
+        assert_eq!(call.arguments["content"], "<div class=\"box\">hi</div>");
+    }
+
+    #[test]
+    fn function_call_fallback_accepts_unterminated_content() {
+        let action = parse_action("write_file(path=\"g.html\", content=\"<html>unterminated").unwrap();
+        let Action::Tool(call) = action else {
+            panic!("expected tool call");
+        };
+        assert_eq!(call.arguments["path"], "g.html");
+        assert_eq!(call.arguments["content"], "<html>unterminated");
+    }
+
+    #[test]
+    fn function_call_fallback_supports_multiline_and_scalars() {
+        let action =
+            parse_action("run_command(command=\"echo hi\", retries=2, verbose=true)").unwrap();
+        let Action::Tool(call) = action else {
+            panic!("expected tool call");
+        };
+        assert_eq!(call.arguments["command"], "echo hi");
+        assert_eq!(call.arguments["retries"], 2);
+        assert_eq!(call.arguments["verbose"], true);
+    }
+
+    #[test]
+    fn function_call_fallback_rejects_prose_starting_like_a_call() {
+        assert_eq!(
+            parse_action("Note (2024): the file above is fine"),
+            Err(ProtocolError::Envelope)
+        );
+        assert_eq!(parse_action("write_file (no kwargs here)"), Err(ProtocolError::Envelope));
     }
 
     #[test]

@@ -589,6 +589,18 @@ impl SidecarClient {
             // still validate the extracted object and its exact schema.
             return format!("<tool_call>{body}</tool_call>");
         }
+        if let Some(prefill) = function_call_prefill(input) {
+            // Native function-call prefill (`write_file(path="x", content="`):
+            // rejoin the committed prefix so the fallback parser sees one
+            // complete call. A model that echoes the call name itself is
+            // committed as its own complete call.
+            let name_and_paren = prefill_name_and_paren(prefill);
+            return if generated.starts_with(name_and_paren.as_str()) {
+                generated.to_string()
+            } else {
+                format!("{prefill}{generated}")
+            };
+        }
         match row.stop_reason.as_str() {
             "</tool_call>" => {
                 let prefix = if generated.starts_with("<tool_call>") {
@@ -630,9 +642,27 @@ impl SidecarClient {
     }
 }
 
+/// The text committed after the last `Assistant: ` label, when the controller
+/// has pinned a native function-call prefill such as
+/// `write_file(path="out.html", content="` instead of a JSON envelope.
+fn function_call_prefill(input: &str) -> Option<&str> {
+    let suffix = input.trim_end().rsplit_once("Assistant: ")?.1;
+    let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_';
+    let open = suffix.find('(')?;
+    let name = &suffix[..open];
+    let looks_like_call = !name.is_empty()
+        && name.chars().all(is_ident)
+        && !suffix.starts_with('<');
+    looks_like_call.then_some(suffix)
+}
+
+fn prefill_name_and_paren(prefill: &str) -> String {
+    let open = prefill.find('(').expect("caller verified the prefill opens a call");
+    prefill[..=open].to_string()
+}
+
 fn validate_snapshot_payload(
-    checksum: &str,
-    expected_size_bytes: u64,
+    checksum: &str,    expected_size_bytes: u64,
     payload_base64: &str,
 ) -> Result<(), String> {
     if !checksum.starts_with("sha256:") || checksum.len() != 71 {
@@ -1004,6 +1034,40 @@ mod tests {
         assert_eq!(
             reconstructed,
             "<tool_call>{\"name\":\"write_file\",\"arguments\":{\"path\":\"migrate.py\",\"content\":\"print('ok')\\n\"}}</tool_call>"
+        );
+    }
+
+    #[test]
+    fn rejoins_native_function_call_prefill_with_generated_body() {
+        let input = "\n\nAssistant: write_file(path=\"card.html\", content=\"";
+        let reconstructed =
+            SidecarClient::reconstruct_envelope(input, &row("<div>hi</div>\")", "\")"));
+        assert_eq!(
+            reconstructed,
+            "write_file(path=\"card.html\", content=\"<div>hi</div>\")"
+        );
+        assert_eq!(
+            rwkv_agent_core::parse_action(&reconstructed).unwrap(),
+            rwkv_agent_core::Action::Tool(rwkv_agent_core::ToolCall {
+                name: "write_file".into(),
+                arguments: serde_json::json!({"path":"card.html","content":"<div>hi</div>"})
+                    .as_object()
+                    .unwrap()
+                    .clone(),
+            })
+        );
+    }
+
+    #[test]
+    fn commits_an_echoed_native_call_without_duplicating_the_prefill() {
+        let input = "\n\nAssistant: write_file(path=\"card.html\", content=\"";
+        let reconstructed = SidecarClient::reconstruct_envelope(
+            input,
+            &row("write_file(path=\"card.html\", content=\"<p>x</p>\")", "\")"),
+        );
+        assert_eq!(
+            reconstructed,
+            "write_file(path=\"card.html\", content=\"<p>x</p>\")"
         );
     }
 }
