@@ -890,6 +890,12 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
                             )
                         }
                     } else {
+                        // Phase continuation without a required tool: the
+                        // verified work is done, so in plain-answer mode this
+                        // turn may legitimately close the task.
+                        if self.limits.plain_answer {
+                            plain_answer_armed = true;
+                        }
                         let phase_feedback = self.tools.continuation_feedback();
                         let reminder = if phase_feedback.trim().is_empty() {
                             self.limits.observation_reminder.clone()
