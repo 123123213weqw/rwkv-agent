@@ -508,6 +508,11 @@ Do not include reasoning or repeat a completed command.\n\nAssistant:",
                         .map_err(AgentError::Model)?
                     {
                         AnswerDecision::Accept => {}
+                        // Plain-answer mode treats the first answer as
+                        // final: the file state was already verified by the
+                        // phase machine, and preview checkpoints cannot
+                        // reliably produce criterion-quoting answer prose.
+                        AnswerDecision::Retry { .. } if self.limits.plain_answer => {}
                         AnswerDecision::Retry {
                             feedback,
                             require_tool,
