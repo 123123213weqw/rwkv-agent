@@ -58,6 +58,10 @@ pub struct RuntimeConfig {
     /// plain-text acceptance. For checkpoints that cannot close an
     /// `<answer>` envelope (e.g. the G1L preview).
     pub plain_answer: bool,
+    /// Fleet admission control: maximum concurrently executing tasks.
+    /// Zero disables the bound; requests beyond the bound wait in the
+    /// task ledger until a slot frees.
+    pub max_active_tasks: usize,
 }
 
 impl Default for RuntimeConfig {
@@ -82,6 +86,7 @@ impl Default for RuntimeConfig {
             ablate_recovery: false,
             ablate_protocol_retry: false,
             plain_answer: false,
+            max_active_tasks: 0,
         }
     }
 }
@@ -1781,6 +1786,21 @@ impl AgentService {
                 self.start_task_debug_trace(&initial_record).await?
             }
         };
+        // Fleet admission control: beyond the active-task bound the task
+        // waits here, already durably recorded in the ledger, until a
+        // running task completes and releases its slot.
+        if self.config.max_active_tasks > 0 {
+            loop {
+                let slot_free = {
+                    let active = self.active_tasks.lock().await;
+                    active.len() < self.config.max_active_tasks
+                };
+                if slot_free || cancellation.is_cancelled() {
+                    break;
+                }
+                self.task_completion.notified().await;
+            }
+        }
         {
             let mut active = self.active_tasks.lock().await;
             if active

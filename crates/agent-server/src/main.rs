@@ -214,6 +214,10 @@ async fn main() -> Result<(), String> {
             .as_deref()
             == Some("1"),
         plain_answer: std::env::var("RWKV_AGENT_PLAIN_ANSWER").ok().as_deref() == Some("1"),
+        max_active_tasks: std::env::var("RWKV_AGENT_MAX_ACTIVE_TASKS")
+            .ok()
+            .and_then(|value| value.parse::<usize>().ok())
+            .unwrap_or(0),
         cloud_plugin: CloudPluginConfig {
             enabled: args.cloud_plugin,
             endpoint: args.cloud_plugin_url,
