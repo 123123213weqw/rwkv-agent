@@ -1074,7 +1074,15 @@ def main() -> None:
         host=args.host,
         port=args.port,
         workers=1,
-        log_level="info",
+        log_level="warning",
+        # Fleet scale: hundreds of concurrent agent sessions hit one
+        # sidecar; the default backlog (2048) is fine but the request
+        # timeout must never fire while work is queued inside the
+        # scheduler, and info-level per-request logging saturates the
+        # event loop at this rate.
+        timeout_keep_alive=75,
+        limit_concurrency=None,
+        backlog=4096,
     )
 
 
