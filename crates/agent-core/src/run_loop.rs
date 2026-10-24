@@ -8,7 +8,9 @@ use crate::{
     Action, ActionKind, AgentError, AgentEvent, AgentRunRequest, AnswerDecision, CancellationToken,
     EventSink, ModelOutput, OpenStateRequest, RunContext, RunLimits, RunReport,
     StateContinueRequest, StateHandle, ToolCall, ToolRegistry, ToolStep,
-    parse_action, render_answer_observation, render_answer_observation_with_reminder,
+    parse_action, parse_action_lenient, parse_plain_answer, render_answer_observation,
+    render_answer_observation_with_reminder, render_plain_answer_observation_with_reminder,
+    ProtocolError,
     render_observation_with_progress_and_reminder,
     render_tool_observation_with_progress_reminder_and_prefix,
 };
@@ -394,7 +396,22 @@ where
                         String::new()
                     };
                     let stop_reason = output.stop_reason.clone();
-                    let action = match parse_action(&output.text) {
+                    let action = {
+                        let allowed: Vec<String> = self
+                            .registry
+                            .definitions()
+                            .map(|definition| definition.name.clone())
+                            .collect();
+                        let parse_result = if self.limits.plain_answer {
+                            parse_action_lenient(&output.text, &allowed).or_else(|_| {
+                                parse_plain_answer(&output.text)
+                                    .map(Action::Answer)
+                                    .ok_or(ProtocolError::Envelope)
+                            })
+                        } else {
+                            parse_action_lenient(&output.text, &allowed)
+                        };
+                        match parse_result {
                         Ok(action) => action,
                         Err(error) if protocol_retries < self.limits.max_protocol_retries => {
                             protocol_retries += 1;
@@ -434,9 +451,9 @@ where
                                 input = replacement_input(&root_prompt, &tool_prefix, forked);
                             } else {
                                 input = format!(
-                                    "\n\nUser: Your previous protocol envelope was rejected: {error}. \
-Retry {protocol_retries}/{}. Output exactly one valid <tool_call> JSON envelope or one non-empty <answer> envelope. \
-For JSON, escape backslashes and control characters correctly; prefer a simpler equivalent shell command when possible. \
+                                    "\n\nUser: Your previous protocol output was rejected: {error}. \
+Retry {protocol_retries}/{}. Output exactly one native function call like read_file(path=\"SPEC.md\") — closed with \") — or the final plain answer. \
+Prefer a simpler equivalent command when possible. \
 Do not include reasoning or repeat a completed command.\n\nAssistant:",
                                     self.limits.max_protocol_retries,
                                 );
@@ -444,6 +461,7 @@ Do not include reasoning or repeat a completed command.\n\nAssistant:",
                             continue;
                         }
                         Err(error) => return Err(error.into()),
+                        }
                     };
                     (
                         action,
@@ -814,24 +832,51 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
                     }
                     input = if tool_steps >= self.limits.max_tool_steps {
                         // The execution budget is closed, but the model still
-                        // gets one bounded commit turn. Prefixing the answer
-                        // envelope makes this independent of task semantics and
-                        // avoids turning a completed trajectory into an HTTP
-                        // error merely because the model tried to continue.
-                        render_answer_observation(&result)
+                        // gets one bounded commit turn. In plain-answer mode
+                        // the turn is unprefilled; the envelope prefix makes
+                        // this independent of task semantics otherwise.
+                        if self.limits.plain_answer {
+                            render_plain_answer_observation_with_reminder(
+                                &result,
+                                &self.limits.observation_reminder,
+                            )
+                        } else {
+                            render_answer_observation(&result)
+                        }
                     } else if repeated_success {
                         // Re-running an already successful call cannot add new
                         // evidence or side effects. Close the bounded loop with
                         // the best grounded answer instead of spending the
                         // remaining budget on a deterministic duplicate cycle.
-                        render_answer_observation(&result)
+                        if self.limits.plain_answer {
+                            render_plain_answer_observation_with_reminder(
+                                &result,
+                                &self.limits.observation_reminder,
+                            )
+                        } else {
+                            render_answer_observation(&result)
+                        }
                     } else if self.limits.answer_after_tool {
-                        render_answer_observation(&result)
+                        if self.limits.plain_answer {
+                            render_plain_answer_observation_with_reminder(
+                                &result,
+                                &self.limits.observation_reminder,
+                            )
+                        } else {
+                            render_answer_observation(&result)
+                        }
                     } else if self.tools.commit_answer_after_observation() {
-                        render_answer_observation_with_reminder(
-                            &result,
-                            &self.limits.observation_reminder,
-                        )
+                        if self.limits.plain_answer {
+                            render_plain_answer_observation_with_reminder(
+                                &result,
+                                &self.limits.observation_reminder,
+                            )
+                        } else {
+                            render_answer_observation_with_reminder(
+                                &result,
+                                &self.limits.observation_reminder,
+                            )
+                        }
                     } else {
                         let phase_feedback = self.tools.continuation_feedback();
                         let reminder = if phase_feedback.trim().is_empty() {
@@ -996,7 +1041,11 @@ fn replacement_input(prompt: &str, prefix: &str, forked: bool) -> String {
 /// JSON turns because escaped quotes inside string values end with the same
 /// byte pair, so it is added only when the input pinned the call format.
 fn generation_stops(input: &str) -> Vec<String> {
-    let mut stops = vec!["</tool_call>".to_string(), "</answer>".to_string()];
+    let mut stops = vec![
+        "</tool_call>".to_string(),
+        "</answer>".to_string(),
+        "\n\nUser:".to_string(),
+    ];
     let suffix = input.trim_end().rsplit_once("Assistant: ").map(|(_, s)| s);
     let native_call = suffix.is_some_and(|s| {
         let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_';

@@ -10,9 +10,10 @@ mod types;
 
 pub use event::{ActionKind, AgentEvent, EventSink, VecEventSink};
 pub use protocol::{
-    ProtocolError, TOOL_CALL_JSON_PREFIX, parse_action, render_answer_observation,
-    render_answer_observation_with_reminder, render_observation, render_observation_with_progress,
-    render_observation_with_progress_and_reminder,
+    ProtocolError, TOOL_CALL_JSON_PREFIX, parse_action, parse_action_lenient, parse_plain_answer,
+    render_answer_observation, render_answer_observation_with_reminder, render_observation,
+    render_observation_with_progress, render_observation_with_progress_and_reminder,
+    render_plain_answer_observation_with_reminder,
     render_tool_observation_with_progress_and_reminder,
     render_tool_observation_with_progress_reminder_and_prefix,
 };

@@ -54,6 +54,10 @@ pub struct RuntimeConfig {
     pub ablate_recovery: bool,
     /// Ablation switch: run with zero protocol retries.
     pub ablate_protocol_retry: bool,
+    /// Plain-answer mode: unprefilled final answer turns with lenient
+    /// plain-text acceptance. For checkpoints that cannot close an
+    /// `<answer>` envelope (e.g. the G1L preview).
+    pub plain_answer: bool,
 }
 
 impl Default for RuntimeConfig {
@@ -77,6 +81,7 @@ impl Default for RuntimeConfig {
             ablate_phase: false,
             ablate_recovery: false,
             ablate_protocol_retry: false,
+            plain_answer: false,
         }
     }
 }
@@ -3209,7 +3214,7 @@ impl AgentService {
         } else {
             Vec::new()
         };
-        let mut workspace_execution = workspace_label.map(|label| {
+        let workspace_execution = workspace_label.map(|label| {
             let mut execution = WorkspaceExecution::from_task_spec_with_inventory(
                 task_spec,
                 label,
@@ -3271,6 +3276,7 @@ impl AgentService {
             fork_from_root: command_only,
             capture_model_output: debug_trace.is_some(),
             ablate_recovery: self.config.ablate_recovery,
+            plain_answer: self.config.plain_answer,
         };
         let run_result = {
             let mut agent = AgentLoop::new(

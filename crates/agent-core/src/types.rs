@@ -105,6 +105,10 @@ pub struct RunLimits {
     /// post-write-verification exits so run success reflects the model's
     /// own envelope behavior alone.
     pub ablate_recovery: bool,
+    /// Plain-answer mode: final answer turns are unprefilled and any
+    /// non-tool text is accepted as the answer. For checkpoints that
+    /// cannot close an `<answer>` envelope.
+    pub plain_answer: bool,
 }
 
 impl Default for RunLimits {
@@ -120,6 +124,7 @@ impl Default for RunLimits {
             fork_from_root: false,
             capture_model_output: false,
             ablate_recovery: false,
+            plain_answer: false,
         }
     }
 }

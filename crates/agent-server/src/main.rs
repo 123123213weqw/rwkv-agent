@@ -213,6 +213,7 @@ async fn main() -> Result<(), String> {
             .ok()
             .as_deref()
             == Some("1"),
+        plain_answer: std::env::var("RWKV_AGENT_PLAIN_ANSWER").ok().as_deref() == Some("1"),
         cloud_plugin: CloudPluginConfig {
             enabled: args.cloud_plugin,
             endpoint: args.cloud_plugin_url,

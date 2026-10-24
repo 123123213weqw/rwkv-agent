@@ -36,7 +36,7 @@ struct WireToolCall {
 }
 
 pub fn parse_action(raw: &str) -> Result<Action, ProtocolError> {
-    let value = raw.trim();
+    let value: &str = &strip_think_blocks(raw.trim());
     if let Some(body) = strict_envelope(value, TOOL_OPEN, TOOL_CLOSE) {
         let call: WireToolCall =
             serde_json::from_str(body).map_err(|error| ProtocolError::Json(error.to_string()))?;
@@ -59,6 +59,77 @@ pub fn parse_action(raw: &str) -> Result<Action, ProtocolError> {
         return Ok(action);
     }
     Err(ProtocolError::Envelope)
+}
+
+/// Lenient parse used by the agent loop: accepts the checkpoint's most
+/// frequent near-miss shapes — spontaneous `<think>` blocks (stripped
+/// first), and one sentence of explanation followed by one complete
+/// native call whose name is in `allowed`. The largest measured single
+/// gain (+42%) in the G1L prompt-format study came from this tolerance.
+pub fn parse_action_lenient(raw: &str, allowed: &[String]) -> Result<Action, ProtocolError> {
+    let value: String = strip_think_blocks(raw.trim());
+    if let Ok(action) = parse_action(&value) {
+        return Ok(action);
+    }
+    for name in allowed {
+        if name.is_empty() {
+            continue;
+        }
+        let mut from = 0usize;
+        while let Some(offset) = value[from..].find(name.as_str()) {
+            let start = from + offset;
+            let rest = &value[start..];
+            let ends_ident = rest[name.len()..]
+                .chars()
+                .next()
+                .is_some_and(|c| c == '(');
+            let before_ok = start == 0
+                || !value[..start]
+                    .chars()
+                    .next_back()
+                    .is_some_and(|c| c.is_ascii_alphanumeric() || c == '_');
+            if ends_ident && before_ok
+                && let Some(action @ Action::Tool(_)) = parse_function_call(rest)
+            {
+                return Ok(action);
+            }
+            from = start + name.len();
+        }
+    }
+    Err(ProtocolError::Envelope)
+}
+
+/// Plain-answer acceptance for checkpoints that cannot close an envelope:
+/// everything before a self-played role label is the answer.
+pub fn parse_plain_answer(raw: &str) -> Option<String> {
+    let value = strip_think_blocks(raw.trim());
+    if value.is_empty() {
+        return None;
+    }
+    let cut = value
+        .find("\n\nUser:")
+        .or_else(|| value.find("\nUser:"))
+        .or_else(|| value.find("\n\nTool:"))
+        .unwrap_or(value.len());
+    let answer = value[..cut].trim();
+    (!answer.is_empty()).then(|| answer.to_string())
+}
+
+fn strip_think_blocks(value: &str) -> String {
+    let Some(open) = value.find("<think>") else {
+        return value.to_string();
+    };
+    let Some(close_rel) = value[open..].find("</think>") else {
+        return value[..open].trim_end().to_string();
+    };
+    let head = value[..open].trim_end();
+    let tail = value[open + close_rel + "</think>".len()..].trim_start();
+    match (head.is_empty(), tail.is_empty()) {
+        (true, true) => String::new(),
+        (true, false) => strip_think_blocks(tail),
+        (false, true) => head.to_string(),
+        (false, false) => strip_think_blocks(&format!("{head}\n{tail}")),
+    }
 }
 
 /// Native-format fallback for checkpoints trained on function-call syntax:
@@ -249,6 +320,20 @@ pub fn render_answer_observation(result: &Value) -> String {
     render_observation_with_suffix(result, "Assistant: <answer>")
 }
 
+/// Plain-answer mode for checkpoints that cannot close an `<answer>`
+/// envelope: the final turn is unprefilled and any non-tool text is
+/// accepted as the answer, trimmed at the first self-played role label.
+pub fn render_plain_answer_observation_with_reminder(result: &Value, reminder: &str) -> String {
+    render_observation_with_instruction(
+        result,
+        &format!(
+            "All mandatory execution phases are complete. Answer the original task now in one short plain sentence of plain text. No tags, no role labels, no further tool calls, no reasoning. Original task (authoritative): {}",
+            reminder.trim()
+        ),
+        "Assistant:",
+    )
+}
+
 pub fn render_answer_observation_with_reminder(result: &Value, reminder: &str) -> String {
     render_observation_with_instruction(
         result,
@@ -434,6 +519,42 @@ mod tests {
             Err(ProtocolError::Envelope)
         );
         assert_eq!(parse_action("write_file (no kwargs here)"), Err(ProtocolError::Envelope));
+    }
+
+    #[test]
+    fn lenient_parser_accepts_sentence_then_complete_call() {
+        let allowed = vec!["read_file".to_string()];
+        let action = parse_action_lenient(
+            "I'll inspect the workspace first to see the layout.\nread_file(path=\"SPEC.md\")",
+            &allowed,
+        )
+        .unwrap();
+        let Action::Tool(call) = action else {
+            panic!("expected tool call");
+        };
+        assert_eq!(call.name, "read_file");
+        assert_eq!(call.arguments["path"], "SPEC.md");
+    }
+
+    #[test]
+    fn think_blocks_are_stripped_from_every_path() {
+        let action = parse_action(
+            "<think>The user wants a file. Let me plan.</think>write_file(path=\"a.txt\", content=\"x\")",
+        )
+        .unwrap();
+        assert!(matches!(action, Action::Tool(_)));
+        let answer = parse_plain_answer("<think>hm</think>The file snake.html is complete with canvas and score.");
+        assert_eq!(answer.as_deref(), Some("The file snake.html is complete with canvas and score."));
+    }
+
+    #[test]
+    fn plain_answer_cuts_at_self_played_roles() {
+        let text = "Task complete: pong.html written.\n\nUser: <tool_result>{\"ok\":1}";
+        assert_eq!(
+            parse_plain_answer(text).as_deref(),
+            Some("Task complete: pong.html written.")
+        );
+        assert_eq!(parse_plain_answer("   "), None);
     }
 
     #[test]

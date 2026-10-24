@@ -248,6 +248,7 @@ fn limits(max_tool_steps: usize) -> RunLimits {
         fork_from_root: false,
         capture_model_output: false,
         ablate_recovery: false,
+        plain_answer: false,
     }
 }
 
