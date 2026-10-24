@@ -338,6 +338,9 @@ where
         let mut model_turns = 0;
         let mut tool_steps = 0;
         let mut protocol_retries = 0;
+        // Set when the last committed input was a plain-answer-forcing
+        // render; the lenient plain-text acceptance only fires then.
+        let mut plain_answer_armed = false;
         let mut answer_retries = 0;
         let mut tools = Vec::new();
         let mut last_successful_call: Option<ToolCall> = None;
@@ -402,7 +405,7 @@ where
                             .definitions()
                             .map(|definition| definition.name.clone())
                             .collect();
-                        let parse_result = if self.limits.plain_answer {
+                        let parse_result = if self.limits.plain_answer && plain_answer_armed {
                             parse_action_lenient(&output.text, &allowed).or_else(|_| {
                                 parse_plain_answer(&output.text)
                                     .map(Action::Answer)
@@ -841,6 +844,7 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
                         // the turn is unprefilled; the envelope prefix makes
                         // this independent of task semantics otherwise.
                         if self.limits.plain_answer {
+                            plain_answer_armed = true;
                             render_plain_answer_observation_with_reminder(
                                 &result,
                                 &self.limits.observation_reminder,
@@ -854,6 +858,7 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
                         // the best grounded answer instead of spending the
                         // remaining budget on a deterministic duplicate cycle.
                         if self.limits.plain_answer {
+                            plain_answer_armed = true;
                             render_plain_answer_observation_with_reminder(
                                 &result,
                                 &self.limits.observation_reminder,
@@ -863,6 +868,7 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
                         }
                     } else if self.limits.answer_after_tool {
                         if self.limits.plain_answer {
+                            plain_answer_armed = true;
                             render_plain_answer_observation_with_reminder(
                                 &result,
                                 &self.limits.observation_reminder,
@@ -872,6 +878,7 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
                         }
                     } else if self.tools.commit_answer_after_observation() {
                         if self.limits.plain_answer {
+                            plain_answer_armed = true;
                             render_plain_answer_observation_with_reminder(
                                 &result,
                                 &self.limits.observation_reminder,

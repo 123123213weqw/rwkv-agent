@@ -100,10 +100,15 @@ pub fn parse_action_lenient(raw: &str, allowed: &[String]) -> Result<Action, Pro
 }
 
 /// Plain-answer acceptance for checkpoints that cannot close an envelope:
-/// everything before a self-played role label is the answer.
+/// everything before a self-played role label is the answer. Text that
+/// itself attempts a tool call (envelope tags or OpenAI-style blocks) is
+/// not an answer.
 pub fn parse_plain_answer(raw: &str) -> Option<String> {
     let value = strip_think_blocks(raw.trim());
-    if value.is_empty() {
+    if value.is_empty()
+        || value.contains("<tool_call")
+        || value.contains("</tool_call")
+    {
         return None;
     }
     let cut = value
