@@ -318,9 +318,18 @@ impl WorkspaceExecution {
         state.inspection_target_count = if referenced_existing > 0 {
             referenced_existing.clamp(1, 4)
         } else {
-            // An empty workspace has nothing to inspect; the mutation phase
-            // may open immediately for brand-new file targets.
-            nonempty_files.min(4)
+            // No existing file is referenced by the task. When the objective
+            // names a brand-new target, inspecting unrelated leftovers only
+            // derails the first turn — open with the native write prefill
+            // immediately. An empty workspace also lands here.
+            let has_new_target = task_reference_paths(&state.task_spec)
+                .iter()
+                .any(|path| !state.existing_files.contains(path));
+            if has_new_target {
+                0
+            } else {
+                nonempty_files.min(4)
+            }
         };
         state
     }
