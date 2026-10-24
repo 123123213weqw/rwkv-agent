@@ -416,6 +416,25 @@ where
                         };
                         match parse_result {
                         Ok(action) => action,
+                        // Plain-answer mode: when the phase machine has
+                        // already verified the mutation, a stalled or
+                        // babbling generation closes the task with the
+                        // committed answer instead of failing it.
+                        Err(_) if self.limits.plain_answer => {
+                            if let Some(answer) = self.tools.committed_answer_after_observation() {
+                                self.events.emit(AgentEvent::AnswerCompleted {
+                                    answer: answer.clone(),
+                                });
+                                return Ok(RunReport {
+                                    answer,
+                                    state_id: state.state_id.clone(),
+                                    model_turns,
+                                    tool_steps,
+                                    tools,
+                                });
+                            }
+                            return Err(AgentError::Protocol(ProtocolError::Envelope.into()));
+                        }
                         Err(error) if protocol_retries < self.limits.max_protocol_retries => {
                             protocol_retries += 1;
                             self.events.emit(AgentEvent::ProtocolRejected {
