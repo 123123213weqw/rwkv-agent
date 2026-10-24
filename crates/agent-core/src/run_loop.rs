@@ -421,7 +421,11 @@ where
                         // babbling generation closes the task with the
                         // committed answer instead of failing it.
                         Err(_) if self.limits.plain_answer => {
-                            if let Some(answer) = self.tools.committed_answer_after_observation() {
+                            let answer = self
+                                .tools
+                                .committed_answer_after_observation()
+                                .or_else(|| synthesized_write_answer(&tools));
+                            if let Some(answer) = answer {
                                 self.events.emit(AgentEvent::AnswerCompleted {
                                     answer: answer.clone(),
                                 });
@@ -1043,6 +1047,34 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
 
 /// Deterministic final answer for a run that exits because the model
 /// repeated an identical completed tool call instead of answering.
+/// Grounded fallback for plain-answer stalls: any successful write in
+/// this run is the deliverable, so the report names the file and size.
+fn synthesized_write_answer(tools: &[ToolStep]) -> Option<String> {
+    tools
+        .iter()
+        .rev()
+        .find(|step| {
+            step.call.name == "write_file"
+                && step.result.get("status").and_then(Value::as_str) == Some("ok")
+        })
+        .map(|step| {
+            let path = step
+                .call
+                .arguments
+                .get("path")
+                .and_then(Value::as_str)
+                .unwrap_or("file");
+            let bytes = step
+                .call
+                .arguments
+                .get("content")
+                .and_then(Value::as_str)
+                .map(str::len)
+                .unwrap_or(0);
+            format!("Wrote {path} ({bytes} bytes).")
+        })
+}
+
 fn synthesize_exit_answer(result: &Value) -> String {
     if let Some(stdout) = result.get("stdout").and_then(Value::as_str) {
         let trimmed = stdout.trim();
