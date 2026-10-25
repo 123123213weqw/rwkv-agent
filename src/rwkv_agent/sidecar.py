@@ -348,6 +348,24 @@ class NativeG1I:
             capacity=STATE_CAPACITY,
         )
         self.pool = self.scheduler.pool
+        self._warmup_fla()
+
+    def _warmup_fla(self) -> None:
+        """Burn Triton autotune for every batch shape before serving.
+        First-encounter tuning otherwise starves queued requests past the
+        request timeout under concurrent load."""
+        import torch
+        chunk = min(PREFILL_CHUNK_SIZE, 512)
+        print(f"[fla warmup] chunk={chunk} batches<= {MAX_BATCH_SIZE}", flush=True)
+        for batch in range(1, min(MAX_BATCH_SIZE, 16) + 1):
+            tokens = torch.randint(0, 60000, (batch, chunk), device="cuda")
+            try:
+                with torch.no_grad():
+                    self.model(tokens, use_cache=True, num_logits_to_keep=1)
+            except Exception as exc:
+                print(f"[fla warmup] B{batch} failed: {exc}", flush=True)
+                continue
+            print(f"[fla warmup] B{batch} ok", flush=True)
 
     def complete(
         self,

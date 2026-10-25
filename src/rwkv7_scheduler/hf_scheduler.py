@@ -136,7 +136,7 @@ def _concat_caches(caches: Sequence[Any]) -> Any:
         for layer_idx in range(len(fla_states)):
             layer: dict[str, Any] = {}
             for key in fla_states[layer_idx].keys():
-                values = [c.layers[layer_idx][key] for c in caches]
+                values = [c.states[layer_idx][key] for c in caches]
                 if all(isinstance(v, torch.Tensor) for v in values):
                     layer[key] = torch.cat(values, dim=0)
                 else:
