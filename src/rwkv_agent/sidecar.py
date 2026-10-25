@@ -361,11 +361,19 @@ class NativeG1I:
             tokens = torch.randint(0, 60000, (batch, chunk), device="cuda")
             try:
                 with torch.no_grad():
-                    self.model(tokens, use_cache=True, num_logits_to_keep=1)
+                    out = self.model(tokens, use_cache=True, num_logits_to_keep=1)
+                # Decode shapes autotune separately: walk batch-wide single
+                # tokens through the cached state like the scheduler does.
+                cache = out.past_key_values
+                for _ in range(3):
+                    step = torch.randint(0, 60000, (batch, 1), device="cuda")
+                    with torch.no_grad():
+                        self.model(step, past_key_values=cache, use_cache=True,
+                                   num_logits_to_keep=1)
             except Exception as exc:
                 print(f"[fla warmup] B{batch} failed: {exc}", flush=True)
                 continue
-            print(f"[fla warmup] B{batch} ok", flush=True)
+            print(f"[fla warmup] B{batch} prefill+decode ok", flush=True)
 
     def complete(
         self,
