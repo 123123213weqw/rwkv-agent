@@ -63,10 +63,39 @@ def _cache_bytes(cache: Any) -> int:
     return total
 
 
-def _set_cache_seen(cache: Any, seen_tokens: int) -> Any:
-    if hasattr(cache, "seen_tokens"):
+def _clone_any_cache(cache: Any) -> Any:
+    """Deep-copy any cache flavor: fla per-layer dicts or tuple caches."""
+    fla_states = getattr(cache, "states", None)
+    if fla_states is not None:
+        clone = type(cache)(seen_tokens=int(getattr(cache, "_seen_tokens", 0)))
+        for layer in fla_states:
+            clone.states.append(
+                {
+                    key: (value.clone() if isinstance(value, torch.Tensor) else value)
+                    for key, value in layer.items()
+                }
+            )
+        return clone
+    if hasattr(cache, "clone"):
+        return cache.clone()
+    state, xpa, xpf, v_first = tuple(cache)
+    return _new_cache_like(
+        cache,
+        [value.clone() for value in state],
+        [value.clone() for value in xpa],
+        [value.clone() for value in xpf],
+        v_first.clone(),
+        seen_tokens=int(getattr(cache, "_seen_tokens", 0) or 0),
+    )
+
+
+def _set_cache_seen(cache: Any, seen_tokens: int) -> Any:    # fla's Cache exposes seen_tokens as a read-only property backed by
+    # _seen_tokens; plain caches take the direct attribute.
+    try:
         cache.seen_tokens = int(seen_tokens)
-    elif hasattr(cache, "_seen_tokens"):
+    except AttributeError:
+        pass
+    if hasattr(cache, "_seen_tokens"):
         cache._seen_tokens = int(seen_tokens)
     return cache
 
@@ -332,7 +361,7 @@ class HFRecurrentScheduler:
                         token_ids=(),
                         seen_tokens=parent.seen_tokens,
                         logits=parent.logits.detach().clone(),
-                        cache=parent.cache.clone(),
+                        cache=_clone_any_cache(parent.cache),
                         admitted_at=now,
                         first_service_at=now,
                         completed_at=now,
