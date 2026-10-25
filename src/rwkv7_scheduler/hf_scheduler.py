@@ -32,6 +32,15 @@ def _tensor_bytes(value: torch.Tensor) -> int:
 def _cache_bytes(cache: Any) -> int:
     if cache is None:
         return 0
+    fla_layers = getattr(cache, "states", None)
+    if fla_layers is not None:
+        # fla LegacyCache: per-layer dicts of recurrent/conv tensors.
+        return sum(
+            _tensor_bytes(value)
+            for layer in fla_layers
+            for value in layer.values()
+            if isinstance(value, torch.Tensor)
+        )
     if isinstance(cache, (tuple, list)):
         state, xpa, xpf, v_first = tuple(cache)
         return sum(
@@ -90,6 +99,21 @@ def _new_cache_like(
 def _concat_caches(caches: Sequence[Any]) -> Any:
     if not caches or any(cache is None for cache in caches):
         raise ValueError("batched continuation requires initialized caches")
+    fla_states = getattr(caches[0], "states", None)
+    if fla_states is not None:
+        # fla LegacyCache: gather every row's per-layer dicts into one batched
+        # cache of the same concrete class so the model keeps using it.
+        merged = type(caches[0])(seen_tokens=0)
+        for layer_idx in range(len(fla_states)):
+            layer: dict[str, Any] = {}
+            for key in fla_states[layer_idx].keys():
+                values = [c.layers[layer_idx][key] for c in caches]
+                if all(isinstance(v, torch.Tensor) for v in values):
+                    layer[key] = torch.cat(values, dim=0)
+                else:
+                    layer[key] = values[0]
+            merged.states.append(layer)
+        return _set_cache_seen(merged, 0)
     if not isinstance(caches[0], (tuple, list)) and hasattr(type(caches[0]), "batch_stack"):
         stacked = type(caches[0]).batch_stack(list(caches))
         return _set_cache_seen(stacked, 0)
@@ -118,6 +142,20 @@ def _concat_caches(caches: Sequence[Any]) -> Any:
 
 def _select_cache_row(cache: Any, row: int, seen_tokens: int) -> Any:
     index = torch.tensor([int(row)], dtype=torch.long)
+    fla_states = getattr(cache, "states", None)
+    if fla_states is not None:
+        # fla LegacyCache: slice the batch dim of every per-layer tensor.
+        selected = type(cache)(seen_tokens=int(seen_tokens))
+        row_index = int(row)
+        for layer in fla_states:
+            layer_out: dict[str, Any] = {}
+            for key, value in layer.items():
+                if isinstance(value, torch.Tensor):
+                    layer_out[key] = value[row_index : row_index + 1].clone()
+                else:
+                    layer_out[key] = value
+            selected.states.append(layer_out)
+        return selected
     if hasattr(cache, "batch_select_indices"):
         selected = cache.clone()
         selected.batch_select_indices(index)

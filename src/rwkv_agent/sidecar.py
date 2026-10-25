@@ -136,9 +136,11 @@ class NativeG1I:
             self._load_albatross()
         elif BACKEND == "hf_recurrent":
             self._load_hf_recurrent()
+        elif BACKEND == "fla":
+            self._load_fla()
         else:
             raise ValueError(
-                "G1I_BACKEND must be either albatross or hf_recurrent"
+                "G1I_BACKEND must be albatross, hf_recurrent, or fla"
             )
         self.engine = ContinuousBatchEngine(
             tokenizer=self.pipeline,
@@ -285,6 +287,52 @@ class NativeG1I:
                 dtype=dtype,
                 low_cpu_mem_usage=True,
             ).to("cuda").eval()
+        self.torch = torch
+        self.pool = None
+        self.scheduler = HFRecurrentScheduler(
+            self.model,
+            config=SchedulerConfig(
+                prefill_chunk_size=PREFILL_CHUNK_SIZE,
+                max_batch_size=MAX_BATCH_SIZE,
+                max_queue_size=STATE_CAPACITY,
+                max_input_tokens=CONTEXT,
+                eos_token_id=0,
+            ),
+            device="cuda",
+            capacity=STATE_CAPACITY,
+        )
+        self.pool = self.scheduler.pool
+
+    def _load_fla(self) -> None:
+        """fla-modeling backend: load a fla-hub-style converted checkpoint
+        (AutoConfig + manual safetensors) and serve it through the same
+        HFRecurrentScheduler. The fla Cache carries per-layer dicts; the
+        scheduler's concat/select helpers branch on `cache.states`."""
+        import torch
+        from transformers import AutoConfig, AutoTokenizer
+        from rwkvfla.models.rwkv7 import modeling_rwkv7  # registers model_type rwkv7
+        from rwkvfla.models.rwkv7.modeling_rwkv7 import RWKV7ForCausalLM
+        from safetensors.torch import load_file
+
+        if HF_DTYPE not in {"fp16", "bf16"}:
+            raise ValueError("G1I_HF_DTYPE must be fp16 or bf16")
+        model_path = Path(HF_MODEL_PATH).resolve()
+        if not model_path.is_dir():
+            raise FileNotFoundError(
+                f"G1I_HF_MODEL_PATH is not a directory: {model_path}"
+            )
+        dtype = torch.float16 if HF_DTYPE == "fp16" else torch.bfloat16
+        self.pipeline = AutoTokenizer.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            local_files_only=True,
+        )
+        cfg = AutoConfig.from_pretrained(model_path)
+        with torch.device("meta"):
+            model = RWKV7ForCausalLM._from_config(cfg)
+        sd = load_file(str(model_path / "model.safetensors"))
+        model.load_state_dict(sd, strict=True, assign=True)
+        self.model = model.to(dtype).to("cuda").eval()
         self.torch = torch
         self.pool = None
         self.scheduler = HFRecurrentScheduler(
