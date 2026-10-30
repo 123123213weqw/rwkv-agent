@@ -71,6 +71,9 @@ pub fn parse_action_lenient(raw: &str, allowed: &[String]) -> Result<Action, Pro
     if let Ok(action) = parse_action(&value) {
         return Ok(action);
     }
+    if let Some(action) = parse_openai_tool_calls(&value, allowed) {
+        return Ok(action);
+    }
     for name in allowed {
         if name.is_empty() {
             continue;
@@ -143,6 +146,69 @@ fn strip_think_blocks(value: &str) -> String {
 /// still falls through to the protocol-retry path. Values follow JSON
 /// escaping; the final value may be unterminated when generation was bounded
 /// by max_tokens instead of the closing quote.
+/// Lenient fallback for an OpenAI-style `tool_calls` array.
+///
+/// The checkpoint sometimes emits the schema it saw far more often during
+/// pretraining:
+///
+///     <tool_calls>[{"type":"function","function":{"name":"read_file",
+///                   "arguments":"{\"path\":\"x.txt\"}"}}]</tool_calls>
+///
+/// `arguments` is a JSON-encoded *string* there, which is the detail that makes
+/// the shape unambiguous. Native-format parsing is attempted first, so this only
+/// runs when the trained envelope is absent.
+///
+/// One call per turn: the loop is bounded by max_tool_steps anyway, and taking
+/// the first entry keeps the turn semantics identical to the native path.
+/// `read_file` maps to `run_command(command="cat PATH")` because the chat
+/// registry exposes no read_file tool.
+fn parse_openai_tool_calls(value: &str, allowed: &[String]) -> Option<Action> {
+    let open = value.find("<tool_calls>")?;
+    let rest = &value[open + "<tool_calls>".len()..];
+    let body = match rest.find("</tool_calls>") {
+        Some(end) => &rest[..end],
+        None => rest,
+    };
+    let body = body.trim();
+    let items: Vec<Value> = match serde_json::from_str::<Value>(body) {
+        Ok(Value::Array(items)) => items,
+        Ok(other) => vec![other],
+        Err(_) => {
+            let (start, end) = (body.find('[')?, body.rfind(']')?);
+            serde_json::from_str::<Value>(body.get(start..=end)?).ok()?.as_array().cloned()?
+        }
+    };
+    let first = items.first()?;
+    let function = first.get("function").unwrap_or(first);
+    let name = function.get("name")?.as_str()?.trim();
+    if name.is_empty() {
+        return None;
+    }
+    // arguments is a JSON string in the OpenAI schema, but tolerate an object.
+    let arguments = match function.get("arguments") {
+        Some(Value::String(text)) => serde_json::from_str::<Value>(text).ok()?,
+        Some(Value::Object(map)) => Value::Object(map.clone()),
+        _ => Value::Object(Map::new()),
+    };
+    let allowed_here = |candidate: &str| allowed.iter().any(|a| a == candidate);
+    if allowed_here(name) {
+        return Some(Action::Tool(ToolCall {
+            name: name.to_string(),
+            arguments: arguments.as_object().cloned().unwrap_or_default(),
+        }));
+    }
+    if name == "read_file" && allowed_here("run_command") {
+        let path = arguments.get("path")?.as_str()?.to_string();
+        let mut map = Map::new();
+        map.insert("command".to_string(), Value::String(format!("cat {path}")));
+        return Some(Action::Tool(ToolCall {
+            name: "run_command".to_string(),
+            arguments: map,
+        }));
+    }
+    None
+}
+
 fn parse_function_call(value: &str) -> Option<Action> {
     let open = value.find('(')?;
     let name = &value[..open];

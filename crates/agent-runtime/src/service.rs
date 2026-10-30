@@ -107,6 +107,16 @@ pub struct AgentService {
     debug_trace: DebugTraceStore,
 }
 
+/// Number of prior exchanges fed back into the prompt for a chat Session.
+///
+/// `sessions.history(session_id, CHAT_HISTORY_WINDOW)` can never return more
+/// than this, so the value stored as the chat-State cache key must be capped
+/// by it too. Without the cap the stored key grows past the window on the turn
+/// that first saturates it (12 + 1 = 13) while every later request asks for 12,
+/// so the cache misses permanently from that turn onward and every turn
+/// re-prefills the whole prompt.
+const CHAT_HISTORY_WINDOW: usize = 12;
+
 #[derive(Clone, Debug)]
 struct CachedChatState {
     session_id: String,
@@ -2190,7 +2200,7 @@ impl AgentService {
             .await;
             let _ = events.send(json!({"type":"phase","phase":"routing"})).await;
         }
-        let history = self.sessions.history(&session_id, 12).await?;
+        let history = self.sessions.history(&session_id, CHAT_HISTORY_WINDOW).await?;
         let context = prompt::bounded_context(&history, 8000);
         let routing_context = prompt::bounded_context(&history, 2000);
         let gate = if workspace.is_some() {
@@ -2199,6 +2209,21 @@ impl AgentService {
                 tool: Some("run_command".into()),
                 trace: serde_json::Map::from_iter([
                     ("mode".into(), json!("explicit_workspace")),
+                    ("label".into(), json!("tool")),
+                ]),
+            }
+        } else if let Some(reason) = explicit_tool_signal(message) {
+            // A message that names a concrete file, path, or URL cannot be
+            // answered without touching it. Route it before the model gate: the
+            // gate is a single scalar whose margin spans ~0.86 for one fixed
+            // intent across filenames, and when it picks chat the answer is
+            // fabricated with status=ok (no tool, no evidence, plausible prose).
+            GateDecision {
+                use_tool: true,
+                tool: None,
+                trace: serde_json::Map::from_iter([
+                    ("mode".into(), json!("explicit_signal")),
+                    ("reason".into(), json!(reason)),
                     ("label".into(), json!("tool")),
                 ]),
             }
@@ -2993,7 +3018,10 @@ impl AgentService {
                 .release_chat_after_error(&state, &error, debug_trace, stage_id)
                 .await);
         }
-        state.history_len = history_len + 1;
+        // Capped by the same window used when reading history; otherwise a
+        // saturated transcript stores a key no later request will ask for
+        // (see CHAT_HISTORY_WINDOW).
+        state.history_len = (history_len + 1).min(CHAT_HISTORY_WINDOW);
         state.stop_reason = row.stop_reason.clone();
         if let Some(hot) = &mut state.hot_state {
             hot.seen_tokens = row.seen_tokens;
@@ -3987,6 +4015,44 @@ fn replay_task_record(record: &TaskRecord) -> Result<Value, String> {
         .ok_or_else(|| format!("succeeded task `{}` has no final response", record.task_id))?;
     attach_task_ledger(&mut response, record);
     Ok(response)
+}
+
+/// Deterministic tool intent for requests that name a concrete artifact.
+///
+/// Returns a short reason tag when the message mentions something that can only
+/// be resolved by touching the environment: a filename with a known extension, an
+/// absolute or relative path, or a URL. Kept deliberately narrow -- precision
+/// matters more than recall here, because a false positive sends a chat-only
+/// request down the tool path, where the plain-answer fallback may have nothing
+/// to commit.
+fn explicit_tool_signal(message: &str) -> Option<&'static str> {
+    const EXTS: &[&str] = &[
+        "txt", "md", "py", "rs", "js", "ts", "tsx", "json", "yaml", "yml", "toml",
+        "csv", "log", "sh", "bash", "zsh", "html", "htm", "css", "xml", "pdf",
+        "png", "jpg", "jpeg", "gif", "sql", "go", "java", "c", "h", "cpp", "hpp",
+        "rb", "php", "ini", "cfg", "conf", "env", "lock",
+    ];
+    let is_token_char = |c: char| c.is_ascii_alphanumeric() || matches!(c, '.' | '/' | '-' | '_' | ':' | '~');
+    for rough in message.split_whitespace() {
+        let token = rough.trim_matches(|c: char| !is_token_char(c));
+        if token.len() < 3 {
+            continue;
+        }
+        if token.starts_with("http://") || token.starts_with("https://") {
+            return Some("url");
+        }
+        if token.starts_with('/') || token.starts_with("./") || token.starts_with("../")
+            || token.starts_with("~/")
+        {
+            return Some("path");
+        }
+        if let Some((stem, ext)) = token.rsplit_once('.') {
+            if !stem.is_empty() && EXTS.contains(&ext.to_ascii_lowercase().as_str()) {
+                return Some("filename");
+            }
+        }
+    }
+    None
 }
 
 fn task_requires_mutation(task: &str) -> bool {

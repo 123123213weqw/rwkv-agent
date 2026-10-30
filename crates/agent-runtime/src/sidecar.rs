@@ -575,8 +575,32 @@ impl SidecarClient {
             .map_err(|error| format!("sidecar invalid completion response: {error}"))
     }
 
+
+/// Skip leading `<think>...</think>` blocks.
+///
+/// Recurrent checkpoints open with a reasoning block even when the prompt
+/// forbids it. Envelope-presence checks must look past it, or the opener is
+/// synthesized a second time and the JSON body becomes unparseable.
+fn skip_think_prefix(value: &str) -> &str {
+    let mut rest = value.trim_start();
+    while let Some(stripped) = rest.strip_prefix("<think>") {
+        match stripped.find("</think>") {
+            Some(end) => rest = stripped[end + "</think>".len()..].trim_start(),
+            None => return "",
+        }
+    }
+    rest
+}
+
     fn reconstruct_envelope(input: &str, row: &BatchContinuation) -> String {
-        let generated = row.text.trim_start();
+        // Strip a leading <think> block before any envelope decision. The model
+        // opens every turn with one even though the prompt forbids it, and
+        // `first_complete_tool_json` is not think aware, so leaving it in makes
+        // the tool_prefill branch build invalid JSON and pushes control into the
+        // stop_reason arm, which then wraps the envelope twice.
+        let raw = row.text.trim_start();
+        let stripped = Self::skip_think_prefix(raw);
+        let generated = if stripped.is_empty() { raw } else { stripped };
         let tool_prefill = input
             .trim_end()
             .rsplit_once("Assistant: ")
@@ -606,9 +630,10 @@ impl SidecarClient {
         }
         match row.stop_reason.as_str() {
             "</tool_call>" => {
-                let prefix = if generated.starts_with("<tool_call>") {
+                let probe = Self::skip_think_prefix(generated);
+                let prefix = if probe.starts_with("<tool_call>") {
                     ""
-                } else if generated.starts_with("{\"name\":\"") {
+                } else if probe.starts_with("{\"name\":\"") {
                     // Some recurrent checkpoints echo a complete JSON call
                     // after a deeper controller prefix instead of continuing
                     // only the missing suffix. Treat that as a framing echo,
@@ -618,7 +643,7 @@ impl SidecarClient {
                 } else {
                     tool_prefill.unwrap_or("<tool_call>")
                 };
-                let suffix = if generated.ends_with("</tool_call>") {
+                let suffix = if probe.ends_with("</tool_call>") {
                     ""
                 } else {
                     "</tool_call>"
@@ -626,12 +651,13 @@ impl SidecarClient {
                 format!("{prefix}{generated}{suffix}")
             }
             "</answer>" => {
-                let prefix = if generated.starts_with("<answer>") {
+                let probe = Self::skip_think_prefix(generated);
+                let prefix = if probe.starts_with("<answer>") {
                     ""
                 } else {
                     "<answer>"
                 };
-                let suffix = if generated.ends_with("</answer>") {
+                let suffix = if probe.ends_with("</answer>") {
                     ""
                 } else {
                     "</answer>"

@@ -414,6 +414,17 @@ where
                         } else {
                             parse_action_lenient(&output.text, &allowed)
                         };
+                        if parse_result.is_err()
+                            && std::env::var("RWKV_AGENT_DEBUG_PROTOCOL").as_deref() == Ok("1")
+                        {
+                            eprintln!(
+                                "[proto] turn={} stop={:?} len={} text={:?}",
+                                model_turns,
+                                output.stop_reason,
+                                output.text.len(),
+                                &output.text[..output.text.len().min(600)],
+                            );
+                        }
                         match parse_result {
                         Ok(action) => action,
                         // Plain-answer mode: when the phase machine has
@@ -1112,6 +1123,11 @@ fn replacement_input(prompt: &str, prefix: &str, forked: bool) -> String {
 fn generation_stops(input: &str) -> Vec<String> {
     let mut stops = vec![
         "</tool_call>".to_string(),
+        // Recurrent checkpoints sometimes switch to an OpenAI-style array.
+        // Without this stop the generation runs past the closing tag and the
+        // model begins role-playing a User turn, so the output is only halted by
+        // the "\n\nUser:" stop and arrives with a fabricated conversation tail.
+        "</tool_calls>".to_string(),
         "</answer>".to_string(),
         "\n\nUser:".to_string(),
     ];
