@@ -75,6 +75,7 @@ class PersistentStateRuntime:
             "continued": 0,
             "classified": 0,
             "released": 0,
+            "expired_grouped": 0,
             "snapshots": 0,
             "restores": 0,
             "snapshot_bytes": 0,
@@ -169,10 +170,106 @@ class PersistentStateRuntime:
             )
         return tokens
 
+    def _owner_records(self, owner_id: str) -> list:
+        owner = self.registry.clean_owner(owner_id)
+        return [
+            record
+            for record in self.registry._records.values()
+            if record.owner_id == owner
+        ]
+
+    def describe_forest(self, owner_id: str) -> dict[str, Any]:
+        """Roots with their descendants nested underneath."""
+        records = self._owner_records(owner_id)
+        by_id = {r.state_id: r for r in records}
+        children: dict[str, list[str]] = {}
+        roots: list[str] = []
+        for record in records:
+            parent = record.parent_state_id
+            if parent and parent in by_id:
+                children.setdefault(parent, []).append(record.state_id)
+            else:
+                roots.append(record.state_id)
+
+        def node(state_id: str) -> dict[str, Any]:
+            record = by_id[state_id]
+            try:
+                seen = int(self.scheduler.request(state_id).seen_tokens)
+            except Exception:  # noqa: BLE001
+                seen = None
+            return {
+                "state_id": state_id,
+                "branch": record.branch,
+                "parent_state_id": record.parent_state_id,
+                "seen_tokens": seen,
+                "idle_seconds": round(self._clock() - record.last_used_at, 1),
+                "children": [node(child) for child in sorted(children.get(state_id, ()))],
+            }
+
+        return {
+            "owner_id": self.registry.clean_owner(owner_id),
+            "count": len(records),
+            "roots": [node(r) for r in sorted(roots)],
+        }
+
+    def describe_subtree(self, owner_id: str, state_id: str) -> dict[str, Any]:
+        """One node plus everything under it."""
+        record = self.registry.require(state_id, self.registry.clean_owner(owner_id))
+        forest = self.describe_forest(owner_id)
+
+        def walk(n: dict[str, Any]) -> dict[str, Any] | None:
+            if n["state_id"] == record.state_id:
+                return n
+            for child in n["children"]:
+                found = walk(child)
+                if found is not None:
+                    return found
+            return None
+
+        for root in forest["roots"]:
+            found = walk(root)
+            if found is not None:
+                return {"owner_id": forest["owner_id"], "subtree": found}
+        return {"owner_id": forest["owner_id"], "subtree": None}
+
+    def find_orphans(self, owner_id: str) -> list[str]:
+        """Nodes whose parent no longer exists.
+
+        With tree-aware release and TTL this should always be empty; a non-empty
+        result means some path dropped a parent without its children.
+        """
+        records = self._owner_records(owner_id)
+        by_id = {r.state_id: r for r in records}
+        return sorted(
+            r.state_id
+            for r in records
+            if r.parent_state_id is not None and r.parent_state_id not in by_id
+        )
+
+    def release_owner(self, owner_id: str) -> dict[str, Any]:
+        """Reclaim every non-busy state belonging to one owner."""
+        records = self._owner_records(owner_id)
+        busy = [r.state_id for r in records if r.state_id in self._busy]
+        free = [r for r in records if r.state_id not in self._busy]
+        released: list[str] = []
+        if free:
+            with self._lock:
+                # release_records already cascades through subtrees; passing every
+                # free node id is safe because duplicates are collapsed inside.
+                self.registry.release_records(free)
+                released = [r.state_id for r in free]
+            self._metrics["released"] += len(released)
+        return {
+            "owner_id": self.registry.clean_owner(owner_id),
+            "released": len(released),
+            "skipped_busy": busy,
+        }
+
     def _cleanup_expired_locked(self) -> list[str]:
         expired = self.registry.cleanup_expired(exclude=self._busy)
         if expired:
             self._metrics["expired"] += len(expired)
+            self._metrics["expired_grouped"] += 1
             self._metrics["released"] += len(expired)
         return expired
 

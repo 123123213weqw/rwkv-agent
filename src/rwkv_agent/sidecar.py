@@ -6,12 +6,21 @@ import binascii
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import queue
 import sys
 import threading
 import time
 from typing import Any, Sequence
+
+# Module-level imports so FastAPI can resolve these annotations. This module
+# uses PEP 563 (future annotations), so every annotation is a string
+# evaluated against module globals; a function-local import would leave
+# `request: Request` unresolvable and FastAPI would treat it as a query
+# parameter instead.
+from fastapi import Request
+from fastapi.responses import Response
 
 from rwkv7_scheduler import (
     AlbatrossChunkScheduler,
@@ -638,9 +647,50 @@ def _requires_worker_admission(path: str) -> bool:
     return True
 
 
+def _package_dir() -> str:
+    return os.getenv("G1I_PACKAGE_DIR", "packages")
+
+
+def _package_check(name: str) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", name or ""):
+        raise HTTPException(
+            422, "package name must be 1-64 of A-Z a-z 0-9 . _ -"
+        )
+    return name
+
+
+def _package_meta(name: str) -> dict[str, Any] | None:
+    _package_check(name)
+    path = os.path.join(_package_dir(), name + ".json")
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, encoding="utf-8") as handle:
+            meta = json.load(handle)
+    except Exception:  # noqa: BLE001
+        return None
+    meta["path"] = path.replace(".json", ".bin")
+    return meta
+
+
+def _packages() -> list[dict[str, Any]]:
+    directory = _package_dir()
+    if not os.path.isdir(directory):
+        return []
+    out = []
+    for entry in sorted(os.listdir(directory)):
+        if not entry.endswith(".json"):
+            continue
+        meta = _package_meta(entry[: -len(".json")])
+        if meta is not None:
+            out.append(meta)
+    out.sort(key=lambda m: m.get("created_at") or 0, reverse=True)
+    return out
+
+
 def create_app():
-    from fastapi import FastAPI, HTTPException
-    from fastapi.responses import JSONResponse, StreamingResponse
+    from fastapi import FastAPI, HTTPException, Request
+    from fastapi.responses import JSONResponse, Response, StreamingResponse
 
     app = FastAPI(title="RWKV G1I continuous-batch sidecar", version="0.4.0")
 
@@ -946,6 +996,268 @@ def create_app():
         except Exception as exc:
             state_error(exc)
             raise AssertionError("unreachable")
+
+    @app.get("/v1/states/tree")
+    def state_tree(owner_id: str = "") -> dict[str, Any]:
+        """Whole forest for one owner: roots plus their nested children."""
+        if service is None:
+            raise HTTPException(503, "loading")
+        try:
+            return {"status": "ok", **service.states.describe_forest(owner_id)}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.get("/v1/states/orphans")
+    def state_orphans(owner_id: str = "") -> dict[str, Any]:
+        """Nodes whose parent_state_id no longer resolves.
+
+        Expected to be empty once release and TTL are tree-aware; anything here
+        means a state was dropped without its children.
+        """
+        if service is None:
+            raise HTTPException(503, "loading")
+        try:
+            orphans = service.states.find_orphans(owner_id)
+            return {"status": "ok", "count": len(orphans), "state_ids": orphans}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.get("/v1/states/{state_id}/tree")
+    def state_subtree(state_id: str, owner_id: str = "") -> dict[str, Any]:
+        """Subtree rooted at one node, including the node itself."""
+        if service is None:
+            raise HTTPException(503, "loading")
+        try:
+            return {"status": "ok", **service.states.describe_subtree(owner_id, state_id)}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.post("/v1/states/release_owner")
+    def state_release_owner(payload: dict[str, Any]) -> dict[str, Any]:
+        """Release every state belonging to one owner.
+
+        Exists because a crashed client previously held 45 of 48 slots until the
+        900 s TTL expired, with no way to reclaim them early. Busy nodes are
+        skipped so a running continuation is never pulled from under itself.
+        """
+        if service is None:
+            raise HTTPException(503, "loading")
+        try:
+            return {
+                "status": "ok",
+                **service.states.release_owner(str(payload.get("owner_id") or "")),
+            }
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.get("/metrics")
+    def metrics() -> Any:
+        """Prometheus text exposition of the state pool and registry counters."""
+        if service is None:
+            raise HTTPException(503, "loading")
+        runtime = service.health()
+        ps = runtime.get("persistent_states") or {}
+        pool = ((runtime.get("inference") or {}).get("scheduler") or {}).get("pool") or {}
+        lines: list[str] = []
+
+        def emit(name: str, kind: str, help_text: str, value: Any,
+                 labels: str = "") -> None:
+            if kind == "counter":
+                lines.append("# TYPE %s counter" % name)
+            elif kind == "gauge":
+                lines.append("# TYPE %s gauge" % name)
+            lines.append("# HELP %s %s" % (name, help_text))
+            suffix = ("{" + labels + "}") if labels else ""
+            lines.append("%s%s %s" % (name, suffix, value))
+
+        for key in ("capacity", "allocated", "free", "busy", "oldest_idle_seconds"):
+            if key in ps:
+                emit("rwkv_state_%s" % key, "gauge",
+                     "persistent state pool %s" % key, ps[key])
+        if "ttl_seconds" in ps:
+            emit("rwkv_state_ttl_seconds", "gauge", "idle TTL before reclaim",
+                 ps["ttl_seconds"])
+        for key, value in sorted((ps.get("metrics") or {}).items()):
+            emit("rwkv_state_%s_total" % key, "counter",
+                 "state registry counter %s" % key, value)
+        for key in ("capacity", "allocated", "free", "bytes_per_slot",
+                    "slab_bytes", "workspace_bytes"):
+            if key in pool:
+                emit("rwkv_pool_%s" % key, "gauge", "inference pool %s" % key,
+                     pool[key])
+        calls = runtime.get("calls")
+        if isinstance(calls, dict):
+            for key, value in sorted(calls.items()):
+                if isinstance(value, (int, float)):
+                    emit("rwkv_sidecar_%s_total" % key, "counter",
+                         "sidecar call counter %s" % key, value)
+        return Response("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
+
+    @app.post("/v1/states/{state_id}/snapshot_raw")
+    def state_snapshot_raw(state_id: str, payload: dict[str, Any]) -> Any:
+        """Same bytes as /snapshot, without base64 or the JSON envelope."""
+        if service is None:
+            raise HTTPException(503, "loading")
+        require_model_ref(payload)
+        try:
+            snapshot = service.states.snapshot(
+                owner_id=str(payload.get("owner_id") or ""),
+                state_id=state_id,
+            )
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+        return Response(
+            snapshot["payload"],
+            media_type="application/octet-stream",
+            headers={
+                "X-Checksum": snapshot["checksum"],
+                "X-Size-Bytes": str(snapshot["size_bytes"]),
+                "X-Seen-Tokens": str(snapshot["seen_tokens"]),
+                "X-State-Id": state_id,
+                "Cache-Control": "no-store",
+            },
+        )
+
+    @app.post("/v1/states/restore_raw")
+    async def state_restore_raw(request: Request, owner_id: str = "",
+                                branch: str = "") -> dict[str, Any]:
+        """Restore from a raw payload body.
+
+        model_ref travels as base64(JSON) in X-Model-Ref and the checksum in
+        X-Checksum, because the body is the payload itself and cannot also carry
+        a JSON envelope.
+        """
+        if service is None:
+            raise HTTPException(503, "loading")
+        encoded_ref = request.headers.get("x-model-ref") or ""
+        try:
+            supplied_ref = json.loads(base64.b64decode(encoded_ref).decode("utf-8"))
+        except Exception:  # noqa: BLE001
+            raise HTTPException(422, "X-Model-Ref must be base64-encoded JSON")
+        if supplied_ref != model_ref():
+            raise HTTPException(409, "exact State model_ref mismatch")
+        checksum = request.headers.get("x-checksum") or ""
+        raw = await request.body()
+        if not raw:
+            raise HTTPException(422, "payload must be a non-empty body")
+        if len(raw) > MAX_SNAPSHOT_BYTES:
+            raise HTTPException(413, "snapshot exceeds configured byte limit")
+        actual = "sha256:" + hashlib.sha256(raw).hexdigest()
+        if checksum != actual:
+            raise HTTPException(422, "snapshot checksum mismatch")
+        try:
+            state = service.states.restore(
+                owner_id=owner_id,
+                payload=raw,
+                branch=(branch or None),
+            )
+            return {"status": "ok", "state": state}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.get("/v1/states/packages")
+    def packages_list() -> dict[str, Any]:
+        """Every package on disk, newest first."""
+        return {"status": "ok", "directory": _package_dir(),
+                "packages": _packages()}
+
+    @app.get("/v1/states/packages/{name}")
+    def packages_info(name: str) -> dict[str, Any]:
+        meta = _package_meta(name)
+        if meta is None:
+            raise HTTPException(404, "no such package")
+        return {"status": "ok", "package": meta}
+
+    @app.post("/v1/states/packages")
+    def packages_create(payload: dict[str, Any]) -> dict[str, Any]:
+        """Snapshot a live state into a named package on disk."""
+        if service is None:
+            raise HTTPException(503, "loading")
+        name = _package_check(str(payload.get("name") or ""))
+        snapshot = service.states.snapshot(
+            owner_id=str(payload.get("owner_id") or ""),
+            state_id=str(payload.get("state_id") or ""),
+        )
+        directory = _package_dir()
+        os.makedirs(directory, exist_ok=True)
+        blob_path = os.path.join(directory, name + ".bin")
+        meta_path = os.path.join(directory, name + ".json")
+        tmp_blob = blob_path + ".tmp"
+        with open(tmp_blob, "wb") as handle:
+            handle.write(snapshot["payload"])
+        os.replace(tmp_blob, blob_path)
+        meta = {
+            "name": name,
+            "checksum": snapshot["checksum"],
+            "size_bytes": snapshot["size_bytes"],
+            "seen_tokens": snapshot["seen_tokens"],
+            "model_ref": model_ref(),
+            "source_state_id": str(payload.get("state_id") or ""),
+            "created_at": time.time(),
+        }
+        with open(meta_path + ".tmp", "w", encoding="utf-8") as handle:
+            json.dump(meta, handle, sort_keys=True)
+        os.replace(meta_path + ".tmp", meta_path)
+        return {"status": "ok", "package": meta}
+
+    @app.post("/v1/states/packages/{name}/instantiate")
+    def packages_instantiate(name: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """Restore a package into a fresh state.
+
+        release_source frees the original state first. restore refuses while the
+        snapshot's source is still live, so instantiating from a package made in
+        this same process needs it.
+        """
+        if service is None:
+            raise HTTPException(503, "loading")
+        meta = _package_meta(name)
+        if meta is None:
+            raise HTTPException(404, "no such package")
+        if meta.get("model_ref") != model_ref():
+            raise HTTPException(409, "package was built for a different model_ref")
+        blob_path = os.path.join(_package_dir(), name + ".bin")
+        with open(blob_path, "rb") as handle:
+            raw = handle.read()
+        actual = "sha256:" + hashlib.sha256(raw).hexdigest()
+        if actual != meta.get("checksum"):
+            raise HTTPException(422, "package checksum mismatch on disk")
+        owner_id = str(payload.get("owner_id") or "")
+        source = meta.get("source_state_id") or ""
+        if payload.get("release_source") and source:
+            try:
+                service.states.release_owner(owner_id)
+            except Exception:  # noqa: BLE001
+                pass
+        try:
+            state = service.states.restore(
+                owner_id=owner_id,
+                payload=raw,
+                branch=(str(payload["branch"]) if payload.get("branch") else None),
+            )
+            return {"status": "ok", "package": name, "state": state}
+        except Exception as exc:
+            state_error(exc)
+            raise AssertionError("unreachable")
+
+    @app.delete("/v1/states/packages/{name}")
+    def packages_delete(name: str) -> dict[str, Any]:
+        _package_check(name)
+        directory = _package_dir()
+        removed = []
+        for suffix in (".bin", ".json"):
+            path = os.path.join(directory, name + suffix)
+            if os.path.exists(path):
+                os.remove(path)
+                removed.append(suffix)
+        if not removed:
+            raise HTTPException(404, "no such package")
+        return {"status": "ok", "name": name, "removed": removed}
 
     @app.post("/v1/states/batch_continue")
     def state_batch_continue(payload: dict[str, Any]) -> dict[str, Any]:
