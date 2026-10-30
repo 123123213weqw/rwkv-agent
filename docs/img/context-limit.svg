@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <rect width="920" height="400" fill="#0d1117"/>
+
+  <text x="40" y="38" fill="#e6edf3" font-size="17" font-weight="600">Context limit: policy constant vs measured boundary</text>
+
+  <!-- policy line, label above it, nothing crossing the line -->
+  <text x="120" y="76" fill="#d29922" font-size="12">16,384 — enforced in ten places</text>
+  <line x1="120" y1="86" x2="850" y2="86" stroke="#d29922" stroke-dasharray="6 4"/>
+  <text x="120" y="106" fill="#6e7681" font-size="11">but model.forward takes no position ids, and seen_tokens is only a counter</text>
+
+  <!-- bars: 0..30000 mapped to 120..850 -->
+  <g>
+    <text x="40" y="146" fill="#8b949e" font-size="12">5,269</text>
+    <rect x="120" y="132" width="128" height="22" fill="#2e7d4f"/>
+    <text x="260" y="148" fill="#3fb950" font-size="12" font-weight="600">8/8</text>
+  </g>
+  <g>
+    <text x="40" y="186" fill="#8b949e" font-size="12">16,788</text>
+    <rect x="120" y="172" width="409" height="22" fill="#2e7d4f"/>
+    <text x="541" y="188" fill="#3fb950" font-size="12" font-weight="600">8/8</text>
+    <text x="200" y="188" fill="#0d1117" font-size="11" font-weight="600">past the old limit</text>
+  </g>
+  <g>
+    <text x="40" y="226" fill="#8b949e" font-size="12">23,188</text>
+    <rect x="120" y="212" width="565" height="22" fill="#2e7d4f"/>
+    <text x="697" y="228" fill="#3fb950" font-size="12" font-weight="600">8/8 last perfect</text>
+  </g>
+  <g>
+    <text x="40" y="266" fill="#8b949e" font-size="12">24,788</text>
+    <rect x="120" y="252" width="604" height="22" fill="#8b3a3a"/>
+    <text x="736" y="268" fill="#f85149" font-size="12" font-weight="600">7/8</text>
+  </g>
+  <g>
+    <text x="40" y="306" fill="#8b949e" font-size="12">28,787</text>
+    <rect x="120" y="292" width="702" height="22" fill="#8b3a3a"/>
+    <text x="834" y="308" fill="#f85149" font-size="12" font-weight="600">7/8</text>
+  </g>
+
+  <text x="40" y="352" fill="#c9d1d9" font-size="12">published RWKV-7 G1k is named ctx25600 — brackets where this degrades</text>
+  <text x="40" y="374" fill="#6e7681" font-size="11">correlation from one preview build, not a proven cause</text>
+</svg>

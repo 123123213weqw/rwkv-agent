@@ -7,6 +7,8 @@ than asserted. Every number is from the deployment described at the end.
 
 ## 1. Memory: what fits on a 24 GB card
 
+![memory](img/memory.svg)
+
 ```
                               per session      31 sessions    fits on 24 GB?
   ─────────────────────────────────────────────────────────────────────────
@@ -41,6 +43,8 @@ The 4090D has 24 GB; 13.9 GiB is model weights, leaving ~10 GiB. Transformer at
 ---
 
 ## 3. Snapshot and restore: where it pays off
+
+![snapshot crossover](img/snapshot-crossover.svg)
 
 ```
    tokens   prefill    restore    winner        ratio
@@ -88,6 +92,8 @@ payload has to travel inside a JSON document; the raw form is for everything els
 
 ## 5. Overload: before and after
 
+![overload](img/overload.svg)
+
 ```
   BEFORE  ─────────────────────────────────────────────────────────
     n=48 concurrent
@@ -123,6 +129,8 @@ operator.
 
 ## 6. Context: policy limit vs measured limit
 
+![context limit](img/context-limit.svg)
+
 ```
   16,384  ────────────────────────►  what the code enforces (ten places)
                                        model.forward takes no position ids;
@@ -143,6 +151,8 @@ That is a correlation from one preview build, not a proven cause.
 ---
 
 ## 7. Where the agent can and cannot act
+
+![capabilities](img/capabilities.svg)
 
 ```
   capability                   result   failure mode

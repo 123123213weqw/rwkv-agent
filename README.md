@@ -7,6 +7,8 @@ executes strict tool calls, and advances many isolated agent states through one
 GPU scheduler. It runs entirely on your hardware — no cloud dependency, no
 data leaves the host.
 
+![Memory: 31 concurrent sessions on one 24 GB card](docs/img/memory.svg)
+
 ## How it works
 
 For an illustrated walk through the mechanisms — why a recurrent state makes

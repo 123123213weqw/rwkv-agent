@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 430" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+  <rect width="920" height="430" fill="#0d1117"/>
+
+  <text x="40" y="38" fill="#e6edf3" font-size="17" font-weight="600">Snapshot restore vs recompute prefill</text>
+  <text x="40" y="60" fill="#8b949e" font-size="12">where the crossover sits decides when saving a state is worth it</text>
+
+  <!-- legend -->
+  <rect x="620" y="88" width="12" height="12" fill="#8b3a3a"/>
+  <text x="640" y="99" fill="#c9d1d9" font-size="12">prefill</text>
+  <rect x="720" y="88" width="12" height="12" fill="#2e7d4f"/>
+  <text x="740" y="99" fill="#c9d1d9" font-size="12">restore</text>
+
+  <!-- axis -->
+  <line x1="150" y1="120" x2="150" y2="330" stroke="#30363d"/>
+  <line x1="150" y1="330" x2="850" y2="330" stroke="#30363d"/>
+  <text x="85" y="126" fill="#8b949e" font-size="11">ms</text>
+
+  <g stroke="#21262d">
+    <line x1="150" y1="280" x2="850" y2="280"/>
+    <line x1="150" y1="230" x2="850" y2="230"/>
+    <line x1="150" y1="180" x2="850" y2="180"/>
+    <line x1="150" y1="130" x2="850" y2="130"/>
+  </g>
+  <g fill="#6e7681" font-size="10" text-anchor="end">
+    <text x="142" y="334">0</text>
+    <text x="142" y="284">3k</text>
+    <text x="142" y="234">6k</text>
+    <text x="142" y="184">9k</text>
+    <text x="142" y="134">12k</text>
+  </g>
+
+  <!-- side-by-side bars: prefill left, restore right within each group -->
+  <!-- group centers: 200, 335, 470, 605, 740 -->
+  <!-- prefill heights: 501->14, 1047->30, 3828->110, 6451->185, 10925->313 (cap at 200) -->
+  <g fill="#8b3a3a">
+    <rect x="182" y="316" width="26" height="14"/>
+    <rect x="317" y="300" width="26" height="30"/>
+    <rect x="452" y="220" width="26" height="110"/>
+    <rect x="587" y="145" width="26" height="185"/>
+    <rect x="722" y="130" width="26" height="200"/>
+  </g>
+  <!-- restore constant ~15px (920ms) -->
+  <g fill="#2e7d4f">
+    <rect x="214" y="315" width="26" height="15"/>
+    <rect x="349" y="315" width="26" height="15"/>
+    <rect x="484" y="315" width="26" height="15"/>
+    <rect x="619" y="315" width="26" height="15"/>
+    <rect x="754" y="315" width="26" height="15"/>
+  </g>
+
+  <!-- x labels -->
+  <g fill="#8b949e" font-size="11" text-anchor="middle">
+    <text x="211" y="350">464</text>
+    <text x="346" y="350">1.8k</text>
+    <text x="481" y="350">5.5k</text>
+    <text x="616" y="350">11k</text>
+    <text x="751" y="350">18.3k</text>
+  </g>
+  <text x="500" y="370" fill="#8b949e" font-size="11" text-anchor="middle">context tokens</text>
+
+  <!-- crossover marker -->
+  <line x1="346" y1="120" x2="346" y2="330" stroke="#d29922" stroke-dasharray="3 3"/>
+  <rect x="284" y="104" width="124" height="22" fill="#1c2128" stroke="#d29922"/>
+  <text x="346" y="119" fill="#d29922" font-size="11" text-anchor="middle">crossover 1,839</text>
+
+  <!-- annotations, well clear of the axis label -->
+  <text x="211" y="392" fill="#f85149" font-size="11" text-anchor="middle">recompute cheaper</text>
+  <text x="751" y="392" fill="#3fb950" font-size="11" text-anchor="middle">11.9× faster</text>
+
+  <text x="40" y="414" fill="#6e7681" font-size="11">below ~1,800 tokens, restoring costs more than recomputing. restore is flat; prefill grows.</text>
+</svg>
