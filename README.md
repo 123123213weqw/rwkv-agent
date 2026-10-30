@@ -7,6 +7,19 @@ executes strict tool calls, and advances many isolated agent states through one
 GPU scheduler. It runs entirely on your hardware — no cloud dependency, no
 data leaves the host.
 
+## How it works
+
+For an illustrated walk through the mechanisms — why a recurrent state makes
+memory constant, how the pool and the state tree are managed, what snapshot and
+restore actually cost, and where the tool loop and the routing gate break — see
+**[docs/MECHANISMS.md](docs/MECHANISMS.md)**.
+
+Short version: context is one fixed-size recurrent state (34,078,724 B),
+independent of how much has been read. 31 concurrent sessions cost 0.98 GiB
+instead of 31 GiB, which is the difference between fitting on a 24 GB card and
+not. The same property makes a state copyable in 3.8 ms, snapshotable to a
+constant 32.63 MiB, and restorable 11.9x faster than recomputing at 18K tokens.
+
 ## What it does
 
 - **State-native memory:** the same session reuses its RWKV recurrent state;
