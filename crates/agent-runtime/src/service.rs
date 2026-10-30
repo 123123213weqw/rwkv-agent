@@ -59,9 +59,13 @@ pub struct RuntimeConfig {
     /// `<answer>` envelope (e.g. the G1L preview).
     pub plain_answer: bool,
     /// Fleet admission control: maximum concurrently executing tasks.
-    /// Zero disables the bound; requests beyond the bound wait in the
-    /// task ledger until a slot frees.
+    /// Zero disables the bound.
     pub max_active_tasks: usize,
+    /// How long an over-capacity request may wait for a slot before 429.
+    /// Zero rejects immediately, which is the safe default: a parked task still
+    /// holds ledger state while the state pool holds only a fixed number of
+    /// slots, so waiting on both can deadlock into free == 0.
+    pub admission_wait_seconds: f64,
 }
 
 impl Default for RuntimeConfig {
@@ -87,6 +91,7 @@ impl Default for RuntimeConfig {
             ablate_protocol_retry: false,
             plain_answer: false,
             max_active_tasks: 0,
+            admission_wait_seconds: 0.0,
         }
     }
 }
@@ -1800,15 +1805,49 @@ impl AgentService {
         // waits here, already durably recorded in the ledger, until a
         // running task completes and releases its slot.
         if self.config.max_active_tasks > 0 {
+            // Bounded admission. Rejecting is the default because a parked task
+            // holds ledger state while the state pool holds only a fixed number of
+            // slots; waiting on both can deadlock into free == 0, which leaves
+            // /ready reporting state_capacity=unavailable and needs a restart.
+            let deadline = if self.config.admission_wait_seconds > 0.0 {
+                Some(
+                    std::time::Instant::now()
+                        + std::time::Duration::from_secs_f64(
+                            self.config.admission_wait_seconds,
+                        ),
+                )
+            } else {
+                None
+            };
             loop {
-                let slot_free = {
-                    let active = self.active_tasks.lock().await;
-                    active.len() < self.config.max_active_tasks
-                };
-                if slot_free || cancellation.is_cancelled() {
+                let active_now = self.active_tasks.lock().await.len();
+                if active_now < self.config.max_active_tasks
+                    || cancellation.is_cancelled()
+                {
                     break;
                 }
-                self.task_completion.notified().await;
+                match deadline {
+                    None => {
+                        return Err(format!(
+                            "fleet at capacity: {active_now} of {} active tasks",
+                            self.config.max_active_tasks
+                        ));
+                    }
+                    Some(limit) if std::time::Instant::now() >= limit => {
+                        return Err(format!(
+                            "fleet at capacity after {}s: {active_now} of {} active tasks",
+                            self.config.admission_wait_seconds,
+                            self.config.max_active_tasks
+                        ));
+                    }
+                    Some(_) => {
+                        let _ = tokio::time::timeout(
+                            std::time::Duration::from_millis(250),
+                            self.task_completion.notified(),
+                        )
+                        .await;
+                    }
+                }
             }
         }
         {

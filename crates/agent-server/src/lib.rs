@@ -1208,6 +1208,14 @@ fn error_from_message(message: String, request_id: &str) -> (StatusCode, Json<Va
             StatusCode::GATEWAY_TIMEOUT,
             ServiceErrorCode::DeadlineExceeded,
         )
+    } else if lower.contains("fleet at capacity") {
+        // Retryable overload, not a dependency failure. 429 keeps this distinct
+        // from a genuinely unavailable sidecar, which the branch below maps to
+        // 503 and which would send an operator looking at the GPU.
+        (
+            StatusCode::TOO_MANY_REQUESTS,
+            ServiceErrorCode::Unavailable,
+        )
     } else if lower.contains("connection")
         || lower.contains("connect")
         || lower.contains("sidecar")

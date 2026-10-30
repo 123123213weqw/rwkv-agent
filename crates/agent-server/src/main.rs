@@ -55,6 +55,14 @@ struct Args {
     no_gate: bool,
     #[arg(
         long,
+        env = "RWKV_AGENT_ADMISSION_WAIT_SECONDS",
+        default_value_t = 0.0,
+        help = "Seconds an over-capacity request may wait for a task slot before \
+                being rejected with 429. Zero rejects immediately."
+    )]
+    admission_wait_seconds: f64,
+    #[arg(
+        long,
         env = "RWKV_AGENT_MAX_MODEL_TOKENS_PER_TURN",
         default_value_t = 2048
     )]
@@ -203,6 +211,7 @@ async fn main() -> Result<(), String> {
         chat_state_capacity: args.chat_state_capacity,
         max_tool_steps: args.max_tool_steps,
         no_gate: args.no_gate,
+        admission_wait_seconds: args.admission_wait_seconds,
         max_model_tokens_per_turn: args.max_model_tokens_per_turn,
         direct_chat_max_tokens: args.direct_chat_max_tokens,
         max_run_elapsed: Duration::from_secs(args.max_run_seconds),
