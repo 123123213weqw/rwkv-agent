@@ -12,7 +12,8 @@ data leaves the host.
 For an illustrated walk through the mechanisms — why a recurrent state makes
 memory constant, how the pool and the state tree are managed, what snapshot and
 restore actually cost, and where the tool loop and the routing gate break — see
-**[docs/MECHANISMS.md](docs/MECHANISMS.md)**.
+**[docs/MECHANISMS.md](docs/MECHANISMS.md)** (how it works) and
+**[docs/COMPARISONS.md](docs/COMPARISONS.md)** (measured side-by-side).
 
 Short version: context is one fixed-size recurrent state (34,078,724 B),
 independent of how much has been read. 31 concurrent sessions cost 0.98 GiB
