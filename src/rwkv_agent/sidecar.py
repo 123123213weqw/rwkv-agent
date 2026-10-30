@@ -227,7 +227,21 @@ class NativeG1I:
             capacity=STATE_CAPACITY,
             max_batch_size=MAX_BATCH_SIZE,
         )
-        self.pool.prewarm(range(1, MAX_BATCH_SIZE + 1))
+        # Warming every size 1..N allocates sum(1..N) recurrent slabs; at
+        # 7.2B that is 32.5 MiB per row, so N=32 costs ~17 GiB before the
+        # model is counted and OOMs a 24 GiB card. Only a sparse ladder is
+        # worth warming; _workspace() still materialises any other size on
+        # demand inside inference_mode(False).
+        # 20 and 24 are included because the resident-library scan
+        # (see docs: D3) runs one batch wave of exactly N documents, and N=20
+        # was measured end to end. Without them a 20-way scan materialises a
+        # ~1.2 GiB workspace on first use and never frees it, so the cost
+        # arrives as a surprise mid-run instead of predictably at startup.
+        warm_sizes = sorted(
+            {1, 2, 4, 8, 16, 20, 24, 32, MAX_BATCH_SIZE}
+            & set(range(1, MAX_BATCH_SIZE + 1))
+        )
+        self.pool.prewarm(warm_sizes)
         self.scheduler = AlbatrossChunkScheduler(
             self.model,
             pool=self.pool,
@@ -333,6 +347,13 @@ class NativeG1I:
         sd = load_file(str(model_path / "model.safetensors"))
         model.load_state_dict(sd, strict=True, assign=True)
         self.model = model.to(dtype).to("cuda").eval()
+        if os.getenv("G1I_FLA_COMPILE", "0") == "1":
+            # fla decode is Python-overhead bound (32 layers of small ops per
+            # token). reduce-overhead captures CUDA graphs for the fixed
+            # warmup shapes and replays them per step.
+            self.model = torch.compile(
+                self.model, mode="reduce-overhead", dynamic=False
+            )
         self.torch = torch
         self.pool = None
         self.scheduler = HFRecurrentScheduler(
@@ -357,7 +378,7 @@ class NativeG1I:
         import torch
         chunk = min(PREFILL_CHUNK_SIZE, 512)
         print(f"[fla warmup] chunk={chunk} batches<= {MAX_BATCH_SIZE}", flush=True)
-        for batch in range(1, min(MAX_BATCH_SIZE, 16) + 1):
+        for batch in range(1, MAX_BATCH_SIZE + 1):
             tokens = torch.randint(0, 60000, (batch, chunk), device="cuda")
             try:
                 with torch.no_grad():
