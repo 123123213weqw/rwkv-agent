@@ -387,7 +387,8 @@ class NativeG1I:
         import torch
         chunk = min(PREFILL_CHUNK_SIZE, 512)
         print(f"[fla warmup] chunk={chunk} batches<= {MAX_BATCH_SIZE}", flush=True)
-        for batch in range(1, MAX_BATCH_SIZE + 1):
+        shapes = sorted({1, 8, 16, 24, 32, MAX_BATCH_SIZE})
+        for batch in shapes:
             tokens = torch.randint(0, 60000, (batch, chunk), device="cuda")
             try:
                 with torch.no_grad():
