@@ -208,13 +208,40 @@ fn render_workspace_task_spec(task: &TaskSpec, display_directory: &str) -> Strin
 
 pub fn normalize_workspace_task(message: &str, display_directory: &str) -> String {
     if display_directory.is_empty() {
-        message.trim().to_string()
-    } else {
-        message
-            .replace(display_directory, "/workspace")
-            .trim()
-            .to_string()
+        return message.trim().to_string();
     }
+    // Replace the directory only where it appears as a path segment. A bare
+    // substring replace also rewrites filenames that merely contain the
+    // directory name (`dbg2048.html` in workspace `dbg2048` used to become
+    // `/workspace.html`, sending the write prefill at a phantom path).
+    let chars: Vec<char> = message.chars().collect();
+    let dir: Vec<char> = display_directory.chars().collect();
+    // A path segment boundary: separators, whitespace, quotes, or the
+    // string edge. Filename characters around the match mean it is part of
+    // a longer token (like `dbg2048.html`) and must be left alone.
+    let boundary = |c: char| c == '/' || c == '\\' || c.is_whitespace() || c == '"' || c == '\'';
+    let mut out = String::with_capacity(message.len());
+    let mut i = 0usize;
+    while i < chars.len() {
+        let fits = i + dir.len() <= chars.len();
+        let matches = fits && chars[i..i + dir.len()] == dir[..];
+        let boundary_before = i == 0 || boundary(chars[i - 1]);
+        let boundary_after =
+            !fits || i + dir.len() == chars.len() || boundary(chars[i + dir.len()]);
+        if matches && boundary_before && boundary_after {
+            if i > 0 && (chars[i - 1] == '/' || chars[i - 1] == '\\') {
+                // Keep the existing separator instead of doubling it.
+                out.push_str("workspace");
+            } else {
+                out.push_str("/workspace");
+            }
+            i += dir.len();
+        } else {
+            out.push(chars[i]);
+            i += 1;
+        }
+    }
+    out.trim().to_string()
 }
 
 pub fn research_root(question: &str) -> String {
@@ -327,6 +354,18 @@ mod tests {
         assert!(initial.contains("Work in /workspace and read input.txt."));
         assert!(initial.contains("\"schema_version\": 1"));
         assert!(initial.ends_with("Assistant: <tool_call>{\"name\":\""));
+    }
+
+    #[test]
+    fn directory_substitution_spares_filenames_containing_it() {
+        assert_eq!(
+            normalize_workspace_task("Write dbg2048.html: a 2048 game in dbg2048/", "dbg2048"),
+            "Write dbg2048.html: a 2048 game in /workspace/"
+        );
+        assert_eq!(
+            normalize_workspace_task("see /a/dbg2048 and dbg2048/b.txt", "dbg2048"),
+            "see /a/workspace and /workspace/b.txt"
+        );
     }
 
     #[test]
