@@ -9,6 +9,7 @@
 - [SERVICE_PIPELINE.md](SERVICE_PIPELINE.md): canonical startup, readiness, lifecycle and failure diagnosis
 - [DEBUG_TRACE.md](DEBUG_TRACE.md): opt-in local diagnostic capture
 - [KNOWN_ISSUES.md](KNOWN_ISSUES.md): defects, limits and stable-release gates
+- [PITFALLS.md](PITFALLS.md): operational pitfalls from the G1L fleet work — silent misassembly, warmup, timeouts, pool sizing, fleet recipe
 - [RELEASE.md](RELEASE.md): maintainer audit, clean-install and publish checklist
 
 ## Architecture and evaluation
