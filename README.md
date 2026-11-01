@@ -99,6 +99,29 @@ Requests carry identity fields (`api_version`, `request_id`, `owner_id`,
 `session_id`). See `contracts/agent-service-v1.openapi.json` for the full
 schema.
 
+## Environment requirements
+
+What CI verifies ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+and [`.github/workflows/release-cli.yml`](.github/workflows/release-cli.yml)):
+
+- **Rust 1.85+** — the workspace builds with `edition = "2024"`
+  ([Cargo.toml](Cargo.toml)), which needs rustc 1.85 at minimum. CI installs
+  the latest stable toolchain with `rustfmt` and `clippy`
+  (`dtolnay/rust-toolchain@stable`); no MSRV is pinned anywhere, so a current
+  stable toolchain is the closest match to what CI runs.
+- **64-bit Linux** for the full stack — every CI job runs on `ubuntu-latest`,
+  and CLI release builds target `x86_64-unknown-linux-gnu` on `ubuntu-24.04`.
+  The terminal client is additionally released for Apple Silicon macOS
+  (`aarch64-apple-darwin` on `macos-15`); the GPU runtime itself targets
+  Linux.
+- **Python 3.10+** — `requires-python = ">=3.10"` in
+  [pyproject.toml](pyproject.toml); CI exercises the Python suite on 3.11.
+- **bash** — required by the install and release scripts (`cli/install.sh`,
+  `cli/package-release.sh`).
+- **GPU (runtime only)** — CI is CPU-only. Running the model sidecar needs an
+  NVIDIA CUDA GPU (any VRAM ≥ 16 GB for a 7B model) or an AMD ROCm GPU; see
+  the prerequisites below.
+
 ## Quick start
 
 ### Prerequisites
@@ -106,7 +129,7 @@ schema.
 - Linux with an NVIDIA CUDA GPU (any VRAM ≥ 16 GB for a 7B model) or an
   AMD ROCm GPU
 - Python 3.10+
-- Rust 1.75+ for the controller and CLI
+- Rust 1.85+ for the controller and CLI
 - A RWKV-7 model checkpoint (public weights from
   [HuggingFace](https://huggingface.co/RWKV) work; no private runtime needed)
 
