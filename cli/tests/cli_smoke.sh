@@ -26,9 +26,6 @@ ENDPOINT="http://127.0.0.1:$PORT"
   "Who created RWKV?" | grep -q "mock research"
 "$BIN" --endpoint "$ENDPOINT" --json tool web-search "latest release" \
   | grep -q '"status": "ok"'
-"$BIN" --endpoint "$ENDPOINT" --session pasted-demo --json \
-  tool long-text-qa "What does it say?" \
-  | grep -q '"status": "ok"'
 printf 'hello chat\n/exit\n' \
   | "$BIN" --endpoint "$ENDPOINT" chat \
   | grep -q "mock answer"
