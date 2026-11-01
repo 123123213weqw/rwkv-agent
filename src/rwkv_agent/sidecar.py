@@ -19,7 +19,7 @@ from typing import Any, Sequence
 # evaluated against module globals; a function-local import would leave
 # `request: Request` unresolvable and FastAPI would treat it as a query
 # parameter instead.
-from fastapi import Request
+from fastapi import HTTPException, Request
 from fastapi.responses import Response
 
 from rwkv7_scheduler import (
@@ -333,7 +333,7 @@ class NativeG1I:
         scheduler's concat/select helpers branch on `cache.states`."""
         import torch
         from transformers import AutoConfig, AutoTokenizer
-        from rwkvfla.models.rwkv7 import modeling_rwkv7  # registers model_type rwkv7
+        from rwkvfla.models.rwkv7 import modeling_rwkv7  # noqa: F401  (registers model_type rwkv7)
         from rwkvfla.models.rwkv7.modeling_rwkv7 import RWKV7ForCausalLM
         from safetensors.torch import load_file
 
@@ -690,8 +690,8 @@ def _packages() -> list[dict[str, Any]]:
 
 
 def create_app():
-    from fastapi import FastAPI, HTTPException, Request
-    from fastapi.responses import JSONResponse, Response, StreamingResponse
+    from fastapi import FastAPI, HTTPException
+    from fastapi.responses import JSONResponse, StreamingResponse
 
     app = FastAPI(title="RWKV G1I continuous-batch sidecar", version="0.4.0")
 

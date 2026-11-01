@@ -17,7 +17,6 @@ from urllib.parse import urlsplit
 from . import state_evidence
 from .data_plane import AgentDataPlane
 from .model_client import ModelClient
-from .state_prompts import render_compact_answer_prompt
 from .claim_verifier import verify_answer_claims
 from .state_answer import attach_evidence_citations
 from .tools import KnowledgeSearchAdapter, WebSearchAdapter

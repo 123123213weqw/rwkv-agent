@@ -135,19 +135,15 @@ fn strip_think_blocks(value: &str) -> String {
     }
 }
 
-/// Native-format fallback for checkpoints trained on function-call syntax:
-/// `write_file(path="out.html", content="<html>…")`. Accepted only when the
-/// whole output is a single call, so prose that merely starts like a call
-/// still falls through to the protocol-retry path. Values follow JSON
-/// escaping; the final value may be unterminated when generation was bounded
-/// by max_tokens instead of the closing quote.
 /// Lenient fallback for an OpenAI-style `tool_calls` array.
 ///
 /// The checkpoint sometimes emits the schema it saw far more often during
 /// pretraining:
 ///
-///     <tool_calls>[{"type":"function","function":{"name":"read_file",
-///                   "arguments":"{\"path\":\"x.txt\"}"}}]</tool_calls>
+/// ```text
+/// <tool_calls>[{"type":"function","function":{"name":"read_file",
+///               "arguments":"{\"path\":\"x.txt\"}"}}]</tool_calls>
+/// ```
 ///
 /// `arguments` is a JSON-encoded *string* there, which is the detail that makes
 /// the shape unambiguous. Native-format parsing is attempted first, so this only
@@ -207,6 +203,12 @@ fn parse_openai_tool_calls(value: &str, allowed: &[String]) -> Option<Action> {
     None
 }
 
+/// Native-format fallback for checkpoints trained on function-call syntax:
+/// `write_file(path="out.html", content="<html>…")`. Accepted only when the
+/// whole output is a single call, so prose that merely starts like a call
+/// still falls through to the protocol-retry path. Values follow JSON
+/// escaping; the final value may be unterminated when generation was bounded
+/// by max_tokens instead of the closing quote.
 fn parse_function_call(value: &str) -> Option<Action> {
     let open = value.find('(')?;
     let name = &value[..open];
