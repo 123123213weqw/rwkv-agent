@@ -27,10 +27,9 @@ The embedded UI itself uses `/live`, `/ready`, canonical `/v1/tasks*` routes and
 bounded `/v1/research`.
 Compatibility aliases are not part of the frontend contract.
 
-For frontend-only iteration, `rwkv-agent-web-dev-proxy-rs` serves the checked-in
-TypeScript output from `web/` and proxies a strict allowlist to a loopback Rust
-Controller. It rejects Debug, compatibility and direct Tool routes. See
-[`docs/FRONTEND.md`](../../docs/FRONTEND.md).
+The checked-in frontend assets were removed with the web dev proxy; the Rust
+Controller's canonical HTTP contract now lives in
+[`docs/HTTP_API.md`](../../docs/HTTP_API.md).
 
 It defaults to the isolated port `8122`, Sidecar `8417` and Python data plane
 `8121`. The default semantic Gate threshold is the frozen Preview4922 13.3B
