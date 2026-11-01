@@ -82,16 +82,14 @@ pub fn parse_action_lenient(raw: &str, allowed: &[String]) -> Result<Action, Pro
         while let Some(offset) = value[from..].find(name.as_str()) {
             let start = from + offset;
             let rest = &value[start..];
-            let ends_ident = rest[name.len()..]
-                .chars()
-                .next()
-                .is_some_and(|c| c == '(');
+            let ends_ident = rest[name.len()..].chars().next().is_some_and(|c| c == '(');
             let before_ok = start == 0
                 || !value[..start]
                     .chars()
                     .next_back()
                     .is_some_and(|c| c.is_ascii_alphanumeric() || c == '_');
-            if ends_ident && before_ok
+            if ends_ident
+                && before_ok
                 && let Some(action @ Action::Tool(_)) = parse_function_call(rest)
             {
                 return Ok(action);
@@ -108,10 +106,7 @@ pub fn parse_action_lenient(raw: &str, allowed: &[String]) -> Result<Action, Pro
 /// not an answer.
 pub fn parse_plain_answer(raw: &str) -> Option<String> {
     let value = strip_think_blocks(raw.trim());
-    if value.is_empty()
-        || value.contains("<tool_call")
-        || value.contains("</tool_call")
-    {
+    if value.is_empty() || value.contains("<tool_call") || value.contains("</tool_call") {
         return None;
     }
     let cut = value
@@ -175,7 +170,10 @@ fn parse_openai_tool_calls(value: &str, allowed: &[String]) -> Option<Action> {
         Ok(other) => vec![other],
         Err(_) => {
             let (start, end) = (body.find('[')?, body.rfind(']')?);
-            serde_json::from_str::<Value>(body.get(start..=end)?).ok()?.as_array().cloned()?
+            serde_json::from_str::<Value>(body.get(start..=end)?)
+                .ok()?
+                .as_array()
+                .cloned()?
         }
     };
     let first = items.first()?;
@@ -276,7 +274,10 @@ fn parse_function_call(value: &str) -> Option<Action> {
     if arguments.is_empty() {
         return None;
     }
-    Some(Action::Tool(ToolCall { name: name.to_string(), arguments }))
+    Some(Action::Tool(ToolCall {
+        name: name.to_string(),
+        arguments,
+    }))
 }
 
 fn find_unescaped_quote(body: &str, from: usize) -> Option<usize> {
@@ -563,7 +564,8 @@ mod tests {
 
     #[test]
     fn function_call_fallback_accepts_unterminated_content() {
-        let action = parse_action("write_file(path=\"g.html\", content=\"<html>unterminated").unwrap();
+        let action =
+            parse_action("write_file(path=\"g.html\", content=\"<html>unterminated").unwrap();
         let Action::Tool(call) = action else {
             panic!("expected tool call");
         };
@@ -589,7 +591,10 @@ mod tests {
             parse_action("Note (2024): the file above is fine"),
             Err(ProtocolError::Envelope)
         );
-        assert_eq!(parse_action("write_file (no kwargs here)"), Err(ProtocolError::Envelope));
+        assert_eq!(
+            parse_action("write_file (no kwargs here)"),
+            Err(ProtocolError::Envelope)
+        );
     }
 
     #[test]
@@ -614,8 +619,13 @@ mod tests {
         )
         .unwrap();
         assert!(matches!(action, Action::Tool(_)));
-        let answer = parse_plain_answer("<think>hm</think>The file snake.html is complete with canvas and score.");
-        assert_eq!(answer.as_deref(), Some("The file snake.html is complete with canvas and score."));
+        let answer = parse_plain_answer(
+            "<think>hm</think>The file snake.html is complete with canvas and score.",
+        );
+        assert_eq!(
+            answer.as_deref(),
+            Some("The file snake.html is complete with canvas and score.")
+        );
     }
 
     #[test]

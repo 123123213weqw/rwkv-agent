@@ -6,12 +6,10 @@ use serde_json::{Value, json};
 use crate::protocol::normalize_tool_result;
 use crate::{
     Action, ActionKind, AgentError, AgentEvent, AgentRunRequest, AnswerDecision, CancellationToken,
-    EventSink, ModelOutput, OpenStateRequest, RunContext, RunLimits, RunReport,
-    StateContinueRequest, StateHandle, ToolCall, ToolRegistry, ToolStep,
-    parse_action, parse_action_lenient, parse_plain_answer, render_answer_observation,
-    render_answer_observation_with_reminder, render_plain_answer_observation_with_reminder,
-    ProtocolError,
-    render_observation_with_progress_and_reminder,
+    EventSink, ModelOutput, OpenStateRequest, ProtocolError, RunContext, RunLimits, RunReport,
+    StateContinueRequest, StateHandle, ToolCall, ToolRegistry, ToolStep, parse_action_lenient,
+    parse_plain_answer, render_answer_observation, render_answer_observation_with_reminder,
+    render_observation_with_progress_and_reminder, render_plain_answer_observation_with_reminder,
     render_tool_observation_with_progress_reminder_and_prefix,
 };
 
@@ -426,78 +424,78 @@ where
                             );
                         }
                         match parse_result {
-                        Ok(action) => action,
-                        // Plain-answer mode: when the phase machine has
-                        // already verified the mutation, a stalled or
-                        // babbling generation closes the task with the
-                        // committed answer instead of failing it.
-                        Err(_) if self.limits.plain_answer => {
-                            let answer = self
-                                .tools
-                                .committed_answer_after_observation()
-                                .or_else(|| synthesized_write_answer(&tools));
-                            if let Some(answer) = answer {
-                                self.events.emit(AgentEvent::AnswerCompleted {
-                                    answer: answer.clone(),
-                                });
-                                return Ok(RunReport {
-                                    answer,
-                                    state_id: state.state_id.clone(),
-                                    model_turns,
-                                    tool_steps,
-                                    tools,
-                                });
+                            Ok(action) => action,
+                            // Plain-answer mode: when the phase machine has
+                            // already verified the mutation, a stalled or
+                            // babbling generation closes the task with the
+                            // committed answer instead of failing it.
+                            Err(_) if self.limits.plain_answer => {
+                                let answer = self
+                                    .tools
+                                    .committed_answer_after_observation()
+                                    .or_else(|| synthesized_write_answer(&tools));
+                                if let Some(answer) = answer {
+                                    self.events.emit(AgentEvent::AnswerCompleted {
+                                        answer: answer.clone(),
+                                    });
+                                    return Ok(RunReport {
+                                        answer,
+                                        state_id: state.state_id.clone(),
+                                        model_turns,
+                                        tool_steps,
+                                        tools,
+                                    });
+                                }
+                                return Err(AgentError::Protocol(ProtocolError::Envelope));
                             }
-                            return Err(AgentError::Protocol(ProtocolError::Envelope.into()));
-                        }
-                        Err(error) if protocol_retries < self.limits.max_protocol_retries => {
-                            protocol_retries += 1;
-                            self.events.emit(AgentEvent::ProtocolRejected {
-                                turn: model_turns,
-                                retry: protocol_retries,
-                                message: error.to_string(),
-                                output_preview: output.text.chars().take(1_000).collect(),
-                                provider_input: provider_input.clone(),
-                                raw_output: if self.limits.capture_model_output {
-                                    output.text.clone()
+                            Err(error) if protocol_retries < self.limits.max_protocol_retries => {
+                                protocol_retries += 1;
+                                self.events.emit(AgentEvent::ProtocolRejected {
+                                    turn: model_turns,
+                                    retry: protocol_retries,
+                                    message: error.to_string(),
+                                    output_preview: output.text.chars().take(1_000).collect(),
+                                    provider_input: provider_input.clone(),
+                                    raw_output: if self.limits.capture_model_output {
+                                        output.text.clone()
+                                    } else {
+                                        String::new()
+                                    },
+                                    stop_reason: output.stop_reason.clone(),
+                                    max_tokens,
+                                });
+                                let feedback = format!(
+                                    "The previous protocol envelope was rejected: {error}. Output one strict tool call whose arguments field is a JSON object like {{\"command\":\"...\"}}, or one direct function call like run_command(command=\"ls\"), never a JSON-encoded string."
+                                );
+                                if let Some(root_prompt) =
+                                    self.tools.answer_retry_root_prompt(&feedback)
+                                {
+                                    let refresh_worker =
+                                        self.tools.refresh_worker_after_protocol_rejection();
+                                    let forked = self
+                                        .replace_state(
+                                            state,
+                                            owner_id,
+                                            &root_prompt,
+                                            root_state,
+                                            refresh_worker,
+                                            context.clone(),
+                                        )
+                                        .await?;
+                                    let tool_prefix = self.tools.tool_call_prefix();
+                                    input = replacement_input(&root_prompt, &tool_prefix, forked);
                                 } else {
-                                    String::new()
-                                },
-                                stop_reason: output.stop_reason.clone(),
-                                max_tokens,
-                            });
-                            let feedback = format!(
-                                "The previous protocol envelope was rejected: {error}. Output one strict tool call whose arguments field is a JSON object like {{\"command\":\"...\"}}, or one direct function call like run_command(command=\"ls\"), never a JSON-encoded string."
-                            );
-                            if let Some(root_prompt) =
-                                self.tools.answer_retry_root_prompt(&feedback)
-                            {
-                                let refresh_worker =
-                                    self.tools.refresh_worker_after_protocol_rejection();
-                                let forked = self
-                                    .replace_state(
-                                        state,
-                                        owner_id,
-                                        &root_prompt,
-                                        root_state,
-                                        refresh_worker,
-                                        context.clone(),
-                                    )
-                                    .await?;
-                                let tool_prefix = self.tools.tool_call_prefix();
-                                input = replacement_input(&root_prompt, &tool_prefix, forked);
-                            } else {
-                                input = format!(
-                                    "\n\nUser: Your previous protocol output was rejected: {error}. \
+                                    input = format!(
+                                        "\n\nUser: Your previous protocol output was rejected: {error}. \
 Retry {protocol_retries}/{}. Output exactly one native function call like read_file(path=\"SPEC.md\") — closed with \") — or the final plain answer. \
 Prefer a simpler equivalent command when possible. \
 Do not include reasoning or repeat a completed command.\n\nAssistant:",
-                                    self.limits.max_protocol_retries,
-                                );
+                                        self.limits.max_protocol_retries,
+                                    );
+                                }
+                                continue;
                             }
-                            continue;
-                        }
-                        Err(error) => return Err(error.into()),
+                            Err(error) => return Err(error.into()),
                         }
                     };
                     (
@@ -696,10 +694,7 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                     // reads or rejections, exit with a completion answer.
                     let has_successful_write = tools.iter().any(|step| {
                         step.result.get("status").and_then(Value::as_str) == Some("ok")
-                            && matches!(
-                                step.call.name.as_str(),
-                                "write_file" | "edit_file"
-                            )
+                            && matches!(step.call.name.as_str(), "write_file" | "edit_file")
                     });
                     let has_verified_read = tools.iter().any(|step| {
                         step.result.get("status").and_then(Value::as_str) == Some("ok")
@@ -709,8 +704,7 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                         && has_successful_write
                         && has_verified_read
                         && (repeated_rejections >= 1
-                            || result.get("status").and_then(Value::as_str)
-                                != Some("ok"))
+                            || result.get("status").and_then(Value::as_str) != Some("ok"))
                     {
                         let answer = format!(
                             "File written and verified successfully.\n{}",
@@ -734,8 +728,7 @@ Do not explain unfinished work.\n\nAssistant:{suffix}",
                         // tool output instead of failing the whole task.
                         if !self.limits.ablate_recovery
                             && let Some(last_ok) = tools.iter().rev().find(|step| {
-                                step.result.get("status").and_then(Value::as_str)
-                                    == Some("ok")
+                                step.result.get("status").and_then(Value::as_str) == Some("ok")
                             })
                         {
                             let answer = synthesize_exit_answer(&last_ok.result);

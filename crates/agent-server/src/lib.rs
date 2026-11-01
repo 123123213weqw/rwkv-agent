@@ -2,7 +2,7 @@ use axum::body::{Body, Bytes};
 use axum::extract::rejection::{JsonRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use axum::{Json, Router};
 use rwkv_agent_runtime::{
@@ -1049,11 +1049,7 @@ async fn gate(
     response_with_identity(
         state
             .service
-            .gate(
-                &body.message,
-                body.threshold,
-                &body.context,
-            )
+            .gate(&body.message, body.threshold, &body.context)
             .await,
         &request_id,
         "compat:gate",
@@ -1212,10 +1208,7 @@ fn error_from_message(message: String, request_id: &str) -> (StatusCode, Json<Va
         // Retryable overload, not a dependency failure. 429 keeps this distinct
         // from a genuinely unavailable sidecar, which the branch below maps to
         // 503 and which would send an operator looking at the GPU.
-        (
-            StatusCode::TOO_MANY_REQUESTS,
-            ServiceErrorCode::Unavailable,
-        )
+        (StatusCode::TOO_MANY_REQUESTS, ServiceErrorCode::Unavailable)
     } else if lower.contains("connection")
         || lower.contains("connect")
         || lower.contains("sidecar")
@@ -1316,7 +1309,6 @@ mod tests {
         .unwrap();
         router(service)
     }
-
 
     #[test]
     fn legacy_run_body_resolves_to_task_spec_v1() {

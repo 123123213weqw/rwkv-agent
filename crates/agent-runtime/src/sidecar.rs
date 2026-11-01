@@ -575,22 +575,21 @@ impl SidecarClient {
             .map_err(|error| format!("sidecar invalid completion response: {error}"))
     }
 
-
-/// Skip leading `<think>...</think>` blocks.
-///
-/// Recurrent checkpoints open with a reasoning block even when the prompt
-/// forbids it. Envelope-presence checks must look past it, or the opener is
-/// synthesized a second time and the JSON body becomes unparseable.
-fn skip_think_prefix(value: &str) -> &str {
-    let mut rest = value.trim_start();
-    while let Some(stripped) = rest.strip_prefix("<think>") {
-        match stripped.find("</think>") {
-            Some(end) => rest = stripped[end + "</think>".len()..].trim_start(),
-            None => return "",
+    /// Skip leading `<think>...</think>` blocks.
+    ///
+    /// Recurrent checkpoints open with a reasoning block even when the prompt
+    /// forbids it. Envelope-presence checks must look past it, or the opener is
+    /// synthesized a second time and the JSON body becomes unparseable.
+    fn skip_think_prefix(value: &str) -> &str {
+        let mut rest = value.trim_start();
+        while let Some(stripped) = rest.strip_prefix("<think>") {
+            match stripped.find("</think>") {
+                Some(end) => rest = stripped[end + "</think>".len()..].trim_start(),
+                None => return "",
+            }
         }
+        rest
     }
-    rest
-}
 
     fn reconstruct_envelope(input: &str, row: &BatchContinuation) -> String {
         // Strip a leading <think> block before any envelope decision. The model
@@ -679,19 +678,21 @@ fn function_call_prefill(input: &str) -> Option<&str> {
     let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_';
     let open = suffix.find('(')?;
     let name = &suffix[..open];
-    let looks_like_call = !name.is_empty()
-        && name.chars().all(is_ident)
-        && !suffix.starts_with('<');
+    let looks_like_call =
+        !name.is_empty() && name.chars().all(is_ident) && !suffix.starts_with('<');
     looks_like_call.then_some(suffix)
 }
 
 fn prefill_name_and_paren(prefill: &str) -> String {
-    let open = prefill.find('(').expect("caller verified the prefill opens a call");
+    let open = prefill
+        .find('(')
+        .expect("caller verified the prefill opens a call");
     prefill[..=open].to_string()
 }
 
 fn validate_snapshot_payload(
-    checksum: &str,    expected_size_bytes: u64,
+    checksum: &str,
+    expected_size_bytes: u64,
     payload_base64: &str,
 ) -> Result<(), String> {
     if !checksum.starts_with("sha256:") || checksum.len() != 71 {
@@ -1092,7 +1093,10 @@ mod tests {
         let input = "\n\nAssistant: write_file(path=\"card.html\", content=\"";
         let reconstructed = SidecarClient::reconstruct_envelope(
             input,
-            &row("write_file(path=\"card.html\", content=\"<p>x</p>\")", "\")"),
+            &row(
+                "write_file(path=\"card.html\", content=\"<p>x</p>\")",
+                "\")",
+            ),
         );
         assert_eq!(
             reconstructed,

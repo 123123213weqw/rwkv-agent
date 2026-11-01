@@ -5,8 +5,8 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rwkv_agent_core::{
     AgentEvent, AgentLoop, AgentRunRequest, AnswerDecision, ArgumentSpec, CancellationToken,
-    RequestIdentity, RunContext, RunLimits, SERVICE_API_VERSION, TaskSpec,
-    ToolCall, ToolDefinition, ToolExecutor, ToolRegistry, VecEventSink,
+    RequestIdentity, RunContext, RunLimits, SERVICE_API_VERSION, TaskSpec, ToolCall,
+    ToolDefinition, ToolExecutor, ToolRegistry, VecEventSink,
 };
 use serde_json::{Value, json};
 use tokio::sync::{Mutex, Notify, mpsc};
@@ -1812,18 +1812,14 @@ impl AgentService {
             let deadline = if self.config.admission_wait_seconds > 0.0 {
                 Some(
                     std::time::Instant::now()
-                        + std::time::Duration::from_secs_f64(
-                            self.config.admission_wait_seconds,
-                        ),
+                        + std::time::Duration::from_secs_f64(self.config.admission_wait_seconds),
                 )
             } else {
                 None
             };
             loop {
                 let active_now = self.active_tasks.lock().await.len();
-                if active_now < self.config.max_active_tasks
-                    || cancellation.is_cancelled()
-                {
+                if active_now < self.config.max_active_tasks || cancellation.is_cancelled() {
                     break;
                 }
                 match deadline {
@@ -1836,8 +1832,7 @@ impl AgentService {
                     Some(limit) if std::time::Instant::now() >= limit => {
                         return Err(format!(
                             "fleet at capacity after {}s: {active_now} of {} active tasks",
-                            self.config.admission_wait_seconds,
-                            self.config.max_active_tasks
+                            self.config.admission_wait_seconds, self.config.max_active_tasks
                         ));
                     }
                     Some(_) => {
@@ -2239,7 +2234,10 @@ impl AgentService {
             .await;
             let _ = events.send(json!({"type":"phase","phase":"routing"})).await;
         }
-        let history = self.sessions.history(&session_id, CHAT_HISTORY_WINDOW).await?;
+        let history = self
+            .sessions
+            .history(&session_id, CHAT_HISTORY_WINDOW)
+            .await?;
         let context = prompt::bounded_context(&history, 8000);
         let routing_context = prompt::bounded_context(&history, 2000);
         let gate = if workspace.is_some() {
@@ -2270,17 +2268,11 @@ impl AgentService {
             GateDecision {
                 use_tool: true,
                 tool: None,
-                trace: serde_json::Map::from_iter([
-                    ("mode".into(), json!("model_routed")),
-                ]),
+                trace: serde_json::Map::from_iter([("mode".into(), json!("model_routed"))]),
             }
         } else {
             self.sidecar
-                .gate(
-                    message,
-                    self.config.tool_gate_threshold,
-                    &routing_context,
-                )
+                .gate(message, self.config.tool_gate_threshold, &routing_context)
                 .await?
         };
         debug_record(
@@ -4066,12 +4058,13 @@ fn replay_task_record(record: &TaskRecord) -> Result<Value, String> {
 /// to commit.
 fn explicit_tool_signal(message: &str) -> Option<&'static str> {
     const EXTS: &[&str] = &[
-        "txt", "md", "py", "rs", "js", "ts", "tsx", "json", "yaml", "yml", "toml",
-        "csv", "log", "sh", "bash", "zsh", "html", "htm", "css", "xml", "pdf",
-        "png", "jpg", "jpeg", "gif", "sql", "go", "java", "c", "h", "cpp", "hpp",
-        "rb", "php", "ini", "cfg", "conf", "env", "lock",
+        "txt", "md", "py", "rs", "js", "ts", "tsx", "json", "yaml", "yml", "toml", "csv", "log",
+        "sh", "bash", "zsh", "html", "htm", "css", "xml", "pdf", "png", "jpg", "jpeg", "gif",
+        "sql", "go", "java", "c", "h", "cpp", "hpp", "rb", "php", "ini", "cfg", "conf", "env",
+        "lock",
     ];
-    let is_token_char = |c: char| c.is_ascii_alphanumeric() || matches!(c, '.' | '/' | '-' | '_' | ':' | '~');
+    let is_token_char =
+        |c: char| c.is_ascii_alphanumeric() || matches!(c, '.' | '/' | '-' | '_' | ':' | '~');
     for rough in message.split_whitespace() {
         let token = rough.trim_matches(|c: char| !is_token_char(c));
         if token.len() < 3 {
@@ -4080,15 +4073,18 @@ fn explicit_tool_signal(message: &str) -> Option<&'static str> {
         if token.starts_with("http://") || token.starts_with("https://") {
             return Some("url");
         }
-        if token.starts_with('/') || token.starts_with("./") || token.starts_with("../")
+        if token.starts_with('/')
+            || token.starts_with("./")
+            || token.starts_with("../")
             || token.starts_with("~/")
         {
             return Some("path");
         }
-        if let Some((stem, ext)) = token.rsplit_once('.') {
-            if !stem.is_empty() && EXTS.contains(&ext.to_ascii_lowercase().as_str()) {
-                return Some("filename");
-            }
+        if let Some((stem, ext)) = token.rsplit_once('.')
+            && !stem.is_empty()
+            && EXTS.contains(&ext.to_ascii_lowercase().as_str())
+        {
+            return Some("filename");
         }
     }
     None
@@ -4393,7 +4389,8 @@ mod tests {
     #[test]
     fn workspace_phase_commits_mutation_then_verification_tool_names() {
         let mut state =
-            WorkspaceExecution::new("Inspect inputs, implement output.py, and test it.");        state.record(
+            WorkspaceExecution::new("Inspect inputs, implement output.py, and test it.");
+        state.record(
             "read_file(SPEC.md)",
             &json!({"status":"ok","stdout":"spec"}),
             false,
@@ -4440,8 +4437,14 @@ mod tests {
         spec.requires_mutation = Some(true);
         spec.verification_commands = vec!["python3 test_calc.py".into()];
         spec.working_directory = Some("repo".into());
-        let mut state =
-            WorkspaceExecution::from_task_spec_with_inventory(&spec, "repo", &["calc.py (24 bytes)".into(), "test_calc.py (41 bytes)".into()]);
+        let mut state = WorkspaceExecution::from_task_spec_with_inventory(
+            &spec,
+            "repo",
+            &[
+                "calc.py (24 bytes)".into(),
+                "test_calc.py (41 bytes)".into(),
+            ],
+        );
         state.record(
             "python3 test_calc.py",
             &json!({"status":"error","stderr":"assert failed"}),

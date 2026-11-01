@@ -162,7 +162,7 @@ async fn statepool_plugin_in_zone(
     ) -> (axum::http::StatusCode, Json<Value>) {
         if state
             .fail_snapshots
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+            .try_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
                 value.checked_sub(1)
             })
             .is_ok()
@@ -224,7 +224,7 @@ async fn statepool_plugin_in_zone(
         assert_eq!(record["outcome"], "succeeded");
         if state
             .fail_usage
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+            .try_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
                 value.checked_sub(1)
             })
             .is_ok()
@@ -1114,6 +1114,10 @@ async fn repeated_tool_failure_stops_before_budget_and_preserves_release_event()
         model_urls: vec![model_url],
         data_plane_url: data_url,
         session_dir: directory.path().join("sessions"),
+        // The original contract — repeated identical calls surface as
+        // no_progress — is the ablated-recovery behavior. The default
+        // path synthesizes an exit answer instead (see the companion test).
+        ablate_recovery: true,
         debug_trace: DebugTraceConfig {
             mode: DebugTraceMode::Full,
             directory: directory.path().join("debug-traces"),
@@ -1163,6 +1167,34 @@ async fn repeated_tool_failure_stops_before_budget_and_preserves_release_event()
             >= 3
     );
     assert!(events.iter().any(|event| event.event_type == "run_failed"));
+}
+
+#[tokio::test]
+async fn repeated_success_synthesizes_exit_answer_by_default() {
+    let (model_url, mock) = sidecar().await;
+    let data_url = data_plane().await;
+    let directory = tempfile::tempdir().unwrap();
+    let service = AgentService::new(RuntimeConfig {
+        model_urls: vec![model_url],
+        data_plane_url: data_url,
+        session_dir: directory.path().join("sessions"),
+        ..RuntimeConfig::default()
+    })
+    .await
+    .unwrap();
+
+    let result = service.run("search loop", "tool-error").await.unwrap();
+
+    // Default fleet behavior since the duplicate-exit recovery landed:
+    // a repeated identical successful call closes the run with the last
+    // successful tool output instead of failing the whole task.
+    assert_eq!(result["status"], "ok");
+    let answer = result["answer"].as_str().unwrap_or_default();
+    assert!(
+        !answer.is_empty(),
+        "synthesized exit answer must be non-empty"
+    );
+    assert!(mock.releases.load(std::sync::atomic::Ordering::SeqCst) >= 1);
 }
 
 #[tokio::test]

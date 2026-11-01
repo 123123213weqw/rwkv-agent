@@ -1,7 +1,7 @@
 use crate::Exchange;
-use rwkv_agent_core::TaskSpec;
 #[cfg(test)]
 use rwkv_agent_core::TOOL_CALL_JSON_PREFIX;
+use rwkv_agent_core::TaskSpec;
 
 pub const CHAT_STOPS: &[&str] = &["</answer>", "\n\nUser:", "\nUser:", "\nSystem:", "</s>"];
 
@@ -302,7 +302,6 @@ mod tests {
         assert!(value.contains("Work in /workspace and read input.txt."));
         assert!(value.ends_with('}'));
     }
-
 
     #[test]
     fn structured_non_workspace_task_keeps_acceptance_contract() {

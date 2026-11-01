@@ -118,7 +118,6 @@ enum ToolCommand {
         #[arg(required = true, trailing_var_arg = true)]
         query: Vec<String>,
     },
-
 }
 
 struct AgentClient {
@@ -838,7 +837,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn parses_stateful_research_with_bounded_controls() {
         let cli = Cli::try_parse_from([
@@ -917,5 +915,4 @@ mod tests {
         assert_ne!(first, second);
         assert_eq!(resolve_session(Some("demo")), "demo");
     }
-
 }
