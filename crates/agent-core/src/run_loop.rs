@@ -1053,6 +1053,33 @@ Retry {answer_retries}/{}. Continue the original task and satisfy every requeste
 /// repeated an identical completed tool call instead of answering.
 /// Grounded fallback for plain-answer stalls: any successful write in
 /// this run is the deliverable, so the report names the file and size.
+/// A generation-budget truncation can still report a successful write;
+/// closing a task on a half file is worse than running out of budget.
+/// HTML targets must close their root element, and every opened
+/// <script> must be closed, before a write counts as deliverable.
+fn write_looks_complete(step: &ToolStep) -> bool {
+    let path = step
+        .call
+        .arguments
+        .get("path")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    let content = step
+        .call
+        .arguments
+        .get("content")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    if content.len() < 200 {
+        return false;
+    }
+    if path.ends_with(".html") || path.ends_with(".htm") {
+        return content.trim_end().ends_with("</html>")
+            && content.matches("<script").count() <= content.matches("</script>").count();
+    }
+    true
+}
+
 fn synthesized_write_answer(tools: &[ToolStep]) -> Option<String> {
     tools
         .iter()
@@ -1060,6 +1087,7 @@ fn synthesized_write_answer(tools: &[ToolStep]) -> Option<String> {
         .find(|step| {
             step.call.name == "write_file"
                 && step.result.get("status").and_then(Value::as_str) == Some("ok")
+                && write_looks_complete(step)
         })
         .map(|step| {
             let path = step
